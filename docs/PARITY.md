@@ -17,21 +17,21 @@
 
 | ID | Feature | Status |
 |---|---|---|
-| N1 | Bengali akarmatrik and Sa Re Ga letters, mixed freely; a beat is a group between spaces or bars | — |
-| N2 | Komal ঋ জ্ঞ দ ণ / `r g d n` and tivra হ্ম / `M#` (`#` only after Ma, else an error) | — |
-| N3 | Octaves −2…+2: upper রেফ `র্` before (repeatable) or `'` `’` `^` `*` `` ` `` after; lower `.` before or হসন্ত after; a mark after the আকার still applies | — |
-| N4 | Holds `- – — ~ ০` extend the previous note across beats and lines; rests `x X _ ×` end it; an unreadable beat becomes a hold | — |
-| N5 | Several notes in one beat without a space, split evenly (`পধা` = `পাধা` = `PD`; `S-R` is uneven); the আকার never ends a beat | — |
-| N6 | Bars `\| । ॥ ‖ I` (and `II`) separate beats; display and checker only | — |
-| N7 | Lyric lines `>` under a notes line, one group per beat; several `>` lines stack as verses; a group of only `০ 0 - – —` is drawn faded; more groups than beats → warning; lyrics with no notes line above → warning | — |
-| N8 | Heading lines `#` (shown, not timed) | — |
-| N9 | Pickups: `startOn` puts the first beat on any taal beat | — |
-| N10 | Unknown characters flag their beat (`“ক” is not a note the player knows`); the beat still plays what it could read; errors carry the global beat index | — |
-| N11 | Source offsets for every beat, note letter and octave mark (the editor needs them) | — |
-| N12 | Note events: start and duration in matras; holds merge into the note before | — |
-| N13 | Edit operations: `shiftOctaves`, `joinBeats`, `splitBeats` (pure text → text) | — |
-| N14 | Checker: bar/line lengths against vibhag lines (each bar judged on its own), octave slips with a one-click fix, deliberate-leap exemptions | — |
-| N15 | 12 built-in exercises generated from compact Sa Re Ga specs, plus the Sa Re Ga typing example; all check clean | — |
+| N1 | Bengali akarmatrik and Sa Re Ga letters, mixed freely; a beat is a group between spaces or bars | Core |
+| N2 | Komal ঋ জ্ঞ দ ণ / `r g d n` and tivra হ্ম / `M#` (`#` only after Ma, else an error) | Core |
+| N3 | Octaves −2…+2: upper রেফ `র্` before (repeatable) or `'` `’` `^` `*` `` ` `` after; lower `.` before or হসন্ত after; a mark after the আকার still applies | Core |
+| N4 | Holds `- – — ~ ০` extend the previous note across beats and lines; rests `x X _ ×` end it; an unreadable beat becomes a hold | Core |
+| N5 | Several notes in one beat without a space, split evenly (`পধা` = `পাধা` = `PD`; `S-R` is uneven); the আকার never ends a beat | Core |
+| N6 | Bars `\| । ॥ ‖ I` (and `II`) separate beats; display and checker only | Core |
+| N7 | Lyric lines `>` under a notes line, one group per beat; several `>` lines stack as verses; a group of only `০ 0 - – —` is drawn faded; more groups than beats → warning; lyrics with no notes line above → warning | Core |
+| N8 | Heading lines `#` (shown, not timed) | Core |
+| N9 | Pickups: `startOn` puts the first beat on any taal beat | Core |
+| N10 | Unknown characters flag their beat (`“ক” is not a note the player knows`); the beat still plays what it could read; errors carry the global beat index | Core |
+| N11 | Source offsets for every beat, note letter and octave mark (the editor needs them) | Core |
+| N12 | Note events: start and duration in matras; holds merge into the note before | Core |
+| N13 | Edit operations: `shiftOctaves`, `joinBeats`, `splitBeats` (pure text → text) | Core |
+| N14 | Checker: bar/line lengths against vibhag lines (each bar judged on its own), octave slips with a one-click fix, deliberate-leap exemptions | Core |
+| N15 | 12 built-in exercises generated from compact Sa Re Ga specs, plus the Sa Re Ga typing example; all check clean | Core |
 
 ## Editor (Edit notation tab)
 
@@ -56,11 +56,11 @@
 | P1 | Brass play/stop button (accessible name switches Play/Stop); Space bar plays and stops unless focus is in a field, button or editable element | — |
 | P2 | Tempo 30–240 matras/min: number field, − and + (steps of 4), slider; saved with the song | — |
 | P3 | Sa: key (C … B, each with its CT-X3000 key, "C · White 1", "C♯ · Black 1" …) and octave (Low 3, Middle 4, High 5); saved with the song; retunes live (drone, tabla pitch, tanpura) | — |
-| P4 | Six taals with theka, vibhags and marks: Dadra, Keherwa, Rupak, Jhaptal, Ektal, Teentaal | — |
+| P4 | Six taals with theka, vibhags and marks: Dadra, Keherwa, Rupak, Jhaptal, Ektal, Teentaal | Core |
 | P5 | Rhythm: Tabla, Dholak, Drums, Click or Off, with a rhythm volume slider (live) | — |
-| P6 | Speed: Half, Normal, Double | — |
-| P7 | "Fill every 4th cycle" (also fills the count-in); the kit crashes on the sam after a fill | — |
-| P8 | Layer chips per style (tabla/dholak: manjira, kartal, ghungroo, shaker; dholak adds tambourine; drums: shaker, tambourine, claps, cowbell, congas, ride); each style remembers its own | — |
+| P6 | Speed: Half, Normal, Double | Core |
+| P7 | "Fill every 4th cycle" (also fills the count-in); the kit crashes on the sam after a fill | Core |
+| P8 | Layer chips per style (tabla/dholak: manjira, kartal, ghungroo, shaker; dholak adds tambourine; drums: shaker, tambourine, claps, cowbell, congas, ride); each style remembers its own | Core |
 | P9 | Harmonium guide: 1, 2 or 3 reeds (loudness-matched, tone updates live); Guide Full, Soft or Off (live) | — |
 | P10 | Drone: Tanpura or Harmonium, with a volume slider (live; default 0, and picking a drone at 0 sets 0.5); tanpura 1st string Pa, Ma or Ni (shown only for the tanpura) | — |
 | P11 | Master compressor and reverb as in ENGINE.md | — |
@@ -91,9 +91,9 @@
 | F2 | Each song is its own record; saves debounced (900 ms) and flushed when the page is hidden or another song loads; status line ("Saving…", "Saved in this browser", failures that say what to do) | — |
 | F3 | **Make a copy** (exercise: drops an "Example ·" style prefix; own song: adds "(copy)") | — |
 | F4 | **Delete song** with an inline Delete / Keep confirmation; then opens the first remaining song, or the first exercise | — |
-| F5 | **Export this song** → `<title>.json` in the `gaaner-sathi` v1 envelope | — |
-| F6 | **Back up all my songs** → `gaaner-sathi-songs-YYYY-MM-DD.json` (exercises left out; a message when there is nothing to back up) | — |
-| F7 | **Import from file**: one or more `.json` (envelope, bare array or single song) or `.txt` (one song named after the file); 2 MB per file, 200 songs, 200 000 characters per song; always new ids; reports counts and problems; opens the first imported song | — |
+| F5 | **Export this song** → `<title>.json` in the `gaaner-sathi` v1 envelope | Core |
+| F6 | **Back up all my songs** → `gaaner-sathi-songs-YYYY-MM-DD.json` (exercises left out; a message when there is nothing to back up) | Core |
+| F7 | **Import from file**: one or more `.json` (envelope, bare array or single song) or `.txt` (one song named after the file); 2 MB per file, 200 songs, 200 000 characters per song; always new ids; reports counts and problems; opens the first imported song | Core |
 | F8 | Opens on the last song used (default: exercise 3, "অলংকার · তিন স্বরের দল") | — |
 | F9 | Device preferences kept per browser, with migrations of old keys (`extra` → `layers`, `dropGuide` → `guideLoop: 'first'`); the last tab is remembered | — |
 | F10 | Show notes as বাংলা or Sa Re Ga (sheets, chips, line labels, note buttons) | — |

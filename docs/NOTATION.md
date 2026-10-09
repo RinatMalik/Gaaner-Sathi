@@ -42,7 +42,7 @@ A song is plain text, one line per row:
 | 10 | ণ | n | komal Ni |
 | 11 | ন | N | Ni |
 
-Ignored inside beats: আকার `া`, বিসর্গ `ঃ`, ZWJ, ZWNJ, BOM.
+Ignored inside beats: আকার `া`, বিসর্গ `ঃ`, ZWJ, ZWNJ. A BOM (U+FEFF) inside a line acts as a space, because JavaScript counts it as whitespace (checked 2026-10-10; the port keeps this).
 
 ## Octaves (range −2 … +2)
 

@@ -33,15 +33,16 @@ decision, which always wins (see Source-of-truth order).
 ## Current state
 
 - **Current milestone:** Phase 0, port (Roadmap at a glance below).
-- **Current task:** PH0-02, the TypeScript core port with the reference suites
-  carried over one-for-one (Claude, in progress).
-- **Next single action:** finish PH0-02; then PH0-03, the audio engine.
-- **Last known-good commit:** `c0b057c` (reference suites green locally and in CI run
-  `38001060696`).
+- **Current task:** none in progress. PH0-02 (the pure core in TypeScript) is done.
+- **Next single action:** PH0-03, the audio engine: the lookahead scheduler and the
+  synthesised instruments, checked by offline-render measurements against ENGINE.md.
+- **Last known-good commit:** `8b5b933` (CI run `38005291130`: core and reference jobs
+  green).
 - **How to run it now:** the prototype: open `reference/gaaner-sathi.html` in a
-  browser. Its tests: `bash reference/tests/run-all.sh`. The new app has no screen yet.
-- **Blockers:** none for the port. PH0-05 (a live deploy) waits on Open question 3.
-- **Uncommitted work:** Claude's PH0-02, in progress.
+  browser. The new code: `npm install`, then `npm test` (see Conventions → Stack). The
+  new app has no screen yet.
+- **Blockers:** none for the next step. PH0-05 (a live deploy) waits on Open question 3.
+- **Uncommitted work:** none.
 
 ## Product direction — what this is meant to be now
 
@@ -262,12 +263,19 @@ them (level 4); `docs/PARITY.md` is a checklist (level 6).
 - **Commits:** small — one behavioural idea plus its tests per commit. Prefixes:
   `feat:` `fix:` `test:` `docs:` `refactor:` `ci:` `chore:` `wip:`.
 - **Stack / commands:** ADR-001 (revised 2026-10-10): TypeScript (strict), Vite,
-  Vitest, no UI framework, Node 24 LTS. Being scaffolded in PH0-02. Today:
-  - Reference suites on the prototype: `bash reference/tests/run-all.sh` (Node 18+,
-    nothing to install). Green means parser 31, checker 11, join-split 10, rhythm 12,
-    tanpura 5 passed and 12 exercises valid.
+  Vitest, no UI framework, no runtime dependencies, Node 24 LTS. Layout: `src/core/`
+  (pure: notation, taal, exercises, song), `src/audio/dsp/` (pure DSP), `tests/ported/`
+  (the reference suites one-for-one), `tests/differential/` (port versus the prototype's
+  own code), `tests/unit/`.
+  - `npm install` once; `npm test` runs every Vitest suite (112 tests, about 8 s).
+  - `npm run typecheck`: the whole project, then `src/core` and `src/audio/dsp`
+    with no DOM library (a DOM call there fails).
+  - `npm run test:reference` (or `bash reference/tests/run-all.sh`): the prototype's own
+    suites. Green means parser 31, checker 11, join-split 10, rhythm 12, tanpura 5
+    passed and 12 exercises valid.
   - Prototype: open `reference/gaaner-sathi.html` in a browser.
-  - CI: `.github/workflows/ci.yml` runs on every push to `main`.
+  - CI: `.github/workflows/ci.yml` on every push to `main`: a core job (`npm ci`,
+    type-check, tests) and a reference job.
 - **Environment gotchas:**
   - Windows: system git has `core.autocrlf=true` and `.gitattributes` normalises to LF
     in the repo, so "LF will be replaced by CRLF" warnings are expected noise; `.sh`
@@ -277,7 +285,11 @@ them (level 4); `docs/PARITY.md` is a checklist (level 6).
   - Node is 24.20.0. npm is 9.8.1: an old global copy in `%APPDATA%\npm` shadows Node
     24's own npm, which the upgrade did not install. It works; to update it:
     `npm install -g npm@latest`.
-  - `run-all.sh` writes `reference/tests/.extracted/` (git-ignored).
+  - `run-all.sh` writes `reference/tests/.extracted/` (git-ignored). The repo root is an
+    ES module package; `reference/tests/package.json` keeps the prototype's suites
+    CommonJS. Vitest's JSON reporter writes `.vitest/` (git-ignored).
+  - Node 24 runs `node -e` code through its TypeScript stripper, which can trip on
+    regex escapes: put one-off scripts in a file instead.
   - `gh` is installed but not logged in; pushes go through Git Credential Manager.
 - Keep CLAUDE.md and AGENTS.md aligned so the shared-branch rules survive future
   sessions.
@@ -330,7 +342,7 @@ progress, Blocked, Review, Done, Superseded.*
 | ID | Owner | Status | Scope / paths | Acceptance evidence | Notes |
 |---|---|---|---|---|---|
 | PH0-01 | Claude | Done | framework docs, `docs/`, `reference/`, CI; remove `handover/` | Handover merged and removed; reference suites green locally and in CI run `38001060696`; pushed (`c0b057c`) | Framework and repo setup |
-| PH0-02 | Claude | In progress | `src/core/`, `src/audio/dsp/`, `tests/`, `package.json`, configs, CI | All 69 reference tests and 12 exercises ported one-for-one and green; differential tests against the prototype; `src/core` type-checks with no DOM library; CI green | Core port |
+| PH0-02 | Claude | Done | `src/core/`, `src/audio/dsp/`, `tests/`, `package.json`, configs, CI | 69 reference tests and 12 exercises ported one-for-one and green; differential tests against the prototype green and shown to catch injected bugs; `src/core` type-checks with no DOM library; CI run `38005291130` green (`8b5b933`) | Core port |
 | PH0-03 | — | Proposed | `src/audio/` | Offline-render measurements match ENGINE.md; timing as pure tests | Audio engine |
 | PH0-04 | — | Proposed | `src/app/` | Every `docs/PARITY.md` item Done, checked in the browser at 360 px in both themes | Interface to parity, essentials up front |
 | PH0-05 | — | Blocked | hosting, deploy workflow | A live URL deployed from `main` that opens on a phone | Waits on Open question 3 |
@@ -387,6 +399,65 @@ statements must name the exact command, result, and environment — "tests pass"
 is not sufficient. When this grows long, keep only the last few entries here and
 move older ones into a `HISTORY.md` you create then, so this file stays lean.*
 
+
+### 2026-10-10 00:40 BST — Claude (Opus 5.5) — PH0-02 (and Rinat's setup answers)
+
+- **Goal:** apply Rinat's answers (decisions, a clean folder, a lighter plan); port the
+  pure core to TypeScript with the reference suites carried over one-for-one.
+- **Inspected:** the Node upgrade (node 24.20.0; npm still 9.8.1, from an old global
+  copy in `%APPDATA%\npm`, because the upgrade left Program Files' npm at 9.8.0); every
+  invisible or look-alike character in the prototype's parser and tests, by code point
+  (only the ZWNJ/ZWJ/BOM set and one ZWNJ in a parser test case).
+- **Changed:**
+  - `4d21c9c`: removed `bootstrap.bat`, `CHANGELOG.md`, `LICENSE`, `.env.example`, the
+    empty `.agents/`, `reference/tests/README.md` (folded into `reference/README.md`) and
+    unused config sections; ADR-001 revised (no React, Playwright or IndexedDB); roadmap
+    trimmed to port and publish, the rest parked; this file, CLAUDE.md, AGENTS.md and
+    SECURITY.md updated for the answers.
+  - `00e5768`, `7e7de7a`: `package.json` (typescript 7.0.2, vite 8.3.4, vitest 5.0.3,
+    exact; no runtime dependencies), `tsconfig.json`, `tsconfig.core.json` (no DOM
+    library for `src/core`, `src/audio/dsp`), `vitest.config.ts`; `src/core/notation`
+    (parse, edit, check), `src/core/taal` (taals, rhythm), `src/core/exercises` (specs
+    generated byte-for-byte from the reference generator by a one-off script, the
+    generator, the 13-item list), `src/core/song` (model, file),
+    `src/audio/dsp/ksPluck.ts`. One deliberate change from the prototype: a taal name
+    inherited from Object (`constructor`, `toString`…) or a non-string now normalises
+    to Dadra; the prototype accepted it and then crashed on play. `00e5768` also adds
+    `reference/tests/package.json` (CommonJS) and ignores `.vitest/`.
+  - `8b5b933`: `tests/differential` (port versus the prototype's code, cut out of the
+    HTML) and a CI core job.
+  - This entry's commit: `docs/NOTATION.md` (BOM line), `docs/PARITY.md` (22 rows →
+    Core), this file.
+- **Tests / verification** (Git Bash, Node v24.20.0, npm 9.8.1, Windows 10):
+  - `npm run typecheck` → exit 0. A probe file in `src/core` using `document`, `window`
+    and `console` made `npx tsc -p tsconfig.core.json` fail (TS2584, TS2304; exit 1) and
+    passed the full config; probe removed.
+  - `npm test` → 11 files, 112 passed, 0 failed, 8.1 s: ported parser 31, checker 11,
+    join-split 10, rhythm 12, tanpura 5 + 5 added, exercises 14 + 2 added;
+    differential 13; unit 9. Each commit checked alone with the rest stashed:
+    `00e5768` → typecheck 0, 52 passed, reference suites green; `7e7de7a` → typecheck 0,
+    99 passed.
+  - Mutation check: dropping `~` from the holds failed all 4 notation differential
+    tests (the ported reference suites alone missed it); changing a tabla-fill
+    velocity (0.3 → 0.31) and the string's DC blocker (0.995 → 0.9951) each failed one
+    differential test. Files restored byte-identical (`cmp`).
+  - Tanpura, 100 seeded plucks: worst pitch error 0.054 cents; −16.2 dB at 1.5 s
+    (−18.6…−14.5) and −33.0 dB at 3.5 s (−37.2…−30.1) relative to the attack, matching
+    ENGINE.md. A 504-beat song: 31 parse-and-check rounds in 38 ms (about 1.2 ms each).
+  - `npm run test:reference` failed once after `"type": "module"` was added (`require
+    is not defined in ES module scope`); after `reference/tests/package.json`: parser
+    31/0, checker 11/0, join-split 10/0, rhythm 12/0, tanpura 5/0, exercises 12 valid.
+  - `git push origin main` → `4da4f8d..8b5b933`. CI run `38005291130`: Core job (npm ci,
+    typecheck, npm test) success; reference job success. This also proves the npm 9
+    lockfile installs on Linux.
+- **Decisions made:** see Decisions log (2026-10-10 rows).
+- **Risks or disagreements:** the lighter stack and trimmed roadmap are Claude's
+  proposals on Rinat's direction; Rinat may veto. The prototype treats a BOM inside a
+  line as a space (JavaScript counts U+FEFF as whitespace), not as "ignored" as
+  NOTATION.md said; kept for parity, doc corrected. No screen exists yet, so nothing is
+  "done" in the app sense.
+- **Next handoff:** PH0-03, the audio engine. Rinat's answers to Open questions 3
+  (hosting) and 5 (features to drop) are needed before the deploy and the interface.
 
 ### 2026-10-09 23:45 BST — Claude (Opus 5.5) — PH0-01
 
