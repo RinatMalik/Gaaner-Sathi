@@ -31,11 +31,13 @@ decision, which always wins (see Source-of-truth order).
 ## Current state
 
 - **Current milestone:** Phase 0, foundation and port (Roadmap at a glance below).
-- **Current task:** PH0-01 framework and repo setup (this session).
-- **Next single action:** Rinat upgrades Node to 24 LTS on this machine; then Claude
-  starts PH0-02, the TypeScript core port with the reference suites carried over
-  one-for-one.
-- **Last known-good commit:** `e0ea8d8` (as-received snapshot; reference suites green).
+- **Current task:** none in progress. PH0-01 (framework and repo setup) is done;
+  PH0-02 (core port) waits on Node 24.
+- **Next single action:** Rinat upgrades Node to 24 LTS on this machine (Open
+  question 8); then Claude starts PH0-02, the TypeScript core port with the reference
+  suites carried over one-for-one.
+- **Last known-good commit:** `c0b057c` (reference suites green locally and in CI run
+  `38001060696`).
 - **How to run it now:** the prototype: open `reference/gaaner-sathi.html` in a
   browser. Its tests: `bash reference/tests/run-all.sh`. The new app does not exist yet.
 - **Blockers:** Node 20.5.1 here is too old for the chosen toolchain (Vitest 5 needs
@@ -325,7 +327,7 @@ progress, Blocked, Review, Done, Superseded.*
 
 | ID | Owner | Status | Scope / paths | Acceptance evidence | Notes |
 |---|---|---|---|---|---|
-| PH0-01 | Claude | In progress | `CONTEXT.md`, `CLAUDE.md`, `AGENTS.md`, `SECURITY.md`, `README.md`, `CHANGELOG.md`, `docs/`, `reference/`, `.github/workflows/`, `.gitignore`, `.env.example`; remove `handover/` | Handover fully merged and `handover/` removed; reference suites green locally and in CI; pushed to `main` | Framework and repo setup |
+| PH0-01 | Claude | Done | `CONTEXT.md`, `CLAUDE.md`, `AGENTS.md`, `SECURITY.md`, `README.md`, `CHANGELOG.md`, `docs/`, `reference/`, `.github/workflows/`, `.gitignore`, `.env.example`; remove `handover/` | Handover fully merged and `handover/` removed; reference suites green locally and in CI run `38001060696`; pushed to `main` (`c0b057c`) | Framework and repo setup |
 | PH0-02 | Claude | Blocked | `src/core/`, `tests/`, `package.json`, configs | All 69 reference tests and 12 exercises ported one-for-one and green; differential tests against the prototype; core type-checks with no DOM library | Core port. Blocked on Node 24 |
 | PH0-03 | — | Proposed | `src/audio/` | Offline-render measurements match ENGINE.md; timing tables as pure tests | Audio engine |
 | PH0-04 | — | Proposed | `src/app/` | Every `docs/PARITY.md` item Done, checked in the browser at 360 px in both themes | UI to parity |
@@ -412,7 +414,11 @@ move older ones into a `HISTORY.md` you create then, so this file stays lean.*
   11/0, join-split 10/0, rhythm 12/0, tanpura 5/0, exercises 12 valid 0 failed,
   exit 0. Checked with node: `reference/exercises.json` equals the generator's
   output and the first 12 exercises embedded in the HTML (the 13th, the Sa Re Ga
-  typing example, exists only in the HTML).
+  typing example, exists only in the HTML). `git diff -M --summary e0ea8d8 c684d36`:
+  every moved spec, prototype and suite file is a 100% rename (unchanged).
+  `git push origin main` → `4dfc1e2..c0b057c`. GitHub Actions run `38001060696`
+  (`.github/workflows/ci.yml`, ubuntu-latest, Node 24) on `c0b057c`: completed,
+  success, every step including `bash reference/tests/run-all.sh`.
 - **Decisions made:** see Decisions log (2026-10-09 rows).
 - **Risks or disagreements:** conflicts between the kickoff and the framework are
   listed in Open questions 5 and 8–12. The machine's Node 20.5.1 blocks the planned
