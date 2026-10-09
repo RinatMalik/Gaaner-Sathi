@@ -1,0 +1,27 @@
+# EditorConfig — stops Claude, Codex, and you from fighting over whitespace.
+# https://editorconfig.org  (most editors/IDEs honour this automatically)
+# Complements .gitattributes: that normalises line endings in git; this keeps
+# the editor itself consistent (indent, charset, final newline, trailing space).
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Windows batch files must stay CRLF.
+[*.{bat,cmd}]
+end_of_line = crlf
+
+# Tabs where the toolchain expects them.
+[*.go]
+indent_style = tab
+[Makefile]
+indent_style = tab
+
+# Markdown: keep trailing spaces (they encode hard line breaks).
+[*.md]
+trim_trailing_whitespace = false

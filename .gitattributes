@@ -1,0 +1,29 @@
+# Normalise line endings — kills the CRLF/LF churn that OneDrive + Windows cause.
+# Git stores text as LF and checks it out with your platform's native endings,
+# so "everything looks modified" diffs stop happening.
+* text=auto
+
+# Scripts must stay LF or they break when run.
+*.sh   text eol=lf
+*.bash text eol=lf
+
+# Windows batch files must stay CRLF.
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+
+# Treat common binaries as binary — never normalise or line-diff them.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.icns binary
+*.pdf  binary
+*.zip  binary
+*.woff  binary
+*.woff2 binary
+*.ttf  binary
+*.otf  binary
+*.mp4  binary
+*.mov  binary

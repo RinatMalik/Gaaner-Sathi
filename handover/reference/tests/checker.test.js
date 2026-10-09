@@ -1,0 +1,16 @@
+const fs=require('fs'); eval(fs.readFileSync(__dirname+'/.extracted/parser.js','utf8')+';globalThis.P=parseSong;globalThis.CK=checkNotation;');
+const T={dadra:{name:'Dadra',cycle:6,starts:[0,3]},keherwa:{name:'Keherwa',cycle:8,starts:[0,4]},rupak:{name:'Rupak',cycle:7,starts:[0,3,5]}};
+const N=['S','r','R','g','G','M','M#','P','d','D','n','N'];
+const fmt=r=>r.map(x=>x.kind==='octave'?`oct L${x.line+1} ${x.notes.map(u=>N[u.semi]+(u.oct>0?"'":u.oct<0?'.':'')).join('')} ${x.delta>0?'+':'-'}`:`${x.kind} L${x.line+1} b${x.bar} len${x.len} exp${x.exp}`).join(' ; ')||'none';
+let ok=true;const chk=(n,g,e)=>{const p=g===e;ok=ok&&p;console.log(p?'PASS':'FAIL',n,'=>',g,p?'':'  expected '+e);};
+chk('dadra clean', fmt(CK(P('সা -া রা | গা -া মা | পা -া ধা | পা -া -া'),T.dadra,0)),'none');
+chk('dadra extra beat in bar 2', fmt(CK(P('সা -া রা | গা -া মা পা | পা -া ধা | পা -া -া'),T.dadra,0)),'bar L1 b2 len4 exp3');
+chk('keherwa missing beat', fmt(CK(P("S R G M | P D N | S' - - -"),T.keherwa,0)),'bar L1 b2 len3 exp4');
+chk('keherwa full-cycle bars ok', fmt(CK(P('S R G M P D N S | S - - - - - - -'),T.keherwa,0)),'none');
+chk('line w/o bars wrong length', fmt(CK(P("S R G M P\nD N S' -"),T.keherwa,0)),'line L1 b1 len5 exp4');
+chk('pickup start (startOn 4 in dadra)', fmt(CK(P('S R G | M - - | P - -'),T.dadra,3)),'none');
+chk('aroha clean', fmt(CK(P("S R G M P D N S'"),T.keherwa,0)),'none');
+chk('lower slip', fmt(CK(P('S .N .D D .N S'),T.dadra,0)),'oct L1 D -');
+chk('two-note slip', fmt(CK(P("S' R' S R S' N"),T.dadra,0)),'oct L1 SR +');
+chk('examples clean', fmt(CK(P('পধা নর্সা র্সা | নধা পমা গা | মগা রসা .নসা | সা -া -া'),T.dadra,0)),'none');
+chk('octave slip middle Sa among upper', fmt(CK(P("N S' R' S N D"),T.dadra,0)),'oct L1 S- ; none'.split(' ; ')[0].replace('S-',"S +").replace('oct L1 S +','oct L1 S +'));

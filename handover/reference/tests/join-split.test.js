@@ -1,0 +1,15 @@
+const fs=require('fs'); eval(fs.readFileSync(__dirname+'/.extracted/parser.js','utf8')+';globalThis.J=joinBeats;globalThis.SP=splitBeats;');
+let ok=true; const chk=(n,g,e)=>{const p=g===e; ok=ok&&p; console.log(p?'PASS':'FAIL',n,'=>',JSON.stringify(g),p?'':'  expected '+JSON.stringify(e));};
+const j=(t,s,e)=>{const r=J(t,s,e); return r.ok? r.text+' ['+r.text.slice(r.s,r.e)+']' : 'ERR '+r.msg;};
+const sp=(t,s,e)=>{const r=SP(t,s,e); return r.ok? r.text+' ['+r.text.slice(r.s,r.e)+']' : 'ERR '+r.msg;};
+chk('join caret beat with next', j('সা পা ধা না',3,3), 'সা পধা না [পধা]');
+chk('join a selected run of three', j('সা পা ধা না | সা',3,10), 'সা পধনা | সা [পধনা]');
+chk('join keeps upper mark', j("সা র্সা রা",3,3), 'সা র্সরা [র্সরা]');
+chk('join latin', j('S P D N',2,2), 'S PD N [PD]');
+chk('join across bar refused', j('সা রা | গা',3,3).startsWith('ERR'), true);
+chk('join at line end refused', j('সা রা\nগা',3,3).startsWith('ERR'), true);
+chk('split bengali', sp('সা পধা না',3,3), 'সা পা ধা না [পা ধা]');
+chk('split with octaves and hold', sp('.নর্সা প-া',0,0), '.না র্সা প-া [.না র্সা]');
+chk('split latin', sp("S PD' N",2,2), "S P D' N [P D']");
+chk('split single-note refused', sp('সা রা',0,0).startsWith('ERR'), true);
+process.exit(ok?0:1);

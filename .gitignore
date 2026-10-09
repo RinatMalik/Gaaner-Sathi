@@ -1,0 +1,75 @@
+# ── Trim this to the stacks you actually use ────────────────────────────────
+# This is a broad, stack-agnostic starter covering the toolchains these projects
+# tend to use (Node/React/Vite, Tauri/Rust, Electron). Delete sections you don't
+# need. Note: lockfiles (package-lock.json, Cargo.lock) are intentionally NOT
+# ignored — commit them.
+
+# ── OS junk ─────────────────────────────────────────────────────────────────
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+*~
+
+# ── Editor / IDE ────────────────────────────────────────────────────────────
+.idea/
+*.swp
+*.swo
+# .vscode/ is often worth committing (shared extensions.json / settings.json).
+# Ignore only the noisy per-user bits instead of the whole folder:
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+
+# ── Secrets / environment ───────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ── Logs ────────────────────────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── Node / JS / TS (React, Vite, etc.) ──────────────────────────────────────
+node_modules/
+dist/
+dist-ssr/
+build/
+out/
+.vite/
+.cache/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# ── Rust / Tauri ────────────────────────────────────────────────────────────
+target/
+src-tauri/target/
+src-tauri/gen/
+
+# ── Electron ────────────────────────────────────────────────────────────────
+release/
+app/dist/
+
+# ── Python (delete if unused) ───────────────────────────────────────────────
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ── Misc ────────────────────────────────────────────────────────────────────
+*.tmp
+.tmp/
