@@ -1,10 +1,10 @@
 # AGENTS.md
 
 **Read `CONTEXT.md` beginning of every conversation — and write to it at the end of every prompt response.** 
-It is thisproject's single source of shared state: product direction, working rules, live
+It is this project's single source of shared state: product direction, working rules, live
 state, the decisions log, and the work log. Before you end a prompt, update your Active 
 work row, append a Work log entry, and commit your own work — staging only the files you 
-changed (never everything while other LLMs has work in flight). 
+changed (never everything while other LLMs have work in flight). 
 
 `CONTEXT.md` is authoritative; this file only adds Codex-specific or other LLM specific notes.
 
@@ -23,6 +23,9 @@ changed (never everything while other LLMs has work in flight).
 
 ## Codex-specific notes
 
-- ⟨Codex CLI / runtime notes, sandbox caveats, approval mode, etc. — fill in
-  per project.⟩
-- ⟨Build / test / run commands live in `CONTEXT.md` → Conventions → Stack.⟩
+- **Host:** Windows 10. Run `reference/tests/run-all.sh` with bash (Git Bash or WSL),
+  not cmd or PowerShell. The repo path contains spaces and Bengali characters
+  (`গানের সাথী`), so always quote it.
+- **Git:** `main` only; commit, then push to `origin` (CONTEXT.md → Collaboration
+  protocol). Only one agent works on the repo at a time.
+- **Build / test / run commands** live in `CONTEXT.md` → Conventions → Stack.

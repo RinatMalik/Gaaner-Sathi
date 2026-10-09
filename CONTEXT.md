@@ -1,64 +1,10 @@
-# ⟨PROJECT NAME⟩ — CONTEXT
+# Gaaner Sathi (গানের সাথী) — CONTEXT
 
 > The single shared brain for this project. Everything Claude, Codex, any LLM and 
 > the user need to stay in sync lives here: product direction, working rules, live
 > state, decisions, and the work log.
 >
-> **Last updated:** ⟨YYYY-MM-DD⟩ by ⟨agent / user⟩
-
-<!--
-================================================================================
-STARTING A NEW PROJECT FROM THIS TEMPLATE  — delete this whole block once done.
-================================================================================
-
-FAST PATH — from the template folder, run:
-     bootstrap.bat "C:\path\to\NewProject"
-   It creates the folder, copies every template file in, fills the project name
-   and today's date, makes .env from .env.example (ready for your keys), verifies
-   .env is git-ignored, runs git init + first commit, and lists any placeholders
-   left to fill. Add --force to scaffold into an existing non-empty folder. Then
-   do steps 3–5. Prefer this over the manual steps below.
-
-MANUAL PATH:
-
-1. Copy the template FILES into your new project folder:
-     CONTEXT.md, CLAUDE.md, AGENTS.md, SECURITY.md,
-     .gitignore, .gitattributes, .editorconfig, .env.example
-   Copy files, NOT a .git folder. (The template folder is deliberately NOT a git
-   repo — see "Why the template isn't its own repo" below.)
-
-2. Start a fresh, independent git repo IN THE NEW FOLDER, and make your working
-   .env from the example:
-     copy .env.example .env
-     git init
-     git add .
-     git commit -m "chore: scaffold project from template"
-   Creating the files before `git init` is fine and normal — git just starts
-   tracking whatever is already sitting there. `.env` stays untracked (ignored);
-   only the empty `.env.example` is committed, so a pasted key can't leak.
-
-3. Fill in this file. Replace every ⟨angle-bracket⟩ placeholder; delete the
-   italic instruction notes as you go. Day-one priorities: Product direction,
-   Invariants, Conventions → Stack/commands, accent colour, environment gotchas.
-
-4. Fill in the two agent files (usually one line of project-specific notes each):
-   CLAUDE.md → Claude-specific tools/harness notes; AGENTS.md → Codex notes.
-
-5. Trim .gitignore to the stacks you actually use, then delete this block.
-
-WHY THE TEMPLATE ISN'T ITS OWN GIT REPO:
-A folder is "the same project" to git only if it shares a .git/ directory. Never
-copy a .git folder between projects — that is the one thing that would make git
-treat every new project as the same repo. .gitignore and .gitattributes are just
-plain text config; copying them is safe and does nothing until you run
-`git init`. Each project gets its own `git init` and its own independent history.
-
-HOW THIS FILE IS USED AFTER SETUP:
-CLAUDE.md and AGENTS.md are thin pointers to this file; this file carries the
-real content, read at the start of every prompt and updated at the end. Keep the
-section order — agents rely on it.
-================================================================================
--->
+> **Last updated:** 2026-10-09 by Claude (Opus 5.5)
 
 ## How to use this file
 
@@ -76,6 +22,7 @@ section order — agents rely on it.
    prompts. Stage only the files you changed (never `git add -A` while another
    agent has work in flight). Prefer green commits; if a session ends mid-work,
    commit with a `wip:` prefix and say what is unfinished here.
+   *This project:* then push `main` to `origin` (see Collaboration protocol).
 
 CLAUDE.md and AGENTS.md are thin pointers to this file. When anything there
 conflicts with this file, **this file wins** — except a later explicit user
@@ -83,29 +30,54 @@ decision, which always wins (see Source-of-truth order).
 
 ## Current state
 
-*The fast-orient snapshot — the first thing to read and the first thing to
-update. Keep every line current; one or two lines each. (bootstrap.bat fills the
-project name and date for you.)*
-
-- **Current milestone:** ⟨⟩
-- **Current task:** ⟨what's actively being worked on right now⟩
-- **Next single action:** ⟨the very next concrete step⟩
-- **Last known-good commit:** ⟨hash — or "none yet"⟩
-- **How to run it now:** ⟨launch command / file / URL — see "Keep the app one click away"⟩
-- **Blockers:** ⟨none / describe⟩
-- **Uncommitted work:** ⟨none / whose + what⟩
+- **Current milestone:** Phase 0, foundation and port (Roadmap at a glance below).
+- **Current task:** PH0-01 framework and repo setup (this session).
+- **Next single action:** Rinat upgrades Node to 24 LTS on this machine; then Claude
+  starts PH0-02, the TypeScript core port with the reference suites carried over
+  one-for-one.
+- **Last known-good commit:** `e0ea8d8` (as-received snapshot; reference suites green).
+- **How to run it now:** the prototype: open `reference/gaaner-sathi.html` in a
+  browser. Its tests: `bash reference/tests/run-all.sh`. The new app does not exist yet.
+- **Blockers:** Node 20.5.1 here is too old for the chosen toolchain (Vitest 5 needs
+  ≥ 22.12, Vite 8 needs ≥ 20.19). Hosting for the Phase 0 deploy needs Rinat's choice.
+- **Uncommitted work:** none.
 
 ## Product direction — what this is meant to be now
 
-⟨One paragraph: what the product is, who it is for, and the current north-star
-flow. Rewrite this whenever the direction changes — it is the first thing every
-agent reads.⟩
+Gaaner Sathi (গানের সাথী, "singing companion") is a practice companion for singers who
+learn Bengali songs from swaralipi (akarmatrik notation). You type a song's notation
+once; it plays the melody on harmonium as a pitch guide, with tabla, dholak or drums
+and a tanpura or harmonium drone, all on one clock so the rhythm can never drift from
+the melody, and it highlights the beat you are on with the lyric underneath. It exists
+because Rinat practises from handwritten swaralipi diaries: playing them on a Casio
+CT-X3000 (harmonium tone, rhythm running) meant watching which keys to press instead
+of singing. The actual melody notes, rather than a full backing track, tell the voice
+what to match. A working single-file prototype exists (`reference/gaaner-sathi.html`).
+The job now: a published web app (installable, works offline) at parity with the
+prototype, then the practice features Rinat asked for, then iOS and Android apps — the
+best practice companion for singers who learn from swaralipi. North-star flow: open
+the app → pick a song (or type it in from the diary) → press play → sing with the
+guide, the rhythm and the highlight, looping the hard lines.
 
-*Target user:* ⟨one line — the specific non-technical persona this is for. Every
-UI call is disciplined against it: would *they* find this obvious?⟩
+*Target user:* Rinat, and singers like Rinat: read swaralipi and sing Bengali songs,
+not technical, practise on a phone or a laptop, often with hands busy. Would they find
+it obvious with no manual?
 
-*Non-goals (for now):* ⟨list what you are deliberately NOT building yet, so no
-one drifts into it⟩
+*Non-goals (for now):* new features before parity with the prototype; accounts and
+sync (Phase 3, only if Rinat wants it); native apps (Phase 4); a server of our own
+(v1 is static); recorded samples, ornaments and routines (Phase 2, in order); a
+Bengali interface (later, but i18n-ready from day one); sampling the Casio's built-in
+voices (never).
+
+*Roadmap at a glance* (full detail and done criteria: `docs/ROADMAP.md`):
+
+| Phase | What | Done when |
+|---|---|---|
+| **0 ◀ now** | Foundation and port: repo, CI, docs, ADR-001; TypeScript core with the reference suites; audio engine and UI to parity | every reference test passes against the new core; the exercises check clean; every `docs/PARITY.md` item works in the new app; a deploy is live |
+| 1 | Publish the web app: PWA offline and installable, IndexedDB, import/export, first-run on an exercise, privacy note, error reporting with no song content, per-song sound settings | a public URL; Lighthouse PWA and accessibility pass; works offline; Rinat has practised a full song on phone and laptop |
+| 2 | Practice features, in order: mic pitch feedback; recorded instruments; ornaments; riyaz routine and practice log | per item, see ROADMAP |
+| 3 | Optional accounts and sync | only if Rinat wants it; ask first |
+| 4 | Capacitor iOS and Android apps | ask before creating developer accounts |
 
 ## Universal working defaults
 
@@ -173,15 +145,41 @@ one drifts into it⟩
   expensive, irreversible, or genuinely ambiguous choices.
 - With tools available, **do the work** rather than instructing the user to.
 
+### Working with Rinat (this project)
+
+- **Build proactively.** For substantial work, go ahead and build: Rinat does not want
+  plans to approve first, and likes seeing finished, working steps. Stop and ask only
+  for: anything irreversible; anything that costs money or creates accounts (domains,
+  hosting, app stores, paid APIs, sample libraries); the decisions in Open questions
+  marked **Ask Rinat**; Bengali wording you are not sure of.
+- **Low-maintenance, set-and-forget choices:** static hosting, no server to run for v1,
+  automatic deploys from `main`, few dependencies.
+- **Nobody on the build side can hear the app.** Verify every audio change by
+  measurement: offline renders in headless Chromium for loudness, autocorrelation for
+  tuning, decay curves, timing logic as pure tests. Then ask Rinat for specific
+  listening feedback ("is the tanpura too buzzy or too plucked?").
+- **At each milestone,** tell Rinat what changed, what you tested and what to try,
+  with a link that opens on a phone. The same note goes in `CHANGELOG.md`.
+- **Record decisions:** a row in the Decisions log for each; a short ADR in
+  `docs/adr/` as well when there is a real architectural trade-off.
+
 ## Definition of done
 
 *What every Active-work item's "Acceptance evidence" must satisfy before its
 status becomes Done.*
 
-- [ ] Behaviour exercised in the **real app / runtime**, not just unit tests.
+- [ ] Behaviour exercised in the **real app / runtime**, not just unit tests. (Sound
+      is "exercised" by measurement in an offline render; see Working with Rinat.)
 - [ ] The exact command(s) run **and their results** are recorded in the Work log.
+- [ ] Core tests are green, and new behaviour comes with new tests.
+- [ ] The built-in exercise library still checks clean.
+- [ ] Audio changes come with a measurement test.
+- [ ] Works offline, in both themes, at 360 px wide with no sideways scrolling (once
+      the app exists).
 - [ ] The stated **Invariants** still hold (none weakened without a recorded decision).
-- [ ] Your own changes are **committed** (green, or `wip:` with what's unfinished noted).
+- [ ] Your own changes are **committed** (green, or `wip:` with what's unfinished noted)
+      and pushed to `main`.
+- [ ] User-visible change: a short `CHANGELOG.md` entry with a "what to try" note.
 - [ ] Anything left undone or uncertain is written in the Work log "Risks / Next".
 
 ## Source-of-truth order
@@ -196,15 +194,41 @@ When documents disagree, use this precedence:
 6. Implementation plans and checklists (task recipes only — never infer status
    from a checkbox).
 
+*This project:* until Phase 0 reaches parity, the prototype
+(`reference/gaaner-sathi.html`) and its suites (`reference/tests/`) are the behavioural
+contract for the port (level 2); `docs/NOTATION.md`, `ENGINE.md` and `DATA.md` describe
+them (level 4); `docs/PARITY.md` is a checklist (level 6).
+
 ## Invariants — never weaken without a recorded decision
 
-*Project-specific guarantees the product must always keep. Add your own; delete
-the examples. To change one: record a user decision in the Decisions log first,
-then implement.*
+*To change one: record a user decision in the Decisions log first, then implement.*
 
-- ⟨e.g. Nothing writes to the user's files without an explicit user action.⟩
-- ⟨e.g. Destructive actions stage first and stay reversible until an explicit commit.⟩
-- ⟨e.g. Every capability fails closed, never open.⟩
+- **Local-first privacy.** No account needed. Nothing leaves the device unless the user
+  chooses to export (or, later, to sync). Microphone audio is processed on the device
+  and never uploaded. No telemetry; error reports never contain song content.
+- **Never lose a song.** Saves are debounced but flushed when the page is hidden or
+  another song opens; imports always get new ids and never overwrite; deleting needs a
+  confirmation; built-in exercises are read-only (copy one to edit it).
+- **Files stay readable.** Keep reading `version: 1` files forever, including old
+  `"format": "swaralipi-player"` ones (the importer never checks `format`). Bump
+  `version` only for breaking changes, with a migration. Imports are normalised (every
+  field clamped) and accept the envelope, a bare array, a single song or a plain `.txt`
+  (2 MB per file, 200 songs per import, 200 000 characters per song).
+- **One clock.** Melody, rhythm and highlight are scheduled from the same
+  `AudioContext` times, so they cannot drift apart.
+- **Pure core.** `notation`, `taal`, `exercises` and the song model have no DOM
+  dependency and run in Node, the browser and a Worker.
+- **Clean exercises.** Every built-in exercise parses with no errors or warnings, and
+  the checker reports nothing on it.
+- **Performance.** No audio glitches on a mid-range Android phone. The parser and
+  checker run on every keystroke and stay fast on 500-beat songs.
+- **Accessibility.** Fully usable by keyboard, visible focus, `prefers-reduced-motion`
+  respected, sufficient contrast in both themes, labelled controls, usable at 360 px.
+- **Identity.** A rosewood harmonium deck with a brass play button; the song on a
+  ruled diary sheet with a red margin line, notes in ink and lyrics in red ink; Tiro
+  Bangla for notes and display, Hind Siliguri for the interface; light and dark themes.
+- **Licences.** Every dependency and asset is compatible with the repo's GPL-3.0
+  licence and tracked; never sample the Casio CT-X3000's built-in voices.
 
 ## Secrets & sensitive data
 
@@ -215,18 +239,41 @@ then implement.*
   values into this file, prompts, or the Work log.
 - **Sensitive / regulated data stays on the machine.** Prefer local inference for
   it; never send it to a cloud model or third-party API.
+- *This project* uses no keys at all; songs, logs and recordings are private user
+  content (see `SECURITY.md` → This project).
 - Fuller model (fail-closed, spend caps, leak response) → `SECURITY.md`.
 
 ## Conventions
 
-- **Copy:** UK English, sentence case (⟨e.g. "analyse", never "analyze"⟩).
+- **Copy:** UK English, sentence case ("practise" the verb, "practice" the noun,
+  "colour", "analyse"). Bengali must be correct; ask Rinat when unsure. The name is
+  always **Gaaner Sathi** in Latin letters, with **গানের সাথী** alongside in the app
+  and the store listings, so people find it whichever script they search in.
 - **Theme:** theme-aware tokens; never hardcode light/dark colours (no raw
-  rgba white/black for borders or fills). ⟨accent: #______⟩
-- **Commits:** small — one behavioural idea plus its tests per commit.
-- **Stack / commands:** ⟨fill in per project — language, framework, state,
-  storage, and the exact build / test / run commands⟩.
-- **Environment gotchas:** ⟨e.g. repo lives under OneDrive on Windows — watch
-  CRLF/LF noise; redirect build caches out of OneDrive⟩.
+  rgba white/black for borders or fills). Accent: brass `#c4952b` (light) / `#d3a843`
+  (dark) on rosewood `#3e1f15`; the prototype's `:root` holds the full token set for
+  both themes.
+- **Commits:** small — one behavioural idea plus its tests per commit. Prefixes:
+  `feat:` `fix:` `test:` `docs:` `refactor:` `ci:` `chore:` `wip:`.
+- **Stack / commands:** ADR-001: TypeScript (strict), React, Vite, Vitest, Playwright,
+  Node 24 LTS. Not scaffolded yet. Today:
+  - Reference suites on the prototype: `bash reference/tests/run-all.sh` (Node 18+,
+    nothing to install). Green means parser 31, checker 11, join-split 10, rhythm 12,
+    tanpura 5 passed and 12 exercises valid.
+  - Prototype: open `reference/gaaner-sathi.html` in a browser.
+  - CI: `.github/workflows/ci.yml` runs the reference suites on Node 24 on every push
+    to `main`.
+- **Environment gotchas:**
+  - The repo lives under OneDrive on Windows. System git has `core.autocrlf=true` and
+    `.gitattributes` normalises to LF in the repo, so "LF will be replaced by CRLF"
+    warnings are expected noise; `.sh` files stay LF. Once `node_modules` exists,
+    OneDrive will try to sync it (see Open questions).
+  - The repo path contains spaces and Bengali characters: quote it, and suspect it
+    if a tool fails oddly.
+  - Node here is 20.5.1 (end of life since April 2026): too old for Vite 8 and
+    Vitest 5. Upgrade to Node 24 LTS.
+  - `run-all.sh` writes `reference/tests/.extracted/` (git-ignored).
+  - `gh` is installed but not logged in; pushes go through Git Credential Manager.
 - Keep CLAUDE.md and AGENTS.md aligned so the shared-branch rules survive future
   sessions.
 
@@ -235,8 +282,19 @@ then implement.*
 *This file is the hot path — read every prompt, kept lean. Heavier, stable
 reference lives in sibling docs; open one only when the task touches it.*
 
-- **`SECURITY.md`** — secret handling, fail-closed defaults, spend caps, leak response.
-- ⟨add project-specific reference docs here as they appear, e.g. `ARCHITECTURE.md`⟩
+- **`SECURITY.md`** — secret handling, fail-closed defaults, spend caps, leak response;
+  this project's privacy and licence rules.
+- **`docs/ROADMAP.md`** — Phases 0–4 in full with done criteria, and the Phase 2
+  feature specs (pitch feedback, samples, ornaments, riyaz).
+- **`docs/PARITY.md`** — the Phase 0 side-by-side checklist: every prototype feature.
+- **`docs/NOTATION.md`** — notation spec: beats, notes, octaves, edit operations, checker.
+- **`docs/ENGINE.md`** — audio and timing engine: scheduler, taals, rhythm, harmonium,
+  tanpura, and how to verify sound without ears.
+- **`docs/DATA.md`** — song model, file format, settings, storage.
+- **`docs/adr/`** — architecture decision records (ADR-001: stack).
+- **`reference/`** — the prototype, its 12 exercises and its test suites
+  (`reference/README.md`).
+- **`CHANGELOG.md`** — user-facing: what changed and what to try.
 
 ## Collaboration protocol
 
@@ -255,16 +313,24 @@ reference lives in sibling docs; open one only when the task touches it.*
   separate paths or branches. Then claim a path in Active work before editing it.
 - Don't claim another agent reviewed something until it leaves an attributed
   entry here.
+- *This project (Rinat, 2026-10-09):* **one branch, one agent at a time.** All work is
+  committed to `main` and pushed to `origin`
+  (`https://github.com/RinatMalik/Gaaner-Sathi`); no other branches. Only one LLM
+  ever works on the project at once, so parallel work stays off.
 
 ## Active work
 
-*The current slice(s) of work and who owns them. Under parallel work (opt-in),
-claim a path here before editing it. Allowed statuses: Proposed, In progress,
-Blocked, Review, Done, Superseded.*
+*The current slice(s) of work and who owns them. Allowed statuses: Proposed, In
+progress, Blocked, Review, Done, Superseded.*
 
 | ID | Owner | Status | Scope / paths | Acceptance evidence | Notes |
 |---|---|---|---|---|---|
-| ⟨ID-001⟩ | ⟨Claude / Codex / User⟩ | Proposed | ⟨files⟩ | ⟨how "done" is proven⟩ | ⟨⟩ |
+| PH0-01 | Claude | In progress | `CONTEXT.md`, `CLAUDE.md`, `AGENTS.md`, `SECURITY.md`, `README.md`, `CHANGELOG.md`, `docs/`, `reference/`, `.github/workflows/`, `.gitignore`, `.env.example`; remove `handover/` | Handover fully merged and `handover/` removed; reference suites green locally and in CI; pushed to `main` | Framework and repo setup |
+| PH0-02 | Claude | Blocked | `src/core/`, `tests/`, `package.json`, configs | All 69 reference tests and 12 exercises ported one-for-one and green; differential tests against the prototype; core type-checks with no DOM library | Core port. Blocked on Node 24 |
+| PH0-03 | — | Proposed | `src/audio/` | Offline-render measurements match ENGINE.md; timing tables as pure tests | Audio engine |
+| PH0-04 | — | Proposed | `src/app/` | Every `docs/PARITY.md` item Done, checked in the browser at 360 px in both themes | UI to parity |
+| PH0-05 | — | Blocked | hosting, deploy workflow | A live URL deployed from `main` that opens on a phone | Needs Rinat's hosting choice |
+
 ## Decisions log
 
 *Append-only. Never rewrite history. Record the authority / evidence and the
@@ -272,14 +338,48 @@ consequence.*
 
 | Date | Decision | Authority / evidence | Consequence |
 |---|---|---|---|
-| ⟨YYYY-MM-DD⟩ | ⟨what was decided⟩ | ⟨user request / commit / spec⟩ | ⟨what changes as a result⟩ |
+| 2026-10-09 | Repo is `https://github.com/RinatMalik/Gaaner-Sathi`; all work on `main`, pushed to `origin`; no other branches; only one LLM works on the project at a time. | Rinat, chat 2026-10-09 | Supersedes the kickoff's "a preview deploy per branch": the deploy from `main` is the preview. Parallel-work provisions stay unused. |
+| 2026-10-09 | Handover pack merged into the framework: kickoff → this file, `docs/ROADMAP.md`, `docs/PARITY.md`; specs → `docs/`; prototype and suites → `reference/`; `handover/` deleted. | Rinat, chat 2026-10-09 | The original pack stays in git history at `e0ea8d8`. This file is the hot path; `docs/` is cold. |
+| 2026-10-09 | Stack and architecture baseline: TypeScript, React, Vite, Vitest, Playwright, Node 24 LTS; one package with a DOM-free core. | Kickoff §5 defaults; `docs/adr/ADR-001-stack.md` | Node 24 needed on every dev machine; core tests run in plain Node. |
+| 2026-10-09 | Decision records: every decision gets a row here; one with a real architectural trade-off also gets a short ADR in `docs/adr/`, linked from its row. | Claude, reconciling kickoff §2 ("record each real decision as a short ADR") with this log. Provisional: see Open questions | One index of decisions, with depth where it is needed. |
+| 2026-10-09 | `CHANGELOG.md` holds the user-facing "what changed / what to try" notes; the Work log stays agent-facing. | Kickoff §8 (definition of done). Provisional: see Open questions | Every user-visible change gets both. |
+| 2026-10-09 | Licence GPL-3.0. | Rinat, when creating the repo (initial commit `4dfc1e2`) | Every dependency and asset must be GPL-3.0-compatible. |
 
 ## Open questions
 
 *Product or technical decisions that need the user eventually, but do not block
-current work.*
+current work (unless marked).*
 
-- ⟨question⟩
+**Ask Rinat** (from the kickoff; the default applies until answered):
+1. **Lower octave when the editor writes notation:** `.` before the note (current) or
+   হসন্ত after it? Default: keep reading both, write `.`.
+2. **Conjuncts from phonetic keyboards** such as Avro: is `ম্প` lower Ma + Pa (current)
+   or plain Ma + Pa? Default: unchanged until decided.
+3. **Ornament conventions** from the diaries (photos), needed before roadmap item 2.3.
+4. **Recording source and budget** for real instrument samples, needed before item 2.2.
+5. **Domain:** ask before buying one. Hosting default per kickoff: Cloudflare Pages
+   (or Netlify); either needs a new account, so ask. GitHub Pages deploys from `main`
+   with no new account. Also offer: call the song library "খাতা" (khata, notebook),
+   after the diaries.
+6. **Accounts in v1?** Default: no; local-first with export.
+7. **Free, paid or donations?** Only matters before the app stores. The repo is GPL-3.0,
+   which allows charging but also lets anyone share the code and builds.
+
+**Raised in setup (2026-10-09):**
+8. **Node 24 LTS on this machine** (blocks PH0-02): e.g. `winget install OpenJS.NodeJS.LTS`.
+   Alternative: Claude uses a temporary Node 24 in its scratch folder for its own
+   builds, with Rinat's go-ahead.
+9. **Hosting for the Phase 0 deploy** (blocks PH0-05): GitHub Pages (no new account)
+   or Cloudflare Pages (new account)?
+10. **OneDrive:** keep the repo under OneDrive (`node_modules`, roughly 200 MB of small
+    files, will sync) or move it out, with GitHub as the backup?
+11. **Framework wording:** "write to CONTEXT.md at the end of every prompt" (CLAUDE.md,
+    AGENTS.md, this file) versus "don't fabricate empty or noisy commits on
+    analysis-only prompts": should a question-only prompt skip the Work log entry, or
+    log it and commit it as `docs:`?
+12. **Confirm the provisional decisions** above (ADR plus log row; CHANGELOG plus Work
+    log), and whether `bootstrap.bat` (the template's scaffolder, which excludes
+    itself from copies) should stay in this repo.
 
 ## Work log
 
@@ -289,12 +389,32 @@ is not sufficient. When this grows long, keep only the last few entries here and
 move older ones into a `HISTORY.md` you create then, so this file stays lean.*
 
 
-### ⟨YYYY-MM-DD HH:MM TZ⟩ — ⟨Agent⟩ — ⟨WORK-ID⟩
+### 2026-10-09 23:45 BST — Claude (Opus 5.5) — PH0-01
 
-- **Goal:**
-- **Inspected:**
-- **Changed:**
-- **Tests / verification:** ⟨exact commands + results + environment⟩
-- **Decisions made:**
-- **Risks or disagreements:**
-- **Next handoff:**
+- **Goal:** take over from the handover pack: read it, set up the repo on `main`, merge
+  everything into the co-working framework, delete `handover/`, report conflicts.
+- **Inspected:** `handover/KICKOFF.md`, `README.md`, `docs/NOTATION.md`, `ENGINE.md`,
+  `DATA.md`; all of `reference/gaaner-sathi.html` (2,324 lines); `reference/tests/*`;
+  the framework files; the GitHub repo (one commit `4dfc1e2`: GPL-3.0 `LICENSE`, a
+  two-line `README.md`); the local toolchain (Node 20.5.1, npm 9.8.1, git 2.53).
+- **Changed:** `git init -b main` on top of `origin/main`; commit `e0ea8d8` keeps the
+  framework and handover as received. Then: specs moved to `docs/`, prototype and
+  suites to `reference/` (`git mv`; `run-all.sh` marked executable); kickoff merged
+  into this file, `docs/ROADMAP.md` (phases, done criteria, Phase 2 specs) and
+  `docs/PARITY.md` (60-odd features traced through the prototype's code); new
+  `docs/adr/ADR-001-stack.md`, `reference/README.md`, `CHANGELOG.md`, public
+  `README.md`, `.github/workflows/ci.yml`; `CLAUDE.md`, `AGENTS.md`, `SECURITY.md`
+  filled in; `.gitignore` trimmed to this stack; `.env.example` emptied (no keys);
+  `handover/` removed.
+- **Tests / verification:** `bash reference/tests/run-all.sh` (Git Bash, Node v20.5.1,
+  Windows 10), run in `handover/reference/tests` before any change and again from
+  `reference/tests` after the move, both times: parser 31 passed 0 failed, checker
+  11/0, join-split 10/0, rhythm 12/0, tanpura 5/0, exercises 12 valid 0 failed,
+  exit 0. Checked with node: `reference/exercises.json` equals the generator's
+  output and the first 12 exercises embedded in the HTML (the 13th, the Sa Re Ga
+  typing example, exists only in the HTML).
+- **Decisions made:** see Decisions log (2026-10-09 rows).
+- **Risks or disagreements:** conflicts between the kickoff and the framework are
+  listed in Open questions 5 and 8–12. The machine's Node 20.5.1 blocks the planned
+  toolchain.
+- **Next handoff:** PH0-02, the core port, once Node 24 is available (Open question 8).
