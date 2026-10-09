@@ -1,76 +1,87 @@
 # ADR-001: Stack and architecture baseline
 
-- **Status:** Accepted, 2026-10-09
-- **Decided by:** the handover kickoff's defaults (§5, set with Rinat); recorded by Claude
-- **Revisit:** with a new ADR, only for a concrete reason (a defect, a measured cost, a
-  constraint these choices cannot meet)
+- **Status:** Accepted 2026-10-09; revised 2026-10-10, before any app code existed,
+  to make it lighter
+- **Decided by:** the handover kickoff's defaults, revised by Claude after Rinat asked
+  for "a very light, user-friendly web app with basic features" that people can use
+  straightaway. Rinat can veto any part.
+- **Revisit:** with a new ADR, only for a concrete reason (a defect, a measured cost,
+  a need these choices cannot meet)
 
 ## Context
 
 The prototype is one self-contained HTML file: about 2,300 lines of plain JavaScript, a
 test harness that cuts code out of the file by markers, and claude.ai-only storage. To
-publish a maintainable web app that works offline, and later wrap it as iOS and Android
-apps, the code needs modules, types, a test runner and a build.
+publish a web app that works offline, the code needs modules, types, tests and a build.
 
 What shapes the choice:
-- Low maintenance, few dependencies, static hosting, no server for v1.
+- **Light** (Rinat, 2026-10-10): basic features, usable with no tutorial or learning
+  curve, and it must not grow into a massive thing. Few moving parts to maintain.
+- Static hosting, no server, no accounts.
 - A pure core (notation, taal, exercises) that runs in Node, the browser and a Worker.
-- Sound verified by measurement, not by ear: offline renders in headless Chromium.
+- Sound verified by measurement, because nobody on the build side can hear it.
 - No audio glitches on a mid-range Android phone; the parser and checker run on every
   keystroke for a 500-beat song.
-- Two coding agents (Claude and Codex) take turns on the code, so mainstream,
-  well-documented tools are worth a lot.
+- Two coding agents (Claude and Codex) take turns, so mainstream tools help.
 
 ## Decision
 
-- **Language:** TypeScript, strict mode.
-- **UI:** React, with Vite as dev server and bundler.
-- **Tests:** Vitest for unit and core tests (Node environment for the core);
-  Playwright for end-to-end tests and offline audio renders in headless Chromium.
-- **Runtime:** Node 24 LTS for development and CI. (Vitest 5 needs Node ≥ 22.12 and
-  Vite 8 needs ≥ 20.19.)
-- **Versions** at the time of writing (npm `latest`, checked 2026-10-09): `vite` 8.3.4,
-  `vitest` 5.0.3, `react` 19.3.0, `typescript` 7.0.2. The committed lockfile pins
-  exact versions.
-- **One npm package**, no monorepo, with these boundaries:
+- **TypeScript (strict), Vite and Vitest.** All three are build-time tools: users get a
+  small set of static files and nothing else. TypeScript catches mistakes in the
+  notation logic (the most intricate part) at no runtime cost. Vite gives a dev server
+  with live reload and a minified build whose file names change with their content,
+  which lets the offline cache update cleanly. Vitest runs the core tests in Node.
+- **No UI framework.** The interface is plain TypeScript modules that draw the page,
+  ported from the prototype's own render functions (about 800 lines). Zero runtime
+  dependencies, the smallest and fastest app, and the least rework.
+- **Runtime:** Node 24 LTS for development and CI (Vitest 5 needs ≥ 22.12, Vite 8
+  needs ≥ 20.19).
+- **Versions** at the time of writing (npm `latest`, 2026-10-09): `vite` 8.3.4,
+  `vitest` 5.0.3, `typescript` 7.0.2. The committed lockfile pins exact versions.
+- **One package:**
   - `src/core/`: pure, no DOM. `notation` (parser, edit operations, checker), `taal`
-    (taals, rhythm tables, layers, fills), `exercises` (the generator and its specs),
-    `song` (model, normalise, file format). Enforced by type-checking `src/core` with
-    a tsconfig that has no DOM library.
-  - `src/audio/`: the engine, a lookahead scheduler on the `AudioContext` clock, plus
-    the instruments behind one interface, so synthesised voices can later be swapped
-    for samples. Pure DSP (such as the Karplus-Strong tanpura string) is DOM-free and
-    tested in Node.
-  - `src/storage/`: IndexedDB holding the same song JSON as the export format, saves
-    debounced on edit, a migration layer. Library (`idb` or Dexie) chosen in Phase 1.
-  - `src/app/`: the React UI. Every user-facing string goes through one translation
-    function from day one (UK English first, a Bengali interface later).
-- **Dependencies:** as few as possible; each must be compatible with the repo's
-  GPL-3.0 licence. Lockfile committed.
-- **Formatting and linting:** `tsc --strict` plus `.editorconfig` for now; no ESLint
-  or Prettier until style drift between agents is a real problem (then a new ADR).
-- **Not decided here:** PWA tooling and the IndexedDB library (Phase 1), hosting
-  (pending Rinat; see `CONTEXT.md` → Open questions), Capacitor setup (Phase 4).
+    (taals, rhythm tables, layers, fills), `exercises` (generator and specs), `song`
+    (model, normalise, file format). Type-checked with a tsconfig that has no DOM
+    library, so a DOM call there fails the build.
+  - `src/audio/`: the lookahead scheduler on the `AudioContext` clock and the
+    synthesised instruments, as in the prototype. Pure DSP (the tanpura string) is
+    DOM-free and tested in Node.
+  - `src/app/`: the interface. All user-facing text lives in one strings module, so a
+    Bengali interface stays possible without a library.
+- **Storage:** `localStorage`, as the prototype already does outside claude.ai. Songs
+  are small text. IndexedDB only if large data (such as recordings) ever arrives.
+- **Offline and install:** a small hand-written service worker and a web manifest
+  (Phase 1).
+- **Sound checks:** timing logic as pure tests; instruments measured in offline
+  renders (`OfflineAudioContext`) against the numbers in `docs/ENGINE.md`. How those
+  renders run (in the browser on the dev server, or a Node Web Audio library inside
+  Vitest) is decided in the audio-engine step, without a browser-automation framework
+  unless one is really needed.
+- **Dependencies:** dev-only, as few as possible, with permissive licences (MIT, BSD,
+  Apache-2.0, ISC) so the app's own licence can still be chosen freely.
+- **Not now** (each needs a concrete reason and an ADR): React or another UI
+  framework, Playwright, an IndexedDB or i18n library, an error-reporting service,
+  ESLint or Prettier.
 
 ## Alternatives considered
 
-- **Stay with plain JavaScript in one file.** No types or modules; every change risks
-  the whole file, and the test harness depends on text markers. Rejected.
-- **Preact instead of React.** Smaller runtime, but rendering is not the hot path (audio
-  scheduling is), and React is what both agents and most documentation assume.
-- **Svelte or Solid.** Good performance, smaller ecosystems, fewer worked examples for
-  the agents to lean on. Not worth the switch.
-- **Jest instead of Vitest.** Needs a separate TypeScript transform and duplicates
-  Vite's config. Rejected.
-- **A monorepo (packages/core + apps/web).** Clear boundaries, but more config to
-  maintain. A DOM-free tsconfig gives the same guarantee for the core in one package.
+- **React** (the kickoff's default). Good for large, state-heavy interfaces. Here it
+  adds a runtime and a rewrite of every screen into components, with no gain a user
+  would notice. Rejected for now.
+- **Preact.** Much smaller than React, but the same rewrite. Rejected for now.
+- **No build step** (plain JavaScript modules). The lightest tooling, but no types and
+  no content-named build files for clean offline updates. Rejected.
+- **Stay a single HTML file.** Proven, but every change risks the whole file, and the
+  tests depend on text markers. Rejected.
+- **Jest** instead of Vitest: needs its own TypeScript setup. **A monorepo**: more
+  config; a DOM-free tsconfig protects the core just as well. Both rejected.
 
 ## Consequences
 
-- Node 24 LTS is needed on every development machine. (This machine has Node 20.5.1,
-  which reached end of life in April 2026; it has to be upgraded before the new
-  toolchain can run.)
-- Core tests run in plain Node with no browser. Audio measurement tests need
-  Playwright's Chromium, which downloads outside the repo.
-- The reference suites in `reference/tests/` keep running on the prototype in CI, and
-  the TypeScript port carries them over one-for-one, so the two can be compared.
+- Node 24 LTS on every development machine.
+- Three development dependencies to start (`typescript`, `vite`, `vitest`) and no
+  runtime dependencies.
+- The interface port stays close to a translation of the prototype's render code, so
+  behaviour carries over with little risk.
+- If the interface ever grows a lot, a framework can come in behind a new ADR; the
+  pure core would not change.

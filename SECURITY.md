@@ -55,14 +55,16 @@
 ## This project (Gaaner Sathi)
 
 - **No secrets in use.** The app is static and local-first, with no server and no paid
-  APIs, so `.env.example` is empty on purpose. Add a key name only when a real need
-  appears; CI deploy tokens go in GitHub's repository secrets.
+  APIs, so there is no `.env.example`. If a key is ever needed, add `.env.example` with
+  the name only; CI deploy tokens go in GitHub's repository secrets.
 - **Songs are private user content.** Song text, practice logs and voice recordings
   stay on the device unless the user exports them or (later, by choice) syncs them.
   Never log them or put them in URLs, error reports or analytics.
-- **Microphone audio** (Phase 2) is processed on the device and never uploaded.
-- **Error reporting** (Phase 1) sends no song content and is described in the
-  in-app privacy note before it is turned on.
-- **Licences.** The repo is GPL-3.0: every dependency and asset must be compatible.
-  Sample packs and their licences are listed in `assets/LICENCES.md` when they
-  arrive. Never sample the Casio CT-X3000's built-in voices.
+- **Microphone audio** (a parked idea) would be processed on the device and never
+  uploaded.
+- **Error reporting** (a parked idea) would send no song content and be described in
+  the in-app privacy note before it is turned on.
+- **Licences.** The repo has no licence yet (all rights reserved), so the choice stays
+  open. Dependencies and assets must use permissive licences (MIT, BSD, Apache-2.0,
+  ISC, CC0, CC-BY); no copyleft (GPL, AGPL) without a recorded decision. Never sample
+  the Casio CT-X3000's built-in voices.

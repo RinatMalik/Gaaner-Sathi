@@ -4,7 +4,8 @@
 It is this project's single source of shared state: product direction, working rules, live
 state, the decisions log, and the work log. Before you end a prompt, update your Active 
 work row, append a Work log entry, and commit your own work — staging only the files you 
-changed (never everything while other LLMs have work in flight). 
+changed (never everything while other LLMs have work in flight). Skip the Work log entry and 
+the commit when a prompt changes no code or project structure (Rinat, 2026-10-10). 
 
 `CONTEXT.md` is authoritative; this file only adds Codex-specific or other LLM specific notes.
 

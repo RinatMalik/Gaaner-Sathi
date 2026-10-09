@@ -3,7 +3,8 @@
 **Read `CONTEXT.md` beginning of every conversation — and write to it at the end of every prompt response.** 
 It is this project's single source of shared state: product direction, working rules, live state, the 
 decisions log, and the work log. Before you end a prompt, update your Active work row, append a Work 
-log entry, and commit your own work. `CONTEXT.md` is authoritative; this file only adds Claude-specific notes.
+log entry, and commit your own work. Skip the Work log entry and the commit when a prompt changes no code 
+or project structure (Rinat, 2026-10-10). `CONTEXT.md` is authoritative; this file only adds Claude-specific notes.
 
 ## Non-negotiables (full detail in CONTEXT.md)
 
@@ -31,6 +32,6 @@ log entry, and commit your own work. `CONTEXT.md` is authoritative; this file on
   blocks listing stored credentials, so don't try; just push and handle any auth error.
 - **Seeing the app:** use the built-in browser pane (`mcp__Claude_Browser__*`) on the
   dev server; check at 360 px wide and in both colour schemes. It cannot hear:
-  verify sound with offline renders (Playwright + `OfflineAudioContext`), then ask
+  verify sound with offline renders (`OfflineAudioContext`, see ADR-001), then ask
   Rinat for specific listening feedback.
 - **Build / test / run commands** live in `CONTEXT.md` → Conventions → Stack.

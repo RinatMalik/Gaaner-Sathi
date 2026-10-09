@@ -16,12 +16,6 @@ indent_size = 2
 [*.{bat,cmd}]
 end_of_line = crlf
 
-# Tabs where the toolchain expects them.
-[*.go]
-indent_style = tab
-[Makefile]
-indent_style = tab
-
 # Markdown: keep trailing spaces (they encode hard line breaks).
 [*.md]
 trim_trailing_whitespace = false

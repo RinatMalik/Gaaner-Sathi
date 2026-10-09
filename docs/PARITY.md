@@ -8,6 +8,10 @@
 > **Status:** `—` not started · `Core` logic ported and tested, not yet in the UI ·
 > `Done` works in the new app, with evidence in a `CONTEXT.md` Work log entry. A status
 > is a pointer, not proof: the evidence is the Work log (see Source-of-truth order).
+>
+> **Parity means the same capabilities, not the same layout.** The prototype shows
+> every control at once; the new app keeps the essentials up front (song, play, tempo,
+> key) and puts the rest one tap away, so a first-time singer needs no tutorial.
 
 ## Notation (the pure core; contract: `docs/NOTATION.md` + `reference/tests/`)
 
@@ -112,5 +116,5 @@
 
 | ID | Feature | Status |
 |---|---|---|
-| X1 | `window.claude.use('db')` song storage (collection `songs`, live sync) → the app's own storage (IndexedDB in Phase 1) | — |
+| X1 | `window.claude.use('db')` song storage (collection `songs`, live sync) → the app's own storage (`localStorage`, as the prototype's fallback; ADR-001) | — |
 | X2 | `window.claude.use('downloads')` file saves → an ordinary browser download | — |

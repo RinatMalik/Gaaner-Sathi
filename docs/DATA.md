@@ -71,7 +71,7 @@ Roadmap item "per-song sound settings" moves the rhythm, speed, layers, reeds an
 
 - **On claude.ai (current):** the prototype is a published claude.ai artifact. Songs live in the artifact's own database: collection `songs`, one document per song, synced live through `window.claude.use('db')`. Downloads go through `window.claude.use('downloads')`. **None of this exists outside claude.ai.** Remove it in the port.
 - **Opened as a plain file (fallback):** songs go to localStorage under `swaralipi.songs.v1`, as an object keyed by id. This is per browser, survives restarts, and is lost if site data is cleared.
-- **Target for the web app:** local-first in IndexedDB, saving each song on edit with a short debounce. Keep the same JSON shape so export and import stay trivial. Optional account sync comes later (see the roadmap). Rinat's existing songs come across with "Back up all my songs" in the prototype, then Import in the new app.
+- **Target for the web app:** local-first in `localStorage` (revised 2026-10-10, ADR-001; it was IndexedDB), saving each song on edit with a short debounce. Keep the same JSON shape so export and import stay trivial. IndexedDB only if large data such as recordings ever arrives; account sync is a parked idea (see the roadmap). Rinat's existing songs come across with "Back up all my songs" in the prototype, then Import in the new app.
 
 ## Built-in exercises
 
