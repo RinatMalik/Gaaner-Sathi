@@ -1,0 +1,10 @@
+{
+  // The pure core must run in Node, the browser and a Worker, so it is type-checked
+  // with no DOM library and no ambient types: any DOM or Node call here fails.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": []
+  },
+  "include": ["src/core", "src/audio/dsp"]
+}

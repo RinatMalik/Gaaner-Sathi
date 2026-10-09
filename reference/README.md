@@ -31,3 +31,6 @@ app reaches parity (git history keeps it).
   `/*PARSER-END*/`, between `/*KS-START*/` and `/*KS-END*/`, and from the rhythm
   section (`const TAALS = {` … `function scheduleRhythm`). Keep those markers. Its
   output goes to `tests/.extracted/` (git-ignored).
+- `tests/package.json` keeps these suites CommonJS, because the repo root is an ES
+  module package. The new code's tests (`tests/differential/`) cut the same sections
+  out to compare the port with the prototype.

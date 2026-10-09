@@ -9,8 +9,7 @@ underneath.
 ## Status
 
 Phase 0 of the [roadmap](docs/ROADMAP.md): turning a working single-file prototype into
-a TypeScript web app. Next comes a published web app that installs and works offline,
-then iOS and Android apps.
+a light TypeScript web app that you can use straightaway, offline, with no account.
 
 ## Try the prototype
 
@@ -23,14 +22,21 @@ browser. It runs offline and keeps your songs in that browser.
 |---|---|
 | [`CONTEXT.md`](CONTEXT.md) | The project's shared state: direction, working rules, current state, decisions, work log |
 | [`docs/`](docs/) | Roadmap, parity checklist, notation, engine and data specs, decision records |
+| [`src/`](src/) | The new app: the pure core first (`src/core/`) |
+| [`tests/`](tests/) | Tests for the new code |
 | [`reference/`](reference/) | The working prototype and its reference test suites |
-| [`CHANGELOG.md`](CHANGELOG.md) | What changed, and what to try |
 
-## Tests
+## Develop
 
-`bash reference/tests/run-all.sh` (Node 18+) runs the prototype's reference suites.
-GitHub Actions runs them on every push to `main`.
+Needs Node 24 LTS.
+
+    npm install
+    npm test            # core tests (Vitest)
+    npm run typecheck   # TypeScript, including the DOM-free check on src/core
+
+`bash reference/tests/run-all.sh` runs the prototype's own suites. GitHub Actions runs
+everything on every push to `main`.
 
 ## Licence
 
-GPL-3.0. See [LICENSE](LICENSE).
+No licence has been chosen yet, so all rights are reserved.
