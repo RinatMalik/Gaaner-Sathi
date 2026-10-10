@@ -34,6 +34,37 @@ Because melody, rhythm and highlight all come from the same scheduled times, the
 | jhaptal | Jhaptal · ঝাঁপতাল | 2+3+2+3 | X 2 0 3 | Dhi Na · Dhi Dhi Na · Tin Na · Dhi Dhi Na |
 | ektal | Ektal · একতাল | 2×6 | X 0 2 0 3 4 | Dhin Dhin · DhaGe TiRaKiTa · Tu Na · Kat Ta · DhaGe TiRaKiTa · Dhi Na |
 | teentaal | Teentaal · ত্রিতাল | 4×4 | X 2 0 3 | Dha Dhin Dhin Dha ×2 · Dha Tin Tin Ta · Ta Dhin Dhin Dha |
+| jhampak | Jhampak · ঝম্পক | 3+2 | X 2 | Dhin Dhin Na · Dhin Na |
+| shashthi | Shashthi · ষষ্ঠী | 2+4 | X 2 | Dha Tet · DhaGe TeTe Dhin Na |
+| rupakra | Rupakra · রূপকড়া | 3+2+3 | X 2 3 | Dhin Dhin DhaGe · Tin TaGe · Dhin Dhin TeTe |
+| nabatal | Nabatal · নবতাল | 3+2+2+2 | X 2 3 4 | Dha Den Ta · TeTe KaTa · GaDi GheNe · DhaGe TeTe |
+| ekadashi | Ekadashi · একাদশী | 3+2+2+4 | X 2 3 4 | Dha Den Ta · TeTe KaTa · GaDi GheNe · DhaGe TeTe TaGe TeTe |
+| nabapanchatal | Nabapanchatal · নবপঞ্চতাল | 2+4+4+4+4 | X 2 3 4 5 | Dha Ge · Dha Ge Den Ta · Kat TaGe Den Ta · TeTe Dha Den Ta · TeTe KaTa GaDi GheNe |
+| khemta | Khemta · খেমটা | 3+3+3+3 | X 2 0 3 | Dha Ti Te · Na Dhi Na · Ta Ti Te · Dha Dhi Na |
+| deepchandi | Deepchandi · দীপচন্দী | 3+4+3+4 | X 2 0 3 | Dha Dhin – · Dha Dha Tin – · Ta Tin – · Dha Dha Dhin – |
+| dhamar | Dhamar · ধামার | 3+2+2+3+4 | X 0 2 0 3 | Ka Dhi Ta · Dhi Ta · Dha – · Ga Di Na · Di Na Ta – |
+| jhumra | Jhumra · ঝুমরা | 3+4+3+4 | X 2 0 3 | Dhin –Dha TiRaKiTa · Dhin Dhin DhaGe TiRaKiTa · Tin –Ta TiRaKiTa · Dhin Dhin DhaGe TiRaKiTa |
+
+The first six are the prototype's. The other ten were added on 2026-10-11, when Rinat
+asked for them; the taal picker groups them as "Tagore's own taals" and "More taals".
+
+- **Tagore's own six** have no khali, only talis. Their thekas follow gitabitan.net's page
+  on the taals Rabindranath made (from Subinay Roy's *Rabindrasangit Sadhana*, among
+  others): Subinay Roy's tabla thekas for Jhampak, Shashthi (the madhya-laya one; drut is
+  Dha Ge · Dha Ge Dhin Na) and Rupakra, and the mridanga thekas for Nabatal and Ekadashi
+  (Kangalicharan Sen) and Nabapanchatal (Subinay Roy), the only ones written down, played
+  on the tabla with the bol map below.
+- **Khemta** is the 12-matra form of the Bengali tabla books (talis on 1, 4 and 10, khali
+  on 7). Tagore's 6-matra Kashmiri Khemta (Dhig – Na · Dha Ti Na) is not included.
+- **Dhamar** is divided as in Rabindrasangeet, 3+2+2+3+4 with khali on 4 and 8, with that
+  theka (geetabitan.com, gitabitan.net). The classical 5+2+3+4 puts its bars on the same
+  vibhag lines, so the checker accepts a song written either way.
+- **Deepchandi** and **Jhumra** are the standard ones. "–" is a rest: a matra, or the
+  first half of one, with no stroke. The taal strip shows a silent beat as "·" and a bol
+  that comes after the beat as "–Dha".
+- Their **dholak and drum patterns** were made for this app on the prototype's plan (bass
+  and kick on sam and the talis, the closed stroke and snare on khali and the backbeats),
+  not taken from a source: they need Rinat's ears.
 
 ## Rhythm engine
 
@@ -51,6 +82,7 @@ Every style becomes one cycle of hits `{pos, lane, vel}` with `pos` in matras fr
   - Dayan strokes: `na`, `tin`, `tun`, `te` (sets of partials with their own decays, plus a noise click).
   - Bayan: open `ge` glides 74 → 92 → 84 Hz; closed `ke` is a 700 Hz noise slap with a 130 Hz thump.
   - Bol map: Dha = na + ge, Dhin/Dhi = tin + ge, Na/Ta = na, Tin = tin, Ti/Te/Ra = te, Ge = ge, Ke/Ka/Ki/Kat = ke, Tu/Tun = tun.
+    Added with Tagore's taals for their mridanga bols: Den = tin + ge, Di = tin, Tet = te, Ga/Ghe = ge, Ne = na; a rest (–) plays nothing.
 
 ## Harmonium (guide melody)
 
@@ -97,6 +129,15 @@ Then ask Rinat to listen to specific things and give named feedback: thin, buzzy
 - `tests/differential/audio.test.ts` (runs in CI) drives the prototype's engine and the port with a recording stand-in for Web Audio and the same random numbers. It requires identical call logs (every node, connection, parameter and timing) for 16 practice sessions, every percussion lane, the closing strokes and the live controls.
 - `dev/render.html` (`npm run dev`, then open `/dev/render.html`) renders five sessions through both engines in the browser's own Web Audio and compares the audio sample by sample. The port differs from the prototype by no more than the prototype differs from itself between runs, because Chrome's mixing order varies. That is at most about 7 × 10⁻⁶, more than 100 dB below full scale.
 - Measured there: full mixes −15 to −20 dB RMS with peaks around −2 dBFS; a click with a soft one-reed guide −30 dB RMS.
+- The same page then renders one cycle of each taal added on 2026-10-11 through the port
+  alone (no guide or drone, 80 matras a minute). Measured in headless Edge 155: tabla −18.4
+  to −21.9 dB RMS (the prototype's Dadra −19.4, Keherwa −20.9), dholak −20.3 to −22.6,
+  drums −22.7 to −25.7, peaks −1.9 to −3.8 dBFS. The beats that start silent (the first
+  50 ms more than 24 dB below the loudest beat) are exactly the rests: Deepchandi 3, 7, 10
+  and 14 (−30 to −34 dB), Dhamar 7 and 14, Jhumra 2 and 9 (before its Dha and Ta). Light
+  strokes (Te, TeTe, Ka) sit at −14 to −18 dB, as Keherwa's Ti (−18.2) and Ektal's
+  TiRaKiTa (−15.6) do in the prototype. Dhamar's sam is a Ka on the closed bayan, 10.7 dB
+  below its loudest Dha.
 
 ## Pitch feedback (added 2026-10-10)
 

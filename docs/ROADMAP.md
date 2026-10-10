@@ -99,11 +99,28 @@ found the reading believable.
 screen; the log survives a reload and exports to a file; Rinat has done a full rewaz
 with it.
 
-### 4. Next, as Rinat chooses
+### 4. Each song remembers its own sound (built 2026-10-11)
 
-- **Each song remembers its own sound** (planned since 2026-10-10): rhythm style, speed,
-  layers, fills, reeds, drone and its tuning, and guide mode saved with the song, with
-  the device settings as the fallback; optional fields in song files.
+- A song keeps its own Melody and Rhythm settings: the guide, the harmonium's reeds, the
+  drone and its tuning, the rhythm style, its volume, speed, fills and layers. The first
+  change made while the song is open saves the whole set with it, so it sounds the same
+  later whatever else changes.
+- Exercises, new songs and songs not yet changed use "your usual sound", which changes
+  when a setting is changed on an exercise. "Use my usual sound" makes a song use it again.
+- The Practice settings (count-in, the guide on repeats, the tempo trainer) stay the same
+  for every song. In song files the sound is an optional field (still version 1).
+
+### 5. More taals (built 2026-10-11)
+
+Tagore's own six (Jhampak, Shashthi, Rupakra, Nabatal, Ekadashi, Nabapanchatal), then
+Khemta, Deepchandi, Dhamar and Jhumra: each with its theka on the tabla, and patterns for
+the dholak and drums (`docs/ENGINE.md` → Taals). The taal picker groups them.
+
+**Done when (4 and 5):** Rinat has set up a few songs' sounds and found them kept, and the
+new thekas sound right to Rinat.
+
+### 6. Next, as Rinat chooses
+
 - Anything from Feature ideas below that Rinat picks.
 
 **Phase done when:** Rinat has used every feature on real songs and is happy with what
@@ -154,10 +171,9 @@ day or two, L more.
 - **The Casio CT-X3000:** type a song by playing it on the keyboard (MIDI over USB into
   notation) (M); play the guide on the Casio's own harmonium voice through MIDI (S); show
   which key to press for each note (S).
-- **Notation and rhythm:** Tagore's own taals (Jhampak, Shashthi, Nabatal, Ekadashi,
-  Rupakra, Nabapanchatal) and Deepchandi, Dhamar, Jhumra, Khemta (M); ornaments: meend,
-  kan, andolan, murki, khatka in notation and playback (L); a tempo per section (S);
-  print or save a clean swaralipi sheet as PDF (S).
+- **Notation and rhythm:** ornaments: meend, kan, andolan, murki, khatka in notation and
+  playback (L); a tempo per section (S); print or save a clean swaralipi sheet as PDF (S).
+  (Tagore's taals and four more were built on 2026-10-11.)
 - **Recording:** record takes and play them back against the guide (M); practise with a
   recording of the original song: loop a section, slow it without changing the pitch,
   shift the key (L).

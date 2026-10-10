@@ -4,7 +4,7 @@
 > the user need to stay in sync lives here: product direction, working rules, live
 > state, decisions, and the work log.
 >
-> **Last updated:** 2026-10-10 by Claude (Opus 5.5)
+> **Last updated:** 2026-10-11 by Claude (Opus 5.5)
 
 ## How to use this file
 
@@ -34,18 +34,20 @@ decision, which always wins (see Source-of-truth order).
 
 - **Current milestone:** Phase 1, features and functionality (Roadmap at a glance
   below). Phase 0 (the port) closed on 2026-10-10.
-- **Current task:** Rinat's three features are built and live, in Review: PH1-01 song
-  library, PH1-02 pitch feedback, PH1-03 rewaz routine and practice log.
-- **Next single action:** Rinat uses them on real songs (above all: sings a line with
-  pitch feedback and says whether the reading is believable) and picks the next features
-  from `docs/ROADMAP.md` → Feature ideas.
-- **Last known-good commit:** `0124537` (CI run `38076752956`: core, reference and
-  deploy jobs green); this session's commits are recorded in the newest Work log entry.
+- **Current task:** Phase 1's features so far are built and live, in Review: PH1-01 song
+  library, PH1-02 pitch feedback, PH1-03 rewaz routine and practice log, PH1-04 each
+  song's own sound, PH1-05 more taals.
+- **Next single action:** Rinat tries them on real songs (above all: sings a line with
+  pitch feedback, listens to the new taals' thekas, sets up a few songs' sounds) and starts
+  a separate session for the next features.
+- **Last known-good commit:** `e1eb3e5` (CI run `38094062227`: core, reference and deploy
+  jobs green); this session's commits are recorded in the newest Work log entry.
 - **How to run it now:** https://rinatmalik.github.io/Gaaner-Sathi/ (`/new/` forwards
   there). Locally: `npm install`, then `npm run dev` (the app at `/`, the audio check at
   `/dev/render.html`) and `npm test` (see Conventions → Stack).
 - **Blockers:** none.
-- **Uncommitted work:** none.
+- **Uncommitted work:** Rinat's own draft of the next prompt, appended to the end of
+  `docs/ROADMAP.md` in the working tree. Not Claude's: left untouched and uncommitted.
 
 ## Product direction — what this is meant to be now
 
@@ -64,8 +66,8 @@ first, built in the web app; then one intuitive design across all of them, in th
 app; then a fresh native mobile app (not a web page in a wrapper).** Until then the web
 screen stays tidy and responsive, but its look and phone polish are not a focus. The
 features: a song library for many songs, live pitch feedback from the microphone, a
-daily rewaz routine with a practice log, then whatever Rinat picks from the feature
-ideas in `docs/ROADMAP.md`. **Usable straightaway, with no tutorial or learning curve**
+daily rewaz routine with a practice log, each song's own sound, sixteen taals (Tagore's
+own among them), then whatever Rinat picks from the feature ideas in `docs/ROADMAP.md`. **Usable straightaway, with no tutorial or learning curve**
 (Rinat, 2026-10-10): features come in only when Rinat asks for them, and none may make
 the basics harder to find. North-star flow: open the app (it opens on an exercise,
 ready to play) → press play and sing → pick or type in your own song → loop the hard
@@ -86,7 +88,7 @@ built-in voices (never).
 | Phase | What | Done when |
 |---|---|---|
 | 0 | Port: TypeScript core, audio engine and interface to parity with the prototype; deployed from `main` (done 2026-10-10) | done |
-| **1 ◀ now** | Features and functionality, in the web app: song library; pitch feedback from the microphone; rewaz routine and practice log; then each song's own sound settings and the feature ideas Rinat picks | Rinat has used every feature on real songs and is happy |
+| **1 ◀ now** | Features and functionality, in the web app: song library; pitch feedback from the microphone; rewaz routine and practice log; each song's own sound; Tagore's taals and four more; then the feature ideas Rinat picks | Rinat has used every feature on real songs and is happy |
 | 2 | Design: one intuitive design across every feature, in the web app | Rinat signs off the design |
 | 3 | Native mobile app: a fresh build, Android first | the app on Rinat's phone does everything the web app does |
 | Parked | Offline web app, permanent web address, recorded instruments, ornaments, error reporting, accounts | only if Rinat asks |
@@ -288,7 +290,7 @@ them (level 4); `docs/PARITY.md` is a checklist (level 6).
   page elements for its rendering), `tests/unit/`, `dev/` (dev-only check pages).
   - **One click away:** the live app, https://rinatmalik.github.io/Gaaner-Sathi/,
     rebuilt from `main` on every push (so never stale).
-  - `npm install` once; `npm test` runs every Vitest suite (208 tests, about 9 s).
+  - `npm install` once; `npm test` runs every Vitest suite (226 tests, about 9 s).
   - `npm run dev`: the Vite dev server, the app at `/`; `/dev/render.html` renders
     sessions through the prototype's engine and the port's and compares them (the
     audio check). Claude starts it with the browser pane's `preview_start` ("dev" in
@@ -328,7 +330,12 @@ them (level 4); `docs/PARITY.md` is a checklist (level 6).
     left a duplicate stash. Instead: `git worktree add --detach <scratch>/wt <commit>`,
     `npm ci` and test there, then `git worktree remove`. Delete a leftover folder with
     the `\\?\` long-path prefix, because `node_modules` paths pass 260 characters
-    under the long scratch path.
+    under the long scratch path. A checkout here gives text files CRLF endings (with
+    `* text=auto` they follow `core.eol`, so `core.autocrlf=false` alone does not help);
+    the comparison tests cope since `e1eb3e5`. To get a file as CI has it, delete it and
+    run `git -c core.autocrlf=false -c core.eol=lf checkout -- <file>`. When checking a
+    test run, read Vitest's "Test Files" line: a file that fails to load does not count as
+    a failed test, and a pipe through `tail` hides the exit code.
   - `gh` is installed but not logged in; pushes go through Git Credential Manager.
   - When the browser pane is hidden, its page has a 0 × 0 viewport and draws no frames,
     so layout and highlight checks fail there. Instead, Claude drives a headless Edge
@@ -408,6 +415,8 @@ progress, Blocked, Review, Done, Superseded.*
 | PH1-01 | Claude | Review | `src/core/song/`, `src/core/practice/log.ts`, `src/app/songs.ts`, `index.html`, `tests/` | 15 + 9 unit tests; headless Edge on the built site: import with tags, search (Bengali across beats, Latin, taal, tags), filters, stars surviving a reload, open, log after 12 s and not after 3 s, tags edited, title sort remembered, backup carrying tags and stars, 360 px both themes (Work log 2026-10-10 20:00) | Song library and the practice log; waiting for Rinat's use |
 | PH1-02 | Claude | Review | `src/audio/dsp/`, `src/audio/mic.ts`, `src/core/pitch/`, `src/app/pitch.ts`, `tests/` | Detector within 0.03 / 1.3 cents (pure / sung-like tones, C2–C6); end-to-end in Node and in headless Edge with a WAV as the microphone: in tune 100, 35 cents flat 50, delay found within the first line (Work log 2026-10-10 20:00); ADR-003 | Pitch feedback; waiting for Rinat to sing with it |
 | PH1-03 | Claude | Review | `src/core/practice/routine.ts`, `src/app/rewaz.ts`, `src/app/progress.ts`, `src/audio/transport.ts`, `tests/` | 12 unit tests; headless Edge: a 2-item routine ran hands-free to "Rewaz done" (rounds, the pause, "your turn" rounds), logged with its name and tempo; Skip, Stop; Progress and its download; 360 px both themes (Work log 2026-10-10 20:00) | Rewaz routines and Progress; waiting for Rinat's use |
+| PH1-04 | Claude | Review | `src/core/song/`, `src/audio/sound.ts`, `src/app/`, `index.html`, `tests/` | 8 unit tests; headless Edge on the built site: a song keeps its whole Melody and Rhythm set from its first change while the usual sound stays as it was, through switching songs, a reload, a change while playing, a copy, export and import; "Use my usual sound"; a rewaz plays each item with its own; 360 px both themes (Work log 2026-10-11 00:40) | Each song remembers its own sound; waiting for Rinat's use |
+| PH1-05 | Claude | Review | `src/core/taal/`, `src/audio/instruments/percussion.ts`, `src/app/view.ts`, `tests/`, `dev/` | 10 unit tests; the prototype's six still compared exactly; offline renders: levels like the prototype's, silence exactly on the rests; headless Edge: picker, strip, marks, start beats, checker and playing for all ten (Work log 2026-10-11 00:40) | Tagore's six taals, and Khemta, Deepchandi, Dhamar, Jhumra; waiting for Rinat's ears |
 
 ## Decisions log
 
@@ -449,6 +458,8 @@ consequence.*
 | 2026-10-10 | Pitch feedback as in ADR-003: hand-written McLeod detector on the page, an AudioWorklet that only collects samples, the guide's AudioContext as the one clock; the delay found from the singing instead of a click calibration (works with headphones); scores on pitch only, any octave by default; "every other round" guide rounds are for listening, so not scored. | Claude, building PH1-02; `docs/adr/ADR-003-pitch-feedback.md` | The roadmap's click calibration and timing score are dropped for now; timing needs the true round-trip delay. |
 | 2026-10-10 | Rewaz: items have their own lines, rounds, tempo and guide, which never change the song or the device settings; the transport can stop a loop after N rounds; a 4 s pause shows what is next; any user play, stop or song change ends the routine; a starter "Daily warm-up" stays on offer like the exercises. | Claude, building PH1-03 | The other Sound settings (rhythm, drone, tempo trainer) apply to routines as set. |
 | 2026-10-10 | Five views under the deck (Songs, Practice, Edit notation, Rewaz, Progress) as tabs, with the deck and Sound bar shown for all. | Claude, following Rinat's "features first, design later" | The navigation is for the Phase 2 design to settle. |
+| 2026-10-11 | Each song remembers its own sound: the Melody and Rhythm settings are saved with one of the user's songs on the first change made while it is open, as a whole set, so it sounds the same whatever changes later. Exercises, new songs and songs not yet changed use "your usual sound" (the device's settings), which a change made on an exercise sets; "Use my usual sound" removes a song's own; the Practice settings stay the device's. Stored and exported as an optional `sound` field (still version 1). | Rinat, chat 2026-10-10 ("please do these 2 tasks only"); the behaviour is Claude's choice | Songs from before sound as they did until changed. To change the usual sound, change it on an exercise (the note in the Sound settings says so). |
+| 2026-10-11 | Ten more taals. Tagore's six have only talis, no khali, with the thekas gitabitan.net gives: Subinay Roy's on tabla, and mridanga thekas (Kangalicharan Sen's, Subinay Roy's) where no tabla one exists. Khemta is the 12-matra form, Dhamar is divided as in Rabindrasangeet (3\|2\|2\|3\|4, khali on 4 and 8), Deepchandi and Jhumra are the standard ones. A rest in a theka plays nothing. The app keeps these taal ids; the prototype reads them as Dadra. | Rinat, chat 2026-10-10; Claude's research (sources in `docs/ENGINE.md` → Taals) | Open question 5. Their dholak and drum patterns are Claude's, for Rinat to judge by ear. |
 
 ## Open questions
 
@@ -468,6 +479,10 @@ current work (unless marked). Defaults apply until answered.*
    Rinat relies on the web app.
 4. **Free, paid or donations?** Matters once the native app heads for an app store
    (Phase 3). No licence for now.
+5. **Two taal forms.** Khemta is the 12-matra form of the Bengali tabla books, not
+   Tagore's 6-matra Kashmiri Khemta (Dhig – Na · Dha Ti Na). Dhamar is divided as in
+   Rabindrasangeet (3+2+2+3+4, khali on 4 and 8), not the classical 5+2+3+4 (the
+   checker accepts bars written either way). Default: as built.
 
 ## Work log
 
@@ -476,6 +491,73 @@ statements must name the exact command, result, and environment — "tests pass"
 is not sufficient. When this grows long, keep only the last few entries here and
 move older ones into a `HISTORY.md` you create then, so this file stays lean.*
 
+### 2026-10-11 00:40 BST — Claude (Opus 5.5) — PH1-04 each song's own sound; PH1-05 more taals
+
+- **Goal:** Rinat checked the three features and asked for two more, only these: each song
+  remembers its own sound (rhythm, drone, guide); Tagore's own taals (Jhampak, Shashthi,
+  Nabatal, Ekadashi, Rupakra, Nabapanchatal), plus Deepchandi, Dhamar, Jhumra and Khemta.
+  The rest comes in a separate session.
+- **Inspected:** the taal tables, rhythm engine and bol map; the Sound settings' wiring in
+  `app.ts`; the song model, files and storage; the comparison tests. For the taals:
+  gitabitan.net's page on the taals Rabindranath made (fetched over plain HTTP: its HTTPS
+  certificate is for another name), geetabitan.com's taal pages (Dhamar, Khemta, Kashmiri
+  Khemta) and search results for Deepchandi, Jhumra and Khemta. tablatheka.com's pages now
+  redirect through other domains, one of them a gambling site, so they were not followed.
+- **Changed:** `31726ce` (ten taals, their dholak and drum patterns, the mridanga bols,
+  the grouped picker, tests, the dev audio check); `588ed8c` (each song's own sound:
+  `src/core/song/sound.ts`, the song model, files, storage, the app, a note in the Sound
+  settings, tests); `e1eb3e5` (the comparison tests read the prototype with LF endings);
+  this commit (README, DATA, ENGINE, ROADMAP without Rinat's draft, this file).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through
+  the DevTools protocol):
+  - `npm run typecheck` → 0; `npx vitest run` → 21 files, 226 passed (10 taal and 8
+    sound tests new); `npm run build` → 120 kB JS (42.5 kB gzip), 24 kB CSS;
+    `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid.
+  - Commits alone, each in a detached worktree after `npm ci`: `31726ce` with the
+    prototype file checked out with LF endings, as CI has it → `npm ci` 0, type-check 0,
+    20 files, 218 passed; `e1eb3e5` on a default Windows (CRLF) checkout → `npm ci` 0,
+    type-check 0, 21 files, 226 passed. The first check of `31726ce` (CRLF) found that the
+    view comparison could not load at all on a Windows checkout, because its markers
+    expect LF: broken since the interface port, fixed in `e1eb3e5`.
+  - The comparison tests still check the prototype's six taals exactly. A first version of
+    the "–Dha" strip label changed the prototype's own Rupak label at double speed (the
+    bols of a beat are listed in theka order, not time order); those tests caught it.
+  - Audio (`npm run dev`, `/dev/render.html` in headless Edge, OfflineAudioContext 48 kHz):
+    the port still matches the prototype (largest difference 2.5e-6, against its own
+    run-to-run 2.3e-6). The new taals: tabla −18.4 to −21.9 dB RMS (Dadra −19.4), dholak
+    −20.3 to −22.6, drums −22.7 to −25.7, peaks −1.9 to −3.8 dBFS; the beats that start
+    silent are exactly the rests (Deepchandi 3, 7, 10, 14; Dhamar 7, 14; Jhumra 2, 9);
+    light strokes −14 to −18 dB, like the prototype's Keherwa and Ektal.
+  - The built site served like Pages at 127.0.0.1:8085, scenario `taals1`: the picker in
+    three groups (6, 6, 4). For each new taal, a song written to its vibhags gives the
+    right name and vibhags, strip marks and theka (rests "·", Jhumra "–Dha"), start-beat
+    options marking khali, sheet marks, and the checker happy with every bar; each plays;
+    the taal survives a reload and shows in the Songs view; no console errors.
+  - Scenario `sound1`: an exercise shows the usual sound, and Dholak set there changes it.
+    A new song uses it ("uses your usual sound until you change something here"). Drums,
+    Tanpura (turned on at half volume), 1st string Ma, Shaker and Double on the song are
+    saved with it as the whole set, the usual sound untouched. The exercise is back on
+    Dholak with no drone, and the song back on its own, also after a reload. A Soft guide
+    set while playing is saved with the song; a copy keeps the sound; "Use my usual sound"
+    on the copy removes it; export writes `sound` (version 1) and import brings it back;
+    no console errors.
+  - Scenario `sound2`: a rewaz of the song (Drums, Jhampak) and exercise 3 plays each item
+    with its own sound (Drums, then Dholak) to "Rewaz done". At 360 px in both themes there
+    is no sideways scrolling, the note and its button sit inside the page, and
+    Nabapanchatal's 18-beat strip wraps by vibhag.
+  - CI run `38094062227` (`e1eb3e5`): core, reference and deploy jobs green. Live: `/` 200
+    (the app, 19,504 bytes) and `/new/` 200 (the forward page); in headless Edge the live
+    app shows the three taal groups and the Sound note, and a new song in Deepchandi on
+    dholak keeps its sound and plays, with no console errors.
+- **Decisions made:** see Decisions log (the 2026-10-11 rows); Open question 5.
+- **Risks or disagreements:** nobody has heard the new thekas. Three of Tagore's taals have
+  only mridanga thekas, played here on a tabla; Dhamar's sam is a soft closed stroke; the
+  dholak and drum patterns for the ten are Claude's own; each theka follows one source, so
+  Rinat's teacher may play another. Changing the usual sound only on an exercise may not
+  be obvious, though the note in the Sound settings says so. Rinat's draft of the next
+  prompt sits uncommitted at the end of `docs/ROADMAP.md`.
+- **Next handoff:** Rinat tries the two features (and the three before them); Rinat starts
+  a separate session for the next features.
 
 ### 2026-10-10 20:00 BST — Claude (Opus 5.5) — PH0-05 done; Phase 1: library, pitch feedback, rewaz
 

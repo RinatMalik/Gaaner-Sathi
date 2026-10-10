@@ -2,18 +2,20 @@
 
 A practice companion for singers who learn Bengali songs from swaralipi (akarmatrik
 notation). Type the notation once, and Gaaner Sathi plays the melody on harmonium as a
-pitch guide, with tabla, dholak or drums and a tanpura drone, all on one clock so the
-rhythm never drifts from the melody. It highlights the beat you are on, with the lyric
-underneath. It keeps a library of your songs, listens through the microphone and shows
-how in tune you sing, note by note, runs a daily rewaz routine hands-free, and logs your
-practice. Everything stays on your device.
+pitch guide, with tabla, dholak or drums in any of sixteen taals (Tagore's own six among
+them) and a tanpura drone, all on one clock so the rhythm never drifts from the melody.
+It highlights the beat you are on, with the lyric underneath. It keeps a library of your
+songs, each with its own sound, listens through the microphone and shows how in tune you
+sing, note by note, runs a daily rewaz routine hands-free, and logs your practice.
+Everything stays on your device.
 
 ## Status
 
 The port of the original single-file prototype is finished, and the app is live. Phase 1
 ([roadmap](docs/ROADMAP.md)), features first: the song library, pitch feedback from the
-microphone, and the rewaz routine with a practice log are in; more follow as Rinat picks
-them. The design comes after that, then a native mobile app.
+microphone, the rewaz routine with a practice log, each song's own sound, and Tagore's
+taals with four more are in; more follow as Rinat picks them. The design comes after
+that, then a native mobile app.
 
 ## Try it
 

@@ -8,7 +8,7 @@ As implemented in the prototype, plus what the web app has added since (marked *
 {
   "id": "song-mv0nc4fn-pdioa",
   "title": "Any text",
-  "taal": "dadra | keherwa | rupak | jhaptal | ektal | teentaal",
+  "taal": "dadra",
   "tempo": 100,
   "saKey": 0,
   "saOct": 4,
@@ -16,12 +16,16 @@ As implemented in the prototype, plus what the web app has added since (marked *
   "text": "# স্থায়ী\nসা -া রা | গা -া মা\n> সা ০ রে | গা ০ মা\n",
   "updatedAt": 1791544356355,
   "tags": ["Rabindrasangeet", "Learning"],
-  "fav": true
+  "fav": true,
+  "sound": { "guide": "soft", "reeds": 3, "droneType": "tanpura", "droneVol": 0.5, "tanTune": "M",
+             "beat": "dholak", "tablaVol": 0.7, "speed": "normal", "fills": true,
+             "layers": { "tabla": [], "dholak": ["manjira"], "kit": [] } }
 }
 ```
 
 | Field | Meaning |
 |---|---|
+| `taal` | One of 16 taal ids (ENGINE.md → Taals): `dadra`, `keherwa`, `rupak`, `jhaptal`, `ektal`, `teentaal`, and since 2026-10-11 `jhampak`, `shashthi`, `rupakra`, `nabatal`, `ekadashi`, `nabapanchatal`, `khemta`, `deepchandi`, `dhamar`, `jhumra`. Anything else reads as `dadra` (the prototype also reads the ten newer ids as `dadra`). |
 | `tempo` | Matras per minute, 30–240. |
 | `saKey` | Semitones above C, 0–11. The UI shows the CT-X3000 key too ("C · White 1", "C♯ · Black 1", …). |
 | `saOct` | 3, 4 or 5 (Low, Middle, High); Sa = MIDI 12 × (saOct + 1) + saKey. |
@@ -30,8 +34,9 @@ As implemented in the prototype, plus what the web app has added since (marked *
 | `updatedAt` | ms epoch, used to resolve edits arriving from another device. |
 | `tags` | *Added 2026-10-10.* Library tags, free text: trimmed, single-spaced, no commas, at most 40 characters each and 20 per song, no two the same apart from case. Absent when there are none. |
 | `fav` | *Added 2026-10-10.* `true` for a favourite; absent otherwise. |
+| `sound` | *Added 2026-10-11.* The song's own Melody and Rhythm settings, with the same names and values as the device settings below: `guide`, `reeds`, `droneType`, `droneVol`, `tanTune`, `beat`, `tablaVol`, `speed`, `fills`, `layers`. Absent while the song uses the usual sound. The app writes the whole set; reading checks each field and leaves out any it cannot read, so the device's setting shows through for that one. |
 
-The prototype runs every song through `normalize()` when it loads, which clamps all fields. Keep that tolerance for imported files. The app's `normalize()` also cleans `tags` and `fav`, and leaves them out when unset, so a prototype song reads exactly as before.
+The prototype runs every song through `normalize()` when it loads, which clamps all fields. Keep that tolerance for imported files. The app's `normalize()` also cleans `tags`, `fav` and `sound`, and leaves them out when unset, so a prototype song reads exactly as before.
 
 ## File format (export, backup and import)
 
@@ -40,13 +45,13 @@ The prototype runs every song through `normalize()` when it loads, which clamps 
   "songs": [ { "title": "...", "taal": "...", "tempo": 100, "saKey": 0, "saOct": 4, "startOn": 1, "text": "..." } ] }
 ```
 
-- Each song may also carry `tags` and `fav` (*added 2026-10-10*, only when set). They are optional, so files stay version 1: the prototype and older readers skip them, and the app reads them back on import.
+- Each song may also carry `tags` and `fav` (*added 2026-10-10*) and `sound` (*added 2026-10-11*), only when set. They are optional, so files stay version 1: the prototype and older readers skip them (and read a taal they do not know as Dadra), and the app reads them back on import.
 - **Export this song** writes one song in that envelope; **Back up all my songs** writes them all (examples excluded).
 - **Import** accepts that envelope, a bare array of songs, a single song object, or a plain `.txt`, which becomes one song titled from the file name. Limits are 2 MB per file, 200 songs per import and 200 000 characters per song. Imports always get new ids, so they never overwrite.
 - Files exported before the rename say `"format": "swaralipi-player"`. The importer never checks this field, so both import; keep it that way.
 - Keep reading version 1 forever. Bump `version` only for breaking changes and write a migration.
 
-## Settings (per device, not per song)
+## Settings (per device; a song's own sound lies over them)
 
 `swaralipi.prefs.v1` in localStorage (the web app keeps them under `gaanersathi.prefs.v1`; see Storage below):
 
@@ -76,7 +81,8 @@ The prototype runs every song through `normalize()` when it loads, which clamps 
 | `rewazId` | *Added.* The rewaz routine last chosen |
 
 Older keys are migrated on load: `extra` → `layers`, and `dropGuide` → `guideLoop: 'first'`.
-Roadmap item "per-song sound settings" moves the rhythm, speed, layers, reeds and drone settings onto the song, with these device settings as the fallback.
+
+**Each song's own sound** (*added 2026-10-11*): the Melody and Rhythm settings (`guide`, `reeds`, `droneType`, `droneVol`, `tanTune`, `beat`, `tablaVol`, `speed`, `fills`, `layers`) kept here are *your usual sound*. Exercises use it, and so does every song without a `sound` of its own (new songs, and every song from before this change, so nothing sounds different until it is changed). Changing one of them while one of your songs is open saves the whole set with that song, and the usual sound is left alone; while an exercise is open, it changes the usual sound. "Use my usual sound" removes a song's own. The Practice settings (`countIn`, `guideLoop`, `ramp`, `rampStep`, `rampMax`) are always the device's. A rewaz item's tempo and guide still lie over all of these while it plays.
 
 ## Storage in the prototype, and what replaces it
 
