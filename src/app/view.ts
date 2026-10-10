@@ -303,7 +303,7 @@ export function issuesHTML(P: ParsedSong, T: TaalInfo, off: number, script: Scri
   return { html, list };
 }
 
-// ── Sound bar (new: the one change from the prototype's layout) ────────────────
+// ── Sound bar (new: the prototype's settings, folded away) ─────────────────────
 
 const STYLE_NAMES: Record<string, string> = { tabla: 'Tabla', dholak: 'Dholak', kit: 'Drums', click: 'Click' };
 

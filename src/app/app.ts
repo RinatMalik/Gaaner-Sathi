@@ -5,8 +5,8 @@
  *
  * Changes from the prototype:
  * - The Sound settings fold away behind a bar that says what is on: folded at first on
- *   narrow screens and open on wide ones, then as the user leaves them. This is the one
- *   change to the layout, for Rinat to judge.
+ *   narrow screens and open on wide ones, then as the user leaves them (Rinat kept this
+ *   layout change, 2026-10-10).
  * - Songs and settings stay in this browser, with no claude.ai storage or downloads;
  *   store.ts explains how the prototype's saved songs are read. Changes saved in another
  *   tab show up here, as the claude.ai version's live sync did.

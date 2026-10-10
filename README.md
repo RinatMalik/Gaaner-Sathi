@@ -8,17 +8,17 @@ underneath.
 
 ## Status
 
-Phase 0 of the [roadmap](docs/ROADMAP.md): turning a working single-file prototype into
-a light TypeScript web app that you can use straightaway, offline, with no account.
+The port of the original single-file prototype is finished, and the app is live. Now
+([roadmap](docs/ROADMAP.md), Phase 1): new features, first a song library, pitch
+feedback from the microphone, and a daily rewaz routine with a practice log. The design
+comes after that, then a native mobile app.
 
 ## Try it
 
-- **The new app:** https://rinatmalik.github.io/Gaaner-Sathi/new/
-- **The prototype it replaces:** https://rinatmalik.github.io/Gaaner-Sathi/ (or download
-  [`reference/gaaner-sathi.html`](reference/gaaner-sathi.html) and open it in a browser).
-
-Both keep your songs in your browser. The new app also shows the songs you saved in
-the prototype.
+https://rinatmalik.github.io/Gaaner-Sathi/ keeps your songs in your browser, with no
+account. Songs saved in the earlier prototype at the same address show up there too.
+The prototype itself is [`reference/gaaner-sathi.html`](reference/gaaner-sathi.html):
+download it and open it in a browser.
 
 ## Find your way around
 
@@ -26,7 +26,7 @@ the prototype.
 |---|---|
 | [`CONTEXT.md`](CONTEXT.md) | The project's shared state: direction, working rules, current state, decisions, work log |
 | [`docs/`](docs/) | Roadmap, parity checklist, notation, engine and data specs, decision records |
-| [`index.html`](index.html), [`src/`](src/) | The new app: the page, the pure core (`src/core/`), the sound (`src/audio/`) and the screen (`src/app/`) |
+| [`index.html`](index.html), [`src/`](src/) | The app: the page, the pure core (`src/core/`), the sound (`src/audio/`) and the screen (`src/app/`) |
 | [`tests/`](tests/) | Tests for the new code |
 | [`reference/`](reference/) | The working prototype and its reference test suites |
 

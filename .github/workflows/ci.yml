@@ -63,13 +63,13 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      # The prototype stays at the site's address while Rinat tries the new app at /new/;
-      # the new app replaces it there once Rinat is happy with it (PH0-05).
+      # The app at the site's address. /new/ (where Rinat first tried it) forwards there;
+      # the prototype is no longer published (it stays in reference/ as the test oracle).
       - name: Assemble the site
         run: |
-          mkdir -p _site
-          cp reference/gaaner-sathi.html _site/index.html
-          cp -r dist _site/new
+          cp -r dist _site
+          mkdir -p _site/new
+          echo '<!doctype html><meta charset="utf-8"><title>Gaaner Sathi</title><meta http-equiv="refresh" content="0; url=../"><a href="../">Gaaner Sathi</a>' > _site/new/index.html
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
