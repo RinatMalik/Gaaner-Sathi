@@ -11,9 +11,10 @@
 > is a pointer, not proof: the evidence is the Work log (see Source-of-truth order).
 >
 > **Parity means the same capabilities, not the same layout.** The new app (2026-10-10)
-> keeps the prototype's screen, with one change for Rinat to judge: the Sound settings
-> (Melody, Rhythm, Practice) fold away behind a bar that says what is on. They start
-> folded on narrow screens and open on wide ones, then stay as the user leaves them.
+> keeps the prototype's screen, with one change Rinat kept: the Sound settings (Melody,
+> Rhythm, Practice) fold away behind a bar that says what is on. They start folded on
+> narrow screens and open on wide ones, then stay as the user leaves them. Phase 0
+> closed on 2026-10-10; features added since are tracked in `docs/ROADMAP.md`, not here.
 
 ## Notation (the pure core; contract: `docs/NOTATION.md` + `reference/tests/`)
 

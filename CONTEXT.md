@@ -32,21 +32,17 @@ decision, which always wins (see Source-of-truth order).
 
 ## Current state
 
-- **Current milestone:** Phase 0, port (Roadmap at a glance below).
-- **Current task:** PH0-04 in Review. The new app's screen is built, published at
-  `/Gaaner-Sathi/new/` beside the prototype, and waiting for Rinat's verdict on its one
-  layout change: the Sound settings fold away (Open question 5).
-- **Next single action:** Rinat tries https://rinatmalik.github.io/Gaaner-Sathi/new/ on
-  a phone and a laptop and says whether to keep the folding Sound settings or show them
-  all the time as the prototype does. Then PH0-05: the new app takes over the main
-  address and the prototype leaves the site.
-- **Last known-good commit:** `218467a` (CI run `38037906311`: core, reference and
+- **Current milestone:** Phase 1, features and functionality (Roadmap at a glance
+  below). Phase 0 (the port) closed on 2026-10-10.
+- **Current task:** Rinat's three features, in this order of building: PH1-01 song
+  library, PH1-02 pitch feedback, PH1-03 rewaz routine and practice log.
+- **Next single action:** see Active work and the newest Work log entry.
+- **Last known-good commit:** `c5e3da3` (CI run `38046152037`: core, reference and
   deploy jobs green); this session's commits are recorded in the newest Work log entry.
-- **How to run it now:** the new app at https://rinatmalik.github.io/Gaaner-Sathi/new/,
-  the prototype at https://rinatmalik.github.io/Gaaner-Sathi/. Locally: `npm install`,
-  then `npm run dev` (the app at `/`, the audio check at `/dev/render.html`) and
-  `npm test` (see Conventions → Stack).
-- **Blockers:** none; Open question 5 waits on Rinat.
+- **How to run it now:** https://rinatmalik.github.io/Gaaner-Sathi/ (`/new/` forwards
+  there). Locally: `npm install`, then `npm run dev` (the app at `/`, the audio check at
+  `/dev/render.html`) and `npm test` (see Conventions → Stack).
+- **Blockers:** none.
 - **Uncommitted work:** none.
 
 ## Product direction — what this is meant to be now
@@ -60,31 +56,38 @@ lyric underneath. It exists because Rinat practises from handwritten swaralipi
 diaries: playing them on a Casio CT-X3000 (harmonium tone, rhythm running) meant
 watching which keys to press instead of singing. The actual melody notes, rather than
 a full backing track, tell the voice what to match. A working single-file prototype
-exists (`reference/gaaner-sathi.html`). The job: port it into a clean, light web app
-that works offline and installs on a phone, publish it, then add live pitch feedback
-from the microphone and a daily rewaz routine with a practice log. **Basic features,
-usable straightaway with no tutorial or learning curve; it must not grow into a
-massive thing** (Rinat, 2026-10-10). North-star flow: open the app (it opens on an
-exercise, ready to play) → press play and sing → pick or type in your own song → loop
-the hard lines.
+(`reference/gaaner-sathi.html`) has been ported into a clean, light web app (Phase 0,
+done 2026-10-10). **The order now (Rinat, 2026-10-10): features and functionality
+first, built in the web app; then one intuitive design across all of them, in the web
+app; then a fresh native mobile app (not a web page in a wrapper).** Until then the web
+screen stays tidy and responsive, but its look and phone polish are not a focus. The
+features: a song library for many songs, live pitch feedback from the microphone, a
+daily rewaz routine with a practice log, then whatever Rinat picks from the feature
+ideas in `docs/ROADMAP.md`. **Usable straightaway, with no tutorial or learning curve**
+(Rinat, 2026-10-10): features come in only when Rinat asks for them, and none may make
+the basics harder to find. North-star flow: open the app (it opens on an exercise,
+ready to play) → press play and sing → pick or type in your own song → loop the hard
+lines.
 
 *Target user:* Rinat, and singers like Rinat: read swaralipi and sing Bengali songs,
 not technical, practise on a phone or a laptop, often with hands busy. Would they find
 it obvious with no manual?
 
-*Non-goals (for now):* features beyond the prototype's and the Phase 2 list; accounts
-and sync; a server of our own; app-store apps; recorded samples and ornaments (parked
-in `docs/ROADMAP.md`, each only with Rinat's go-ahead); a UI framework or other runtime
-dependencies; sampling the Casio's built-in voices (never).
+*Non-goals (for now):* features Rinat has not asked for; accounts and sync; a server
+of our own; an offline, installable web app (the native app covers it); recorded
+samples and ornaments (parked in `docs/ROADMAP.md`, each only with Rinat's go-ahead); a
+UI framework or other runtime dependencies in the web app; sampling the Casio's
+built-in voices (never).
 
 *Roadmap at a glance* (full detail and done criteria: `docs/ROADMAP.md`):
 
 | Phase | What | Done when |
 |---|---|---|
-| **0 ◀ now** | Port: TypeScript core with the reference suites (done); audio engine and interface to parity (same capabilities, simpler presentation, nothing dropped) | every reference test passes against the new core; the exercises check clean; every `docs/PARITY.md` item works; a deploy from `main` is live on GitHub Pages |
-| 1 | Publish: offline and installable, songs saved in the browser, import/export, opens on an exercise, privacy note, each song remembering its own sound settings | a public URL; Lighthouse PWA and accessibility pass; works offline; Rinat has practised a full song on phone and laptop |
-| 2 | In order: pitch feedback from the microphone (live sharp/flat, a score per line); a daily rewaz routine with a practice log | per item, see ROADMAP |
-| Parked | Recorded instruments, ornaments, error reporting, accounts, native apps, smaller extras | only if Rinat asks |
+| 0 | Port: TypeScript core, audio engine and interface to parity with the prototype; deployed from `main` (done 2026-10-10) | done |
+| **1 ◀ now** | Features and functionality, in the web app: song library; pitch feedback from the microphone; rewaz routine and practice log; then each song's own sound settings and the feature ideas Rinat picks | Rinat has used every feature on real songs and is happy |
+| 2 | Design: one intuitive design across every feature, in the web app | Rinat signs off the design |
+| 3 | Native mobile app: a fresh build, Android first | the app on Rinat's phone does everything the web app does |
+| Parked | Offline web app, permanent web address, recorded instruments, ornaments, error reporting, accounts | only if Rinat asks |
 
 ## Universal working defaults
 
@@ -183,8 +186,8 @@ status becomes Done.*
 - [ ] Core tests are green, and new behaviour comes with new tests.
 - [ ] The built-in exercise library still checks clean.
 - [ ] Audio changes come with a measurement.
-- [ ] Works offline, in both themes, at 360 px wide with no sideways scrolling (once
-      the app exists).
+- [ ] Works in both themes and stays responsive: no sideways scrolling at 360 px wide.
+      (Phone polish waits for the native app and offline is parked: Rinat, 2026-10-10.)
 - [ ] The stated **Invariants** still hold (none weakened without a recorded decision).
 - [ ] Your own changes are **committed** (green, or `wip:` with what's unfinished noted)
       and pushed to `main`.
@@ -279,7 +282,7 @@ them (level 4); `docs/PARITY.md` is a checklist (level 6).
   `tests/ported/` (the reference suites one-for-one), `tests/differential/` (port
   versus the prototype's own code, including a recording stand-in for Web Audio and fake
   page elements for its rendering), `tests/unit/`, `dev/` (dev-only check pages).
-  - **One click away:** the live app, https://rinatmalik.github.io/Gaaner-Sathi/new/,
+  - **One click away:** the live app, https://rinatmalik.github.io/Gaaner-Sathi/,
     rebuilt from `main` on every push (so never stale).
   - `npm install` once; `npm test` runs every Vitest suite (153 tests, about 8 s).
   - `npm run dev`: the Vite dev server, the app at `/`; `/dev/render.html` renders
@@ -296,8 +299,8 @@ them (level 4); `docs/PARITY.md` is a checklist (level 6).
   - Prototype: open `reference/gaaner-sathi.html` in a browser.
   - CI: `.github/workflows/ci.yml` on every push to `main`: a core job (`npm ci`,
     type-check, tests, build), a reference job, and a deploy job to GitHub Pages that
-    runs after both pass: the prototype at the site's root and the new app at `/new/`,
-    until the new app takes over the root (PH0-05).
+    runs after both pass: the built app at the site's root, and a page at `/new/` that
+    forwards there. The prototype is no longer published.
 - **Environment gotchas:**
   - Windows: system git has `core.autocrlf=true` and `.gitattributes` normalises to LF
     in the repo, so "LF will be replaced by CRLF" warnings are expected noise; `.sh`
@@ -342,8 +345,8 @@ reference lives in sibling docs; open one only when the task touches it.*
 
 - **`SECURITY.md`** — secret handling, fail-closed defaults, spend caps, leak response;
   this project's privacy and licence rules.
-- **`docs/ROADMAP.md`** — Phases 0 and 1 with done criteria; the parked ideas, with
-  the kickoff's notes on each.
+- **`docs/ROADMAP.md`** — Phases 0–3 with done criteria, the feature ideas for Rinat
+  to pick from, and the parked ideas with the kickoff's notes on each.
 - **`docs/PARITY.md`** — the Phase 0 side-by-side checklist: every prototype feature.
 - **`docs/NOTATION.md`** — notation spec: beats, notes, octaves, edit operations, checker.
 - **`docs/ENGINE.md`** — audio and timing engine: scheduler, taals, rhythm, harmonium,
@@ -386,8 +389,11 @@ progress, Blocked, Review, Done, Superseded.*
 | PH0-01 | Claude | Done | framework docs, `docs/`, `reference/`, CI; remove `handover/` | Handover merged and removed; reference suites green locally and in CI run `38001060696`; pushed (`c0b057c`) | Framework and repo setup |
 | PH0-02 | Claude | Done | `src/core/`, `src/audio/dsp/`, `tests/`, `package.json`, configs, CI | 69 reference tests and 12 exercises ported one-for-one and green; differential tests against the prototype green and shown to catch injected bugs; `src/core` type-checks with no DOM library; CI run `38005291130` green (`8b5b933`) | Core port |
 | PH0-03 | Claude | Done | `src/audio/`, `tests/differential/`, `dev/` | Identical recorded Web Audio calls to the prototype for 16 sessions, every lane, closing strokes and live controls (17 tests, 5 injected bugs caught); Chromium offline renders match the prototype within its own run-to-run variation; commits `ded3ee4`, `218467a` | Audio engine and transport |
-| PH0-04 | Claude | Review | `src/app/`, `index.html`, `vite.config.ts`, `tests/` | 69 of 71 `docs/PARITY.md` items Done and 2 Ported (Bluetooth latency, wake lock: need a phone); rendering identical to the prototype's in differential tests; every view checked at 360 px in both themes in headless Edge (Work log 2026-10-10 12:00) | The prototype's screen, plus foldable Sound settings: waiting for Rinat's verdict (Open question 5) |
-| PH0-05 | Claude | In progress | CI deploy job | A live URL deployed from `main` that opens on a phone | The prototype is live at the root since 2026-10-10 (CI run `38037906311`), the new app at `/new/` since this session; next, the new app takes over the root after Open question 5 |
+| PH0-04 | Claude | Done | `src/app/`, `index.html`, `vite.config.ts`, `tests/` | 69 of 71 `docs/PARITY.md` items Done and 2 Ported (Bluetooth latency, wake lock: need a phone); rendering identical to the prototype's in differential tests; every view checked at 360 px in both themes in headless Edge (Work log 2026-10-10 12:00); Rinat tried it on a phone and a laptop and kept the folding Sound settings | The prototype's screen, plus foldable Sound settings |
+| PH0-05 | Claude | In progress | CI deploy job | A live URL deployed from `main` that opens on a phone | The new app at the site's root, `/new/` forwarding there (this session) |
+| PH1-01 | Claude | In progress | `src/core/song/`, `src/app/`, `index.html`, `tests/` | — | Song library: search, sort, filter, tags, favourites |
+| PH1-02 | Claude | Proposed | `src/audio/`, `src/core/`, `src/app/`, `tests/` | — | Pitch feedback from the microphone |
+| PH1-03 | Claude | Proposed | `src/app/`, `src/audio/transport.ts`, `tests/` | — | Rewaz routine, practice log, progress |
 
 ## Decisions log
 
@@ -420,6 +426,10 @@ consequence.*
 | 2026-10-10 | The new app is published at `/Gaaner-Sathi/new/` beside the prototype until Rinat has looked at it; then it takes over the main address. | Claude, so Rinat can try it on a phone before deciding (Rinat asked to look first) | The deploy job builds the app and copies it to `_site/new/`. |
 | 2026-10-10 | The app reads the prototype's saved songs and settings but never writes them; its changes go under its own keys (`gaanersathi.*`), and each save changes only the song saved. | Claude, for "never lose a song": a prototype tab left open rewrites its whole song list from memory on every save. `docs/adr/ADR-002-storage.md` | Neither page can overwrite the other's work; the prototype's storage is never changed. Edits made in the new app do not show in the prototype. |
 | 2026-10-10 | Interface text stays where the prototype had it (the page markup and the render functions), not in one strings module. | Claude, settling ADR-001's plan: a strings module only pays off for a Bengali interface, which is a parked idea | The port can be compared with the prototype line by line. |
+| 2026-10-10 | Keep the folding Sound settings (Open question 5 answered). | Rinat, chat 2026-10-10 ("that's fine I accept it") | PH0-04 done; the new app takes over the main address. |
+| 2026-10-10 | The new app replaces the prototype at https://rinatmalik.github.io/Gaaner-Sathi/; `/new/` forwards there. The prototype is no longer published but stays in `reference/`, because the differential tests use its code as their oracle (the roadmap had said to remove `reference/` after Phase 0). | Claude, following Rinat's acceptance | Songs saved in the prototype at that address still show in the app (same origin, ADR-002). |
+| 2026-10-10 | Order of work: features and functionality first, built in the web app; then one intuitive design across all of them, in the web app; then a fresh native mobile app (an APK, not a web page in a wrapper). The web screen stays responsive, but phone polish and looks are not a focus until then. | Rinat, chat 2026-10-10 | Roadmap reordered: Phase 1 features, Phase 2 design, Phase 3 native app. The offline, installable web app (old Phase 1) is parked. The Definition of done's 360 px check becomes "responsive: no sideways scrolling". Native apps leave the non-goals. |
+| 2026-10-10 | Phase 1 features, in this order of building: a song library to manage many songs (new), pitch feedback from the microphone, a rewaz routine with a practice log. Claude lists further feature ideas for Rinat to pick from (`docs/ROADMAP.md` → Feature ideas). Features come in only when Rinat asks for them; usable straightaway stays an invariant. | Rinat, chat 2026-10-10 ("add those, and let me know what else can be added") | PH1-01 to PH1-03. "Each song remembers its own sound" follows them. |
 
 ## Open questions
 
@@ -433,15 +443,12 @@ current work (unless marked). Defaults apply until answered.*
 3. **Permanent web address.** GitHub Pages is decided for now
    (`rinatmalik.github.io/Gaaner-Sathi`). Later: point a subdomain such as
    `gaanersathi.rinatmalik.com` (one DNS record at Hostinger) or a dedicated domain at
-   it. Settle it before Phase 1 ends: saved songs belong to the web address, so moving
-   later means everyone exports and re-imports.
-4. **Free, paid or donations?** Only matters if the app ever goes to app stores
-   (parked). No licence for now.
-5. **Sound settings: fold away, or always shown?** (Rinat, after trying
-   https://rinatmalik.github.io/Gaaner-Sathi/new/ on a phone and a laptop.) Default until
-   answered: they fold away, folded at first on phones and open on laptops. Blocks
-   PH0-05, because the new app should take over the main address with the layout Rinat
-   chose.
+   it. Saved songs belong to the web address, so moving later means exporting and
+   re-importing. Less pressing since 2026-10-10: the native app is the product, and the
+   web app is where features and the design are built. Settle it before anyone besides
+   Rinat relies on the web app.
+4. **Free, paid or donations?** Matters once the native app heads for an app store
+   (Phase 3). No licence for now.
 
 ## Work log
 
