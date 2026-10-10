@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Audio check</title>
+<style>
+  body { margin: 0; padding: 16px; font: 14px/1.5 system-ui, sans-serif; background: #fbfbf8; color: #1b1c24; }
+  pre { white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>Audio check: the port against the prototype</h1>
+<p>Renders the same practice sessions through both engines in Chromium's own Web Audio
+(OfflineAudioContext, 48 kHz) and compares the audio sample by sample. Dev only.</p>
+<pre id="out">Rendering…</pre>
+<script type="module" src="./render.ts"></script>
+</body>
+</html>

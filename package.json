@@ -8,6 +8,7 @@
     "node": ">=22.12"
   },
   "scripts": {
+    "dev": "vite",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:reference": "bash reference/tests/run-all.sh",
