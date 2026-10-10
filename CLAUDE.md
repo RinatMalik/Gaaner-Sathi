@@ -31,7 +31,9 @@ or project structure (Rinat, 2026-10-10). `CONTEXT.md` is authoritative; this fi
   (`https://api.github.com/repos/RinatMalik/Gaaner-Sathi/actions/runs`). Auto mode
   blocks listing stored credentials, so don't try; just push and handle any auth error.
 - **Seeing the app:** use the built-in browser pane (`mcp__Claude_Browser__*`) on the
-  dev server; check at 360 px wide and in both colour schemes. It cannot hear:
+  dev server; check at 360 px wide and in both colour schemes. When the pane is hidden,
+  its page has no size and draws nothing: drive a muted headless Edge through the
+  DevTools protocol instead (CONTEXT.md → Environment gotchas). Neither can hear:
   verify sound with offline renders (`OfflineAudioContext`, see ADR-001), then ask
   Rinat for specific listening feedback.
 - **Build / test / run commands** live in `CONTEXT.md` → Conventions → Stack.

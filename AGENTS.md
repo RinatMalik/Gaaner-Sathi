@@ -29,4 +29,8 @@ the commit when a prompt changes no code or project structure (Rinat, 2026-10-10
   (`গানের সাথী`), so always quote it.
 - **Git:** `main` only; commit, then push to `origin` (CONTEXT.md → Collaboration
   protocol). Only one agent works on the repo at a time.
+- **Seeing the app:** `npm run dev`, then check at 360 px wide in both colour schemes.
+  Without a visible browser, drive a muted headless Edge or Chrome through the DevTools
+  protocol (CONTEXT.md → Environment gotchas). Nobody can hear it: verify sound by
+  measurement, then ask Rinat for specific listening feedback.
 - **Build / test / run commands** live in `CONTEXT.md` → Conventions → Stack.

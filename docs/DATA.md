@@ -41,7 +41,7 @@ The prototype runs every song through `normalize()` when it loads, which clamps 
 
 ## Settings (per device, not per song)
 
-`swaralipi.prefs.v1` in localStorage:
+`swaralipi.prefs.v1` in localStorage (the web app keeps them under `gaanersathi.prefs.v1`; see Storage below):
 
 | Key | Values |
 |---|---|
@@ -71,7 +71,16 @@ Roadmap item "per-song sound settings" moves the rhythm, speed, layers, reeds an
 
 - **On claude.ai (current):** the prototype is a published claude.ai artifact. Songs live in the artifact's own database: collection `songs`, one document per song, synced live through `window.claude.use('db')`. Downloads go through `window.claude.use('downloads')`. **None of this exists outside claude.ai.** Remove it in the port.
 - **Opened as a plain file (fallback):** songs go to localStorage under `swaralipi.songs.v1`, as an object keyed by id. This is per browser, survives restarts, and is lost if site data is cleared.
-- **Target for the web app:** local-first in `localStorage` (revised 2026-10-10, ADR-001; it was IndexedDB), saving each song on edit with a short debounce. Keep the same JSON shape so export and import stay trivial. IndexedDB only if large data such as recordings ever arrives; account sync is a parked idea (see the roadmap). Rinat's existing songs come across with "Back up all my songs" in the prototype, then Import in the new app.
+- **The web app (built 2026-10-10):** local-first in `localStorage` (ADR-001; it was IndexedDB), saving each song on edit with a 900 ms debounce, in the same JSON shape, so export and import stay trivial. It reads the prototype's keys and never writes them (ADR-002):
+
+  | Key | Holds |
+  |---|---|
+  | `swaralipi.songs.v1`, `swaralipi.prefs.v1` | The prototype's songs and settings; read only |
+  | `gaanersathi.songs.v1` | This app's songs, `{ [id]: song }`; each save changes only its own song |
+  | `gaanersathi.hidden.v1` | Ids of prototype songs deleted in this app (hidden, not destroyed) |
+  | `gaanersathi.prefs.v1` | Settings, starting from the prototype's the first time, plus `soundOpen` (whether the Sound settings are unfolded; unset until first folded or unfolded) |
+
+  The song list is the prototype's songs with this app's on top (the newer `updatedAt` wins), less the hidden ones. Changes saved in another tab are taken in as they happen. IndexedDB only if large data such as recordings ever arrives; account sync is a parked idea (see the roadmap). Rinat's songs in the claude.ai version come across with "Back up all my songs" there, then Import in the app.
 
 ## Built-in exercises
 

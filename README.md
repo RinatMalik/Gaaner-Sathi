@@ -11,10 +11,14 @@ underneath.
 Phase 0 of the [roadmap](docs/ROADMAP.md): turning a working single-file prototype into
 a light TypeScript web app that you can use straightaway, offline, with no account.
 
-## Try the prototype
+## Try it
 
-Download [`reference/gaaner-sathi.html`](reference/gaaner-sathi.html) and open it in a
-browser. It runs offline and keeps your songs in that browser.
+- **The new app:** https://rinatmalik.github.io/Gaaner-Sathi/new/
+- **The prototype it replaces:** https://rinatmalik.github.io/Gaaner-Sathi/ (or download
+  [`reference/gaaner-sathi.html`](reference/gaaner-sathi.html) and open it in a browser).
+
+Both keep your songs in your browser. The new app also shows the songs you saved in
+the prototype.
 
 ## Find your way around
 
@@ -22,7 +26,7 @@ browser. It runs offline and keeps your songs in that browser.
 |---|---|
 | [`CONTEXT.md`](CONTEXT.md) | The project's shared state: direction, working rules, current state, decisions, work log |
 | [`docs/`](docs/) | Roadmap, parity checklist, notation, engine and data specs, decision records |
-| [`src/`](src/) | The new app: the pure core first (`src/core/`) |
+| [`index.html`](index.html), [`src/`](src/) | The new app: the page, the pure core (`src/core/`), the sound (`src/audio/`) and the screen (`src/app/`) |
 | [`tests/`](tests/) | Tests for the new code |
 | [`reference/`](reference/) | The working prototype and its reference test suites |
 
@@ -33,7 +37,8 @@ Needs Node 24 LTS.
     npm install
     npm test            # all tests (Vitest), including comparisons with the prototype
     npm run typecheck   # TypeScript, including the DOM-free check on src/core
-    npm run dev         # dev server; /dev/render.html is the audio check
+    npm run dev         # dev server: the app at /, the audio check at /dev/render.html
+    npm run build       # the published files, in dist/
 
 `bash reference/tests/run-all.sh` runs the prototype's own suites. GitHub Actions runs
 everything on every push to `main`.

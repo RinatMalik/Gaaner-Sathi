@@ -1,7 +1,7 @@
 # ADR-001: Stack and architecture baseline
 
 - **Status:** Accepted 2026-10-09; revised 2026-10-10, before any app code existed,
-  to make it lighter
+  to make it lighter; two details settled later that day (marked *Settled*)
 - **Decided by:** the handover kickoff's defaults, revised by Claude after Rinat asked
   for "a very light, user-friendly web app with basic features" that people can use
   straightaway. Rinat can veto any part.
@@ -46,17 +46,23 @@ What shapes the choice:
   - `src/audio/`: the lookahead scheduler on the `AudioContext` clock and the
     synthesised instruments, as in the prototype. Pure DSP (the tanpura string) is
     DOM-free and tested in Node.
-  - `src/app/`: the interface. All user-facing text lives in one strings module, so a
+  - `src/app/`: the interface. *Settled in the interface port:* the text stays where the
+    prototype had it (the page markup in `index.html` and the render functions), so the
+    port can be compared with the prototype line by line; gathering it into one strings
+    module waits until a Bengali interface is actually planned (a parked idea). The
+    original plan was: all user-facing text lives in one strings module, so a
     Bengali interface stays possible without a library.
 - **Storage:** `localStorage`, as the prototype already does outside claude.ai. Songs
-  are small text. IndexedDB only if large data (such as recordings) ever arrives.
+  are small text. IndexedDB only if large data (such as recordings) ever arrives. Which
+  keys, and how the prototype's saved songs are read: ADR-002.
 - **Offline and install:** a small hand-written service worker and a web manifest
   (Phase 1).
 - **Sound checks:** timing logic as pure tests; instruments measured in offline
-  renders (`OfflineAudioContext`) against the numbers in `docs/ENGINE.md`. How those
-  renders run (in the browser on the dev server, or a Node Web Audio library inside
-  Vitest) is decided in the audio-engine step, without a browser-automation framework
-  unless one is really needed.
+  renders (`OfflineAudioContext`) against the numbers in `docs/ENGINE.md`. *Settled in
+  the audio-engine step:* Vitest compares the port's Web Audio calls with the
+  prototype's, call for call, through a recording stand-in; the renders run in the
+  browser on the dev server (`/dev/render.html`). No Node Web Audio library and no
+  browser-automation framework.
 - **Dependencies:** dev-only, as few as possible, with permissive licences (MIT, BSD,
   Apache-2.0, ISC) so the app's own licence can still be chosen freely.
 - **Not now** (each needs a concrete reason and an ADR): React or another UI

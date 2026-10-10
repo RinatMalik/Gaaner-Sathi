@@ -33,17 +33,20 @@ decision, which always wins (see Source-of-truth order).
 ## Current state
 
 - **Current milestone:** Phase 0, port (Roadmap at a glance below).
-- **Current task:** none in progress. PH0-03 (the audio engine and transport) is done.
-- **Next single action:** PH0-04, the interface to parity: the prototype's screen in
-  plain TypeScript with the essentials up front, every `docs/PARITY.md` item, checked
-  in the browser at 360 px in both themes.
+- **Current task:** PH0-04 in Review. The new app's screen is built, published at
+  `/Gaaner-Sathi/new/` beside the prototype, and waiting for Rinat's verdict on its one
+  layout change: the Sound settings fold away (Open question 5).
+- **Next single action:** Rinat tries https://rinatmalik.github.io/Gaaner-Sathi/new/ on
+  a phone and a laptop and says whether to keep the folding Sound settings or show them
+  all the time as the prototype does. Then PH0-05: the new app takes over the main
+  address and the prototype leaves the site.
 - **Last known-good commit:** `218467a` (CI run `38037906311`: core, reference and
-  deploy jobs green).
-- **How to run it now:** the prototype is live at
-  https://rinatmalik.github.io/Gaaner-Sathi/ (or open `reference/gaaner-sathi.html`).
-  The new code: `npm install`, then `npm test`; `npm run dev` for the audio check page
-  (see Conventions → Stack). The new app has no screen yet.
-- **Blockers:** none.
+  deploy jobs green); this session's commits are recorded in the newest Work log entry.
+- **How to run it now:** the new app at https://rinatmalik.github.io/Gaaner-Sathi/new/,
+  the prototype at https://rinatmalik.github.io/Gaaner-Sathi/. Locally: `npm install`,
+  then `npm run dev` (the app at `/`, the audio check at `/dev/render.html`) and
+  `npm test` (see Conventions → Stack).
+- **Blockers:** none; Open question 5 waits on Rinat.
 - **Uncommitted work:** none.
 
 ## Product direction — what this is meant to be now
@@ -218,7 +221,9 @@ them (level 4); `docs/PARITY.md` is a checklist (level 6).
   telemetry.
 - **Never lose a song.** Saves are debounced but flushed when the page is hidden or
   another song opens; imports always get new ids and never overwrite; deleting needs a
-  confirmation; built-in exercises are read-only (copy one to edit it).
+  confirmation; built-in exercises are read-only (copy one to edit it). The app reads
+  the prototype's saved songs and never writes them; its own saves change only the song
+  saved, so another tab's saves survive (ADR-002).
 - **Files stay readable.** Keep reading `version: 1` files forever, including old
   `"format": "swaralipi-player"` ones (the importer never checks `format`). Bump
   `version` only for breaking changes, with a migration. Imports are normalised (every
@@ -267,16 +272,22 @@ them (level 4); `docs/PARITY.md` is a checklist (level 6).
 - **Commits:** small — one behavioural idea plus its tests per commit. Prefixes:
   `feat:` `fix:` `test:` `docs:` `refactor:` `ci:` `chore:` `wip:`.
 - **Stack / commands:** ADR-001 (revised 2026-10-10): TypeScript (strict), Vite,
-  Vitest, no UI framework, no runtime dependencies, Node 24 LTS. Layout: `src/core/`
-  (pure: notation, taal, exercises, song), `src/audio/` (engine, instruments,
-  transport; `src/audio/dsp/` is pure DSP), `tests/ported/` (the reference suites
-  one-for-one), `tests/differential/` (port versus the prototype's own code, including
-  a recording stand-in for Web Audio), `tests/unit/`, `dev/` (dev-only check pages).
-  - `npm install` once; `npm test` runs every Vitest suite (129 tests, about 9 s).
-  - `npm run dev`: the Vite dev server. `/dev/render.html` renders sessions through the
-    prototype's engine and the port's in the browser and compares them (the audio
-    check). Claude starts it with the browser pane's `preview_start` ("dev" in
+  Vitest, no UI framework, no runtime dependencies, Node 24 LTS. Layout: `index.html`
+  (the page), `src/core/` (pure: notation, taal, exercises, song), `src/audio/` (engine,
+  instruments, transport; `src/audio/dsp/` is pure DSP), `src/app/` (the screen:
+  `view.ts` pure HTML builders, `store.ts` storage, `app.ts` the wiring, `styles.css`),
+  `tests/ported/` (the reference suites one-for-one), `tests/differential/` (port
+  versus the prototype's own code, including a recording stand-in for Web Audio and fake
+  page elements for its rendering), `tests/unit/`, `dev/` (dev-only check pages).
+  - **One click away:** the live app, https://rinatmalik.github.io/Gaaner-Sathi/new/,
+    rebuilt from `main` on every push (so never stale).
+  - `npm install` once; `npm test` runs every Vitest suite (153 tests, about 8 s).
+  - `npm run dev`: the Vite dev server, the app at `/`; `/dev/render.html` renders
+    sessions through the prototype's engine and the port's and compares them (the
+    audio check). Claude starts it with the browser pane's `preview_start` ("dev" in
     `.claude/launch.json`).
+  - `npm run build`: the published files in `dist/` (relative paths, so they work in
+    any folder of the site).
   - `npm run typecheck`: the whole project, then `src/core` and `src/audio/dsp`
     with no DOM library (a DOM call there fails).
   - `npm run test:reference` (or `bash reference/tests/run-all.sh`): the prototype's own
@@ -284,8 +295,9 @@ them (level 4); `docs/PARITY.md` is a checklist (level 6).
     passed and 12 exercises valid.
   - Prototype: open `reference/gaaner-sathi.html` in a browser.
   - CI: `.github/workflows/ci.yml` on every push to `main`: a core job (`npm ci`,
-    type-check, tests), a reference job, and a deploy job to GitHub Pages that runs
-    after both pass (it publishes the prototype until the new app has a screen).
+    type-check, tests, build), a reference job, and a deploy job to GitHub Pages that
+    runs after both pass: the prototype at the site's root and the new app at `/new/`,
+    until the new app takes over the root (PH0-05).
 - **Environment gotchas:**
   - Windows: system git has `core.autocrlf=true` and `.gitattributes` normalises to LF
     in the repo, so "LF will be replaced by CRLF" warnings are expected noise; `.sh`
@@ -311,6 +323,15 @@ them (level 4); `docs/PARITY.md` is a checklist (level 6).
     the `\\?\` long-path prefix, because `node_modules` paths pass 260 characters
     under the long scratch path.
   - `gh` is installed but not logged in; pushes go through Git Credential Manager.
+  - When the browser pane is hidden, its page has a 0 × 0 viewport and draws no frames,
+    so layout and highlight checks fail there. Instead, Claude drives a headless Edge
+    through the DevTools protocol: a short Node script using Node 24's built-in
+    WebSocket, Edge started with `--headless=new --mute-audio`, a throwaway
+    `--user-data-dir` under the scratch folder's short path. On Windows,
+    `msedge.exe --version` opens the browser rather than printing a version. Edge
+    opens an `edge://downloads-hub` page after a download, so skip `edge:` targets.
+  - Shell heredocs here can turn `\\` into `\`, so a `\n` meant for page code becomes
+    a real newline. Write test scripts with the Write tool instead.
 - Keep CLAUDE.md and AGENTS.md aligned so the shared-branch rules survive future
   sessions.
 
@@ -328,7 +349,8 @@ reference lives in sibling docs; open one only when the task touches it.*
 - **`docs/ENGINE.md`** — audio and timing engine: scheduler, taals, rhythm, harmonium,
   tanpura, and how to verify sound without ears.
 - **`docs/DATA.md`** — song model, file format, settings, storage.
-- **`docs/adr/`** — architecture decision records (ADR-001: stack, revised 2026-10-10).
+- **`docs/adr/`** — architecture decision records (ADR-001: stack, revised 2026-10-10;
+  ADR-002: storage, and how the prototype's saved songs are read).
 - **`reference/`** — the prototype, its 12 exercises and its test suites
   (`reference/README.md`).
 
@@ -364,8 +386,8 @@ progress, Blocked, Review, Done, Superseded.*
 | PH0-01 | Claude | Done | framework docs, `docs/`, `reference/`, CI; remove `handover/` | Handover merged and removed; reference suites green locally and in CI run `38001060696`; pushed (`c0b057c`) | Framework and repo setup |
 | PH0-02 | Claude | Done | `src/core/`, `src/audio/dsp/`, `tests/`, `package.json`, configs, CI | 69 reference tests and 12 exercises ported one-for-one and green; differential tests against the prototype green and shown to catch injected bugs; `src/core` type-checks with no DOM library; CI run `38005291130` green (`8b5b933`) | Core port |
 | PH0-03 | Claude | Done | `src/audio/`, `tests/differential/`, `dev/` | Identical recorded Web Audio calls to the prototype for 16 sessions, every lane, closing strokes and live controls (17 tests, 5 injected bugs caught); Chromium offline renders match the prototype within its own run-to-run variation; commits `ded3ee4`, `218467a` | Audio engine and transport |
-| PH0-04 | — | Proposed | `src/app/`, `index.html` | Every `docs/PARITY.md` item Done, checked in the browser at 360 px in both themes | Interface to parity, essentials up front |
-| PH0-05 | Claude | In progress | CI deploy job | A live URL deployed from `main` that opens on a phone | Live with the prototype since 2026-10-10 (CI run `38037906311`); switch the deploy to the built app with PH0-04 |
+| PH0-04 | Claude | Review | `src/app/`, `index.html`, `vite.config.ts`, `tests/` | 69 of 71 `docs/PARITY.md` items Done and 2 Ported (Bluetooth latency, wake lock: need a phone); rendering identical to the prototype's in differential tests; every view checked at 360 px in both themes in headless Edge (Work log 2026-10-10 12:00) | The prototype's screen, plus foldable Sound settings: waiting for Rinat's verdict (Open question 5) |
+| PH0-05 | Claude | In progress | CI deploy job | A live URL deployed from `main` that opens on a phone | The prototype is live at the root since 2026-10-10 (CI run `38037906311`), the new app at `/new/` since this session; next, the new app takes over the root after Open question 5 |
 
 ## Decisions log
 
@@ -394,6 +416,10 @@ consequence.*
 | 2026-10-10 | Continue the TypeScript port rather than grow the single HTML file. | Rinat, chat 2026-10-10 ("yes") | PH0-03 and PH0-04 go ahead. |
 | 2026-10-10 | Publish the prototype on GitHub Pages now, as an interim, until the new app has a screen. | Rinat, chat 2026-10-10 ("yes") | A CI deploy job publishes `reference/gaaner-sathi.html` as the site after the tests pass; it needs Pages switched on once. |
 | 2026-10-10 | Sound is verified by comparing the port with the prototype call for call (recorded Web Audio, in CI), plus an offline-render check page in the browser. | Claude, settling ADR-001's "decided in the audio-engine step" | No Node Web Audio library or browser automation added. |
+| 2026-10-10 | The new app keeps the prototype's screen with one layout change, for Rinat to keep or undo: the Sound settings (Melody, Rhythm, Practice) fold away behind a bar that says what is on. They start folded on narrow screens and open on wide ones, then stay as the user leaves them. | Claude's proposal. Rinat (chat 2026-10-10) is unsure that an extra step is simpler: "only do the UI change that you want and let me decide after looking at it". Measured at 360 × 780: the prototype's settings fill 602 px before the song (sheet at 1,675 px); folded, the sheet starts at 1,131 px | Open question 5. Undoing it means removing the bar: the `.sound` wrapper in `index.html`, its CSS block and two functions in `app.ts`. |
+| 2026-10-10 | The new app is published at `/Gaaner-Sathi/new/` beside the prototype until Rinat has looked at it; then it takes over the main address. | Claude, so Rinat can try it on a phone before deciding (Rinat asked to look first) | The deploy job builds the app and copies it to `_site/new/`. |
+| 2026-10-10 | The app reads the prototype's saved songs and settings but never writes them; its changes go under its own keys (`gaanersathi.*`), and each save changes only the song saved. | Claude, for "never lose a song": a prototype tab left open rewrites its whole song list from memory on every save. `docs/adr/ADR-002-storage.md` | Neither page can overwrite the other's work; the prototype's storage is never changed. Edits made in the new app do not show in the prototype. |
+| 2026-10-10 | Interface text stays where the prototype had it (the page markup and the render functions), not in one strings module. | Claude, settling ADR-001's plan: a strings module only pays off for a Bengali interface, which is a parked idea | The port can be compared with the prototype line by line. |
 
 ## Open questions
 
@@ -411,6 +437,11 @@ current work (unless marked). Defaults apply until answered.*
    later means everyone exports and re-imports.
 4. **Free, paid or donations?** Only matters if the app ever goes to app stores
    (parked). No licence for now.
+5. **Sound settings: fold away, or always shown?** (Rinat, after trying
+   https://rinatmalik.github.io/Gaaner-Sathi/new/ on a phone and a laptop.) Default until
+   answered: they fold away, folded at first on phones and open on laptops. Blocks
+   PH0-05, because the new app should take over the main address with the layout Rinat
+   chose.
 
 ## Work log
 
@@ -419,6 +450,47 @@ statements must name the exact command, result, and environment — "tests pass"
 is not sufficient. When this grows long, keep only the last few entries here and
 move older ones into a `HISTORY.md` you create then, so this file stays lean.*
 
+
+### 2026-10-10 12:00 BST — Claude (Opus 5.5) — PH0-04 interface; new app at /new/
+
+- **Goal:** Rinat tried the live prototype (works, sound fine), doubts that tucking
+  settings away is simpler, and asked for "only the UI change that you want" to look
+  at. Port the screen to parity with that one change.
+- **Inspected:** the prototype's whole interface script (lines 805–866, 1444–2324);
+  the live prototype at 360 × 780 (Sound settings 602 px tall, sheet at 1,675 px).
+- **Changed:** `6102b7f` (index.html, `src/app/` view, store, app, styles; tests
+  `view.test.ts`, `store.test.ts`, prefs in `data.test.ts`); `9640ad8` (CI builds,
+  deploys the app to `/new/`); this commit (ADR-002, ADR-001 settled details, DATA,
+  PARITY, ROADMAP, README, CLAUDE.md, AGENTS.md, this file).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10):
+  - `npm run typecheck` → 0; `npx vitest run` → 14 files, 153 passed; `npm run build`
+    → 72 kB JS (25 kB gzip), 17 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5
+    passed, 12 exercises valid.
+  - Mutation check on the new comparisons: 6 planted bugs (bar span, round number,
+    held-lyric pattern, loop wrap, 12-row limit, dropGuide migration) all failed tests
+    and were restored byte-identical; the held-lyric one was caught only after adding
+    em-dash lyric cases.
+  - Headless Edge 155 (muted, throwaway profile) via the DevTools protocol, on the
+    built site laid out like Pages (`/Gaaner-Sathi/` prototype, `/new/` app): a song
+    saved through the prototype's own UI opens in the new app; count-in 6→1, beats,
+    highlight and taal strip in time; Space stops; tempo, Sa, lines, loop, tempo
+    trainer (200 → 210, "your turn" rounds), line tap, end of song ("Finished", stop
+    after 1.24 s); Sound bar fold, summary, remembered state; editor (copy, title,
+    taal, start beat, palette, octave up/down with the ±2 cap, Alt+↑, Join/Split and
+    their refusals, identical to the prototype on the same steps, checker Fix and Show,
+    undo with a mouse); export and backup files; import (3 songs, junk reported);
+    delete with confirmation; new song; reload reopens the last song and tab; a song
+    saved in a prototype frame and a rename in a second app frame show up live; the
+    prototype's stored songs byte-identical throughout. Every view at 360 px in both
+    themes: page width 360, no element past the edge; no console errors.
+  - CI run `38046102749` (`9640ad8`) was still running when this entry was written.
+- **Decisions made:** see Decisions log (the last four 2026-10-10 rows); Open question 5.
+- **Risks or disagreements:** Rinat may prefer the settings always shown (undo is
+  small). Wake lock and Bluetooth latency are ported but need a phone to check. Nobody
+  has heard the new engine on a device yet. The first CI deploy of `/new/` must be
+  checked (run above).
+- **Next handoff:** Rinat's answer to Open question 5, then PH0-05 (new app at the
+  root).
 
 ### 2026-10-10 09:30 BST — Claude (Opus 5.5) — PH0-03 audio engine; PH0-05 prototype live
 

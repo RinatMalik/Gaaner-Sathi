@@ -20,9 +20,10 @@ daily rewaz routine.
 - Port the rhythm tables and the tanpura string model with their tests (done
   2026-10-10).
 - Build the audio engine and the interface to parity with the prototype
-  (`docs/PARITY.md`): the same capabilities, presented more simply. The essentials
-  (song, play, tempo, key) are up front; everything else is one tap away. Nothing is
-  dropped.
+  (`docs/PARITY.md`): the same capabilities, nothing dropped (audio engine done
+  2026-10-10; interface built 2026-10-10 and published at `/Gaaner-Sathi/new/` beside the
+  prototype). The screen is the prototype's, with one change for Rinat to keep or undo:
+  the Sound settings fold away behind a bar that says what is on.
 
 **Done when:**
 - every reference test passes against the new core;
@@ -48,8 +49,9 @@ Then remove `reference/` (git history keeps it).
   artifact), press **Back up all my songs**, then **Import** in the new app.
 - The live prototype (on GitHub Pages since 2026-10-10) and the new app share one web
   address, so the new app reads the prototype's saved songs and settings
-  (`swaralipi.songs.v1`, `swaralipi.prefs.v1` in localStorage; see `docs/DATA.md`): songs
-  saved there carry over with nothing to import.
+  (`swaralipi.songs.v1`, `swaralipi.prefs.v1` in localStorage): songs saved there carry
+  over with nothing to import. It keeps its own changes under its own keys, so neither
+  page can overwrite the other's (`docs/adr/ADR-002-storage.md`, done 2026-10-10).
 
 **Done when:**
 - a public URL is live;
