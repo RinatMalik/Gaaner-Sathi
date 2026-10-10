@@ -263,6 +263,8 @@ textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--
 .soundact svg{width:16px;height:16px;transition:transform .15s}
 .soundbar[aria-expanded="true"] .soundact svg{transform:rotate(180deg)}
 .sound .mixer{padding:12px 14px 14px;border-bottom:0;border-top:1px solid var(--rule)}
+/* Whose sound the Melody and Rhythm controls change: this song's, or the usual one. */
+.snote{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:0;font-size:13px;color:var(--ink-2)}
 
 /* Songs view (new): the library. */
 .lib{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}

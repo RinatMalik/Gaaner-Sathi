@@ -140,12 +140,13 @@ export const savePrefs = (S: KeyValueStore | null, p: Prefs): WriteResult => wri
 
 // ── Songs ────────────────────────────────────────────────────────────────────
 
-/** A song as stored: everything but its id (the key) and the exercise flag; tags and the
- * favourite mark only when set. */
+/** A song as stored: everything but its id (the key) and the exercise flag; tags, the
+ * favourite mark and the song's own sound only when set. */
 export function bodyOf(s: Song) {
   const body: Omit<Song, 'id' | 'example'> = { title: s.title, taal: s.taal, tempo: s.tempo, saKey: s.saKey, saOct: s.saOct, startOn: s.startOn, text: s.text, updatedAt: s.updatedAt };
   if (s.tags && s.tags.length) body.tags = s.tags;
   if (s.fav) body.fav = true;
+  if (s.sound) body.sound = s.sound;
   return body;
 }
 

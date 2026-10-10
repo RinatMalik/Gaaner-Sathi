@@ -15,11 +15,12 @@
  * Added since (docs/ROADMAP.md → Phase 1): the Songs view (songs.ts), tags and favourites,
  * the practice log, written each time a song has been practised for a while, pitch
  * feedback from the microphone (pitch.ts), whose scores go into the log, rewaz routines
- * that play items one after another (rewaz.ts), and the Progress view (progress.ts).
+ * that play items one after another (rewaz.ts), the Progress view (progress.ts), and each
+ * song's own sound: its Melody and Rhythm settings, over the device's usual ones.
  */
 import { saFreq } from '../audio/dsp/pitch';
 import { createEngine, createLiveContext } from '../audio/engine';
-import type { GuideLevel, GuideLoop, SoundSettings } from '../audio/sound';
+import type { DroneType, GuideLevel, GuideLoop, SoundSettings } from '../audio/sound';
 import { Transport, type BeatEntry, type PlaySource } from '../audio/transport';
 import { EXERCISES } from '../core/exercises';
 import type { Exercise } from '../core/exercises/types';
@@ -31,6 +32,7 @@ import { lastPractised, logFileText, MIN_LOG_SECS, type LogEntry } from '../core
 import { itemLines, type RoutineItem } from '../core/practice/routine';
 import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefix, type ImportedSong } from '../core/song/file';
 import { newId, normalize, parseTags, type Song } from '../core/song/model';
+import { soundOf, type SongSound } from '../core/song/sound';
 import { beatLabel, SPEEDS } from '../core/taal/rhythm';
 import { isTaalId, taalInfo, type TaalInfo } from '../core/taal/taals';
 import { initPitch, type PitchUI } from './pitch';
@@ -61,7 +63,6 @@ const savePrefs = () => {
   renderSoundSummary();
 };
 const wanted = prefs.lastSong;
-const layersOf = (style: string) => (prefs.layers as Record<string, string[] | undefined>)[style];
 
 // ── State ────────────────────────────────────────────────────────────────────
 
@@ -115,12 +116,20 @@ const songSource = {
     return itemOverride?.tempo ?? current.tempo;
   },
 };
-/** The sound settings as played: a rewaz item's guide over the device's settings. */
-const soundSource = new Proxy<SoundSettings>(prefs, {
+/** The sound settings for the open song: its own Melody and Rhythm, else the device's usual
+ * ones; the Practice settings are always the device's. */
+const sound = new Proxy<SoundSettings>(prefs, {
   get(t, k) {
+    const own = current?.sound;
+    return own && Object.hasOwn(own, k) ? own[k as keyof SongSound] : Reflect.get(t, k);
+  },
+});
+/** The sound settings as played: a rewaz item's guide over the open song's. */
+const soundSource = new Proxy<SoundSettings>(prefs, {
+  get(_t, k) {
     if (k === 'guide' && itemOverride?.guide) return itemOverride.guide;
     if (k === 'guideLoop' && itemOverride?.guideLoop) return itemOverride.guideLoop;
-    return Reflect.get(t, k);
+    return Reflect.get(sound, k);
   },
 });
 
@@ -251,7 +260,7 @@ function playItem(it: RoutineItem): boolean {
   select('#toLine').value = String(b);
   input('#loopChk').checked = true;
   const g = it.guide;
-  itemOverride = { tempo: it.tempo, guide: g === 'off' ? 'off' : g && prefs.guide === 'off' ? 'full' : undefined, guideLoop: g && g !== 'off' ? g : undefined };
+  itemOverride = { tempo: it.tempo, guide: g === 'off' ? 'off' : g && sound.guide === 'off' ? 'full' : undefined, guideLoop: g && g !== 'off' ? g : undefined };
   showTempo(itemOverride.tempo ?? current.tempo);
   play(a, it.rounds);
   return playing();
@@ -403,7 +412,7 @@ function renderSheets(): void {
 function renderTaal(): void {
   $('#taalName').textContent = V.taalName(taal);
   $('#taalSub').textContent = V.taalSub(taal);
-  $('#taalStrip').innerHTML = V.taalStripHTML(taal, (p) => beatLabel(prefs.beat, taal.id, SPEEDS[prefs.speed] || 1, p));
+  $('#taalStrip').innerHTML = V.taalStripHTML(taal, (p) => beatLabel(sound.beat, taal.id, SPEEDS[sound.speed] || 1, p));
 }
 
 function markTaal(p: number): void {
@@ -501,7 +510,7 @@ function setPlayUI(on: boolean): void {
   b.setAttribute('aria-label', on ? 'Stop' : 'Play');
 }
 function renderLayerChips(): void {
-  const r = V.layerChipsHTML(prefs.beat, layersOf(prefs.beat) || []);
+  const r = V.layerChipsHTML(sound.beat, (sound.layers as Record<string, string[] | undefined>)[sound.beat] || []);
   $('#layerRow').hidden = r.hidden;
   $('#layerChips').innerHTML = r.html;
 }
@@ -511,7 +520,67 @@ function setSeg(id: string, v: string | number): void {
 
 /** The Sound bar: what the folded settings are set to, and whether they are showing. */
 function renderSoundSummary(): void {
-  $('#soundSum').textContent = V.soundSummary(prefs);
+  $('#soundSum').textContent = V.soundSummary(sound);
+}
+
+// ── Each song's own sound ────────────────────────────────────────────────────
+
+/** The Melody and Rhythm controls, showing the open song's sound. */
+function renderSoundControls(): void {
+  setSeg('guideSeg', sound.guide);
+  setSeg('reedSeg', sound.reeds);
+  setSeg('droneSeg', sound.droneType);
+  input('#droneVol').value = String(sound.droneVol);
+  select('#tanTune').value = sound.tanTune;
+  select('#tanTune').hidden = sound.droneType !== 'tanpura';
+  setSeg('beatSeg', sound.beat);
+  input('#tablaVol').value = String(sound.tablaVol);
+  setSeg('speedSeg', sound.speed);
+  input('#fillsChk').checked = !!sound.fills;
+  renderLayerChips();
+  renderSoundSummary();
+  renderSoundNote();
+}
+
+/** Whose sound the controls change: this song's, or the usual one. */
+function renderSoundNote(): void {
+  if (!current) return;
+  const own = !current.example && !!current.sound;
+  $('#soundNoteText').textContent = current.example
+    ? "Exercises use your usual sound, and so does any song you haven't changed it for."
+    : own
+      ? 'Melody and rhythm are saved with this song.'
+      : 'This song uses your usual sound until you change something here.';
+  $('#soundForget').hidden = !own;
+}
+
+/**
+ * Change Melody or Rhythm settings. One of the user's songs keeps them: the first change
+ * saves its whole sound with it, so it sounds the same however the usual sound changes
+ * later. On an exercise they change the usual sound, which every song without its own uses.
+ */
+function setSound(patch: Partial<SongSound>): void {
+  if (current.example) {
+    Object.assign(prefs, patch);
+    savePrefs();
+  } else {
+    changed('sound', { ...soundOf(sound), ...patch });
+    renderSoundSummary();
+  }
+  renderSoundNote();
+}
+
+/** "Use my usual sound": the song forgets its own, and plays with the usual one from now. */
+function forgetSound(): void {
+  if (current.example || !current.sound) return;
+  changed('sound', undefined);
+  renderSoundControls();
+  renderTaal();
+  T?.applyGuide();
+  T?.applyReeds();
+  T?.applyBeatLevel();
+  T?.applyDrone();
+  T?.resetTanpura();
 }
 function setSoundOpen(open: boolean): void {
   $('#soundBtn').setAttribute('aria-expanded', String(open));
@@ -543,6 +612,7 @@ function loadSong(song: Song | Exercise): void {
   if (song.example) current.example = true;
   prefs.lastSong = current.id;
   savePrefs();
+  renderSoundControls();
   $('#songTitle').innerHTML = V.esc(current.title) + (current.example ? '<span class="tag">Exercise</span>' : '');
   input('#titleIn').value = current.title;
   input('#tagsIn').value = (current.tags || []).join(', ');
@@ -907,26 +977,15 @@ export function init(): void {
   select('#saKey').innerHTML = V.keyOptionsHTML();
   select('#saOct').innerHTML = V.octOptionsHTML();
   select('#taalSel').innerHTML = V.taalOptionsHTML();
-  setSeg('guideSeg', prefs.guide);
-  setSeg('beatSeg', prefs.beat);
+  // The Melody and Rhythm controls show each song's sound as it opens (loadSong).
   setSeg('scriptSeg', prefs.script);
   setSeg('octSeg', insOct);
-  setSeg('reedSeg', prefs.reeds);
-  setSeg('speedSeg', prefs.speed);
-  input('#fillsChk').checked = !!prefs.fills;
-  input('#tablaVol').value = String(prefs.tablaVol);
-  input('#droneVol').value = String(prefs.droneVol);
   input('#countIn').checked = !!prefs.countIn;
-  setSeg('droneSeg', prefs.droneType);
-  select('#tanTune').value = prefs.tanTune;
-  select('#tanTune').hidden = prefs.droneType !== 'tanpura';
   setSeg('guideLoopSeg', prefs.guideLoop);
   input('#rampChk').checked = !!prefs.ramp;
   select('#rampStep').value = String(prefs.rampStep);
   input('#rampMax').value = String(prefs.rampMax);
-  renderLayerChips();
   renderNoteButtons();
-  renderSoundSummary();
   setSoundOpen(prefs.soundOpen ?? matchMedia('(min-width: 861px)').matches);
   songsView = initSongs({
     ownSongs,
@@ -1046,20 +1105,19 @@ export function init(): void {
     savePrefs();
     setSoundOpen(open);
   });
+  $('#soundForget').addEventListener('click', forgetSound);
   $('#guideSeg').addEventListener('click', (e) => {
     const b = segButton(e);
     if (!b) return;
-    prefs.guide = b.dataset.v as typeof prefs.guide;
-    savePrefs();
-    setSeg('guideSeg', prefs.guide);
+    setSound({ guide: b.dataset.v as GuideLevel });
+    setSeg('guideSeg', sound.guide);
     T?.applyGuide();
   });
   $('#beatSeg').addEventListener('click', (e) => {
     const b = segButton(e);
     if (!b) return;
-    prefs.beat = b.dataset.v as typeof prefs.beat;
-    savePrefs();
-    setSeg('beatSeg', prefs.beat);
+    setSound({ beat: b.dataset.v as SongSound['beat'] });
+    setSeg('beatSeg', sound.beat);
     renderTaal();
     renderLayerChips();
     T?.applyBeatLevel();
@@ -1067,53 +1125,47 @@ export function init(): void {
   $('#reedSeg').addEventListener('click', (e) => {
     const b = segButton(e);
     if (!b) return;
-    prefs.reeds = +b.dataset.v! as typeof prefs.reeds;
-    savePrefs();
-    setSeg('reedSeg', prefs.reeds);
+    setSound({ reeds: +b.dataset.v! as SongSound['reeds'] });
+    setSeg('reedSeg', sound.reeds);
     T?.applyReeds();
   });
   $('#speedSeg').addEventListener('click', (e) => {
     const b = segButton(e);
     if (!b) return;
-    prefs.speed = b.dataset.v as typeof prefs.speed;
-    savePrefs();
-    setSeg('speedSeg', prefs.speed);
+    setSound({ speed: b.dataset.v as SongSound['speed'] });
+    setSeg('speedSeg', sound.speed);
     renderTaal();
   });
   input('#fillsChk').addEventListener('change', (e) => {
-    prefs.fills = (e.target as HTMLInputElement).checked;
-    savePrefs();
+    setSound({ fills: (e.target as HTMLInputElement).checked });
   });
   $('#layerChips').addEventListener('click', (e) => {
     const b = (e.target as Element).closest<HTMLElement>('button[data-layer]');
     if (!b) return;
     const id = b.dataset.layer!;
-    const st = prefs.beat;
+    const st = sound.beat;
     if (st !== 'tabla' && st !== 'dholak' && st !== 'kit') return;
-    const list = new Set(prefs.layers[st] || []);
+    const layers = soundOf(sound).layers;
+    const list = new Set(layers[st]);
     if (list.has(id)) list.delete(id);
     else list.add(id);
-    prefs.layers[st] = Array.from(list);
-    savePrefs();
+    layers[st] = Array.from(list);
+    setSound({ layers });
     renderLayerChips();
   });
   $('#droneSeg').addEventListener('click', (e) => {
     const b = segButton(e);
     if (!b) return;
-    prefs.droneType = b.dataset.v as typeof prefs.droneType;
-    savePrefs();
-    setSeg('droneSeg', prefs.droneType);
-    select('#tanTune').hidden = prefs.droneType !== 'tanpura';
-    if (prefs.droneVol <= 0) {
-      prefs.droneVol = 0.5;
-      input('#droneVol').value = '0.5';
-      savePrefs();
-    }
+    const droneType = b.dataset.v as DroneType;
+    // Choosing a drone while none plays turns it on, at half volume.
+    setSound(sound.droneVol <= 0 ? { droneType, droneVol: 0.5 } : { droneType });
+    setSeg('droneSeg', sound.droneType);
+    select('#tanTune').hidden = sound.droneType !== 'tanpura';
+    input('#droneVol').value = String(sound.droneVol);
     T?.applyDrone();
   });
   select('#tanTune').addEventListener('change', (e) => {
-    prefs.tanTune = (e.target as HTMLSelectElement).value as typeof prefs.tanTune;
-    savePrefs();
+    setSound({ tanTune: (e.target as HTMLSelectElement).value as SongSound['tanTune'] });
     T?.resetTanpura();
   });
   $('#guideLoopSeg').addEventListener('click', (e) => {
@@ -1139,13 +1191,11 @@ export function init(): void {
     savePrefs();
   });
   input('#tablaVol').addEventListener('input', (e) => {
-    prefs.tablaVol = +(e.target as HTMLInputElement).value;
-    savePrefs();
+    setSound({ tablaVol: +(e.target as HTMLInputElement).value });
     T?.applyBeatLevel();
   });
   input('#droneVol').addEventListener('input', (e) => {
-    prefs.droneVol = +(e.target as HTMLInputElement).value;
-    savePrefs();
+    setSound({ droneVol: +(e.target as HTMLInputElement).value });
     T?.applyDrone();
   });
   input('#countIn').addEventListener('change', (e) => {

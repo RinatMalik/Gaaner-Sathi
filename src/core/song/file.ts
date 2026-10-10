@@ -4,6 +4,7 @@
  * ("swaralipi-player") import too.
  */
 import type { Song } from './model';
+import type { SongSound } from './sound';
 
 export const FILE_FORMAT = 'gaaner-sathi';
 export const FILE_VERSION = 1;
@@ -16,8 +17,8 @@ export const IMPORT_LIMITS = {
   titleChars: 200,
 } as const;
 
-/** What a file holds for each song: no id, no timestamps. Tags and the favourite mark are
- * optional additions (still version 1: older readers skip them). */
+/** What a file holds for each song: no id, no timestamps. Tags, the favourite mark and the
+ * song's own sound are optional additions (still version 1: older readers skip them). */
 export interface SongFileEntry {
   title: string;
   taal: string;
@@ -28,6 +29,7 @@ export interface SongFileEntry {
   text: string;
   tags?: string[];
   fav?: boolean;
+  sound?: Partial<SongSound>;
 }
 
 /** A song found in an imported file: title and text are always strings; any other fields
@@ -38,6 +40,7 @@ export function songForFile(s: Song): SongFileEntry {
   const e: SongFileEntry = { title: s.title, taal: s.taal, tempo: s.tempo, saKey: s.saKey, saOct: s.saOct, startOn: s.startOn, text: s.text };
   if (s.tags && s.tags.length) e.tags = s.tags;
   if (s.fav) e.fav = true;
+  if (s.sound) e.sound = s.sound;
   return e;
 }
 

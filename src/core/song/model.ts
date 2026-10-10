@@ -1,5 +1,6 @@
 /** The song record (docs/DATA.md → Song). */
 import { isTaalId, type TaalId } from '../taal/taals';
+import { cleanSound, type SongSound } from './sound';
 
 export interface Song {
   id: string;
@@ -22,6 +23,9 @@ export interface Song {
   tags?: string[];
   /** A favourite; absent when not. */
   fav?: boolean;
+  /** Its own Melody and Rhythm settings (src/core/song/sound.ts), over the device's; absent
+   * while it uses the device's. */
+  sound?: Partial<SongSound>;
 }
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
@@ -54,8 +58,8 @@ export const parseTags = (input: string): string[] => cleanTags(input.split(',')
 
 /**
  * Clamp every field into range, as the prototype does for every song it loads or
- * imports, so a damaged or hand-edited file can never break the app. Tags and the
- * favourite mark are this app's additions: present only when set.
+ * imports, so a damaged or hand-edited file can never break the app. Tags, the
+ * favourite mark and the song's own sound are this app's additions: present only when set.
  */
 export function normalize(s: { id: string } & Partial<Record<keyof Song, unknown>>): Song {
   const oct = Number(s.saOct);
@@ -74,6 +78,8 @@ export function normalize(s: { id: string } & Partial<Record<keyof Song, unknown
   const tags = cleanTags(s.tags);
   if (tags.length) song.tags = tags;
   if (s.fav === true) song.fav = true;
+  const sound = cleanSound(s.sound);
+  if (sound) song.sound = sound;
   return song;
 }
 

@@ -1,31 +1,16 @@
 /**
- * Sound settings (docs/DATA.md → Settings): device preferences today; in Phase 1 they can
- * also be saved with each song. Field names match the prototype's `swaralipi.prefs.v1`.
+ * Sound settings (docs/DATA.md → Settings): the device's settings, which a song's own sound
+ * (its Melody and Rhythm groups, src/core/song/sound.ts) lies over. Field names match the
+ * prototype's `swaralipi.prefs.v1`.
  */
-import type { SpeedName } from '../core/taal/rhythm';
+import type { SongSound } from '../core/song/sound';
 
-export type GuideLevel = 'full' | 'soft' | 'off';
-export type BeatStyle = 'tabla' | 'dholak' | 'kit' | 'click' | 'off';
-export type DroneType = 'tanpura' | 'harmonium';
-/** The tanpura's first string: lower Pa, Ma or Ni. */
-export type TanTune = 'P' | 'M' | 'N';
+export type { BeatStyle, DroneType, GuideLevel, TanTune } from '../core/song/sound';
 /** When looping: guide every round, the first round only, or every other round. */
 export type GuideLoop = 'all' | 'first' | 'alt';
 
-export interface SoundSettings {
-  guide: GuideLevel;
-  beat: BeatStyle;
-  /** Rhythm volume, 0–1 (the prototype's name). */
-  tablaVol: number;
-  speed: SpeedName;
-  fills: boolean;
-  /** Extra percussion layers chosen for each rhythm style. */
-  layers: Record<'tabla' | 'dholak' | 'kit', string[]>;
-  reeds: 1 | 2 | 3;
-  droneType: DroneType;
-  /** 0 means no drone. */
-  droneVol: number;
-  tanTune: TanTune;
+/** Melody and Rhythm (SongSound), then the Practice group, which every song shares. */
+export interface SoundSettings extends SongSound {
   countIn: boolean;
   guideLoop: GuideLoop;
   /** Tempo trainer: faster each round of a loop, up to rampMax. */
@@ -41,7 +26,7 @@ export const DEFAULT_SOUND: SoundSettings = {
   countIn: true, guideLoop: 'all', ramp: false, rampStep: 4, rampMax: 160,
 };
 
-const GUIDE_LEVELS: Record<GuideLevel, number> = { full: 0.9, soft: 0.3, off: 0 };
+const GUIDE_LEVELS: Record<SongSound['guide'], number> = { full: 0.9, soft: 0.3, off: 0 };
 export const guideLevel = (s: SoundSettings): number => GUIDE_LEVELS[s.guide] ?? 0.9;
 export const beatLevel = (s: SoundSettings): number => (s.beat === 'off' ? 0 : s.tablaVol);
 export function droneLevels(s: SoundSettings): { harm: number; tan: number } {
