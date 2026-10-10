@@ -11,7 +11,7 @@ import { checkNotation, type CheckIssue } from '../core/notation/check';
 import { AKAR, BN_LETTER, LAT_LETTER, REPH } from '../core/notation/symbols';
 import type { NoteUnit, ParsedSong, Unit } from '../core/notation/types';
 import { LAYERS, type LayerId } from '../core/taal/rhythm';
-import { TAAL_IDS, TAALS, type TaalInfo } from '../core/taal/taals';
+import { TAAL_GROUPS, TAALS, type TaalInfo } from '../core/taal/taals';
 
 /** Show notes as বাংলা or Sa Re Ga. */
 export type Script = 'bn' | 'lat';
@@ -222,8 +222,10 @@ export function lineOptionsHTML(P: ParsedSong, script: Script): string {
 
 export const keyOptionsHTML = (): string => KEYS.map((k, i) => '<option value="' + i + '">' + k[0] + ' · ' + k[1] + '</option>').join('');
 export const octOptionsHTML = (): string => OCTS.map((o) => '<option value="' + o[0] + '">' + o[1] + '</option>').join('');
+/** The taal picker, in groups: the prototype's six first, then Tagore's own, then more. */
 export const taalOptionsHTML = (): string =>
-  TAAL_IDS.map((id) => '<option value="' + id + '">' + TAALS[id].name + ' · ' + TAALS[id].bn + ' (' + TAALS[id].bols.length + ')</option>').join('');
+  TAAL_GROUPS.map((g) => '<optgroup label="' + esc(g.label) + '">' +
+    g.ids.map((id) => '<option value="' + id + '">' + TAALS[id].name + ' · ' + TAALS[id].bn + ' (' + TAALS[id].bols.length + ')</option>').join('') + '</optgroup>').join('');
 
 /** "Song starts on taal beat", marking sam (X) and khali (0). */
 export function startOnOptionsHTML(T: TaalInfo): string {

@@ -1,20 +1,24 @@
 // The port against the prototype's taal data and rhythm tables, for every style, taal,
-// speed and many layer combinations. Numbers must match to the last bit.
+// speed and many layer combinations. Numbers must match to the last bit. The prototype's
+// six taals only: the ten added since have their own tests (tests/unit/taals.test.ts).
 import { describe, expect, it } from 'vitest';
 import { beatLabel, GROOVES, LAYERS, rhythmTable, SPEEDS, type LayerId } from '../../src/core/taal/rhythm';
 import { TAALS, taalInfo } from '../../src/core/taal/taals';
 import { canon, seeded } from '../helpers';
 import { protoBeatLabel, protoRhythm } from './prototype';
 
-const TAAL_IDS = ['dadra', 'keherwa', 'rupak', 'jhaptal', 'ektal', 'teentaal'];
+const TAAL_IDS = Object.keys(protoRhythm.TAALS);
+const theirs = <T>(o: Record<string, T>) => Object.fromEntries(TAAL_IDS.map((id) => [id, o[id]]));
 const STYLES = ['tabla', 'dholak', 'kit', 'click', 'off'];
 const LAYER_IDS = Object.keys(LAYERS) as LayerId[];
 const fits = (id: LayerId, style: string) => (LAYERS[id].styles as readonly string[]).includes(style);
 
 describe('taal and rhythm match the prototype', () => {
   it('taal, groove, layer and speed data', () => {
-    expect(canon(TAALS)).toBe(canon(protoRhythm.TAALS));
-    expect(canon(GROOVES)).toBe(canon(protoRhythm.GROOVES));
+    expect(TAAL_IDS).toEqual(['dadra', 'keherwa', 'rupak', 'jhaptal', 'ektal', 'teentaal']);
+    expect(Object.keys(TAALS).slice(0, TAAL_IDS.length)).toEqual(TAAL_IDS);
+    expect(canon(theirs(TAALS))).toBe(canon(protoRhythm.TAALS));
+    expect(canon({ kit: theirs(GROOVES.kit), dholak: theirs(GROOVES.dholak) })).toBe(canon(protoRhythm.GROOVES));
     expect(canon(LAYERS)).toBe(canon(protoRhythm.LAYERS));
     expect(canon(SPEEDS)).toBe(canon(protoRhythm.SPEEDS));
   });

@@ -2,6 +2,8 @@
  * Dev only: renders the same practice sessions through the prototype's engine (cut out of
  * reference/gaaner-sathi.html) and the port's, each in an OfflineAudioContext in the
  * browser's real Web Audio, and compares the audio sample by sample, with loudness figures.
+ * Then renders the taals the prototype never had, through the port alone: their loudness in
+ * each rhythm style, and which beats of the tabla's theka start silent.
  * Not part of the app build. Open /dev/render.html on the dev server (`npm run dev`).
  */
 import { createEngine } from '../src/audio/engine';
@@ -9,7 +11,7 @@ import { DEFAULT_SOUND, type SoundSettings } from '../src/audio/sound';
 import { Transport } from '../src/audio/transport';
 import { EXERCISES } from '../src/core/exercises';
 import { parseSong } from '../src/core/notation/parse';
-import { taalInfo } from '../src/core/taal/taals';
+import { TAAL_GROUPS, taalInfo } from '../src/core/taal/taals';
 import { proto, protoAudioWorld, protoRhythm } from '../tests/differential/prototype';
 import { seeded } from '../tests/helpers';
 
@@ -106,6 +108,62 @@ function loudness(a: AudioBuffer) {
   return { rmsDb: db(Math.sqrt(sum / (a.length * a.numberOfChannels))), peakDb: db(peak) };
 }
 
+// ── Taals added after the prototype (2026-10-10) ─────────────────────────────
+
+const NEW_TAALS = TAAL_GROUPS.slice(1).flatMap((g) => g.ids);
+
+/** One cycle of a taal's rhythm alone (no guide or drone, no count-in or fill) at 80 matras
+ * a minute, starting 0.12 s in. Returns the audio and when each matra starts. */
+async function renderRhythm(id: string, beat: SoundSettings['beat']): Promise<{ buf: AudioBuffer; starts: number[] }> {
+  const T0 = taalInfo(id);
+  const spb = 60 / 80;
+  const secs = 0.12 + T0.cycle * spb + 1;
+  const off = new OfflineAudioContext(2, Math.ceil(SR * secs), SR);
+  const { ctx, setNow } = timed(off);
+  const T = new Transport(createEngine(ctx, seeded(7)), () => 0);
+  const sound: SoundSettings = structuredClone({ ...DEFAULT_SOUND, beat, guide: 'off', countIn: false, fills: false });
+  const text = Array(T0.cycle * 2).fill('সা').join(' ');
+  T.start({ parsed: parseSong(text), taal: T0, song: { tempo: 80, saKey: 0, saOct: 4, startOn: 1 }, sound }, { from: 0, to: 0, loop: false });
+  for (let i = 1; i * 0.025 <= secs; i++) {
+    setNow(i * 0.025);
+    T.tick();
+  }
+  return { buf: await off.startRendering(), starts: Array.from({ length: T0.cycle }, (_, k) => 0.12 + k * spb) };
+}
+
+/** The loudest sample in the first 50 ms of each matra, in dB below the loudest of them. */
+function onsets(buf: AudioBuffer, starts: number[]): number[] {
+  const peaks = starts.map((t) => {
+    let m = 0;
+    for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+      const x = buf.getChannelData(ch);
+      for (let i = Math.round(t * SR); i < Math.round((t + 0.05) * SR); i++) m = Math.max(m, Math.abs(x[i]!));
+    }
+    return m;
+  });
+  const top = Math.max(...peaks);
+  return peaks.map((p) => Math.round(20 * Math.log10(p / top) * 10) / 10);
+}
+
+async function newTaals(show: (r: unknown) => void) {
+  const rows = [];
+  for (const id of NEW_TAALS) {
+    const tabla = await renderRhythm(id, 'tabla');
+    const on = onsets(tabla.buf, tabla.starts);
+    // A rest leaves only the last stroke's tail (below −24 dB); light strokes (Te, Ka) sit near −16 dB.
+    const row: Record<string, unknown> = { taal: id, tabla: loudness(tabla.buf), silentBeats: on.flatMap((d, k) => (d < -24 ? [k + 1] : [])), onsetDb: on };
+    for (const st of ['dholak', 'kit'] as const) row[st] = loudness((await renderRhythm(id, st)).buf);
+    rows.push(row);
+    show(rows);
+  }
+  // For comparison, three of the prototype's taals: Keherwa's Ti and Ektal's TiRaKiTa are light strokes too.
+  for (const id of ['dadra', 'keherwa', 'ektal']) {
+    const ref = await renderRhythm(id, 'tabla');
+    rows.push({ taal: id + ' (the prototype’s)', tabla: loudness(ref.buf), onsetDb: onsets(ref.buf, ref.starts) });
+    show(rows);
+  }
+}
+
 async function main() {
   const out = document.getElementById('out')!;
   const results = [];
@@ -116,7 +174,9 @@ async function main() {
     results.push({ name: c.name, seconds: c.secs, portVsPrototype: maxDiff(a, b), prototypeVsItself: maxDiff(a, control), ...loudness(a) });
     out.textContent = JSON.stringify(results, null, 2) + '\n\nRendering…';
   }
-  out.textContent = JSON.stringify(results, null, 2);
+  const first = JSON.stringify(results, null, 2) + '\n\nTaals added since (port only):\n';
+  await newTaals((rows) => (out.textContent = first + JSON.stringify(rows, null, 1) + '\n\nRendering…'));
+  out.textContent = out.textContent!.replace(/\n\nRendering…$/, '');
   document.title = 'Audio check: done';
 }
 main().catch((e: unknown) => {

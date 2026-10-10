@@ -9,16 +9,18 @@ import { parseSong } from '../../src/core/notation/parse';
 import type { ParsedSong } from '../../src/core/notation/types';
 import { normalize, type Song } from '../../src/core/song/model';
 import { beatLabel, LAYERS, SPEEDS } from '../../src/core/taal/rhythm';
-import { TAAL_IDS, taalInfo } from '../../src/core/taal/taals';
+import { taalInfo } from '../../src/core/taal/taals';
 import { canon, seeded } from '../helpers';
 import { EDGE_CASES, randomSong } from './generate';
-import { protoExamples, protoViewWorld, type ProtoViewState } from './prototype';
+import { protoExamples, protoRhythm, protoViewWorld, type ProtoViewState } from './prototype';
 
 const rand = seeded(20261011);
 /** Held vowels in every spelling (০ 0 - – —), alone and mixed, which lyrics draw faded. */
 const LYRIC_CASES = ['সা রা গা মা পা ধা\n> — ০০ -–— 0a আ— ০\n> ০ — x – - 00', "S R G M\n> ০-— – —০ sa\n> <b>&\" ' ।"];
 const SONGS = [...EDGE_CASES, ...LYRIC_CASES, ...EXERCISES.map((e) => e.text), ...Array.from({ length: 600 }, () => randomSong(rand))];
 const SCRIPTS = ['bn', 'lat'] as const;
+/** The prototype's taals; the ten added since are tested in tests/unit/taals.test.ts. */
+const TAAL_IDS = Object.keys(protoRhythm.TAALS);
 const STYLES = ['tabla', 'dholak', 'kit', 'click', 'off'] as const;
 const W = protoViewWorld();
 const pick = <T>(r: () => number, xs: readonly T[]): T => xs[Math.floor(r() * xs.length)]!;
@@ -233,7 +235,9 @@ describe('the screen matches the prototype', () => {
       }
     }
     W.renderTaalControls();
-    expect(V.taalOptionsHTML()).toBe(W.el('#taalSel').innerHTML);
+    // The prototype's six come first, as it listed them; the new taals follow in their own groups.
+    const first = /^<optgroup label="Common taals">(.*?)<\/optgroup>/.exec(V.taalOptionsHTML());
+    expect(first?.[1]).toBe(W.el('#taalSel').innerHTML);
     for (const id of TAAL_IDS) {
       W.set(state({ taal: W.taalInfo(id), current: { startOn: 3 } }));
       W.renderStartOn();

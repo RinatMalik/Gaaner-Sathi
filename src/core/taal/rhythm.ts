@@ -5,7 +5,7 @@
  * every 4th cycle (and of the count-in) and are never speed-mapped. Arithmetic is kept in
  * the prototype's exact order, so tables match it to the last bit.
  */
-import { taalInfo, type TaalId, type TaalInfo } from './taals';
+import { REST, taalInfo, type TaalId, type TaalInfo } from './taals';
 
 export type Style = 'tabla' | 'dholak' | 'kit' | 'click';
 /** What plays a hit. bol: a tabla stroke; k s h o: kick, snare, hat, open hat; tH tM tL:
@@ -46,6 +46,17 @@ export const GROOVES: Record<'kit' | 'dholak', Record<TaalId, Groove>> = {
     jhaptal: { k: [[1, 1], [6, 0.8]], s: [[3, 0.8], [8, 0.85]], h: 'all' },
     ektal: { k: [[1, 1], [7, 0.85]], s: [[4, 0.85], [10, 0.85]], h: 'all', o: [[12.5, 0.4]] },
     teentaal: { k: [[1, 1], [5, 0.8], [6, 0.5], [9, 0.9], [13, 0.8], [14, 0.5]], s: [[3, 0.85], [7, 0.85], [11, 0.85], [15, 0.85]], h: 'all', o: [[16.5, 0.4]] },
+    // Added 2026-10-10: kick on sam and a later tali, snare on the others (and on khali).
+    jhampak: { k: [[1, 1], [3, 0.5]], s: [[4, 0.85]], h: 'all', o: [[5.5, 0.4]] },
+    shashthi: { k: [[1, 1], [5, 0.7]], s: [[3, 0.85]], h: 'all', o: [[6.5, 0.4]] },
+    rupakra: { k: [[1, 1], [6, 0.85]], s: [[4, 0.85]], h: 'all', o: [[8.5, 0.4]] },
+    nabatal: { k: [[1, 1], [6, 0.75]], s: [[4, 0.85], [8, 0.85]], h: 'all' },
+    ekadashi: { k: [[1, 1], [6, 0.75], [10, 0.6]], s: [[4, 0.85], [8, 0.85]], h: 'all', o: [[11.5, 0.4]] },
+    nabapanchatal: { k: [[1, 1], [7, 0.8], [15, 0.8]], s: [[3, 0.85], [11, 0.85]], h: 'all', o: [[18.5, 0.4]] },
+    khemta: { k: [[1, 1], [6, 0.55], [10, 0.9]], s: [[4, 0.8], [7, 0.9]], h: 'all', o: [[12.5, 0.45]] },
+    deepchandi: { k: [[1, 1], [4, 0.75], [11, 0.85], [12, 0.55]], s: [[6, 0.85], [9, 0.6], [13, 0.85]], h: 'all', o: [[14.5, 0.4]] },
+    dhamar: { k: [[1, 1], [6, 0.85], [11, 0.85]], s: [[4, 0.75], [8, 0.85]], h: 'all', o: [[14.5, 0.4]] },
+    jhumra: { k: [[1, 1], [2.5, 0.6], [4, 0.75], [11, 0.85]], s: [[6, 0.8], [8, 0.6], [13, 0.8]], h: 'all', o: [[14.5, 0.4]] },
   },
   dholak: {
     dadra: { b: [[1, 1], [3.5, 0.55], [5, 0.8]], c: [[4, 0.75]], t: [[1, 0.7], [2, 0.75], [3, 0.6], [4, 0.5], [5, 0.55], [6, 0.75], [6.5, 0.4]] },
@@ -54,6 +65,21 @@ export const GROOVES: Record<'kit' | 'dholak', Record<TaalId, Groove>> = {
     jhaptal: { b: [[1, 1], [3, 0.85], [8, 0.85], [9.5, 0.5]], c: [[6, 0.8]], t: 'all' },
     ektal: { b: [[1, 1], [5, 0.8], [9, 0.8], [11, 0.8]], c: [[3, 0.7], [7, 0.7]], t: 'all' },
     teentaal: { b: [[1, 1], [2.5, 0.5], [5, 0.85], [6.5, 0.5], [13, 0.85], [14.5, 0.5]], c: [[9, 0.8]], t: 'all' },
+    // Added 2026-10-10: bass on sam and the talis, the closed stroke on khali; Deepchandi's
+    // treble keeps its silent beats.
+    jhampak: { b: [[1, 1], [4, 0.85]], c: [[3, 0.6]], t: 'all' },
+    shashthi: { b: [[1, 1], [3, 0.85], [5, 0.7]], c: [[2, 0.6]], t: 'all' },
+    rupakra: { b: [[1, 1], [3.5, 0.5], [6, 0.85]], c: [[4, 0.75]], t: 'all' },
+    nabatal: { b: [[1, 1], [6, 0.8], [8, 0.8]], c: [[4, 0.75]], t: 'all' },
+    ekadashi: { b: [[1, 1], [6, 0.8], [8, 0.8], [10, 0.6]], c: [[4, 0.75]], t: 'all' },
+    nabapanchatal: { b: [[1, 1], [3, 0.8], [7, 0.8], [11, 0.85], [15, 0.8]], c: [[9, 0.6], [17, 0.6]], t: 'all' },
+    khemta: { b: [[1, 1], [3.5, 0.55], [5, 0.8], [10, 0.9], [11.5, 0.5]], c: [[4, 0.6], [7, 0.8]], t: 'all' },
+    deepchandi: {
+      b: [[1, 1], [2, 0.6], [4, 0.8], [5, 0.6], [11, 0.85], [12, 0.6]], c: [[8, 0.75], [9, 0.5]],
+      t: [[1, 0.7], [2, 0.75], [4, 0.6], [5, 0.6], [6, 0.75], [6.5, 0.35], [8, 0.6], [9, 0.75], [11, 0.6], [12, 0.6], [13, 0.75], [13.5, 0.35]],
+    },
+    dhamar: { b: [[1, 1], [2, 0.6], [6, 0.9], [11, 0.85], [12, 0.55]], c: [[4, 0.7], [8, 0.75]], t: 'all' },
+    jhumra: { b: [[1, 1], [2.5, 0.6], [4, 0.8], [5, 0.6], [11, 0.85], [12, 0.6]], c: [[8, 0.75], [9.5, 0.5]], t: 'all' },
   },
 };
 
@@ -66,8 +92,11 @@ export function baseHits(style: string, T: TaalInfo): Hit[] {
   if (style === 'tabla') {
     T.bols.forEach((b, p) => {
       const vel = p === 0 ? 1 : T.markAt.has(p) ? 0.86 : 0.72;
-      if (typeof b !== 'string') b.forEach((x, i) => out.push({ pos: p + i / b.length, lane: 'bol', bol: x, vel: vel * (i ? 0.78 : 1) }));
-      else out.push({ pos: p, lane: 'bol', bol: b, vel });
+      if (typeof b !== 'string') {
+        b.forEach((x, i) => {
+          if (x !== REST) out.push({ pos: p + i / b.length, lane: 'bol', bol: x, vel: vel * (i ? 0.78 : 1) });
+        });
+      } else if (b !== REST) out.push({ pos: p, lane: 'bol', bol: b, vel });
     });
   } else if (style === 'click') {
     for (let p = 0; p < T.cycle; p++) out.push({ pos: p, lane: 'click', lvl: p === 0 ? 2 : T.markAt.has(p) ? 1 : 0, vel: 1 });
@@ -237,12 +266,17 @@ export function rhythmTable(style: string, tid: string, speed: number, layers: r
   return R;
 }
 
-/** The label under each beat of the taal strip: its bol for tabla, the main stroke otherwise. */
+/** The label under each beat of the taal strip: its bol for tabla (after a dash when the beat
+ * itself is silent, as in Jhumra's –Dha), the main stroke otherwise. */
 export function beatLabel(style: string, tid: string, speed: number, p: number): string {
   if (style === 'off') return '';
   const R = rhythmTable(style, tid, speed, []);
   const all = R.slots[p] || [];
-  if (style === 'tabla') return all.filter((h) => h.lane === 'bol').map((h) => h.bol).join('') || '·';
+  if (style === 'tabla') {
+    const bols = all.filter((h) => h.lane === 'bol');
+    if (!bols.length) return '·';
+    return (bols.every((h) => h.frac > 1e-6) ? '–' : '') + bols.map((h) => h.bol).join('');
+  }
   if (style === 'click') return all.length ? '•' : '';
   const hits = all.filter((h) => h.frac < 1e-6);
   const has = (l: Lane) => hits.some((h) => h.lane === l);

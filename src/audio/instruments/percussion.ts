@@ -93,15 +93,22 @@ function bayan(E: Engine, sess: Session, t: number, open: boolean, vel: number):
   }
 }
 
-/** Which drum strokes make each bol. */
+/** Which drum strokes make each bol. The second line came with Tagore's taals (2026-10-10),
+ * whose thekas include mridanga bols: Den like Dhin, Di like Tin, Ga and Ghe the open bayan. */
 const STROKES: Record<string, string[]> = {
   dha: ['na', 'ge'], dhin: ['tin', 'ge'], dhi: ['tin', 'ge'], na: ['na'], ta: ['na'], tin: ['tin'],
   ti: ['te'], te: ['te'], ra: ['te'], ge: ['ge'], ke: ['ke'], ka: ['ke'], ki: ['ke'], kat: ['ke'], tu: ['tun'], tun: ['tun'],
+  den: ['tin', 'ge'], di: ['tin'], tet: ['te'], ga: ['ge'], ghe: ['ge'], ne: ['na'],
 };
 
-export function stroke(E: Engine, sess: Session, t: number, bol: string, vel: number): void {
+/** The strokes a bol is played with, or null for a bol with none of its own (played as Na). */
+export function bolStrokes(bol: string): readonly string[] | null {
   const key = String(bol).toLowerCase();
-  for (const s of (Object.hasOwn(STROKES, key) ? STROKES[key] : null) || ['na']) {
+  return (Object.hasOwn(STROKES, key) ? STROKES[key] : null) || null;
+}
+
+export function stroke(E: Engine, sess: Session, t: number, bol: string, vel: number): void {
+  for (const s of bolStrokes(bol) || ['na']) {
     if (s === 'ge') bayan(E, sess, t, true, vel);
     else if (s === 'ke') bayan(E, sess, t, false, vel);
     else dayan(E, sess, t, s, vel);
