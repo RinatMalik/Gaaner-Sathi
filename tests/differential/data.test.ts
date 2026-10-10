@@ -1,12 +1,13 @@
 // The port against the prototype's built-in exercises, song normalising, file reading and
 // writing, and the tanpura string (sample for sample, with the same random numbers).
 import { describe, expect, it, vi } from 'vitest';
+import { loadPrefs } from '../../src/app/store';
 import { ksPluck } from '../../src/audio/dsp/ksPluck';
 import { EXERCISES } from '../../src/core/exercises';
 import { fileName, songFileText, songForFile, songsFromFile, stripExamplePrefix } from '../../src/core/song/file';
 import { normalize } from '../../src/core/song/model';
 import { canon, seeded } from '../helpers';
-import { protoExamples, protoFile, protoKsPluck, protoNormalize, protoStripExamplePrefix } from './prototype';
+import { protoExamples, protoFile, protoKsPluck, protoNormalize, protoPrefs, protoStripExamplePrefix } from './prototype';
 
 describe('data matches the prototype', () => {
   it('the 13 built-in exercises', () => {
@@ -56,6 +57,25 @@ describe('data matches the prototype', () => {
     );
     for (const t of ['Example · A', 'Typing example · Sa Re Ga letters', 'উদাহরণ · গান', '১ · লম্বা স্বর', 'Example·B', 'Examples · C', 'My song']) {
       expect(stripExamplePrefix(t)).toBe(protoStripExamplePrefix(t));
+    }
+  });
+
+  it("device preferences as the prototype saved them, old keys included", () => {
+    // Every value the prototype's own controls can save, plus its two retired keys.
+    const VALUES: Record<string, unknown[]> = {
+      script: ['bn', 'lat'], guide: ['full', 'soft', 'off'], beat: ['tabla', 'dholak', 'kit', 'click', 'off'], tablaVol: [0, 0.35, 1],
+      speed: ['half', 'normal', 'double'], fills: [true, false], reeds: [1, 2, 3], droneType: ['tanpura', 'harmonium'], droneVol: [0, 0.5, 1],
+      tanTune: ['P', 'M', 'N'], countIn: [true, false], guideLoop: ['all', 'first', 'alt'], ramp: [true, false], rampStep: [2, 4, 6, 8, 10],
+      rampMax: [30, 160, 240], lastSong: ['ex-alankar-bn', 'song-abc'], tab: ['practice', 'edit'], extra: [true, false], dropGuide: [true, false],
+      layers: [{ tabla: ['manjira', 'shaker'], dholak: [], kit: ['claps'] }, { tabla: [], dholak: ['tambourine'], kit: [] }],
+    };
+    const rand = seeded(8);
+    for (let i = 0; i < 400; i++) {
+      const saved: Record<string, unknown> = {};
+      for (const [k, vs] of Object.entries(VALUES)) if (rand() < 0.6) saved[k] = vs[Math.floor(rand() * vs.length)];
+      const store = new Map([['swaralipi.prefs.v1', JSON.stringify(saved)]]);
+      const ls = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v), removeItem: (k: string) => void store.delete(k) };
+      expect(canon(loadPrefs(ls))).toBe(canon(protoPrefs(ls)));
     }
   });
 

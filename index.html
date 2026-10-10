@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Gaaner Sathi</title>
+<meta name="description" content="Gaaner Sathi · গানের সাথী: harmonium and rhythm from your own swaralipi notation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600&family=Tiro+Bangla:ital@0;1&display=swap">
+<script type="module" src="./src/app/main.ts"></script>
+</head>
+<body>
+<!-- The prototype's page (reference/gaaner-sathi.html), with the Sound settings in a bar that folds them away. -->
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Gaaner Sathi</h1>
+      <div class="sub"><b>গানের সাথী</b> · harmonium and rhythm from your own notation</div>
+    </div>
+    <div class="songbar">
+      <label class="sr-only" for="songSel">Song</label>
+      <select id="songSel" class="songsel"></select>
+      <button id="newBtn" class="btn" type="button">+ New song</button>
+      <span id="saveStatus" class="status" aria-live="polite"></span>
+    </div>
+  </header>
+
+  <section class="deck" aria-label="Playback">
+    <button id="playBtn" class="play" type="button" aria-label="Play">
+      <svg class="ic-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/></svg>
+      <svg class="ic-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor"/></svg>
+    </button>
+    <div class="ctl">
+      <span class="lab">Tempo · matras / min</span>
+      <div class="tempo">
+        <button id="tDown" class="dk" type="button" aria-label="Slower">−</button>
+        <input id="tempoNum" type="number" min="30" max="240" step="1" inputmode="numeric" aria-label="Tempo in matras per minute">
+        <button id="tUp" class="dk" type="button" aria-label="Faster">+</button>
+      </div>
+      <input id="tempoRange" type="range" min="30" max="240" step="1" aria-label="Tempo slider">
+    </div>
+    <div class="ctl">
+      <span class="lab">Sa · your key</span>
+      <div class="row">
+        <select id="saKey" aria-label="Key of Sa"></select>
+        <select id="saOct" aria-label="Octave of Sa"></select>
+      </div>
+    </div>
+    <div class="ctl grow">
+      <span class="lab">Lines to practise</span>
+      <div class="row">
+        <label class="mini" for="fromLine">from</label>
+        <select id="fromLine" class="lines"></select>
+        <label class="chk"><input type="checkbox" id="loopChk"> loop to</label>
+        <select id="toLine" class="lines" aria-label="Loop until line"></select>
+      </div>
+    </div>
+  </section>
+
+  <div class="sound">
+    <button id="soundBtn" class="soundbar" type="button" aria-expanded="true" aria-controls="mixer">
+      <span class="soundtext"><span class="mhead">Sound</span><span class="soundsum" id="soundSum"></span></span>
+      <span class="soundact" aria-hidden="true"><span id="soundAct">Done</span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </button>
+  <section class="mixer" id="mixer" aria-label="Sound">
+    <div class="mgroup">
+      <span class="mhead">Melody</span><div class="mitems">
+      <div class="mx"><span class="lab2" id="guideLab">Guide</span>
+        <div class="seg" id="guideSeg" role="group" aria-labelledby="guideLab"><button type="button" data-v="full">Full</button><button type="button" data-v="soft">Soft</button><button type="button" data-v="off">Off</button></div></div>
+      <div class="mx"><span class="lab2" id="reedLab">Harmonium</span>
+        <div class="seg" id="reedSeg" role="group" aria-labelledby="reedLab"><button type="button" data-v="1" title="Male reed only">1 reed</button><button type="button" data-v="2" title="Bass and male reeds">2 reeds</button><button type="button" data-v="3" title="Bass, male and female reeds">3 reeds</button></div></div>
+      <div class="mx"><span class="lab2" id="droneLab">Drone</span>
+        <div class="seg" id="droneSeg" role="group" aria-labelledby="droneLab"><button type="button" data-v="tanpura">Tanpura</button><button type="button" data-v="harmonium">Harmonium</button></div>
+        <input type="range" id="droneVol" min="0" max="1" step="0.01" aria-label="Drone volume">
+        <select id="tanTune" class="msel" aria-label="Tanpura first string"><option value="P">1st string Pa</option><option value="M">1st string Ma</option><option value="N">1st string Ni</option></select></div>
+    </div></div>
+    <div class="mgroup">
+      <span class="mhead">Rhythm</span><div class="mitems">
+      <div class="mx"><span class="sr-only" id="beatLab">Rhythm instrument</span>
+        <div class="seg" id="beatSeg" role="group" aria-labelledby="beatLab"><button type="button" data-v="tabla">Tabla</button><button type="button" data-v="dholak">Dholak</button><button type="button" data-v="kit">Drums</button><button type="button" data-v="click">Click</button><button type="button" data-v="off">Off</button></div>
+        <input type="range" id="tablaVol" min="0" max="1" step="0.01" aria-label="Rhythm volume"></div>
+      <div class="mx"><span class="lab2" id="speedLab">Speed</span>
+        <div class="seg" id="speedSeg" role="group" aria-labelledby="speedLab"><button type="button" data-v="half">Half</button><button type="button" data-v="normal">Normal</button><button type="button" data-v="double">Double</button></div></div>
+      <label class="chk2"><input type="checkbox" id="fillsChk"> Fill every 4th cycle</label>
+      <div class="mx" id="layerRow"><span class="lab2" id="layerLab">Add</span><div class="chips" id="layerChips" role="group" aria-labelledby="layerLab"></div></div>
+    </div></div>
+    <div class="mgroup">
+      <span class="mhead">Practice</span><div class="mitems">
+      <label class="chk2"><input type="checkbox" id="countIn"> Count in one cycle</label>
+      <div class="mx"><span class="lab2" id="glLab">When looping, the guide plays</span>
+        <div class="seg" id="guideLoopSeg" role="group" aria-labelledby="glLab"><button type="button" data-v="all">Every round</button><button type="button" data-v="first">First round only</button><button type="button" data-v="alt" title="Listen to the line, then sing it alone">Every other round</button></div></div>
+      <div class="mx"><label class="chk2"><input type="checkbox" id="rampChk"> Speed up each round by</label>
+        <select id="rampStep" class="msel" aria-label="Tempo increase per round"><option value="2">2</option><option value="4">4</option><option value="6">6</option><option value="8">8</option><option value="10">10</option></select>
+        <label class="lab2" for="rampMax">up to</label><input type="number" id="rampMax" class="mnum" min="30" max="240" step="1" inputmode="numeric"></div>
+    </div></div>
+  </section>
+  </div>
+
+  <div class="tabs">
+    <div class="tabbtns" role="tablist" aria-label="View">
+      <button type="button" role="tab" id="tabPractice" aria-controls="practice">Practice</button>
+      <button type="button" role="tab" id="tabEdit" aria-controls="edit">Edit notation</button>
+    </div>
+    <div class="seg" id="scriptSeg" role="group" aria-label="Show notes as"><button type="button" data-v="bn">বাংলা</button><button type="button" data-v="lat">Sa Re Ga</button></div>
+  </div>
+
+  <main id="practice" role="tabpanel" aria-labelledby="tabPractice">
+    <div style="display:grid;gap:14px">
+      <section class="nowpanel" aria-label="Now singing">
+        <div>
+          <div class="nowLab" id="nowLab">Ready</div>
+          <div class="bigNote" id="bigNote"></div>
+          <div class="bigLy" id="bigLy"></div>
+        </div>
+        <div>
+          <div class="nowLab">Coming up</div>
+          <div class="nextStrip" id="nextStrip"></div>
+          <div class="taalHead"><b id="taalName"></b><span id="taalSub"></span></div>
+          <div class="taalStrip" id="taalStrip"></div>
+        </div>
+      </section>
+      <div class="sheetHead"><h2 id="songTitle"></h2><span class="hint">Tap a line number to play from there · Space bar plays and stops</span></div>
+      <div class="sheet" id="sheetP"></div>
+    </div>
+  </main>
+
+  <main id="edit" role="tabpanel" aria-labelledby="tabEdit" hidden>
+    <div style="display:grid;gap:14px">
+      <div class="meta">
+        <div class="f grow"><label for="titleIn">Title</label><input id="titleIn" type="text" autocomplete="off"></div>
+        <div class="f"><label for="taalSel">Taal</label><select id="taalSel"></select></div>
+        <div class="f"><label for="startOn">Song starts on taal beat</label><select id="startOn"></select></div>
+      </div>
+      <div class="toolbar">
+        <button id="copyBtn" class="btn" type="button">Make a copy</button>
+        <button id="expBtn" class="btn" type="button">Export this song</button>
+        <button id="expAllBtn" class="btn" type="button">Back up all my songs</button>
+        <button id="impBtn" class="btn" type="button">Import from file</button>
+        <input id="impFile" type="file" accept=".json,.txt,application/json,text/plain" multiple hidden>
+        <span id="fileStatus" class="fstatus" aria-live="polite"></span>
+        <span class="spacer"></span>
+        <button id="delBtn" class="btn danger" type="button">Delete song</button>
+        <span id="delConfirm" class="confirm" hidden>Delete this song? <button id="delYes" class="btn danger" type="button">Delete</button><button id="delNo" class="btn" type="button">Keep</button></span>
+      </div>
+      <div class="exNote" id="exNote" hidden>This is a built-in exercise, so edits here are not kept. Press <b>Make a copy</b> to save your own version, or <b>+ New song</b> to start from your diary.</div>
+      <div class="edgrid">
+        <div class="edcol">
+          <div class="pal" id="pal" aria-label="Insert notes">
+            <div class="palrow">
+              <span class="lab2">Insert notes in</span>
+              <div class="seg" id="octSeg" role="group" aria-label="Octave for inserted notes"><button type="button" data-v="-1">Lower</button><button type="button" data-v="0">Middle</button><button type="button" data-v="1">Upper</button></div>
+            </div>
+            <div class="palrow" id="noteBtns"></div>
+            <div class="palrow">
+              <button type="button" class="xbtn" data-ins="hold">Hold −</button>
+              <button type="button" class="xbtn" data-ins="rest">Silence x</button>
+              <button type="button" class="xbtn" data-ins="bar">Bar |</button>
+              <button type="button" class="xbtn" data-ins="nl">New line</button>
+              <button type="button" class="xbtn" data-ins="ly">Lyrics line &gt;</button>
+            </div>
+          </div>
+          <textarea id="notation" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Notation"></textarea>
+          <div class="issues" id="issues" aria-live="polite"></div>
+          <details class="help" id="help">
+            <summary>How to type your diary notation</summary>
+            <table>
+              <tr><td>One beat (matra)</td><td>Each group between spaces is one beat: <code>সা রা গা</code> is three beats.</td></tr>
+              <tr><td>Notes</td><td><code>সা রা গা মা পা ধা না</code> or <code>S R G M P D N</code></td></tr>
+              <tr><td>Komal</td><td><code>ঋা জ্ঞা দা ণা</code> or <code>r g d n</code></td></tr>
+              <tr><td>Tivra Ma</td><td><code>হ্মা</code> or <code>M#</code></td></tr>
+              <tr><td>Upper octave (তার)</td><td><code>র্সা</code> (রেফ) or <code>S'</code></td></tr>
+              <tr><td>Lower octave (মন্দ্র)</td><td><code>.না</code> or <code>ন্</code> with হসন্ত, or <code>.N</code></td></tr>
+              <tr><td>Fix a wrong octave</td><td>Tap the beat in the preview, or select notes in the box, then press <b>↑ Higher</b> or <b>↓ Lower</b>. Shift-tap a second beat to select a run. While typing, Alt + ↑ and Alt + ↓ do the same.</td></tr>
+              <tr><td>Hold the note</td><td><code>-া</code> or <code>-</code></td></tr>
+              <tr><td>Silence</td><td><code>x</code></td></tr>
+              <tr><td>Two or more notes in one beat</td><td>Type them together with no space: <code>পধা</code>, <code>পাধা</code> or <code>PD</code>. Uneven: <code>S-R</code> gives Sa two thirds and Re one third. Or tap a beat in the preview and press <b>Join</b> to merge it with the next one, or <b>Split</b> to separate its notes.</td></tr>
+              <tr><td>Bars</td><td><code>|</code> <code>।</code> <code>॥</code> are for reading only. Timing comes from the beats.</td></tr>
+              <tr><td>Lyrics</td><td>A line starting with <code>&gt;</code> under its notes line, one group per beat. Use <code>০</code> for a held vowel.</td></tr>
+              <tr><td>Headings</td><td>A line starting with <code>#</code>, such as <code># অন্তরা</code></td></tr>
+            </table>
+            <p>Set the taal and the beat the song starts on above. The player checks every beat against the taal, so the tabla always lands with the melody, at any tempo.</p>
+          </details>
+        </div>
+        <div class="edcol">
+          <div class="prevlab">Preview · tap a beat to select it</div>
+          <div class="fixrow" id="fixRow">
+            <span class="lab2">Octave</span>
+            <button type="button" class="obtn" id="octDown" aria-label="Move the selected notes down an octave">↓ Lower</button>
+            <button type="button" class="obtn" id="octUp" aria-label="Move the selected notes up an octave">↑ Higher</button>
+            <span class="lab2">Beat</span>
+            <button type="button" class="obtn" id="joinBtn" title="Put the selected beats, or this beat and the next, into one beat">Join</button>
+            <button type="button" class="obtn" id="splitBtn" title="Give each note in the selected beat its own beat">Split</button>
+            <span class="selinfo" id="selInfo" aria-live="polite">Tap a beat in the preview, or select notes in the box</span>
+          </div>
+          <div class="sheet" id="sheetE"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

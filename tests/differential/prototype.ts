@@ -90,3 +90,63 @@ export function protoAudioWorld(page: ProtoPage): Record<string, Fn> & { A: { ct
 const stripAt = html.indexOf('title.replace(/^(Example');
 const stripRegex = html.slice(stripAt + 'title.replace('.length, html.indexOf(", '')", stripAt));
 export const protoStripExamplePrefix = new Function('t', 'return t.replace(' + stripRegex + ", '');") as Fn;
+
+/** The prototype's preferences as it reads them at start-up from `localStorage`, migrations included. */
+const prefsSrc = between('const PREF_KEY', 'const wanted = prefs.lastSong;');
+export const protoPrefs = (localStorage: { getItem(k: string): string | null; setItem(k: string, v: string): void }): Record<string, unknown> =>
+  new Function('localStorage', prefsSrc + '\nreturn prefs;')(localStorage);
+
+/** A stand-in for a page element: the rendering functions only set and read these. */
+export interface FakeEl {
+  innerHTML: string;
+  textContent: string;
+  value: string;
+  hidden: boolean;
+}
+/** What the prototype's rendering reads from its page globals. */
+export interface ProtoViewState {
+  prefs: Record<string, unknown>;
+  parsed: unknown;
+  taal: unknown;
+  current: Record<string, unknown>;
+  S: Record<string, unknown>;
+  songs: Map<string, unknown>;
+  insOct: number;
+  EXAMPLES: unknown[];
+}
+/**
+ * The prototype's rendering (the Rendering section, with what it calls: the parser, taals,
+ * display names, rhythm tables and beatLabel), run against fake page elements. `set`
+ * replaces its globals; `el(selector)` is the element a selector finds.
+ */
+export function protoViewWorld(): Record<string, Fn> & { set(s: ProtoViewState): void; el(selector: string): FakeEl; issues(): unknown[] } {
+  const els = new Map<string, FakeEl>();
+  const el = (sel: string): FakeEl => {
+    let e = els.get(sel);
+    if (!e) els.set(sel, (e = { innerHTML: '', textContent: '', value: '', hidden: false }));
+    return e;
+  };
+  /** The expression init() puts into a select (the key and octave pickers). */
+  const initLine = (id: string) => {
+    const marker = "$('#" + id + "').innerHTML = ";
+    return between(marker, ';\n').slice(marker.length);
+  };
+  const src =
+    'let prefs, parsed, taal, current, S, songs, insOct, EXAMPLES;\n' +
+    'const beatEls = new Map();\n' +
+    'const startOff = () => (current ? current.startOn : 1) - 1;\n' +
+    between('const mod = (a, n)', '/*PARSER-START*/') +
+    between('/*PARSER-START*/', '/*PARSER-END*/', true) +
+    between('/* ===== Taals ===== */', '/* ===== Built-in exercises') +
+    between('const GROOVES = {', 'function scheduleRhythm') +
+    between('function beatLabel(p) {', '/* ===== Transport') +
+    between('/* ===== Rendering ===== */', '/* ===== Song loading and editing ===== */') +
+    '\nconst keyOptions = () => ' + initLine('saKey') + ';\nconst octOptions = () => ' + initLine('saOct') + ';\n' +
+    'return { set(o) { ({ prefs, parsed, taal, current, S, songs, insOct, EXAMPLES } = o); }, issues: () => issueList, ' +
+    'unitHTML, beatNoteHTML, lyricHTML, plainBeat, renderSheet, renderTaal, chipsFrom, showBeat, setNowMessage, showIdle, ' +
+    'renderLineSelects, noteNames, renderIssues, renderNoteButtons, renderTaalControls, renderStartOn, renderLibrary, renderLayerChips, ' +
+    'keyOptions, octOptions, parseSong, taalInfo };';
+  const fakeEl = (sel: string) => Object.assign(el(sel), { classList: { add() {}, remove() {}, toggle() {} }, querySelector: () => null, offsetParent: null });
+  const world = new Function('$', '$$', src)(fakeEl, () => []);
+  return Object.assign(world, { el });
+}
