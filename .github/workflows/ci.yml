@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   core:
-    name: Core (type-check and tests)
+    name: Core (type-check, tests and build)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -27,6 +27,7 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+      - run: npm run build
 
   reference:
     name: Prototype reference suites
@@ -56,11 +57,19 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
-      # Until the new app has a screen (PH0-04), the published site is the prototype.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      # The prototype stays at the site's address while Rinat tries the new app at /new/;
+      # the new app replaces it there once Rinat is happy with it (PH0-05).
       - name: Assemble the site
         run: |
           mkdir -p _site
           cp reference/gaaner-sathi.html _site/index.html
+          cp -r dist _site/new
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
