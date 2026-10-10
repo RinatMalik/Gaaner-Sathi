@@ -46,6 +46,10 @@ Then remove `reference/` (git history keeps it).
   address; see `CONTEXT.md` → Open questions).
 - Rinat moves the songs across: open the prototype where the songs live (the claude.ai
   artifact), press **Back up all my songs**, then **Import** in the new app.
+- The live prototype (on GitHub Pages since 2026-10-10) and the new app share one web
+  address, so the new app reads the prototype's saved songs and settings
+  (`swaralipi.songs.v1`, `swaralipi.prefs.v1` in localStorage; see `docs/DATA.md`): songs
+  saved there carry over with nothing to import.
 
 **Done when:**
 - a public URL is live;
