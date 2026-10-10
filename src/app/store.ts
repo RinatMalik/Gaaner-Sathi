@@ -9,6 +9,8 @@
  * other's work. A song of the prototype's deleted here is hidden, not destroyed.
  */
 import { DEFAULT_SOUND, type SoundSettings } from '../audio/sound';
+import { cleanLog, type LogEntry } from '../core/practice/log';
+import type { LibrarySort } from '../core/song/library';
 import { normalize, type Song } from '../core/song/model';
 import type { Script } from './view';
 
@@ -28,6 +30,8 @@ export const STORE_KEYS = {
   /** Ids of the prototype's songs deleted in this app. */
   hidden: 'gaanersathi.hidden.v1',
   prefs: 'gaanersathi.prefs.v1',
+  /** The practice log: [entry, …], oldest first. */
+  log: 'gaanersathi.log.v1',
 } as const;
 
 /** Why a write failed: storage full, or blocked (private mode, site data off). */
@@ -59,13 +63,19 @@ export interface Prefs extends SoundSettings {
   script: Script;
   /** The song open last time. */
   lastSong: string;
-  tab: 'practice' | 'edit';
+  tab: Tab;
   /** Whether the Sound settings are unfolded; unset until the user folds or unfolds them. */
   soundOpen?: boolean;
+  /** How the Songs view sorts. */
+  libSort: LibrarySort;
 }
 
+/** The views under the deck. */
+export type Tab = 'practice' | 'edit' | 'songs';
+export const TABS: readonly Tab[] = ['practice', 'edit', 'songs'];
+
 /** The prototype's defaults; it opened on exercise 3 the first time. */
-export const DEFAULT_PREFS: Prefs = { ...structuredClone(DEFAULT_SOUND), script: 'bn', lastSong: 'ex-alankar-bn', tab: 'practice' };
+export const DEFAULT_PREFS: Prefs = { ...structuredClone(DEFAULT_SOUND), script: 'bn', lastSong: 'ex-alankar-bn', tab: 'practice', libSort: 'practised' };
 
 const oneOf = <T>(v: unknown, allowed: readonly T[], dflt: T): T => (allowed.includes(v as T) ? (v as T) : dflt);
 const num = (v: unknown, lo: number, hi: number, dflt: number): number => (typeof v === 'number' && Number.isFinite(v) ? Math.max(lo, Math.min(hi, v)) : dflt);
@@ -107,7 +117,8 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
     rampStep: num(r.rampStep, 1, 240, d.rampStep),
     rampMax: num(r.rampMax, 30, 240, d.rampMax),
     lastSong: typeof r.lastSong === 'string' ? r.lastSong : d.lastSong,
-    tab: oneOf(r.tab, ['practice', 'edit'] as const, d.tab),
+    tab: oneOf(r.tab, TABS, d.tab),
+    libSort: oneOf(r.libSort, ['practised', 'changed', 'title'] as const, d.libSort),
   };
   if (typeof r.soundOpen === 'boolean') p.soundOpen = r.soundOpen;
   return p;
@@ -117,9 +128,13 @@ export const savePrefs = (S: KeyValueStore | null, p: Prefs): WriteResult => wri
 
 // ── Songs ────────────────────────────────────────────────────────────────────
 
-/** A song as stored: everything but its id (the key) and the exercise flag. */
+/** A song as stored: everything but its id (the key) and the exercise flag; tags and the
+ * favourite mark only when set. */
 export function bodyOf(s: Song) {
-  return { title: s.title, taal: s.taal, tempo: s.tempo, saKey: s.saKey, saOct: s.saOct, startOn: s.startOn, text: s.text, updatedAt: s.updatedAt };
+  const body: Omit<Song, 'id' | 'example'> = { title: s.title, taal: s.taal, tempo: s.tempo, saKey: s.saKey, saOct: s.saOct, startOn: s.startOn, text: s.text, updatedAt: s.updatedAt };
+  if (s.tags && s.tags.length) body.tags = s.tags;
+  if (s.fav) body.fav = true;
+  return body;
 }
 
 /** A stored { [id]: body } object, with no prototype so any id is a plain key. */
@@ -185,5 +200,29 @@ export class SongStore {
   /** Whether a storage change made in another tab concerns the songs. */
   static isSongKey(key: string | null): boolean {
     return key === null || key === STORE_KEYS.songs || key === STORE_KEYS.legacySongs || key === STORE_KEYS.hidden;
+  }
+}
+
+// ── Practice log ─────────────────────────────────────────────────────────────
+
+export class LogStore {
+  constructor(private readonly S: KeyValueStore | null) {}
+
+  /** Every entry that can still be read, oldest first. */
+  load(): LogEntry[] {
+    return cleanLog(readJSON(this.S, STORE_KEYS.log));
+  }
+
+  /** Add an entry: re-read the stored log and append, so another tab's entries survive. */
+  add(e: LogEntry): WriteResult {
+    const raw = readJSON(this.S, STORE_KEYS.log);
+    const list: unknown[] = Array.isArray(raw) ? raw : [];
+    list.push(e);
+    return writeJSON(this.S, STORE_KEYS.log, list);
+  }
+
+  /** Whether a storage change made in another tab concerns the log. */
+  static isLogKey(key: string | null): boolean {
+    return key === null || key === STORE_KEYS.log;
   }
 }

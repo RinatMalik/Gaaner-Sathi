@@ -16,7 +16,8 @@ export const IMPORT_LIMITS = {
   titleChars: 200,
 } as const;
 
-/** What a file holds for each song: no id, no timestamps. */
+/** What a file holds for each song: no id, no timestamps. Tags and the favourite mark are
+ * optional additions (still version 1: older readers skip them). */
 export interface SongFileEntry {
   title: string;
   taal: string;
@@ -25,6 +26,8 @@ export interface SongFileEntry {
   saOct: number;
   startOn: number;
   text: string;
+  tags?: string[];
+  fav?: boolean;
 }
 
 /** A song found in an imported file: title and text are always strings; any other fields
@@ -32,7 +35,10 @@ export interface SongFileEntry {
 export type ImportedSong = Record<string, unknown> & { title: string; text: string };
 
 export function songForFile(s: Song): SongFileEntry {
-  return { title: s.title, taal: s.taal, tempo: s.tempo, saKey: s.saKey, saOct: s.saOct, startOn: s.startOn, text: s.text };
+  const e: SongFileEntry = { title: s.title, taal: s.taal, tempo: s.tempo, saKey: s.saKey, saOct: s.saOct, startOn: s.startOn, text: s.text };
+  if (s.tags && s.tags.length) e.tags = s.tags;
+  if (s.fav) e.fav = true;
+  return e;
 }
 
 /** The file text for "Export this song" or "Back up all my songs". `exported` is YYYY-MM-DD. */

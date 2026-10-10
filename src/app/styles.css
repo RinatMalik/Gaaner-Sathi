@@ -263,3 +263,27 @@ textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--
 .soundact svg{width:16px;height:16px;transition:transform .15s}
 .soundbar[aria-expanded="true"] .soundact svg{transform:rotate(180deg)}
 .sound .mixer{padding:12px 14px 14px;border-bottom:0;border-top:1px solid var(--rule)}
+
+/* Songs view (new): the library. */
+.lib{display:grid;gap:12px}
+.libtop{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+.libtop .spacer{flex:1 1 auto}
+.libq{flex:1 1 260px;min-width:0;padding:8px 12px;border:1px solid var(--line);border-radius:9px;background:var(--sheet);font-size:16px}
+.libstat{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;font-size:13px;color:var(--ink-2)}
+.chip .n{opacity:.75;font-variant-numeric:tabular-nums}
+.lhead{margin:4px 0 -4px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);font-weight:700}
+.lhead span{font-variant-numeric:tabular-nums}
+.llist{list-style:none;margin:0;padding:0;background:var(--sheet);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.lrow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:8px 12px 8px 6px;border-top:1px solid var(--rule)}
+.lrow:first-child{border-top:0}
+.lrow.cur{box-shadow:inset 3px 0 0 var(--brass)}
+.lfav{flex:none;width:34px;height:34px;border:0;background:none;font-size:20px;line-height:1;color:var(--brass);padding:0}
+.lopen{flex:1 1 240px;min-width:0;display:grid;gap:1px;border:0;background:none;text-align:left;padding:2px 0}
+.lopen:hover .ltitle{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.2em}
+.ltitle{font-family:var(--f-note);font-size:18px;line-height:1.35;overflow-wrap:anywhere}
+.llyric{font-family:var(--f-note);font-size:14px;color:var(--red-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lmeta{font-size:13px;color:var(--ink-2)}
+.ltags{display:flex;flex-wrap:wrap;gap:4px}
+.ltag{border:1px solid var(--line);background:var(--chip);border-radius:999px;padding:0 9px;font-size:12px;color:var(--ink-2)}
+.ltag:hover{border-color:var(--ink-2)}
+.lempty{margin:0;padding:18px;color:var(--ink-2);background:var(--sheet);border:1px dashed var(--line);border-radius:14px}

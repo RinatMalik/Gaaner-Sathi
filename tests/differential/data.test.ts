@@ -9,6 +9,9 @@ import { normalize } from '../../src/core/song/model';
 import { canon, seeded } from '../helpers';
 import { protoExamples, protoFile, protoKsPluck, protoNormalize, protoPrefs, protoStripExamplePrefix } from './prototype';
 
+/** Settings only this app has, always present (the prototype never saved them). */
+const APP_ONLY_PREFS = ['libSort'];
+
 describe('data matches the prototype', () => {
   it('the 13 built-in exercises', () => {
     expect(canon(EXERCISES)).toBe(canon(protoExamples));
@@ -75,7 +78,11 @@ describe('data matches the prototype', () => {
       for (const [k, vs] of Object.entries(VALUES)) if (rand() < 0.6) saved[k] = vs[Math.floor(rand() * vs.length)];
       const store = new Map([['swaralipi.prefs.v1', JSON.stringify(saved)]]);
       const ls = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v), removeItem: (k: string) => void store.delete(k) };
-      expect(canon(loadPrefs(ls))).toBe(canon(protoPrefs(ls)));
+      // The prototype's settings read the same; the app's own settings come on top.
+      const mine = loadPrefs(ls) as unknown as Record<string, unknown>;
+      const proto = protoPrefs(ls) as Record<string, unknown>;
+      expect(canon(Object.fromEntries(Object.keys(proto).map((k) => [k, mine[k]])))).toBe(canon(proto));
+      expect(Object.keys(mine).filter((k) => !(k in proto)).sort()).toEqual(APP_ONLY_PREFS);
     }
   });
 

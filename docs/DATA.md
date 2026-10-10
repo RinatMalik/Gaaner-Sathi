@@ -1,4 +1,6 @@
-# Data model, files and storage (as implemented in the prototype)
+# Data model, files and storage
+
+As implemented in the prototype, plus what the web app has added since (marked *Added*).
 
 ## Song
 
@@ -12,7 +14,9 @@
   "saOct": 4,
   "startOn": 1,
   "text": "# স্থায়ী\nসা -া রা | গা -া মা\n> সা ০ রে | গা ০ মা\n",
-  "updatedAt": 1791544356355
+  "updatedAt": 1791544356355,
+  "tags": ["Rabindrasangeet", "Learning"],
+  "fav": true
 }
 ```
 
@@ -24,8 +28,10 @@
 | `startOn` | Taal beat (1-based) the first beat lands on. |
 | `text` | Notation, see NOTATION.md. |
 | `updatedAt` | ms epoch, used to resolve edits arriving from another device. |
+| `tags` | *Added 2026-10-10.* Library tags, free text: trimmed, single-spaced, no commas, at most 40 characters each and 20 per song, no two the same apart from case. Absent when there are none. |
+| `fav` | *Added 2026-10-10.* `true` for a favourite; absent otherwise. |
 
-The prototype runs every song through `normalize()` when it loads, which clamps all fields. Keep that tolerance for imported files.
+The prototype runs every song through `normalize()` when it loads, which clamps all fields. Keep that tolerance for imported files. The app's `normalize()` also cleans `tags` and `fav`, and leaves them out when unset, so a prototype song reads exactly as before.
 
 ## File format (export, backup and import)
 
@@ -34,6 +40,7 @@ The prototype runs every song through `normalize()` when it loads, which clamps 
   "songs": [ { "title": "...", "taal": "...", "tempo": 100, "saKey": 0, "saOct": 4, "startOn": 1, "text": "..." } ] }
 ```
 
+- Each song may also carry `tags` and `fav` (*added 2026-10-10*, only when set). They are optional, so files stay version 1: the prototype and older readers skip them, and the app reads them back on import.
 - **Export this song** writes one song in that envelope; **Back up all my songs** writes them all (examples excluded).
 - **Import** accepts that envelope, a bare array of songs, a single song object, or a plain `.txt`, which becomes one song titled from the file name. Limits are 2 MB per file, 200 songs per import and 200 000 characters per song. Imports always get new ids, so they never overwrite.
 - Files exported before the rename say `"format": "swaralipi-player"`. The importer never checks this field, so both import; keep it that way.
@@ -62,7 +69,8 @@ The prototype runs every song through `normalize()` when it loads, which clamps 
 | `rampStep` | number |
 | `rampMax` | number |
 | `lastSong` | song id |
-| `tab` | `practice` or `edit` |
+| `tab` | `practice` or `edit`; *added:* `songs` |
+| `libSort` | *Added.* How the Songs view sorts: `practised`, `changed` or `title` |
 
 Older keys are migrated on load: `extra` → `layers`, and `dropGuide` → `guideLoop: 'first'`.
 Roadmap item "per-song sound settings" moves the rhythm, speed, layers, reeds and drone settings onto the song, with these device settings as the fallback.
@@ -78,9 +86,36 @@ Roadmap item "per-song sound settings" moves the rhythm, speed, layers, reeds an
   | `swaralipi.songs.v1`, `swaralipi.prefs.v1` | The prototype's songs and settings; read only |
   | `gaanersathi.songs.v1` | This app's songs, `{ [id]: song }`; each save changes only its own song |
   | `gaanersathi.hidden.v1` | Ids of prototype songs deleted in this app (hidden, not destroyed) |
-  | `gaanersathi.prefs.v1` | Settings, starting from the prototype's the first time, plus `soundOpen` (whether the Sound settings are unfolded; unset until first folded or unfolded) |
+  | `gaanersathi.prefs.v1` | Settings, starting from the prototype's the first time, plus `soundOpen` (whether the Sound settings are unfolded; unset until first folded or unfolded) and `libSort` |
+  | `gaanersathi.log.v1` | The practice log (below): `[entry, …]`, oldest first; each entry is appended to what is stored, so another tab's entries survive |
 
   The song list is the prototype's songs with this app's on top (the newer `updatedAt` wins), less the hidden ones. Changes saved in another tab are taken in as they happen. IndexedDB only if large data such as recordings ever arrives; account sync is a parked idea (see the roadmap). Rinat's songs in the claude.ai version come across with "Back up all my songs" there, then Import in the app.
+
+## Practice log (added 2026-10-10)
+
+One entry each time a song or exercise has been practised for at least 10 seconds after the
+count-in (a quick listen is not logged). Written when playing stops: Stop, the end of the
+song, another song opened, the notation edited, or the page closed.
+
+```json
+{ "at": 1791655308398, "secs": 312, "song": "song-mv2pb608-a4kmn", "title": "Purano sei diner kotha",
+  "from": 0, "to": 3, "loop": true, "rounds": 4, "tempo": 100, "top": 116,
+  "score": 82, "lines": [[0, 88], [1, 76]], "routine": "Daily rewaz" }
+```
+
+| Field | Meaning |
+|---|---|
+| `at` | When the first beat sounded, ms epoch. |
+| `secs` | Seconds practised, from the first beat to the stop. |
+| `song`, `title` | The song or exercise id, and its title at the time (songs get renamed or deleted). |
+| `from`, `to`, `loop` | Lines practised (0-based, inclusive; without a loop, `to` is the last line reached). |
+| `rounds` | Rounds begun; 1 without a loop. |
+| `tempo`, `top` | Tempo at the start, and the highest reached (the tempo trainer). |
+| `score`, `lines` | Pitch score 0–100 for the session and per line, when pitch feedback was on (optional). |
+| `routine` | The rewaz routine it was part of (optional). |
+
+Entries are checked when read (damaged ones are skipped, numbers clamped). The log exports
+as `{ "format": "gaaner-sathi-log", "version": 1, "exported": "YYYY-MM-DD", "entries": [...] }`.
 
 ## Built-in exercises
 

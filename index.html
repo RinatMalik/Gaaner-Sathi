@@ -11,7 +11,8 @@
 <script type="module" src="./src/app/main.ts"></script>
 </head>
 <body>
-<!-- The prototype's page (reference/gaaner-sathi.html), with the Sound settings in a bar that folds them away. -->
+<!-- The prototype's page (reference/gaaner-sathi.html), with the Sound settings in a bar that folds them away,
+     and the features added since (docs/ROADMAP.md → Phase 1): the Songs view. -->
 <div class="wrap">
   <header class="top">
     <div class="brand">
@@ -99,11 +100,30 @@
 
   <div class="tabs">
     <div class="tabbtns" role="tablist" aria-label="View">
+      <button type="button" role="tab" id="tabSongs" aria-controls="songs">Songs</button>
       <button type="button" role="tab" id="tabPractice" aria-controls="practice">Practice</button>
       <button type="button" role="tab" id="tabEdit" aria-controls="edit">Edit notation</button>
     </div>
     <div class="seg" id="scriptSeg" role="group" aria-label="Show notes as"><button type="button" data-v="bn">বাংলা</button><button type="button" data-v="lat">Sa Re Ga</button></div>
   </div>
+
+  <main id="songs" role="tabpanel" aria-labelledby="tabSongs" hidden>
+    <div class="lib">
+      <div class="libtop">
+        <input id="libQ" class="libq" type="search" placeholder="Search titles, lyrics and tags" aria-label="Search songs" autocomplete="off" spellcheck="false">
+        <label class="lab2" for="libSort">Sort by</label>
+        <select id="libSort" class="msel"><option value="practised">Recently practised</option><option value="changed">Recently changed</option><option value="title">Title</option></select>
+        <span class="spacer"></span>
+        <button id="libNew" class="btn" type="button">+ New song</button>
+        <button id="impBtn" class="btn" type="button">Import from file</button>
+        <button id="expAllBtn" class="btn" type="button">Back up all my songs</button>
+        <input id="impFile" type="file" accept=".json,.txt,application/json,text/plain" multiple hidden>
+      </div>
+      <div class="libstat"><span id="libCount"></span><span id="libStatus" class="fstatus" aria-live="polite"></span></div>
+      <div class="chips" id="libChips" role="group" aria-label="Show"></div>
+      <div id="libList"></div>
+    </div>
+  </main>
 
   <main id="practice" role="tabpanel" aria-labelledby="tabPractice">
     <div style="display:grid;gap:14px">
@@ -131,13 +151,11 @@
         <div class="f grow"><label for="titleIn">Title</label><input id="titleIn" type="text" autocomplete="off"></div>
         <div class="f"><label for="taalSel">Taal</label><select id="taalSel"></select></div>
         <div class="f"><label for="startOn">Song starts on taal beat</label><select id="startOn"></select></div>
+        <div class="f grow" id="tagsF"><label for="tagsIn">Tags, separated by commas</label><input id="tagsIn" type="text" autocomplete="off" placeholder="Rabindrasangeet, Learning"></div>
       </div>
       <div class="toolbar">
         <button id="copyBtn" class="btn" type="button">Make a copy</button>
         <button id="expBtn" class="btn" type="button">Export this song</button>
-        <button id="expAllBtn" class="btn" type="button">Back up all my songs</button>
-        <button id="impBtn" class="btn" type="button">Import from file</button>
-        <input id="impFile" type="file" accept=".json,.txt,application/json,text/plain" multiple hidden>
         <span id="fileStatus" class="fstatus" aria-live="polite"></span>
         <span class="spacer"></span>
         <button id="delBtn" class="btn danger" type="button">Delete song</button>

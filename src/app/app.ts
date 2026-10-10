@@ -11,6 +11,9 @@
  *   store.ts explains how the prototype's saved songs are read. Changes saved in another
  *   tab show up here, as the claude.ai version's live sync did.
  * - Batch imports are saved in one write.
+ *
+ * Added since (docs/ROADMAP.md → Phase 1): the Songs view (songs.ts), tags and favourites,
+ * and the practice log, written each time a song has been practised for a while.
  */
 import { createEngine, createLiveContext } from '../audio/engine';
 import { Transport, type BeatEntry, type PlaySource } from '../audio/transport';
@@ -20,11 +23,13 @@ import { joinBeats, notesInRange, shiftOctaves, splitBeats, type TextEdit } from
 import { parseSong } from '../core/notation/parse';
 import { AKAR } from '../core/notation/symbols';
 import type { Beat, ParsedSong, Unit } from '../core/notation/types';
+import { lastPractised, MIN_LOG_SECS, type LogEntry } from '../core/practice/log';
 import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefix, type ImportedSong } from '../core/song/file';
-import { newId, normalize, type Song } from '../core/song/model';
+import { newId, normalize, parseTags, type Song } from '../core/song/model';
 import { beatLabel, SPEEDS } from '../core/taal/rhythm';
 import { isTaalId, taalInfo, type TaalInfo } from '../core/taal/taals';
-import { loadPrefs, savePrefs as writePrefs, SongStore, type KeyValueStore, type WriteResult } from './store';
+import { initSongs } from './songs';
+import { loadPrefs, LogStore, savePrefs as writePrefs, SongStore, TABS, type KeyValueStore, type Tab, type WriteResult } from './store';
 import * as V from './view';
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string, r: ParentNode = document) => r.querySelector(s) as T;
@@ -60,6 +65,11 @@ let insOct = 0;
 let userPicked = false;
 const beatEls = new Map<number, HTMLElement[]>();
 const store = new SongStore(storage);
+const logStore = new LogStore(storage);
+/** When each song was last practised, from the log. */
+let practised = lastPractised(logStore.load());
+/** The Songs view, wired up by init. */
+let songsView: { render(): void } = { render() {} };
 
 const startOff = () => (current ? current.startOn : 1) - 1;
 
@@ -121,6 +131,7 @@ function play(fromN?: number): void {
   lastLine = -1;
   const r = tr.start(source, { from, to, loop });
   if (!r) return;
+  startRun(r.from, r.to, loop);
   setPlayUI(true);
   if (r.pre > 0) setNowMessage('Count-in', '', String(r.pre));
   timer = window.setInterval(tick, 25);
@@ -130,6 +141,7 @@ function play(fromN?: number): void {
 
 function stop(silent?: boolean): void {
   if (!T || !T.playing) return;
+  endRun(T.E.ctx.currentTime);
   T.stop();
   clearInterval(timer);
   timer = 0;
@@ -158,10 +170,14 @@ function frame(): void {
   const cur = T.takeDue(now);
   if (cur) {
     if ('end' in cur) {
+      if (run) run.end = cur.time;
       clearHighlight();
       markTaal(cur.p);
       setNowMessage('Finished', 'Press play to sing it again, or tap a line to start there.');
-    } else showBeat(cur);
+    } else {
+      trackRun(cur, ctx.currentTime);
+      showBeat(cur);
+    }
   }
   if (T.endAt && ctx.currentTime >= T.endAt) {
     stop(true);
@@ -184,6 +200,60 @@ function unwake(): void {
     // already released
   }
   wakeLock = null;
+}
+
+// ── Practice log: each play is logged when it stops, if it ran long enough ───
+
+interface Run {
+  song: string;
+  title: string;
+  from: number;
+  to: number;
+  loop: boolean;
+  tempo: number;
+  top: number;
+  /** AudioContext time of the first beat after the count-in (0 until it sounds), and the
+   * wall-clock time it matches. */
+  first: number;
+  wall: number;
+  /** Furthest round and line reached; when the song ended, the time it did. */
+  pass: number;
+  line: number;
+  end: number;
+}
+let run: Run | null = null;
+
+function startRun(from: number, to: number, loop: boolean): void {
+  run = { song: current.id, title: current.title, from, to, loop, tempo: current.tempo, top: current.tempo, first: 0, wall: 0, pass: 0, line: from, end: 0 };
+}
+
+/** A beat is showing: note how far the practice has got. */
+function trackRun(q: BeatEntry, ctxNow: number): void {
+  if (!run || q.pass < 0) return;
+  if (!run.first) {
+    run.first = q.time;
+    run.wall = Date.now() - (ctxNow - q.time) * 1000;
+  }
+  run.pass = Math.max(run.pass, q.pass);
+  run.top = Math.max(run.top, q.tempo);
+  run.line = Math.max(run.line, parsed.lineOfBeat[q.s] ?? 0);
+}
+
+/** Playing stopped at AudioContext time `at`: log it, unless it was only a quick listen. */
+function endRun(at: number): void {
+  const r = run;
+  run = null;
+  if (!r || !r.first) return;
+  const secs = (r.end || at) - r.first;
+  if (secs < MIN_LOG_SECS) return;
+  const e: LogEntry = {
+    at: Math.round(r.wall), secs: Math.round(secs), song: r.song, title: r.title,
+    from: r.from, to: r.loop ? r.to : r.line, loop: r.loop, rounds: r.loop ? r.pass + 1 : 1, tempo: r.tempo, top: r.top,
+  };
+  if (logStore.add(e) === 'ok') {
+    practised.set(e.song, e.at);
+    songsView.render();
+  }
 }
 
 // ── Rendering ────────────────────────────────────────────────────────────────
@@ -289,9 +359,11 @@ function renderStartOn(): void {
   select('#startOn').value = String(current.startOn);
 }
 const ownSongs = () => Array.from(songs.values()).sort((a, b) => a.title.localeCompare(b.title));
+/** The song picker, and the Songs view when it is showing. */
 function renderLibrary(): void {
   select('#songSel').innerHTML = V.libraryHTML(ownSongs(), EXERCISES);
   if (current) select('#songSel').value = current.id;
+  songsView.render();
 }
 function setPlayUI(on: boolean): void {
   const b = $('#playBtn');
@@ -339,6 +411,8 @@ function loadSong(song: Song | Exercise): void {
   savePrefs();
   $('#songTitle').innerHTML = V.esc(current.title) + (current.example ? '<span class="tag">Exercise</span>' : '');
   input('#titleIn').value = current.title;
+  input('#tagsIn').value = (current.tags || []).join(', ');
+  $('#tagsF').hidden = current.example;
   notationBox().value = current.text;
   input('#tempoNum').value = String(current.tempo);
   input('#tempoRange').value = String(current.tempo);
@@ -353,6 +427,7 @@ function loadSong(song: Song | Exercise): void {
   select('#songSel').value = current.id;
   selTouched = false;
   reparse(false);
+  songsView.render();
 }
 
 function changed<K extends keyof Song>(field: K, value: Song[K]): void {
@@ -418,6 +493,31 @@ function createSong(base: Partial<Song>): Song {
   return s;
 }
 
+/** Star or unstar one of the user's songs (the open one through its usual save). */
+function setFav(id: string, fav: boolean): void {
+  if (current.id === id && !current.example) {
+    changed('fav', fav || undefined);
+    flushNow();
+  } else {
+    const s = songs.get(id);
+    if (!s) return;
+    const n: Song = { ...s, updatedAt: Date.now() };
+    if (fav) n.fav = true;
+    else delete n.fav;
+    songs.set(id, n);
+    writeSongs([n]);
+  }
+  renderLibrary();
+}
+
+function newSong(): void {
+  createSong({ title: 'Untitled song', taal: 'dadra', tempo: 100, saKey: current.saKey, saOct: current.saOct, startOn: 1, text: '# স্থায়ী\n' });
+  switchTab('edit');
+  const t = input('#titleIn');
+  t.focus();
+  t.select();
+}
+
 function initStore(): void {
   songs = store.load();
   if (!userPicked && songs.has(wanted)) loadSong(songs.get(wanted)!);
@@ -425,6 +525,10 @@ function initStore(): void {
   if (store.mode === 'memory') setStatus('Songs you add will last until you close this page.');
   window.addEventListener('storage', (e) => {
     if (SongStore.isSongKey(e.key)) syncFromStorage();
+    if (LogStore.isLogKey(e.key)) {
+      practised = lastPractised(logStore.load());
+      songsView.render();
+    }
   });
 }
 
@@ -545,13 +649,14 @@ function applyBeatEdit(kind: 'join' | 'split'): void {
 
 // ── Song files: export, back up, import ──────────────────────────────────────
 
-function setFileStatus(t: string): void {
-  $('#fileStatus').textContent = t;
+function setFileStatus(t: string, where = '#fileStatus'): void {
+  $(where).textContent = t;
 }
+const setLibStatus = (t: string) => setFileStatus(t, '#libStatus');
 const today = () => new Date().toISOString().slice(0, 10);
 
 /** Save a file the ordinary way; inside a frame that may block downloads, copy it instead. */
-async function offerFile(name: string, text: string): Promise<void> {
+async function offerFile(name: string, text: string, say: (t: string) => void = setFileStatus): Promise<void> {
   let framed = true;
   try {
     framed = window.top !== window.self;
@@ -567,14 +672,14 @@ async function offerFile(name: string, text: string): Promise<void> {
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
-    setFileStatus('Saved ' + name);
+    say('Saved ' + name);
     return;
   }
   try {
     await navigator.clipboard.writeText(text);
-    setFileStatus('Copied the song file to the clipboard. Paste it into a text file to keep it.');
+    say('Copied the song file to the clipboard. Paste it into a text file to keep it.');
   } catch {
-    setFileStatus('Export is not available in this view.');
+    say('Export is not available in this view.');
   }
 }
 
@@ -598,7 +703,7 @@ async function importFiles(files: File[]): Promise<void> {
     else problems.push(f.name + ' has no songs the player can read');
   }
   if (!found.length) {
-    setFileStatus(problems.join('. ') || 'Nothing to import.');
+    setLibStatus(problems.join('. ') || 'Nothing to import.');
     return;
   }
   const list = found.slice(0, IMPORT_LIMITS.songs);
@@ -612,7 +717,7 @@ async function importFiles(files: File[]): Promise<void> {
   userPicked = true;
   renderLibrary();
   loadSong(made[0]!);
-  setFileStatus('Imported ' + list.length + ' song' + (list.length === 1 ? '' : 's') + (found.length > list.length ? ' (the first 200)' : '') + (problems.length ? '. ' + problems.join('. ') : '.'));
+  setLibStatus('Imported ' + list.length + ' song' + (list.length === 1 ? '' : 's') + (found.length > list.length ? ' (the first 200)' : '') + (problems.length ? '. ' + problems.join('. ') : '.'));
 }
 
 // ── Wiring ───────────────────────────────────────────────────────────────────
@@ -635,14 +740,16 @@ function tokenFor(semi: number): string {
   if (prefs.script === 'bn') return (insOct < 0 ? '.' : '') + (insOct > 0 ? 'র্' : '') + V.BN_NAMES[semi] + AKAR + ' ';
   return (insOct < 0 ? '.' : '') + V.LAT_CODE[semi] + (insOct > 0 ? "'" : '') + ' ';
 }
-function switchTab(t: 'practice' | 'edit'): void {
+const TAB_BUTTONS: Record<Tab, string> = { practice: '#tabPractice', edit: '#tabEdit', songs: '#tabSongs' };
+function switchTab(t: Tab): void {
   prefs.tab = t;
   savePrefs();
-  $('#practice').hidden = t !== 'practice';
-  $('#edit').hidden = t !== 'edit';
-  $('#tabPractice').setAttribute('aria-selected', String(t === 'practice'));
-  $('#tabEdit').setAttribute('aria-selected', String(t === 'edit'));
+  for (const v of TABS) {
+    $('#' + v).hidden = v !== t;
+    $(TAB_BUTTONS[v]).setAttribute('aria-selected', String(v === t));
+  }
   lastLine = -1;
+  songsView.render();
 }
 function setTempo(v: number | string): void {
   const t = clamp(Math.round(+v || 100), 30, 240);
@@ -678,10 +785,29 @@ export function init(): void {
   renderNoteButtons();
   renderSoundSummary();
   setSoundOpen(prefs.soundOpen ?? matchMedia('(min-width: 861px)').matches);
+  songsView = initSongs({
+    ownSongs,
+    exercises: EXERCISES,
+    currentId: () => current.id,
+    practisedAt: (id) => practised.get(id) ?? 0,
+    sort: () => prefs.libSort,
+    setSort: (s) => {
+      prefs.libSort = s;
+      savePrefs();
+    },
+    open: (id, tab) => {
+      const s = songs.get(id) || EXERCISES.find((x) => x.id === id);
+      if (!s) return;
+      userPicked = true;
+      if (s.id !== current.id) loadSong(s);
+      switchTab(tab);
+    },
+    setFav,
+  });
   const startSong = EXERCISES.find((e) => e.id === wanted) || EXERCISES[0]!;
   loadSong(startSong);
   renderLibrary();
-  switchTab(prefs.tab === 'edit' ? 'edit' : 'practice');
+  switchTab(prefs.tab);
 
   $('#playBtn').addEventListener('click', () => (playing() ? stop() : play()));
   $('#tDown').addEventListener('click', () => setTempo(current.tempo - 4));
@@ -828,6 +954,7 @@ export function init(): void {
 
   $('#tabPractice').addEventListener('click', () => switchTab('practice'));
   $('#tabEdit').addEventListener('click', () => switchTab('edit'));
+  $('#tabSongs').addEventListener('click', () => switchTab('songs'));
   $('#scriptSeg').addEventListener('click', (e) => {
     const b = segButton(e);
     if (!b) return;
@@ -848,13 +975,8 @@ export function init(): void {
       loadSong(s);
     }
   });
-  $('#newBtn').addEventListener('click', () => {
-    createSong({ title: 'Untitled song', taal: 'dadra', tempo: 100, saKey: current.saKey, saOct: current.saOct, startOn: 1, text: '# স্থায়ী\n' });
-    switchTab('edit');
-    const t = input('#titleIn');
-    t.focus();
-    t.select();
-  });
+  $('#newBtn').addEventListener('click', newSong);
+  $('#libNew').addEventListener('click', newSong);
   $('#copyBtn').addEventListener('click', () => {
     const title = current.example ? stripExamplePrefix(current.title) : current.title + ' (copy)';
     createSong({ ...current, title });
@@ -885,6 +1007,11 @@ export function init(): void {
     const v = (e.target as HTMLInputElement).value;
     changed('title', v.trim() ? v : 'Untitled song');
     $('#songTitle').innerHTML = V.esc(current.title) + (current.example ? '<span class="tag">Exercise</span>' : '');
+    if (!current.example) renderLibrary();
+  });
+  input('#tagsIn').addEventListener('input', (e) => {
+    const t = parseTags((e.target as HTMLInputElement).value);
+    changed('tags', t.length ? t : undefined);
     if (!current.example) renderLibrary();
   });
   select('#taalSel').addEventListener('change', (e) => {
@@ -945,6 +1072,8 @@ export function init(): void {
     if (document.visibilityState === 'hidden') flushNow();
     else if (playing() && !wakeLock) void wake();
   });
+  // Leaving the page stops playing, so the practice so far is logged.
+  window.addEventListener('pagehide', () => stop(true));
 
   // octave fixing
   const ta = notationBox();
@@ -1011,11 +1140,11 @@ export function init(): void {
     flushNow();
     const own = ownSongs();
     if (!own.length) {
-      setFileStatus('You have no saved songs yet. Backups leave out the examples.');
+      setLibStatus('You have no saved songs yet. Backups leave out the examples.');
       return;
     }
     const d = today();
-    void offerFile('gaaner-sathi-songs-' + d + '.json', songFileText(own, d));
+    void offerFile('gaaner-sathi-songs-' + d + '.json', songFileText(own, d), setLibStatus);
   });
   $('#impBtn').addEventListener('click', () => input('#impFile').click());
   input('#impFile').addEventListener('change', (e) => {
