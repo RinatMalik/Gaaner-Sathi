@@ -71,6 +71,8 @@ The prototype runs every song through `normalize()` when it loads, which clamps 
 | `lastSong` | song id |
 | `tab` | `practice` or `edit`; *added:* `songs` |
 | `libSort` | *Added.* How the Songs view sorts: `practised`, `changed` or `title` |
+| `pitchOctave` | *Added.* `true` when pitch feedback should count the octave too; absent otherwise |
+| `pitchLag` | *Added.* Pitch feedback: the delay from a beat to the voice found last time, seconds (0–0.6) |
 
 Older keys are migrated on load: `extra` → `layers`, and `dropGuide` → `guideLoop: 'first'`.
 Roadmap item "per-song sound settings" moves the rhythm, speed, layers, reeds and drone settings onto the song, with these device settings as the fallback.

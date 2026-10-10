@@ -68,6 +68,10 @@ export interface Prefs extends SoundSettings {
   soundOpen?: boolean;
   /** How the Songs view sorts. */
   libSort: LibrarySort;
+  /** Pitch feedback: the octave must match too (unset: any octave counts). */
+  pitchOctave?: boolean;
+  /** Pitch feedback: the delay from the beat to the voice found last time, seconds. */
+  pitchLag?: number;
 }
 
 /** The views under the deck. */
@@ -121,6 +125,8 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
     libSort: oneOf(r.libSort, ['practised', 'changed', 'title'] as const, d.libSort),
   };
   if (typeof r.soundOpen === 'boolean') p.soundOpen = r.soundOpen;
+  if (r.pitchOctave === true) p.pitchOctave = true;
+  if (typeof r.pitchLag === 'number' && r.pitchLag >= 0 && r.pitchLag <= 0.6) p.pitchLag = r.pitchLag;
   return p;
 }
 

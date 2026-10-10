@@ -60,6 +60,8 @@ export class Transport {
   queue: DisplayEntry[] = [];
   /** When the song has ended: the time playback should stop. */
   endAt = 0;
+  /** Told of each matra as it is scheduled, with its seconds per beat (pitch feedback). */
+  onBeat: ((q: BeatEntry, spb: number) => void) | null = null;
   private src!: PlaySource;
   private t = 0;
   private nextTime = 0;
@@ -193,7 +195,9 @@ export class Transport {
         reed(this.E, sess, reedSet(this.src.sound.reeds), time + (e.start - s) * spb, d * spb, noteFreq(this.src.song, e), 0.32);
       }
     }
-    this.queue.push({ time, s, raw, p, pass, tempo: Math.round(60 / spb), guide: this.guideOn(pass) });
+    const q: BeatEntry = { time, s, raw, p, pass, tempo: Math.round(60 / spb), guide: this.guideOn(pass) };
+    this.queue.push(q);
+    this.onBeat?.(q, spb);
   }
 
   private scheduleRhythm(time: number, s: number, pass: number, spb: number, p: number): void {

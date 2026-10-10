@@ -61,18 +61,20 @@ possible in the web app.)
   **off** (they distort pitch). Ask for the microphone only when the singer turns
   feedback on.
 - **Detection:** a hand-written pitch detector (McLeod/MPM), pure and tested with
-  synthetic notes. Frames long enough for low male notes, down to about 70 Hz; about 45
+  synthetic notes. Frames long enough for low male notes, down to about 60 Hz; about 45
   readings a second. An AudioWorklet only collects samples, so the audio thread never
-  does the maths.
+  does the maths. (Built 2026-10-10; measurements in `docs/ENGINE.md` → Pitch feedback.)
 - **Expected note:** the note the notation expects at that moment, from the same clock
   that schedules the guide, in cents from the song's Sa. Any octave counts by default;
   an option makes the octave count too.
 - **Live display:** cents off on a ±50 scale, in tune within ±15 cents, the note being
   sung, and a scrolling trace of the voice against the notes.
 - **Scores:** per note (pitch accuracy on the steady part of the note, so a late start
-  does not count twice) and per line; each beat on the sheet shows how it went.
-- **Latency:** an automatic estimate, plus a one-off measurement through the speakers
-  (play clicks, hear them back, keep the offset).
+  does not count twice) and per line; each beat on the sheet shows how it went. Timing
+  (early or late) is not scored yet: it needs the true round-trip delay.
+- **Latency:** the device's own estimate, refined from the singing itself (the delay at
+  which the voice best fits the notes), and remembered for next time. This replaced the
+  planned click measurement through the speakers, which cannot work with headphones.
 - **Headphones:** recommended, because the guide leaks into the microphone otherwise.
   The "your turn" rounds of call and response have no guide, so they score only the
   voice.

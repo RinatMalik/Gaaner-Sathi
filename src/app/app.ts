@@ -13,8 +13,10 @@
  * - Batch imports are saved in one write.
  *
  * Added since (docs/ROADMAP.md → Phase 1): the Songs view (songs.ts), tags and favourites,
- * and the practice log, written each time a song has been practised for a while.
+ * the practice log, written each time a song has been practised for a while, and pitch
+ * feedback from the microphone (pitch.ts), whose scores go into the log.
  */
+import { saFreq } from '../audio/dsp/pitch';
 import { createEngine, createLiveContext } from '../audio/engine';
 import { Transport, type BeatEntry, type PlaySource } from '../audio/transport';
 import { EXERCISES } from '../core/exercises';
@@ -28,6 +30,7 @@ import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefi
 import { newId, normalize, parseTags, type Song } from '../core/song/model';
 import { beatLabel, SPEEDS } from '../core/taal/rhythm';
 import { isTaalId, taalInfo, type TaalInfo } from '../core/taal/taals';
+import { initPitch, type PitchUI } from './pitch';
 import { initSongs } from './songs';
 import { loadPrefs, LogStore, savePrefs as writePrefs, SongStore, TABS, type KeyValueStore, type Tab, type WriteResult } from './store';
 import * as V from './view';
@@ -68,8 +71,9 @@ const store = new SongStore(storage);
 const logStore = new LogStore(storage);
 /** When each song was last practised, from the log. */
 let practised = lastPractised(logStore.load());
-/** The Songs view, wired up by init. */
+/** The Songs view and pitch feedback, wired up by init. */
 let songsView: { render(): void } = { render() {} };
+let pitchUI: PitchUI = { on: false, startRun() {}, beat() {}, endRun: () => null };
 
 const startOff = () => (current ? current.startOn : 1) - 1;
 
@@ -100,7 +104,10 @@ const source: PlaySource = {
 };
 
 function ensureAudio(): Transport {
-  if (!T) T = new Transport(createEngine(createLiveContext()));
+  if (!T) {
+    T = new Transport(createEngine(createLiveContext()));
+    T.onBeat = (q, spb) => pitchUI.beat(q, spb);
+  }
   return T;
 }
 
@@ -129,6 +136,8 @@ function play(fromN?: number): void {
     select('#toLine').value = String(to);
   }
   lastLine = -1;
+  // Before start: starting schedules the first beat, and pitch feedback must hear of it.
+  pitchUI.startRun();
   const r = tr.start(source, { from, to, loop });
   if (!r) return;
   startRun(r.from, r.to, loop);
@@ -141,7 +150,7 @@ function play(fromN?: number): void {
 
 function stop(silent?: boolean): void {
   if (!T || !T.playing) return;
-  endRun(T.E.ctx.currentTime);
+  endRun(T.E.ctx.currentTime, pitchUI.endRun());
   T.stop();
   clearInterval(timer);
   timer = 0;
@@ -239,8 +248,9 @@ function trackRun(q: BeatEntry, ctxNow: number): void {
   run.line = Math.max(run.line, parsed.lineOfBeat[q.s] ?? 0);
 }
 
-/** Playing stopped at AudioContext time `at`: log it, unless it was only a quick listen. */
-function endRun(at: number): void {
+/** Playing stopped at AudioContext time `at`: log it, with any pitch scores, unless it was
+ * only a quick listen. */
+function endRun(at: number, pitch: { score: number; lines: [number, number][] } | null): void {
   const r = run;
   run = null;
   if (!r || !r.first) return;
@@ -250,6 +260,10 @@ function endRun(at: number): void {
     at: Math.round(r.wall), secs: Math.round(secs), song: r.song, title: r.title,
     from: r.from, to: r.loop ? r.to : r.line, loop: r.loop, rounds: r.loop ? r.pass + 1 : 1, tempo: r.tempo, top: r.top,
   };
+  if (pitch) {
+    e.score = pitch.score;
+    e.lines = pitch.lines;
+  }
   if (logStore.add(e) === 'ok') {
     practised.set(e.song, e.at);
     songsView.render();
@@ -803,6 +817,37 @@ export function init(): void {
       switchTab(tab);
     },
     setFav,
+  });
+  pitchUI = initPitch({
+    audio: () => {
+      try {
+        const ctx = ensureAudio().E.ctx as AudioContext;
+        if (ctx.state !== 'running') void ctx.resume();
+        return ctx;
+      } catch {
+        return null;
+      }
+    },
+    saHz: () => saFreq(current),
+    script: () => prefs.script,
+    parsed: () => parsed,
+    beatEls: (g) => beatEls.get(g) || [],
+    section: () => (T && T.playing ? { secStart: T.secStart, secEnd: T.secEnd, loop: T.loop, listen: T.loop && prefs.guideLoop === 'alt' && prefs.guide !== 'off' } : null),
+    octave: {
+      get: () => !!prefs.pitchOctave,
+      set: (v) => {
+        if (v) prefs.pitchOctave = true;
+        else delete prefs.pitchOctave;
+        savePrefs();
+      },
+    },
+    lag: {
+      get: () => prefs.pitchLag,
+      set: (v) => {
+        prefs.pitchLag = v;
+        savePrefs();
+      },
+    },
   });
   const startSong = EXERCISES.find((e) => e.id === wanted) || EXERCISES[0]!;
   loadSong(startSong);

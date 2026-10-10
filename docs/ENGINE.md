@@ -98,6 +98,46 @@ Then ask Rinat to listen to specific things and give named feedback: thin, buzzy
 - `dev/render.html` (`npm run dev`, then open `/dev/render.html`) renders five sessions through both engines in the browser's own Web Audio and compares the audio sample by sample. The port differs from the prototype by no more than the prototype differs from itself between runs, because Chrome's mixing order varies. That is at most about 7 × 10⁻⁶, more than 100 dB below full scale.
 - Measured there: full mixes −15 to −20 dB RMS with peaks around −2 dBFS; a click with a soft one-reed guide −30 dB RMS.
 
+## Pitch feedback (added 2026-10-10)
+
+The microphone, the detector and the scores (`src/audio/mic.ts`, `src/audio/dsp/mpm.ts`,
+`src/core/pitch/track.ts`, `src/app/pitch.ts`).
+
+- **Capture:** `getUserMedia` with echo cancellation, noise suppression and automatic gain
+  off, into the same `AudioContext` as the guide, so readings are timed on the clock that
+  schedules the notes. An AudioWorklet (loaded from a Blob URL) only collects samples in
+  blocks of half a window; the detector runs on the page.
+- **Detector:** the McLeod pitch method over a window of about 40 ms (2048 samples at 44.1
+  and 48 kHz), hopping half a window (about 45 readings a second), 60–1500 Hz. The
+  autocorrelation goes through a radix-2 FFT. A window under 0.002 RMS or with a clarity
+  under 0.75 reads as no pitch.
+- **Measured** (`tests/unit/pitch-dsp.test.ts`): pure tones C2–C6 within 0.03 cents and
+  sung-like tones (24 harmonics, a vowel formant) within 1.3 cents, at 44.1 and 48 kHz; a
+  weak fundamental does not jump an octave; 20 dB of room noise stays within 5 cents;
+  silence, hiss and plain noise read as no pitch; 0.24 ms a window on the dev laptop.
+- **Expected notes:** each scheduled matra (the transport's `onBeat`) gives the note pieces
+  the guide plays in it; pieces of the same held note join up.
+- **Delay:** a reading belongs to the note scheduled `lag` seconds earlier (sound out, the
+  singer, sound back in). It starts from the device's figures (output, base and input
+  latency), or the delay found last time, and is refined from the singing every 1.5 s
+  (0.5 s until confirmed): the delay, 0–600 ms, at which most of the last 10 s of readings
+  land within half a semitone of their note. It only moves when another delay fits clearly
+  better (5 points), so long held notes leave it alone. This works with headphones, which a
+  click-and-listen calibration cannot.
+- **Scores:** each note on its steady part (from 100 ms or 30 % in, to 30 ms before its
+  end): the median distance in cents gives 100 within 10 cents, then 2 points a cent, 0
+  from 60. A note with voice in under half its readings is "not sung" (not scored, but
+  counted in the share sung); one too short to judge is skipped. Lines and runs are the
+  duration-weighted mean. Any octave counts unless the singer asks for the octave too.
+  Rounds where the guide plays in "every other round" are for listening, so not scored.
+- **End to end:** `tests/unit/pitch-track.test.ts` drives the real transport, synthesises a
+  singer (150 ms behind, vibrato, a scoop into each note, noise) and runs the detector on
+  it: in tune scores 100 with the delay found at 140 ms; 40 cents flat scores 43. In
+  headless Edge with a WAV as the microphone (`--use-file-for-fake-audio-capture`): in tune
+  100 on every line, 35 cents flat 50, the delay found within the first line.
+- **Not yet:** timing (early or late) in the score. It needs the true round-trip delay,
+  and the delay found from the singing includes the singer's own lateness.
+
 ## Known limitations
 
 - Synthesised timbres are approximations. Rinat finds the harmonium "OK, could be fuller" (3 reeds is now the default).
