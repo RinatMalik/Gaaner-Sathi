@@ -5,7 +5,7 @@
  * adds bright harmonics that fade as the note decays. Pure DSP, no Web Audio, so it is
  * tested in Node. `rand` defaults to Math.random; tests pass a seeded one.
  */
-export function ksPluck(freq: number, sr: number, secs: number, rand: () => number = Math.random): Float32Array {
+export function ksPluck(freq: number, sr: number, secs: number, rand: () => number = Math.random): Float32Array<ArrayBuffer> {
   const total = Math.floor(sr * secs);
   const out = new Float32Array(total);
   const s = 0.05; // loop lowpass: (1-s)·x[n] + s·x[n-1], delays s samples

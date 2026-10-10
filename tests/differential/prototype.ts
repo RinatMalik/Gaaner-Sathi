@@ -48,6 +48,44 @@ export const protoFile = load<Record<'songForFile' | 'fileName' | 'songsFromFile
   '{ songForFile, fileName, songsFromFile }',
 );
 
+/**
+ * The prototype's whole sound side: audio engine, instruments, rhythm scheduling, the
+ * transport and the live controls, cut out of the HTML and run against stand-ins for its
+ * page globals. `window.AudioContext` should return a RecordingContext; `prefs`,
+ * `current`, `parsed` and `taal` are read live, as on the page.
+ */
+const audioSrc =
+  'const mod = (a, n) => ((a % n) + n) % n;\n' +
+  'const clamp = (v, a, b) => Math.max(a, Math.min(b, v));\n' +
+  'const startOff = () => (current ? current.startOn : 1) - 1;\n' +
+  between('const TAALS = {', 'const bolText') +
+  between('/* ===== Audio engine ===== */', '/* ===== Dholak and drum-kit grooves') +
+  between('const GROOVES = {', '/* ===== Rendering ===== */') +
+  between('function liveGain(node, v)', 'function init()');
+const AUDIO_NAMES = 'A, S, ensureAudio, makeSession, endSession, reed, reedSet, applyReedTone, startDrone, makeTanBufs, pluck, ' +
+  'scheduleTanpura, stroke, click, crash, playHit, finalHit, play, stop, tick, liveTempo, guideOn, liveGain, retune, applyDrone, guideLevel, beatLevel';
+
+export interface ProtoPage {
+  window: { AudioContext: unknown };
+  prefs: Record<string, unknown>;
+  current: Record<string, unknown>;
+  parsed: unknown;
+  taal: unknown;
+  /** The three controls play() reads: #fromLine, #toLine, #loopChk. */
+  $: (selector: string) => Record<string, unknown> | undefined;
+  setTimeout: (fn: () => void, ms: number) => unknown;
+}
+export function protoAudioWorld(page: ProtoPage): Record<string, Fn> & { A: { ctx: unknown }; S: Record<string, any> } {
+  const noop = () => {};
+  const globals: [string, unknown][] = [
+    ['window', page.window], ['prefs', page.prefs], ['current', page.current], ['parsed', page.parsed], ['taal', page.taal],
+    ['$', page.$], ['setTimeout', page.setTimeout], ['navigator', {}],
+    ['setPlayUI', noop], ['setNowMessage', noop], ['showIdle', noop], ['clearHighlight', noop], ['markTaal', noop], ['showBeat', noop],
+    ['setInterval', () => 1], ['clearInterval', noop], ['requestAnimationFrame', () => 1], ['cancelAnimationFrame', noop],
+  ];
+  return new Function(...globals.map(([k]) => k), audioSrc + '\nreturn { ' + AUDIO_NAMES + ' };')(...globals.map(([, v]) => v));
+}
+
 /** The title clean-up the prototype applies inline when copying or exporting an exercise. */
 const stripAt = html.indexOf('title.replace(/^(Example');
 const stripRegex = html.slice(stripAt + 'title.replace('.length, html.indexOf(", '')", stripAt));
