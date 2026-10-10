@@ -34,7 +34,7 @@ earns its place, and everything stays on the device. The screen stays tidy and
 responsive (no sideways scrolling on a phone), but its look and layout wait for Phase 2.
 Rinat's three, in this order of building:
 
-### 1. Song library
+### 1. Song library (built 2026-10-10)
 
 Find and manage many songs.
 
@@ -51,7 +51,7 @@ Find and manage many songs.
 **Done when:** finding any of 200 songs takes a few keystrokes; tags and favourites
 survive a reload, an export and an import.
 
-### 2. Pitch feedback from the microphone
+### 2. Pitch feedback from the microphone (built 2026-10-10)
 
 The biggest one for a singer: a live sharp-or-flat reading on every note and a score
 for each line. (claude.ai blocked the microphone for the prototype, so this only became
@@ -85,7 +85,7 @@ possible in the web app.)
 range; the live reading and line scores work in the app; Rinat has sung a line and
 found the reading believable.
 
-### 3. Rewaz routine and practice log
+### 3. Rewaz routine and practice log (built 2026-10-10)
 
 - **Routines:** chain exercises and songs into one session, each item with its own lines,
   rounds, tempo and guide, and run it hands-free from start to finish. A starter routine

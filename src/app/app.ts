@@ -13,11 +13,13 @@
  * - Batch imports are saved in one write.
  *
  * Added since (docs/ROADMAP.md → Phase 1): the Songs view (songs.ts), tags and favourites,
- * the practice log, written each time a song has been practised for a while, and pitch
- * feedback from the microphone (pitch.ts), whose scores go into the log.
+ * the practice log, written each time a song has been practised for a while, pitch
+ * feedback from the microphone (pitch.ts), whose scores go into the log, rewaz routines
+ * that play items one after another (rewaz.ts), and the Progress view (progress.ts).
  */
 import { saFreq } from '../audio/dsp/pitch';
 import { createEngine, createLiveContext } from '../audio/engine';
+import type { GuideLevel, GuideLoop, SoundSettings } from '../audio/sound';
 import { Transport, type BeatEntry, type PlaySource } from '../audio/transport';
 import { EXERCISES } from '../core/exercises';
 import type { Exercise } from '../core/exercises/types';
@@ -25,14 +27,17 @@ import { joinBeats, notesInRange, shiftOctaves, splitBeats, type TextEdit } from
 import { parseSong } from '../core/notation/parse';
 import { AKAR } from '../core/notation/symbols';
 import type { Beat, ParsedSong, Unit } from '../core/notation/types';
-import { lastPractised, MIN_LOG_SECS, type LogEntry } from '../core/practice/log';
+import { lastPractised, logFileText, MIN_LOG_SECS, type LogEntry } from '../core/practice/log';
+import { itemLines, type RoutineItem } from '../core/practice/routine';
 import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefix, type ImportedSong } from '../core/song/file';
 import { newId, normalize, parseTags, type Song } from '../core/song/model';
 import { beatLabel, SPEEDS } from '../core/taal/rhythm';
 import { isTaalId, taalInfo, type TaalInfo } from '../core/taal/taals';
 import { initPitch, type PitchUI } from './pitch';
+import { initProgress } from './progress';
+import { initRewaz, type ItemSong, type Rewaz } from './rewaz';
 import { initSongs } from './songs';
-import { loadPrefs, LogStore, savePrefs as writePrefs, SongStore, TABS, type KeyValueStore, type Tab, type WriteResult } from './store';
+import { loadPrefs, LogStore, RoutineStore, savePrefs as writePrefs, SongStore, TABS, type KeyValueStore, type Tab, type WriteResult } from './store';
 import * as V from './view';
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string, r: ParentNode = document) => r.querySelector(s) as T;
@@ -74,6 +79,14 @@ let practised = lastPractised(logStore.load());
 /** The Songs view and pitch feedback, wired up by init. */
 let songsView: { render(): void } = { render() {} };
 let pitchUI: PitchUI = { on: false, startRun() {}, beat() {}, endRun: () => null };
+/** Rewaz routines and the Progress view, wired up by init. */
+let rewaz: Rewaz = { render() {}, active: false, name: '', finished() {}, cancel() {}, beat() {} };
+let progressView: { render(): void } = { render() {} };
+const routineStore = new RoutineStore(storage);
+/** While a rewaz item plays: its own tempo and guide, over the song's and the settings'. */
+let itemOverride: { tempo?: number; guide?: GuideLevel; guideLoop?: GuideLoop } | null = null;
+/** Set while the rewaz itself opens a song, which must not stop the rewaz. */
+let runnerLoading = false;
 
 const startOff = () => (current ? current.startOn : 1) - 1;
 
@@ -87,6 +100,30 @@ let lastLine = -1;
 let wakeLock: WakeLockSentinel | null = null;
 const playing = () => !!T && T.playing;
 
+/** The song as played: a rewaz item's tempo over the song's own. */
+const songSource = {
+  get saKey() {
+    return current.saKey;
+  },
+  get saOct() {
+    return current.saOct;
+  },
+  get startOn() {
+    return current.startOn;
+  },
+  get tempo() {
+    return itemOverride?.tempo ?? current.tempo;
+  },
+};
+/** The sound settings as played: a rewaz item's guide over the device's settings. */
+const soundSource = new Proxy<SoundSettings>(prefs, {
+  get(t, k) {
+    if (k === 'guide' && itemOverride?.guide) return itemOverride.guide;
+    if (k === 'guideLoop' && itemOverride?.guideLoop) return itemOverride.guideLoop;
+    return Reflect.get(t, k);
+  },
+});
+
 /** What the transport plays, read live as the prototype read its globals. */
 const source: PlaySource = {
   get parsed() {
@@ -96,10 +133,10 @@ const source: PlaySource = {
     return taal;
   },
   get song() {
-    return current;
+    return songSource;
   },
   get sound() {
-    return prefs;
+    return soundSource;
   },
 };
 
@@ -111,7 +148,8 @@ function ensureAudio(): Transport {
   return T;
 }
 
-function play(fromN?: number): void {
+/** Play from line `fromN` (or the picker's); `rounds` stops a loop after that many. */
+function play(fromN?: number, rounds?: number): void {
   if (!parsed.noteLines.length) {
     setNowMessage('No notes to play yet', 'Open Edit notation and type a line from your diary.');
     return;
@@ -138,7 +176,7 @@ function play(fromN?: number): void {
   lastLine = -1;
   // Before start: starting schedules the first beat, and pitch feedback must hear of it.
   pitchUI.startRun();
-  const r = tr.start(source, { from, to, loop });
+  const r = tr.start(source, { from, to, loop, rounds });
   if (!r) return;
   startRun(r.from, r.to, loop);
   setPlayUI(true);
@@ -148,7 +186,8 @@ function play(fromN?: number): void {
   void wake();
 }
 
-function stop(silent?: boolean): void {
+/** Stop playing. `ended`: the song or its rounds came to their end by themselves. */
+function stop(silent?: boolean, ended = false): void {
   if (!T || !T.playing) return;
   endRun(T.E.ctx.currentTime, pitchUI.endRun());
   T.stop();
@@ -160,6 +199,80 @@ function stop(silent?: boolean): void {
   setPlayUI(false);
   unwake();
   if (!silent) showIdle();
+  // A rewaz goes on to its next item when this one ended by itself; any other stop ends it.
+  if (ended) rewaz.finished();
+  else rewaz.cancel();
+  if (!rewaz.active) clearOverride();
+}
+
+/** The play button and the space bar. During a rewaz they stop it. */
+function userToggle(): void {
+  if (rewaz.active) {
+    if (playing()) stop();
+    rewaz.cancel();
+    clearOverride();
+    return;
+  }
+  if (playing()) stop();
+  else play();
+}
+/** A tap on a line number: play from there (ending any rewaz). */
+function userPlay(n: number): void {
+  if (playing()) stop(true);
+  rewaz.cancel();
+  clearOverride();
+  play(n);
+}
+
+function showTempo(t: number): void {
+  input('#tempoNum').value = String(t);
+  input('#tempoRange').value = String(t);
+}
+function clearOverride(): void {
+  if (!itemOverride) return;
+  itemOverride = null;
+  if (current) showTempo(current.tempo);
+}
+
+/** Play a rewaz item: its song, its lines for its rounds, at its tempo, with its guide. */
+function playItem(it: RoutineItem): boolean {
+  const s = songs.get(it.song) || EXERCISES.find((x) => x.id === it.song);
+  if (!s) return false;
+  runnerLoading = true;
+  try {
+    if (s.id !== current.id) loadSong(s);
+  } finally {
+    runnerLoading = false;
+  }
+  switchTab('practice');
+  if (!parsed.noteLines.length) return false;
+  const [a, b] = itemLines(it, parsed.noteLines.length);
+  select('#fromLine').value = String(a);
+  select('#toLine').value = String(b);
+  input('#loopChk').checked = true;
+  const g = it.guide;
+  itemOverride = { tempo: it.tempo, guide: g === 'off' ? 'off' : g && prefs.guide === 'off' ? 'full' : undefined, guideLoop: g && g !== 'off' ? g : undefined };
+  showTempo(itemOverride.tempo ?? current.tempo);
+  play(a, it.rounds);
+  return playing();
+}
+
+/** Each notes line's number and first beats, as the line pickers show them. */
+function lineLabels(P: ParsedSong): string[] {
+  return P.noteLines.map((l) => l.n + 1 + ' · ' + l.beats.slice(0, 6).map((b) => V.plainBeat(b, prefs.script)).join(' ') + (l.beats.length > 6 ? ' …' : ''));
+}
+/** A rewaz item's song: its lines, tempo, cycle and title, worked out once per version. */
+const itemSongs = new Map<string, { key: string; song: ItemSong }>();
+function itemSong(id: string): ItemSong | null {
+  const s = songs.get(id) || EXERCISES.find((x) => x.id === id);
+  if (!s) return null;
+  const key = [s.title, s.taal, s.tempo, prefs.script, s.text].join('\u0000');
+  const had = itemSongs.get(id);
+  if (had && had.key === key) return had.song;
+  const P = parseSong(s.text);
+  const song: ItemSong = { tempo: s.tempo, lineBeats: P.noteLines.map((l) => l.beats.length), cycle: taalInfo(s.taal).cycle, labels: lineLabels(P), title: s.title };
+  itemSongs.set(id, { key, song });
+  return song;
 }
 
 function tick(): void {
@@ -189,7 +302,7 @@ function frame(): void {
     }
   }
   if (T.endAt && ctx.currentTime >= T.endAt) {
-    stop(true);
+    stop(true, true);
     return;
   }
   raf = requestAnimationFrame(frame);
@@ -233,7 +346,7 @@ interface Run {
 let run: Run | null = null;
 
 function startRun(from: number, to: number, loop: boolean): void {
-  run = { song: current.id, title: current.title, from, to, loop, tempo: current.tempo, top: current.tempo, first: 0, wall: 0, pass: 0, line: from, end: 0 };
+  run = { song: current.id, title: current.title, from, to, loop, tempo: songSource.tempo, top: songSource.tempo, first: 0, wall: 0, pass: 0, line: from, end: 0 };
 }
 
 /** A beat is showing: note how far the practice has got. */
@@ -264,9 +377,11 @@ function endRun(at: number, pitch: { score: number; lines: [number, number][] } 
     e.score = pitch.score;
     e.lines = pitch.lines;
   }
+  if (rewaz.active) e.routine = rewaz.name;
   if (logStore.add(e) === 'ok') {
     practised.set(e.song, e.at);
     songsView.render();
+    progressView.render();
   }
 }
 
@@ -332,8 +447,9 @@ function showBeat(q: BeatEntry): void {
   markTaal(q.p);
   if (q.pass < 0) clearHighlight();
   else highlight(q.s);
-  const v = V.nowBeat(parsed, q, T!, prefs.ramp, prefs.guide, prefs.script);
+  const v = V.nowBeat(parsed, q, T!, prefs.ramp, soundSource.guide, prefs.script);
   if (v) setNow(v);
+  rewaz.beat(q.pass);
 }
 function showIdle(): void {
   markTaal(-1);
@@ -419,6 +535,10 @@ function reparse(keepLines: boolean): void {
 function loadSong(song: Song | Exercise): void {
   flushNow();
   stop(true);
+  if (!runnerLoading) {
+    rewaz.cancel();
+    clearOverride();
+  }
   current = normalize(song);
   if (song.example) current.example = true;
   prefs.lastSong = current.id;
@@ -542,7 +662,9 @@ function initStore(): void {
     if (LogStore.isLogKey(e.key)) {
       practised = lastPractised(logStore.load());
       songsView.render();
+      progressView.render();
     }
+    if (RoutineStore.isRoutineKey(e.key)) rewaz.render();
   });
 }
 
@@ -754,7 +876,7 @@ function tokenFor(semi: number): string {
   if (prefs.script === 'bn') return (insOct < 0 ? '.' : '') + (insOct > 0 ? 'র্' : '') + V.BN_NAMES[semi] + AKAR + ' ';
   return (insOct < 0 ? '.' : '') + V.LAT_CODE[semi] + (insOct > 0 ? "'" : '') + ' ';
 }
-const TAB_BUTTONS: Record<Tab, string> = { practice: '#tabPractice', edit: '#tabEdit', songs: '#tabSongs' };
+const TAB_BUTTONS: Record<Tab, string> = { practice: '#tabPractice', edit: '#tabEdit', songs: '#tabSongs', rewaz: '#tabRewaz', progress: '#tabProgress' };
 function switchTab(t: Tab): void {
   prefs.tab = t;
   savePrefs();
@@ -764,11 +886,18 @@ function switchTab(t: Tab): void {
   }
   lastLine = -1;
   songsView.render();
+  rewaz.render();
+  progressView.render();
 }
+/** The tempo shown on the deck: a rewaz item's while one plays, else the song's. */
+const shownTempo = () => itemOverride?.tempo ?? current.tempo;
 function setTempo(v: number | string): void {
   const t = clamp(Math.round(+v || 100), 30, 240);
-  input('#tempoNum').value = String(t);
-  input('#tempoRange').value = String(t);
+  showTempo(t);
+  if (itemOverride && rewaz.active) {
+    itemOverride.tempo = t;
+    return;
+  }
   if (t !== current.tempo) changed('tempo', t);
 }
 /** The clicked button inside a segmented control. */
@@ -832,7 +961,7 @@ export function init(): void {
     script: () => prefs.script,
     parsed: () => parsed,
     beatEls: (g) => beatEls.get(g) || [],
-    section: () => (T && T.playing ? { secStart: T.secStart, secEnd: T.secEnd, loop: T.loop, listen: T.loop && prefs.guideLoop === 'alt' && prefs.guide !== 'off' } : null),
+    section: () => (T && T.playing ? { secStart: T.secStart, secEnd: T.secEnd, loop: T.loop, listen: T.loop && soundSource.guideLoop === 'alt' && soundSource.guide !== 'off' } : null),
     octave: {
       get: () => !!prefs.pitchOctave,
       set: (v) => {
@@ -849,14 +978,42 @@ export function init(): void {
       },
     },
   });
+  rewaz = initRewaz({
+    choices: () => ({ own: ownSongs(), exercises: EXERCISES }),
+    song: itemSong,
+    countIn: () => !!prefs.countIn,
+    currentSongId: () => current.id,
+    routines: () => routineStore.load(),
+    save: (r) => routineStore.save(r),
+    remove: (id) => routineStore.remove(id),
+    selected: {
+      get: () => prefs.rewazId,
+      set: (id) => {
+        prefs.rewazId = id;
+        savePrefs();
+      },
+    },
+    play: playItem,
+    stop: () => stop(),
+    playing,
+    showPractice: () => switchTab('practice'),
+  });
+  progressView = initProgress({
+    log: () => logStore.load(),
+    title: (id) => (songs.get(id) || EXERCISES.find((x) => x.id === id))?.title ?? null,
+    exportLog: () => {
+      const d = today();
+      void offerFile('gaaner-sathi-practice-log-' + d + '.json', logFileText(logStore.load(), d), (t) => setFileStatus(t, '#pgStatus'));
+    },
+  });
   const startSong = EXERCISES.find((e) => e.id === wanted) || EXERCISES[0]!;
   loadSong(startSong);
   renderLibrary();
   switchTab(prefs.tab);
 
-  $('#playBtn').addEventListener('click', () => (playing() ? stop() : play()));
-  $('#tDown').addEventListener('click', () => setTempo(current.tempo - 4));
-  $('#tUp').addEventListener('click', () => setTempo(current.tempo + 4));
+  $('#playBtn').addEventListener('click', userToggle);
+  $('#tDown').addEventListener('click', () => setTempo(shownTempo() - 4));
+  $('#tUp').addEventListener('click', () => setTempo(shownTempo() + 4));
   input('#tempoRange').addEventListener('input', (e) => setTempo((e.target as HTMLInputElement).value));
   input('#tempoNum').addEventListener('change', (e) => setTempo((e.target as HTMLInputElement).value));
   select('#saKey').addEventListener('change', (e) => {
@@ -1000,6 +1157,8 @@ export function init(): void {
   $('#tabPractice').addEventListener('click', () => switchTab('practice'));
   $('#tabEdit').addEventListener('click', () => switchTab('edit'));
   $('#tabSongs').addEventListener('click', () => switchTab('songs'));
+  $('#tabRewaz').addEventListener('click', () => switchTab('rewaz'));
+  $('#tabProgress').addEventListener('click', () => switchTab('progress'));
   $('#scriptSeg').addEventListener('click', (e) => {
     const b = segButton(e);
     if (!b) return;
@@ -1074,6 +1233,8 @@ export function init(): void {
   let parseTimer = 0;
   notationBox().addEventListener('input', (e) => {
     if (playing()) stop(true);
+    rewaz.cancel();
+    clearOverride();
     changed('text', (e.target as HTMLTextAreaElement).value);
     clearTimeout(parseTimer);
     parseTimer = window.setTimeout(() => reparse(true), 140);
@@ -1102,7 +1263,7 @@ export function init(): void {
       const n = +b.dataset.n!;
       select('#fromLine').value = String(n);
       if (+select('#toLine').value < n) select('#toLine').value = String(n);
-      play(n);
+      userPlay(n);
     }
   });
   document.addEventListener('keydown', (e) => {
@@ -1110,8 +1271,7 @@ export function init(): void {
     const t = e.target as Element | null;
     if (t && t.closest && t.closest('input,textarea,select,button,[contenteditable="true"]')) return;
     e.preventDefault();
-    if (playing()) stop();
-    else play();
+    userToggle();
   });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') flushNow();

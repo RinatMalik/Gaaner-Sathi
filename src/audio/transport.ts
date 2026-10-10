@@ -56,6 +56,8 @@ export class Transport {
   secEnd = 0;
   secLen = 1;
   loop = false;
+  /** With a loop: stop after this many rounds (0 loops on until stopped). */
+  rounds = 0;
   /** Display entries waiting for their time. */
   queue: DisplayEntry[] = [];
   /** When the song has ended: the time playback should stop. */
@@ -82,17 +84,18 @@ export class Transport {
   }
 
   /**
-   * Start playing from note line `from` (and loop to line `to`). Count-in: one cycle plus
-   * any pickup, always starting at sam. Returns the lines used and the count-in length in
-   * beats, or null when there is nothing to play.
+   * Start playing from note line `from` (and loop to line `to`, for `rounds` rounds if
+   * given). Count-in: one cycle plus any pickup, always starting at sam. Returns the lines
+   * used and the count-in length in beats, or null when there is nothing to play.
    */
-  start(src: PlaySource, opts: { from: number; to: number; loop: boolean }, now: number = this.E.ctx.currentTime): { from: number; to: number; pre: number } | null {
+  start(src: PlaySource, opts: { from: number; to: number; loop: boolean; rounds?: number }, now: number = this.E.ctx.currentTime): { from: number; to: number; pre: number } | null {
     const L = src.parsed.noteLines;
     if (!L.length) return null;
     if (this.playing) this.stop();
     this.src = src;
     const from = clamp(opts.from, 0, L.length - 1);
     this.loop = opts.loop;
+    this.rounds = opts.loop && opts.rounds && opts.rounds > 0 ? Math.floor(opts.rounds) : 0;
     let to = clamp(opts.to, 0, L.length - 1);
     if (to < from) to = from;
     this.secStart = L[from]!.start;
@@ -162,8 +165,9 @@ export class Transport {
         } else pass = 0;
       }
       const spb = 60 / this.liveTempo(pass);
-      if (!this.loop && raw >= this.secEnd) {
-        const p = mod(raw + off, cyc);
+      const roundsDone = this.rounds > 0 && raw >= this.secStart + this.rounds * this.secLen;
+      if ((!this.loop && raw >= this.secEnd) || roundsDone) {
+        const p = mod((roundsDone ? this.secStart : raw) + off, cyc);
         if (p === 0) finalHit(this.E, this.sess!, this.nextTime, this.src.sound.beat);
         this.queue.push({ time: this.nextTime, end: true, p });
         this.endAt = this.nextTime + 1.3;

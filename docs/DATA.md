@@ -69,10 +69,11 @@ The prototype runs every song through `normalize()` when it loads, which clamps 
 | `rampStep` | number |
 | `rampMax` | number |
 | `lastSong` | song id |
-| `tab` | `practice` or `edit`; *added:* `songs` |
+| `tab` | `practice` or `edit`; *added:* `songs`, `rewaz`, `progress` |
 | `libSort` | *Added.* How the Songs view sorts: `practised`, `changed` or `title` |
 | `pitchOctave` | *Added.* `true` when pitch feedback should count the octave too; absent otherwise |
 | `pitchLag` | *Added.* Pitch feedback: the delay from a beat to the voice found last time, seconds (0–0.6) |
+| `rewazId` | *Added.* The rewaz routine last chosen |
 
 Older keys are migrated on load: `extra` → `layers`, and `dropGuide` → `guideLoop: 'first'`.
 Roadmap item "per-song sound settings" moves the rhythm, speed, layers, reeds and drone settings onto the song, with these device settings as the fallback.
@@ -90,6 +91,7 @@ Roadmap item "per-song sound settings" moves the rhythm, speed, layers, reeds an
   | `gaanersathi.hidden.v1` | Ids of prototype songs deleted in this app (hidden, not destroyed) |
   | `gaanersathi.prefs.v1` | Settings, starting from the prototype's the first time, plus `soundOpen` (whether the Sound settings are unfolded; unset until first folded or unfolded) and `libSort` |
   | `gaanersathi.log.v1` | The practice log (below): `[entry, …]`, oldest first; each entry is appended to what is stored, so another tab's entries survive |
+  | `gaanersathi.routines.v1` | Rewaz routines (below): `{ [id]: routine }`; each save changes only its own routine |
 
   The song list is the prototype's songs with this app's on top (the newer `updatedAt` wins), less the hidden ones. Changes saved in another tab are taken in as they happen. IndexedDB only if large data such as recordings ever arrives; account sync is a parked idea (see the roadmap). Rinat's songs in the claude.ai version come across with "Back up all my songs" there, then Import in the app.
 
@@ -118,6 +120,26 @@ song, another song opened, the notation edited, or the page closed.
 
 Entries are checked when read (damaged ones are skipped, numbers clamped). The log exports
 as `{ "format": "gaaner-sathi-log", "version": 1, "exported": "YYYY-MM-DD", "entries": [...] }`.
+
+## Rewaz routines (added 2026-10-10)
+
+```json
+{ "routine-mv2pq1x0-k3a9c": { "name": "Morning", "updatedAt": 1791655308398, "items": [
+  { "song": "ex-long-notes", "rounds": 1 },
+  { "song": "song-mv2pb608-a4kmn", "from": 0, "to": 1, "rounds": 4, "tempo": 80, "guide": "alt" } ] } }
+```
+
+| Item field | Meaning |
+|---|---|
+| `song` | A song or exercise id. A song deleted later is skipped when the routine runs. |
+| `from`, `to` | Lines to practise, 0-based and inclusive; absent: the whole song. |
+| `rounds` | Times through, 1–20. |
+| `tempo` | Matras per minute, 30–240; absent: the song's own. It never changes the song. |
+| `guide` | `all` (every round), `first` (first round only), `alt` (every other round: call and response) or `off`; absent: as the Sound settings say. |
+
+A routine has at most 40 items. Until one is saved, a starter "Daily warm-up" (exercises 1, 2,
+3 and 12) is on offer; it stays on offer like the exercises, and changing it saves it as the
+user's own (id `routine-starter`). Routines are checked when read, like songs.
 
 ## Built-in exercises
 

@@ -265,7 +265,7 @@ textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--
 .sound .mixer{padding:12px 14px 14px;border-bottom:0;border-top:1px solid var(--rule)}
 
 /* Songs view (new): the library. */
-.lib{display:grid;gap:12px}
+.lib{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
 .libtop{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
 .libtop .spacer{flex:1 1 auto}
 .libq{flex:1 1 260px;min-width:0;padding:8px 12px;border:1px solid var(--line);border-radius:9px;background:var(--sheet);font-size:16px}
@@ -317,3 +317,50 @@ textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--
 #sheetP .beat.pg-ok{box-shadow:inset 0 -3px 0 var(--warn)}
 #sheetP .beat.pg-off{box-shadow:inset 0 -3px 0 var(--red-ink)}
 #sheetP .beat.pg-miss{box-shadow:inset 0 -3px 0 var(--line)}
+
+/* Rewaz (new): routines, the bar shown while one runs, and the Progress view. */
+.btn.primary{background:var(--brass);border-color:var(--brass);color:var(--brass-ink);font-weight:600}
+.btn.primary:disabled{opacity:.5;cursor:default}
+.rw,.pg{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.rwintro{margin:0;color:var(--ink-2);font-size:14px;max-width:70ch}
+.rwtop{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+.rwtop .spacer{flex:1 1 auto}
+.rwlist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.rwitem{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 12px;padding:10px 12px;background:var(--sheet);border:1px solid var(--line);border-radius:12px}
+.rwn{align-self:center;min-width:1.6em;font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.rwf{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:12px;color:var(--ink-2);font-weight:600}
+.rwf select,.rwf input{padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--sheet);font-size:14px;font-weight:400;color:var(--ink);min-width:0;max-width:100%}
+.rwsong{flex:1 1 220px}
+.rwsong select{font-family:var(--f-note);font-size:15px}
+.rwf select[data-k="from"],.rwf select[data-k="to"]{font-family:var(--f-note);max-width:220px}
+.rwnum input{width:72px;font-variant-numeric:tabular-nums}
+.rwacts{display:flex;gap:4px;margin-left:auto}
+.rwgone{flex:1 1 200px;color:var(--ink-2);font-size:14px}
+.rbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:9px 12px;border:1px solid var(--brass);border-left:4px solid var(--brass);border-radius:10px;background:var(--sheet)}
+.rbar .spacer{flex:1 1 auto}
+.rbtext{font-weight:600;min-width:0}
+.pgtop{display:flex;flex-wrap:wrap;gap:10px}
+.pgstat{flex:1 1 140px;display:grid;padding:10px 14px;background:var(--sheet);border:1px solid var(--line);border-radius:12px}
+.pgstat b{font-size:24px;font-variant-numeric:tabular-nums}
+.pgstat span{font-size:13px;color:var(--ink-2)}
+.pgweek{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;padding:12px;background:var(--sheet);border:1px solid var(--line);border-radius:12px}
+.pgday{display:grid;justify-items:center;gap:2px;font-size:12px;color:var(--ink-2)}
+.pgday b{font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.pgbar{display:flex;align-items:flex-end;width:100%;max-width:36px;height:80px;background:var(--chip);border-radius:6px;overflow:hidden}
+.pgbar span{display:block;width:100%;background:var(--brass)}
+.pgtable{overflow-x:auto;background:var(--sheet);border:1px solid var(--line);border-radius:12px}
+.pgtable table{width:100%;border-collapse:collapse;font-size:14px}
+.pgtable th{text-align:left;font-size:12px;color:var(--ink-2);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line)}
+.pgtable td{padding:7px 10px;border-top:1px solid var(--rule);white-space:nowrap}
+.pgsong{font-family:var(--f-note);font-size:15px;white-space:normal}
+.pgscore{display:inline-block;min-width:2.2em;text-align:center;font-weight:700;border-radius:999px;padding:0 6px;border:1px solid currentColor}
+.pgscore.good{color:var(--good)}.pgscore.ok{color:var(--warn)}.pgscore.off{color:var(--red-ink)}
+.pgbest{font-size:12px;color:var(--ink-2)}
+.pgdayl{background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+.pgdayl summary{cursor:pointer}
+.pgdayl ul{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px}
+.pgdayl li{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;padding-top:4px;border-top:1px solid var(--rule)}
+.pgclock{font-variant-numeric:tabular-nums;color:var(--ink-2);font-size:13px}
+.pgdet{font-size:13px;color:var(--ink-2)}
+.tabbtns{flex-wrap:wrap}
+@media (max-width:520px){.tabbtns button{padding:8px 9px}}

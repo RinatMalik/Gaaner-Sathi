@@ -12,7 +12,8 @@
 </head>
 <body>
 <!-- The prototype's page (reference/gaaner-sathi.html), with the Sound settings in a bar that folds them away,
-     and the features added since (docs/ROADMAP.md → Phase 1): the Songs view and pitch feedback. -->
+     and the features added since (docs/ROADMAP.md → Phase 1): the Songs view, pitch feedback, rewaz routines
+     and the Progress view. -->
 <div class="wrap">
   <header class="top">
     <div class="brand">
@@ -107,6 +108,8 @@
       <button type="button" role="tab" id="tabSongs" aria-controls="songs">Songs</button>
       <button type="button" role="tab" id="tabPractice" aria-controls="practice">Practice</button>
       <button type="button" role="tab" id="tabEdit" aria-controls="edit">Edit notation</button>
+      <button type="button" role="tab" id="tabRewaz" aria-controls="rewaz">Rewaz</button>
+      <button type="button" role="tab" id="tabProgress" aria-controls="progress">Progress</button>
     </div>
     <div class="seg" id="scriptSeg" role="group" aria-label="Show notes as"><button type="button" data-v="bn">বাংলা</button><button type="button" data-v="lat">Sa Re Ga</button></div>
   </div>
@@ -131,6 +134,7 @@
 
   <main id="practice" role="tabpanel" aria-labelledby="tabPractice">
     <div style="display:grid;gap:14px">
+      <div class="rbar" id="rwBar" hidden aria-live="polite"><span class="rbtext" id="rwBarText"></span><span class="spacer"></span><button id="rwSkip" class="btn" type="button">Skip</button><button id="rwStop" class="btn" type="button">Stop rewaz</button></div>
       <section class="nowpanel" aria-label="Now singing">
         <div>
           <div class="nowLab" id="nowLab">Ready</div>
@@ -156,6 +160,36 @@
       </section>
       <div class="sheetHead"><h2 id="songTitle"></h2><span class="hint">Tap a line number to play from there · Space bar plays and stops</span></div>
       <div class="sheet" id="sheetP"></div>
+    </div>
+  </main>
+
+  <main id="rewaz" role="tabpanel" aria-labelledby="tabRewaz" hidden>
+    <div class="rw">
+      <p class="rwintro">A rewaz runs exercises and songs one after another, each with its own lines, rounds, tempo and guide, so you can sing without touching the screen. Each one goes into your practice log.</p>
+      <div class="rwtop">
+        <label class="lab2" for="rwSel">Routine</label>
+        <select id="rwSel" class="msel"></select>
+        <button id="rwNew" class="btn" type="button">+ New routine</button>
+        <span class="spacer"></span>
+        <span id="rwTime" class="lab2"></span>
+        <button id="rwStart" class="btn primary" type="button">▶ Start rewaz</button>
+      </div>
+      <div class="meta"><div class="f grow"><label for="rwName">Name</label><input id="rwName" type="text" autocomplete="off" maxlength="80"></div></div>
+      <ol class="rwlist" id="rwList"></ol>
+      <div class="toolbar">
+        <button id="rwAdd" class="btn" type="button">+ Add the open song</button>
+        <span id="rwStatus" class="fstatus" aria-live="polite"></span>
+        <span class="spacer"></span>
+        <button id="rwDel" class="btn danger" type="button">Delete routine</button>
+        <span id="rwDelConfirm" class="confirm" hidden>Delete this routine? <button id="rwDelYes" class="btn danger" type="button">Delete</button><button id="rwDelNo" class="btn" type="button">Keep</button></span>
+      </div>
+    </div>
+  </main>
+
+  <main id="progress" role="tabpanel" aria-labelledby="tabProgress" hidden>
+    <div class="pg">
+      <div class="toolbar"><span class="lab2">Your practice, logged in this browser.</span><span class="spacer"></span><span id="pgStatus" class="fstatus" aria-live="polite"></span><button id="pgExport" class="btn" type="button">Download my practice log</button></div>
+      <div id="pgBody"></div>
     </div>
   </main>
 

@@ -10,6 +10,7 @@
  */
 import { DEFAULT_SOUND, type SoundSettings } from '../audio/sound';
 import { cleanLog, type LogEntry } from '../core/practice/log';
+import { cleanRoutine, type Routine } from '../core/practice/routine';
 import type { LibrarySort } from '../core/song/library';
 import { normalize, type Song } from '../core/song/model';
 import type { Script } from './view';
@@ -32,6 +33,8 @@ export const STORE_KEYS = {
   prefs: 'gaanersathi.prefs.v1',
   /** The practice log: [entry, …], oldest first. */
   log: 'gaanersathi.log.v1',
+  /** Rewaz routines: { [id]: routine without its id }. */
+  routines: 'gaanersathi.routines.v1',
 } as const;
 
 /** Why a write failed: storage full, or blocked (private mode, site data off). */
@@ -72,11 +75,13 @@ export interface Prefs extends SoundSettings {
   pitchOctave?: boolean;
   /** Pitch feedback: the delay from the beat to the voice found last time, seconds. */
   pitchLag?: number;
+  /** The rewaz routine last chosen. */
+  rewazId?: string;
 }
 
 /** The views under the deck. */
-export type Tab = 'practice' | 'edit' | 'songs';
-export const TABS: readonly Tab[] = ['practice', 'edit', 'songs'];
+export type Tab = 'practice' | 'edit' | 'songs' | 'rewaz' | 'progress';
+export const TABS: readonly Tab[] = ['practice', 'edit', 'songs', 'rewaz', 'progress'];
 
 /** The prototype's defaults; it opened on exercise 3 the first time. */
 export const DEFAULT_PREFS: Prefs = { ...structuredClone(DEFAULT_SOUND), script: 'bn', lastSong: 'ex-alankar-bn', tab: 'practice', libSort: 'practised' };
@@ -127,6 +132,7 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
   if (typeof r.soundOpen === 'boolean') p.soundOpen = r.soundOpen;
   if (r.pitchOctave === true) p.pitchOctave = true;
   if (typeof r.pitchLag === 'number' && r.pitchLag >= 0 && r.pitchLag <= 0.6) p.pitchLag = r.pitchLag;
+  if (typeof r.rewazId === 'string' && r.rewazId) p.rewazId = r.rewazId;
   return p;
 }
 
@@ -230,5 +236,39 @@ export class LogStore {
   /** Whether a storage change made in another tab concerns the log. */
   static isLogKey(key: string | null): boolean {
     return key === null || key === STORE_KEYS.log;
+  }
+}
+
+// ── Rewaz routines ───────────────────────────────────────────────────────────
+
+export class RoutineStore {
+  constructor(private readonly S: KeyValueStore | null) {}
+
+  /** Every routine that can still be read. */
+  load(): Map<string, Routine> {
+    const t = songTable(readJSON(this.S, STORE_KEYS.routines));
+    const m = new Map<string, Routine>();
+    for (const id of Object.keys(t)) {
+      const r = cleanRoutine(id, t[id]);
+      if (r) m.set(id, r);
+    }
+    return m;
+  }
+
+  /** Save one routine: re-read the stored ones and change only this, so another tab's survive. */
+  save(r: Routine): WriteResult {
+    const t = songTable(readJSON(this.S, STORE_KEYS.routines));
+    t[r.id] = { name: r.name, items: r.items, updatedAt: r.updatedAt };
+    return writeJSON(this.S, STORE_KEYS.routines, t);
+  }
+
+  remove(id: string): WriteResult {
+    const t = songTable(readJSON(this.S, STORE_KEYS.routines));
+    delete t[id];
+    return writeJSON(this.S, STORE_KEYS.routines, t);
+  }
+
+  static isRoutineKey(key: string | null): boolean {
+    return key === null || key === STORE_KEYS.routines;
   }
 }
