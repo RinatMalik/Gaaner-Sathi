@@ -34,14 +34,17 @@ decision, which always wins (see Source-of-truth order).
 
 - **Current milestone:** Phase 0, port (Roadmap at a glance below).
 - **Current task:** none in progress. PH0-02 (the pure core in TypeScript) is done.
-- **Next single action:** PH0-03, the audio engine: the lookahead scheduler and the
-  synthesised instruments, checked by offline-render measurements against ENGINE.md.
+- **Next single action:** Rinat answers Open questions 5 (continue the port?) and 6
+  (publish the prototype now?). Then PH0-03, the audio engine: the lookahead scheduler
+  and the synthesised instruments, checked by offline-render measurements against
+  ENGINE.md.
 - **Last known-good commit:** `8b5b933` (CI run `38005291130`: core and reference jobs
   green).
 - **How to run it now:** the prototype: open `reference/gaaner-sathi.html` in a
   browser. The new code: `npm install`, then `npm test` (see Conventions → Stack). The
   new app has no screen yet.
-- **Blockers:** none for the next step. PH0-05 (a live deploy) waits on Open question 3.
+- **Blockers:** PH0-03 waits on Open question 5. PH0-05 (a live deploy) needs Pages
+  switched on by Rinat.
 - **Uncommitted work:** none.
 
 ## Product direction — what this is meant to be now
@@ -56,29 +59,30 @@ diaries: playing them on a Casio CT-X3000 (harmonium tone, rhythm running) meant
 watching which keys to press instead of singing. The actual melody notes, rather than
 a full backing track, tell the voice what to match. A working single-file prototype
 exists (`reference/gaaner-sathi.html`). The job: port it into a clean, light web app
-that works offline and installs on a phone, then publish it. **Basic features, usable
-straightaway with no tutorial or learning curve; it must not grow into a massive
-thing** (Rinat, 2026-10-10). North-star flow: open the app (it opens on an exercise,
-ready to play) → press play and sing → pick or type in your own song → loop the hard
-lines.
+that works offline and installs on a phone, publish it, then add live pitch feedback
+from the microphone and a daily rewaz routine with a practice log. **Basic features,
+usable straightaway with no tutorial or learning curve; it must not grow into a
+massive thing** (Rinat, 2026-10-10). North-star flow: open the app (it opens on an
+exercise, ready to play) → press play and sing → pick or type in your own song → loop
+the hard lines.
 
 *Target user:* Rinat, and singers like Rinat: read swaralipi and sing Bengali songs,
 not technical, practise on a phone or a laptop, often with hands busy. Would they find
 it obvious with no manual?
 
-*Non-goals (for now):* anything beyond the prototype's features; accounts and sync; a
-server of our own; app-store apps; pitch feedback, recorded samples, ornaments,
-practice routines and logs (all parked in `docs/ROADMAP.md`, each only with Rinat's
-go-ahead); a UI framework or other runtime dependencies; sampling the Casio's
-built-in voices (never).
+*Non-goals (for now):* features beyond the prototype's and the Phase 2 list; accounts
+and sync; a server of our own; app-store apps; recorded samples and ornaments (parked
+in `docs/ROADMAP.md`, each only with Rinat's go-ahead); a UI framework or other runtime
+dependencies; sampling the Casio's built-in voices (never).
 
 *Roadmap at a glance* (full detail and done criteria: `docs/ROADMAP.md`):
 
 | Phase | What | Done when |
 |---|---|---|
-| **0 ◀ now** | Port: TypeScript core with the reference suites; audio engine and interface to parity (same capabilities, simpler presentation) | every reference test passes against the new core; the exercises check clean; every `docs/PARITY.md` item works; a deploy from `main` is live |
-| 1 | Publish: offline and installable, songs saved in the browser, import/export, opens on an exercise, privacy note, per-song sound settings | a public URL; Lighthouse PWA and accessibility pass; works offline; Rinat has practised a full song on phone and laptop |
-| Parked | Pitch feedback, recorded instruments, ornaments, riyaz routine and log, error reporting, accounts, native apps, smaller extras | only if Rinat asks |
+| **0 ◀ now** | Port: TypeScript core with the reference suites (done); audio engine and interface to parity (same capabilities, simpler presentation, nothing dropped) | every reference test passes against the new core; the exercises check clean; every `docs/PARITY.md` item works; a deploy from `main` is live on GitHub Pages |
+| 1 | Publish: offline and installable, songs saved in the browser, import/export, opens on an exercise, privacy note, each song remembering its own sound settings | a public URL; Lighthouse PWA and accessibility pass; works offline; Rinat has practised a full song on phone and laptop |
+| 2 | In order: pitch feedback from the microphone (live sharp/flat, a score per line); a daily rewaz routine with a practice log | per item, see ROADMAP |
+| Parked | Recorded instruments, ornaments, error reporting, accounts, native apps, smaller extras | only if Rinat asks |
 
 ## Universal working defaults
 
@@ -211,7 +215,8 @@ them (level 4); `docs/PARITY.md` is a checklist (level 6).
 - **Light.** No runtime dependencies and no new tooling without an ADR; the app is
   static files.
 - **Local-first privacy.** No account needed. Nothing leaves the device unless the user
-  chooses to export. No telemetry.
+  chooses to export. Microphone audio is processed on the device and never uploaded. No
+  telemetry.
 - **Never lose a song.** Saves are debounced but flushed when the page is hidden or
   another song opens; imports always get new ids and never overwrite; deleting needs a
   confirmation; built-in exercises are read-only (copy one to edit it).
@@ -280,8 +285,12 @@ them (level 4); `docs/PARITY.md` is a checklist (level 6).
   - Windows: system git has `core.autocrlf=true` and `.gitattributes` normalises to LF
     in the repo, so "LF will be replaced by CRLF" warnings are expected noise; `.sh`
     files stay LF. OneDrive sync is paused while working on projects (ignore it).
-  - The repo path contains spaces and Bengali characters: quote it, and suspect it
-    if a tool fails oddly.
+  - The repo path contains spaces and Bengali characters, and stays that way (Rinat's
+    preference). Every tool used so far works with it: git, Node 24, npm, TypeScript 7,
+    Vite, Vitest, Git Bash, PowerShell, CI. Quote the path; percent-encode it in
+    `file://` URLs; Claude Code's memory folder name shows the Bengali as dashes
+    (harmless). Known exception, for the parked Android app: the Android Gradle plugin
+    refuses non-ASCII project paths on Windows, so build that from an ASCII-only copy.
   - Node is 24.20.0. npm is 9.8.1: an old global copy in `%APPDATA%\npm` shadows Node
     24's own npm, which the upgrade did not install. It works; to update it:
     `npm install -g npm@latest`.
@@ -345,7 +354,7 @@ progress, Blocked, Review, Done, Superseded.*
 | PH0-02 | Claude | Done | `src/core/`, `src/audio/dsp/`, `tests/`, `package.json`, configs, CI | 69 reference tests and 12 exercises ported one-for-one and green; differential tests against the prototype green and shown to catch injected bugs; `src/core` type-checks with no DOM library; CI run `38005291130` green (`8b5b933`) | Core port |
 | PH0-03 | — | Proposed | `src/audio/` | Offline-render measurements match ENGINE.md; timing as pure tests | Audio engine |
 | PH0-04 | — | Proposed | `src/app/` | Every `docs/PARITY.md` item Done, checked in the browser at 360 px in both themes | Interface to parity, essentials up front |
-| PH0-05 | — | Blocked | hosting, deploy workflow | A live URL deployed from `main` that opens on a phone | Waits on Open question 3 |
+| PH0-05 | — | Proposed | GitHub Pages deploy workflow | A live URL deployed from `main` that opens on a phone | Host decided (GitHub Pages). Needs Rinat to switch Pages on once (Settings → Pages → Source: GitHub Actions) |
 
 ## Decisions log
 
@@ -367,7 +376,10 @@ consequence.*
 | 2026-10-10 | OneDrive sync is paused while working on projects; ignore OneDrive concerns. | Rinat, chat 2026-10-10 | No OneDrive workarounds needed. |
 | 2026-10-10 | Direction: a very light, user-friendly web app with basic features that a singer can use straightaway, with no tutorial or learning curve; it must not grow into a massive thing. | Rinat, chat 2026-10-10 | Product direction, invariants ("Usable straightaway", "Light") and roadmap updated. |
 | 2026-10-10 | Lighter stack: TypeScript, Vite and Vitest only; no UI framework (a plain TypeScript interface ported from the prototype); `localStorage` instead of IndexedDB; no Playwright, i18n library or error-reporting service for now. | Claude, following Rinat's direction; ADR-001 revised. Rinat can veto | Zero runtime dependencies; replaces the React, Playwright and IndexedDB parts of the 2026-10-09 stack row. |
-| 2026-10-10 | Roadmap trimmed: v1 is Phase 0 (port) and Phase 1 (publish); pitch feedback, recorded instruments, ornaments, riyaz routine and log, error reporting, accounts and native apps are parked ideas needing Rinat's go-ahead. | Claude, following Rinat's direction; `docs/ROADMAP.md`. Rinat can veto | Nothing lost: the kickoff's notes on parked ideas are kept. |
+| 2026-10-10 | Roadmap trimmed: v1 is Phase 0 (port) and Phase 1 (publish); pitch feedback, recorded instruments, ornaments, riyaz routine and log, error reporting, accounts and native apps are parked ideas needing Rinat's go-ahead. | Claude, following Rinat's direction; `docs/ROADMAP.md`. Rinat can veto | Nothing lost: the kickoff's notes on parked ideas are kept. Partly superseded the same day (Phase 2 row below). |
+| 2026-10-10 | Hosting: GitHub Pages, deployed from `main` by GitHub Actions (free, no new account), not a folder on rinatmalik.com. The permanent address (a subdomain of rinatmalik.com or a dedicated domain) is still open. | Rinat, chat 2026-10-10 | PH0-05 needs Pages switched on once and a deploy workflow. |
+| 2026-10-10 | Keep every prototype feature; tuck the advanced ones away rather than drop any. | Rinat, chat 2026-10-10 | `docs/PARITY.md` stays complete. |
+| 2026-10-10 | Planned, not parked: pitch feedback from the microphone, then a daily rewaz routine with a practice log (Phase 2, in that order). Each song remembering its own rhythm, speed and drone settings stays in Phase 1. Recorded instruments, ornaments, error reporting, accounts and native apps stay parked. | Rinat, chat 2026-10-10 | `docs/ROADMAP.md` Phase 2 restored with the kickoff's design notes; the microphone privacy invariant is back. |
 
 ## Open questions
 
@@ -378,19 +390,20 @@ current work (unless marked). Defaults apply until answered.*
    হসন্ত after it? Default: keep reading both, write `.`.
 2. **Conjuncts from phonetic keyboards** such as Avro: is `ম্প` lower Ma + Pa (current)
    or plain Ma + Pa? Default: unchanged until decided.
-3. **Hosting and web address** (blocks PH0-05). Rinat's first idea:
-   `rinatmalik.com/gaanersathi` on Hostinger, with a worry about mixing it with the
-   AI-strategist brand. Claude's recommendation: GitHub Pages now (free, deploys from
-   `main` automatically, no new account, separate from rinatmalik.com); for a
-   permanent address, point a subdomain such as `gaanersathi.rinatmalik.com` (one DNS
-   record) or a dedicated domain at it, rather than a subfolder of the main site.
-   Settle the permanent address before Phase 1: saved songs belong to the web address,
-   so moving later means everyone exports and re-imports.
+3. **Permanent web address.** GitHub Pages is decided for now
+   (`rinatmalik.github.io/Gaaner-Sathi`). Later: point a subdomain such as
+   `gaanersathi.rinatmalik.com` (one DNS record at Hostinger) or a dedicated domain at
+   it. Settle it before Phase 1 ends: saved songs belong to the web address, so moving
+   later means everyone exports and re-imports.
 4. **Free, paid or donations?** Only matters if the app ever goes to app stores
    (parked). No licence for now.
-5. **Prototype features to drop outright** rather than tuck away (for example the
-   nine percussion layers, fills, the tempo trainer, call and response)? Default: keep
-   them all, with only the essentials up front.
+5. **Continue the TypeScript port, or develop the single HTML file directly?** Rinat
+   asked on 2026-10-10 why the port was needed, since the prototype is already a web
+   page. Claude recommends continuing the port (see the reply of 2026-10-10 and
+   ADR-001) and waits for Rinat's answer before PH0-03, to avoid rework.
+6. **Publish the prototype on GitHub Pages now,** as an interim so Rinat can use it on
+   a phone while the new app is built? Needs Pages switched on (Settings → Pages →
+   Source: GitHub Actions).
 
 ## Work log
 
@@ -399,6 +412,29 @@ statements must name the exact command, result, and environment — "tests pass"
 is not sufficient. When this grows long, keep only the last few entries here and
 move older ones into a `HISTORY.md` you create then, so this file stays lean.*
 
+
+### 2026-10-10 01:05 BST — Claude (Opus 5.5) — roadmap and hosting decisions
+
+- **Goal:** record Rinat's answers (GitHub Pages, keep every feature) and bring pitch
+  feedback and the rewaz routine back into the plan; answer whether the Bengali folder
+  name causes problems and why the TypeScript port was needed.
+- **Inspected:** this session's tool runs for any path trouble (none: git, Node 24, npm,
+  TypeScript 7, Vite, Vitest, Git Bash, PowerShell and CI all worked with the Bengali
+  path); a web search on Android builds and non-ASCII paths (community reports of the
+  Android Gradle plugin's "Your project path contains non-ASCII characters" error,
+  still seen with plugin 8.2.2, and the `android.overridePathCheck=true` override).
+- **Changed:** `docs/ROADMAP.md` (Phase 2 restored: 1. pitch feedback, 2. daily rewaz
+  routine and practice log, with the kickoff's design notes and done criteria; recorded
+  takes marked optional; Phase 0 deploy on GitHub Pages; ASCII-path note for a future
+  Android build); this file (direction, roadmap summary, microphone privacy invariant,
+  decisions, open questions 3, 5, 6, PH0-05, path gotcha, current state);
+  `SECURITY.md` (microphone line).
+- **Tests / verification:** documentation only; no code changed, so no test run.
+- **Decisions made:** see Decisions log (the last three 2026-10-10 rows).
+- **Risks or disagreements:** Rinat questioned the TypeScript port; Claude recommends
+  continuing it and holds PH0-03 until Rinat answers (Open question 5), to avoid
+  rework.
+- **Next handoff:** Open questions 5 and 6, then PH0-03.
 
 ### 2026-10-10 00:40 BST — Claude (Opus 5.5) — PH0-02 (and Rinat's setup answers)
 

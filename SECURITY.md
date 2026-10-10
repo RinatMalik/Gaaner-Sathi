@@ -60,8 +60,8 @@
 - **Songs are private user content.** Song text, practice logs and voice recordings
   stay on the device unless the user exports them or (later, by choice) syncs them.
   Never log them or put them in URLs, error reports or analytics.
-- **Microphone audio** (a parked idea) would be processed on the device and never
-  uploaded.
+- **Microphone audio** (pitch feedback, Phase 2) is processed on the device and never
+  uploaded. The app asks for the microphone only when the singer turns feedback on.
 - **Error reporting** (a parked idea) would send no song content and be described in
   the in-app privacy note before it is turned on.
 - **Licences.** The repo has no licence yet (all rights reserved), so the choice stays
