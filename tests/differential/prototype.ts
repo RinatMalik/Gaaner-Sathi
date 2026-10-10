@@ -1,9 +1,13 @@
 /**
  * The prototype's own code, cut out of reference/gaaner-sathi.html the way
  * reference/tests/extract.js does, so the port can be compared with it directly.
- * Remove this folder together with reference/ once Phase 0 is done.
+ * Kept after Phase 0: the prototype is these tests' oracle (CONTEXT.md, decision of
+ * 2026-10-10).
  */
-import html from '../../reference/gaaner-sathi.html?raw';
+import raw from '../../reference/gaaner-sathi.html?raw';
+
+// A Windows checkout gives the file CRLF line endings; the markers below expect LF.
+const html = raw.replace(/\r\n/g, '\n');
 
 // The prototype is untyped JavaScript; these tests only compare its outputs.
 type Fn = (...args: any[]) => any;
