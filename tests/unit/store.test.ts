@@ -60,6 +60,33 @@ describe('preferences', () => {
     S.setItem(STORE_KEYS.prefs, '{ not json');
     expect(loadPrefs(S)).toEqual(DEFAULT_PREFS);
   });
+
+  it('keep day or night colours when chosen, and follow the device otherwise', () => {
+    const S = new Memory();
+    expect(loadPrefs(S)).not.toHaveProperty('theme');
+    for (const t of ['light', 'dark'] as const) {
+      S.setItem(STORE_KEYS.prefs, JSON.stringify({ theme: t }));
+      expect(loadPrefs(S).theme).toBe(t);
+    }
+    for (const t of ['auto', 'night', 1, null]) {
+      S.setItem(STORE_KEYS.prefs, JSON.stringify({ theme: t }));
+      expect(loadPrefs(S)).not.toHaveProperty('theme');
+    }
+  });
+});
+
+describe('a song’s notes in storage', () => {
+  it('are saved with the song only when it has some', () => {
+    const S = new Memory();
+    const store = new SongStore(S);
+    const a = normalize({ id: 'a', title: 'A', text: 'S', notes: 'From my teacher' });
+    const b = normalize({ id: 'b', title: 'B', text: 'S' });
+    expect(store.save([a, b])).toBe('ok');
+    const raw = S.json(STORE_KEYS.songs);
+    expect(raw.a.notes).toBe('From my teacher');
+    expect(raw.b).not.toHaveProperty('notes');
+    expect(store.load().get('a')).toEqual(a);
+  });
 });
 
 describe('songs', () => {

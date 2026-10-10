@@ -17,8 +17,9 @@ export const IMPORT_LIMITS = {
   titleChars: 200,
 } as const;
 
-/** What a file holds for each song: no id, no timestamps. Tags, the favourite mark and the
- * song's own sound are optional additions (still version 1: older readers skip them). */
+/** What a file holds for each song: no id, no timestamps. Tags, the favourite mark, the
+ * song's own sound and its notes are optional additions (still version 1: older readers
+ * skip them). */
 export interface SongFileEntry {
   title: string;
   taal: string;
@@ -30,6 +31,7 @@ export interface SongFileEntry {
   tags?: string[];
   fav?: boolean;
   sound?: Partial<SongSound>;
+  notes?: string;
 }
 
 /** A song found in an imported file: title and text are always strings; any other fields
@@ -41,6 +43,7 @@ export function songForFile(s: Song): SongFileEntry {
   if (s.tags && s.tags.length) e.tags = s.tags;
   if (s.fav) e.fav = true;
   if (s.sound) e.sound = s.sound;
+  if (s.notes) e.notes = s.notes;
   return e;
 }
 

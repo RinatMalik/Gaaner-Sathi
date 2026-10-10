@@ -366,3 +366,12 @@ textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--
 .pgdet{font-size:13px;color:var(--ink-2)}
 .tabbtns{flex-wrap:wrap}
 @media (max-width:520px){.tabbtns button{padding:8px 9px}}
+
+/* Day and night (new): Auto follows the device. */
+.themeseg button{padding:3px 10px}
+
+/* A song's notes (new): written in the editor, shown above the sheet. */
+#notesIn{width:100%;min-height:76px;resize:vertical;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--sheet);font-family:var(--f-note);font-size:16px;line-height:1.5}
+.about{background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:8px 14px}
+.about summary{cursor:pointer;font-weight:600}
+.abouttext{margin-top:6px;font-family:var(--f-note);font-size:16px;white-space:pre-wrap;overflow-wrap:anywhere;max-width:75ch}

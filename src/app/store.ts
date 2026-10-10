@@ -77,6 +77,8 @@ export interface Prefs extends SoundSettings {
   pitchLag?: number;
   /** The rewaz routine last chosen. */
   rewazId?: string;
+  /** Day or night colours; unset follows the device. */
+  theme?: 'light' | 'dark';
 }
 
 /** The views under the deck. */
@@ -133,6 +135,7 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
   if (r.pitchOctave === true) p.pitchOctave = true;
   if (typeof r.pitchLag === 'number' && r.pitchLag >= 0 && r.pitchLag <= 0.6) p.pitchLag = r.pitchLag;
   if (typeof r.rewazId === 'string' && r.rewazId) p.rewazId = r.rewazId;
+  if (r.theme === 'light' || r.theme === 'dark') p.theme = r.theme;
   return p;
 }
 
@@ -141,12 +144,13 @@ export const savePrefs = (S: KeyValueStore | null, p: Prefs): WriteResult => wri
 // ── Songs ────────────────────────────────────────────────────────────────────
 
 /** A song as stored: everything but its id (the key) and the exercise flag; tags, the
- * favourite mark and the song's own sound only when set. */
+ * favourite mark, the song's own sound and its notes only when set. */
 export function bodyOf(s: Song) {
   const body: Omit<Song, 'id' | 'example'> = { title: s.title, taal: s.taal, tempo: s.tempo, saKey: s.saKey, saOct: s.saOct, startOn: s.startOn, text: s.text, updatedAt: s.updatedAt };
   if (s.tags && s.tags.length) body.tags = s.tags;
   if (s.fav) body.fav = true;
   if (s.sound) body.sound = s.sound;
+  if (s.notes) body.notes = s.notes;
   return body;
 }
 

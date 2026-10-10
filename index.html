@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600&family=Tiro+Bangla:ital@0;1&display=swap">
+<script>try{var t=JSON.parse(localStorage.getItem('gaanersathi.prefs.v1')||'{}').theme;if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <script type="module" src="./src/app/main.ts"></script>
 </head>
 <body>
@@ -26,6 +27,7 @@
       <button id="newBtn" class="btn" type="button">+ New song</button>
       <span id="saveStatus" class="status" aria-live="polite"></span>
     </div>
+    <div class="seg themeseg" id="themeSeg" role="group" aria-label="Colours"><button type="button" data-v="auto" title="Follow this device's setting">Auto</button><button type="button" data-v="light">☀ Day</button><button type="button" data-v="dark">☾ Night</button></div>
   </header>
 
   <section class="deck" aria-label="Playback">
@@ -160,6 +162,7 @@
         </div>
       </section>
       <div class="sheetHead"><h2 id="songTitle"></h2><span class="hint">Tap a line number to play from there · Space bar plays and stops</span></div>
+      <details class="about" id="aboutBox" hidden><summary>About this song</summary><div class="abouttext" id="aboutText"></div></details>
       <div class="sheet" id="sheetP"></div>
     </div>
   </main>
@@ -202,6 +205,7 @@
         <div class="f"><label for="startOn">Song starts on taal beat</label><select id="startOn"></select></div>
         <div class="f grow" id="tagsF"><label for="tagsIn">Tags, separated by commas</label><input id="tagsIn" type="text" autocomplete="off" placeholder="Rabindrasangeet, Learning"></div>
       </div>
+      <div class="f" id="notesF"><label for="notesIn">About this song: its meaning, where it comes from, a teacher's comments</label><textarea id="notesIn" rows="3" autocomplete="off" placeholder="Shown on the Practice view, above the notation"></textarea></div>
       <div class="toolbar">
         <button id="copyBtn" class="btn" type="button">Make a copy</button>
         <button id="expBtn" class="btn" type="button">Export this song</button>

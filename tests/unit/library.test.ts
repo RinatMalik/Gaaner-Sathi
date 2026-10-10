@@ -3,7 +3,7 @@ import { countText, filterChipsHTML, songRowHTML, songsListHTML, type ListOption
 import { EXERCISES } from '../../src/core/exercises';
 import { songFileText, songsFromFile } from '../../src/core/song/file';
 import { entryFor, lyricForDisplay, lyricRows, matchesFilter, matchesQuery, sortEntries, tagCounts, whenText, type LibrarySong } from '../../src/core/song/library';
-import { cleanTags, foldText, normalize, parseTags, TAG_LIMITS } from '../../src/core/song/model';
+import { cleanNotes, cleanTags, foldText, normalize, NOTES_CHARS, parseTags, TAG_LIMITS } from '../../src/core/song/model';
 
 const SONAR = '# স্থায়ী\nআ মার সো নার | বাং লা -\n> আ মার সো নার | বাং লা ০\nসা রা গা মা\n> আ মি তো মায়\n';
 const song = (id: string, title: string, extra: Partial<LibrarySong> = {}): LibrarySong =>
@@ -39,6 +39,28 @@ describe('tags and favourites on a song', () => {
     expect(foldText('য়')).toBe(foldText('য়'));
     expect(foldText('রা‍গ')).toBe('রাগ');
     expect(foldText('Rabindra')).toBe('rabindra');
+  });
+});
+
+describe('a song’s notes', () => {
+  it('are kept as written, cut to the limit, and left out when there is nothing but space', () => {
+    expect(cleanNotes('  Gitabitan, Puja 12\nMeaning: …  ')).toBe('  Gitabitan, Puja 12\nMeaning: …  ');
+    for (const v of ['', '  \n\t ', 5, null, undefined, ['x']]) expect(cleanNotes(v)).toBeUndefined();
+    expect(cleanNotes('ক'.repeat(NOTES_CHARS + 50))).toHaveLength(NOTES_CHARS);
+    expect(normalize({ id: 'a', title: 'A' })).not.toHaveProperty('notes');
+    expect(normalize({ id: 'a', notes: '   ' })).not.toHaveProperty('notes');
+    expect(normalize({ id: 'a', notes: 'Swarabitan 5' }).notes).toBe('Swarabitan 5');
+  });
+
+  it('travel in song files, come back on import, and are found by search', () => {
+    const s = normalize({ id: 'a', title: 'গান', text: 'সা', notes: 'Source: Gitabitan\nআমার গুরুর কথা' });
+    const text = songFileText([s], '2026-10-11');
+    expect(JSON.parse(text).songs[0].notes).toBe('Source: Gitabitan\nআমার গুরুর কথা');
+    expect(normalize({ ...songsFromFile(text, 'x.json')[0]!, id: 'a' })).toEqual(s);
+    const e = entryFor(song('a', 'X', { notes: s.notes }));
+    expect(matchesQuery(e, 'gitabitan')).toBe(true);
+    expect(matchesQuery(e, 'গুরুর')).toBe(true);
+    expect(matchesQuery(entryFor(song('b', 'X')), 'gitabitan')).toBe(false);
   });
 });
 

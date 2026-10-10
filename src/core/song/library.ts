@@ -12,6 +12,7 @@ export type LibrarySong = Pick<Song, 'id' | 'title' | 'text' | 'tempo' | 'saKey'
   tags?: readonly string[];
   fav?: boolean;
   updatedAt?: number;
+  notes?: string;
 };
 
 /** A song with its search text worked out once. */
@@ -19,7 +20,7 @@ export interface LibraryEntry {
   song: LibrarySong;
   /** The first lyric row, for display, with bars and held-vowel groups taken out. */
   lyric: string;
-  /** Title, lyrics, tags and taal name, folded and spaced as written. */
+  /** Title, lyrics, tags, taal name and the song's notes, folded and spaced as written. */
   hay: string;
   /** The same with spaces, bars and hold marks taken out, so a word written across beats
    * ("সো নার") is found as typed ("সোনার"). */
@@ -58,13 +59,13 @@ const made = new WeakMap<LibrarySong, { key: string; entry: LibraryEntry }>();
 /** A song's entry. The search text is worked out once per version of a song, so typing in
  * the search box only searches. */
 export function entryFor(song: LibrarySong): LibraryEntry {
-  const key = song.updatedAt + '\u0000' + song.title + '\u0000' + song.text.length + '\u0000' + song.taal + '\u0000' + (song.tags || []).join('\u0001');
+  const key = song.updatedAt + '\u0000' + song.title + '\u0000' + song.text.length + '\u0000' + song.taal + '\u0000' + (song.tags || []).join('\u0001') + '\u0000' + (song.notes || '');
   const hit = made.get(song);
   if (hit && hit.key === key && hit.entry.song.text === song.text) return hit.entry;
   const rows = lyricRows(song.text);
   const first = rows.map(lyricForDisplay).find((r) => r) ?? '';
   const taal = TAALS[song.taal];
-  const parts = [song.title, ...(song.tags || []), taal ? taal.name + ' ' + taal.bn : '', ...rows];
+  const parts = [song.title, ...(song.tags || []), taal ? taal.name + ' ' + taal.bn : '', ...rows, song.notes || ''];
   const hay = foldText(parts.join('\n'));
   const entry = { song, lyric: first, hay, tight: hay.replace(TIGHT_DROP, '') };
   made.set(song, { key, entry });

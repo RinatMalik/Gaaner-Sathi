@@ -26,11 +26,19 @@ export interface Song {
   /** Its own Melody and Rhythm settings (src/core/song/sound.ts), over the device's; absent
    * while it uses the device's. */
   sound?: Partial<SongSound>;
+  /** Notes about the song: its meaning, where it comes from, a teacher's comments. Absent
+   * when there are none. */
+  notes?: string;
 }
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
 export const TAG_LIMITS = { tags: 20, chars: 40 } as const;
+/** The longest notes kept with a song. */
+export const NOTES_CHARS = 20_000;
+
+/** Notes as kept: cut to the limit; absent (undefined) when there is nothing but space. */
+export const cleanNotes = (v: unknown): string | undefined => (typeof v === 'string' && /\S/.test(v) ? v.slice(0, NOTES_CHARS) : undefined);
 
 /** Text folded for matching: one Unicode form, lower case, no invisible joiners. */
 export const foldText = (s: string): string => s.normalize('NFC').toLowerCase().replace(/[​-‍⁠﻿]/g, '');
@@ -59,7 +67,8 @@ export const parseTags = (input: string): string[] => cleanTags(input.split(',')
 /**
  * Clamp every field into range, as the prototype does for every song it loads or
  * imports, so a damaged or hand-edited file can never break the app. Tags, the
- * favourite mark and the song's own sound are this app's additions: present only when set.
+ * favourite mark, the song's own sound and its notes are this app's additions: present
+ * only when set.
  */
 export function normalize(s: { id: string } & Partial<Record<keyof Song, unknown>>): Song {
   const oct = Number(s.saOct);
@@ -80,6 +89,8 @@ export function normalize(s: { id: string } & Partial<Record<keyof Song, unknown
   if (s.fav === true) song.fav = true;
   const sound = cleanSound(s.sound);
   if (sound) song.sound = sound;
+  const notes = cleanNotes(s.notes);
+  if (notes) song.notes = notes;
   return song;
 }
 

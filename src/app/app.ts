@@ -16,7 +16,8 @@
  * the practice log, written each time a song has been practised for a while, pitch
  * feedback from the microphone (pitch.ts), whose scores go into the log, rewaz routines
  * that play items one after another (rewaz.ts), the Progress view (progress.ts), and each
- * song's own sound: its Melody and Rhythm settings, over the device's usual ones.
+ * song's own sound: its Melody and Rhythm settings, over the device's usual ones; day and
+ * night colours; and notes about each song.
  */
 import { saFreq } from '../audio/dsp/pitch';
 import { createEngine, createLiveContext } from '../audio/engine';
@@ -31,7 +32,7 @@ import type { Beat, ParsedSong, Unit } from '../core/notation/types';
 import { lastPractised, logFileText, MIN_LOG_SECS, type LogEntry } from '../core/practice/log';
 import { itemLines, type RoutineItem } from '../core/practice/routine';
 import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefix, type ImportedSong } from '../core/song/file';
-import { newId, normalize, parseTags, type Song } from '../core/song/model';
+import { cleanNotes, newId, normalize, parseTags, type Song } from '../core/song/model';
 import { soundOf, type SongSound } from '../core/song/sound';
 import { beatLabel, SPEEDS } from '../core/taal/rhythm';
 import { isTaalId, taalInfo, type TaalInfo } from '../core/taal/taals';
@@ -582,6 +583,20 @@ function forgetSound(): void {
   T?.applyDrone();
   T?.resetTanpura();
 }
+/** Day, night, or (unset) as the device says. */
+function applyTheme(): void {
+  if (prefs.theme) document.documentElement.setAttribute('data-theme', prefs.theme);
+  else document.documentElement.removeAttribute('data-theme');
+  setSeg('themeSeg', prefs.theme ?? 'auto');
+}
+
+/** The song's notes above the sheet, when it has any. */
+function renderAbout(): void {
+  const notes = current.notes;
+  $('#aboutBox').hidden = !notes;
+  $('#aboutText').textContent = notes || '';
+}
+
 function setSoundOpen(open: boolean): void {
   $('#soundBtn').setAttribute('aria-expanded', String(open));
   $('#mixer').hidden = !open;
@@ -617,6 +632,9 @@ function loadSong(song: Song | Exercise): void {
   input('#titleIn').value = current.title;
   input('#tagsIn').value = (current.tags || []).join(', ');
   $('#tagsF').hidden = current.example;
+  $<HTMLTextAreaElement>('#notesIn').value = current.notes || '';
+  $('#notesF').hidden = current.example;
+  renderAbout();
   notationBox().value = current.text;
   input('#tempoNum').value = String(current.tempo);
   input('#tempoRange').value = String(current.tempo);
@@ -979,6 +997,7 @@ export function init(): void {
   select('#taalSel').innerHTML = V.taalOptionsHTML();
   // The Melody and Rhythm controls show each song's sound as it opens (loadSong).
   setSeg('scriptSeg', prefs.script);
+  applyTheme();
   setSeg('octSeg', insOct);
   input('#countIn').checked = !!prefs.countIn;
   setSeg('guideLoopSeg', prefs.guideLoop);
@@ -1209,6 +1228,15 @@ export function init(): void {
   $('#tabSongs').addEventListener('click', () => switchTab('songs'));
   $('#tabRewaz').addEventListener('click', () => switchTab('rewaz'));
   $('#tabProgress').addEventListener('click', () => switchTab('progress'));
+  $('#themeSeg').addEventListener('click', (e) => {
+    const b = segButton(e);
+    if (!b) return;
+    const v = b.dataset.v;
+    if (v === 'light' || v === 'dark') prefs.theme = v;
+    else delete prefs.theme;
+    savePrefs();
+    applyTheme();
+  });
   $('#scriptSeg').addEventListener('click', (e) => {
     const b = segButton(e);
     if (!b) return;
@@ -1262,6 +1290,10 @@ export function init(): void {
     changed('title', v.trim() ? v : 'Untitled song');
     $('#songTitle').innerHTML = V.esc(current.title) + (current.example ? '<span class="tag">Exercise</span>' : '');
     if (!current.example) renderLibrary();
+  });
+  $('#notesIn').addEventListener('input', (e) => {
+    changed('notes', cleanNotes((e.target as HTMLTextAreaElement).value));
+    renderAbout();
   });
   input('#tagsIn').addEventListener('input', (e) => {
     const t = parseTags((e.target as HTMLInputElement).value);
