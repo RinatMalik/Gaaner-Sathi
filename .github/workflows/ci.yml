@@ -8,9 +8,10 @@ on:
 permissions:
   contents: read
 
+# Queue rather than cancel, so a deployment that has started always finishes.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   core:
@@ -39,3 +40,30 @@ jobs:
       # The prototype's own suites (69 tests + 12 exercises). They stay green so the
       # TypeScript port always has a working reference to compare against.
       - run: bash reference/tests/run-all.sh
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: [core, reference]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      # Until the new app has a screen (PH0-04), the published site is the prototype.
+      - name: Assemble the site
+        run: |
+          mkdir -p _site
+          cp reference/gaaner-sathi.html _site/index.html
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v5
