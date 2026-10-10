@@ -34,10 +34,12 @@ decision, which always wins (see Source-of-truth order).
 
 - **Current milestone:** Phase 1, features and functionality (Roadmap at a glance
   below). Phase 0 (the port) closed on 2026-10-10.
-- **Current task:** Rinat's three features, in this order of building: PH1-01 song
+- **Current task:** Rinat's three features are built and live, in Review: PH1-01 song
   library, PH1-02 pitch feedback, PH1-03 rewaz routine and practice log.
-- **Next single action:** see Active work and the newest Work log entry.
-- **Last known-good commit:** `c5e3da3` (CI run `38046152037`: core, reference and
+- **Next single action:** Rinat uses them on real songs (above all: sings a line with
+  pitch feedback and says whether the reading is believable) and picks the next features
+  from `docs/ROADMAP.md` → Feature ideas.
+- **Last known-good commit:** `0124537` (CI run `38076752956`: core, reference and
   deploy jobs green); this session's commits are recorded in the newest Work log entry.
 - **How to run it now:** https://rinatmalik.github.io/Gaaner-Sathi/ (`/new/` forwards
   there). Locally: `npm install`, then `npm run dev` (the app at `/`, the audio check at
@@ -278,13 +280,15 @@ them (level 4); `docs/PARITY.md` is a checklist (level 6).
   Vitest, no UI framework, no runtime dependencies, Node 24 LTS. Layout: `index.html`
   (the page), `src/core/` (pure: notation, taal, exercises, song), `src/audio/` (engine,
   instruments, transport; `src/audio/dsp/` is pure DSP), `src/app/` (the screen:
-  `view.ts` pure HTML builders, `store.ts` storage, `app.ts` the wiring, `styles.css`),
+  `view.ts` pure HTML builders, `store.ts` storage, `app.ts` the wiring, `styles.css`;
+  since Phase 1 also `songs.ts`, `pitch.ts`, `rewaz.ts`, `progress.ts`), `src/core/pitch/` and
+  `src/core/practice/` (pure: scoring, the log, routines), `src/audio/mic.ts`,
   `tests/ported/` (the reference suites one-for-one), `tests/differential/` (port
   versus the prototype's own code, including a recording stand-in for Web Audio and fake
   page elements for its rendering), `tests/unit/`, `dev/` (dev-only check pages).
   - **One click away:** the live app, https://rinatmalik.github.io/Gaaner-Sathi/,
     rebuilt from `main` on every push (so never stale).
-  - `npm install` once; `npm test` runs every Vitest suite (153 tests, about 8 s).
+  - `npm install` once; `npm test` runs every Vitest suite (208 tests, about 9 s).
   - `npm run dev`: the Vite dev server, the app at `/`; `/dev/render.html` renders
     sessions through the prototype's engine and the port's and compares them (the
     audio check). Claude starts it with the browser pane's `preview_start` ("dev" in
@@ -334,7 +338,15 @@ them (level 4); `docs/PARITY.md` is a checklist (level 6).
     `msedge.exe --version` opens the browser rather than printing a version. Edge
     opens an `edge://downloads-hub` page after a download, so skip `edge:` targets.
   - Shell heredocs here can turn `\\` into `\`, so a `\n` meant for page code becomes
-    a real newline. Write test scripts with the Write tool instead.
+    a real newline. Write test scripts with the Write tool instead. Long one-off edit
+    scripts in a heredoc can also fail to parse; write them to a file too. In a bash
+    double-quoted `node -e "…"`, backticks run as commands (one ran a markdown file and
+    left two empty files); never put backticks there.
+  - To test pitch feedback without a singer: start headless Edge with
+    `--use-fake-ui-for-media-stream --use-fake-device-for-media-stream
+    --use-file-for-fake-audio-capture=<file.wav>%noloop` (a 16-bit mono WAV, short path);
+    the file starts when the page opens the microphone. Synthesise the WAV from the
+    notation (a one-off Vitest file can import the parser and write it).
 - Keep CLAUDE.md and AGENTS.md aligned so the shared-branch rules survive future
   sessions.
 
@@ -352,8 +364,10 @@ reference lives in sibling docs; open one only when the task touches it.*
 - **`docs/ENGINE.md`** — audio and timing engine: scheduler, taals, rhythm, harmonium,
   tanpura, and how to verify sound without ears.
 - **`docs/DATA.md`** — song model, file format, settings, storage.
+- **`docs/HISTORY.md`** — older Work log entries, moved out of this file to keep it lean.
 - **`docs/adr/`** — architecture decision records (ADR-001: stack, revised 2026-10-10;
-  ADR-002: storage, and how the prototype's saved songs are read).
+  ADR-002: storage, and how the prototype's saved songs are read; ADR-003: how pitch
+  feedback listens, times and scores).
 - **`reference/`** — the prototype, its 12 exercises and its test suites
   (`reference/README.md`).
 
@@ -390,10 +404,10 @@ progress, Blocked, Review, Done, Superseded.*
 | PH0-02 | Claude | Done | `src/core/`, `src/audio/dsp/`, `tests/`, `package.json`, configs, CI | 69 reference tests and 12 exercises ported one-for-one and green; differential tests against the prototype green and shown to catch injected bugs; `src/core` type-checks with no DOM library; CI run `38005291130` green (`8b5b933`) | Core port |
 | PH0-03 | Claude | Done | `src/audio/`, `tests/differential/`, `dev/` | Identical recorded Web Audio calls to the prototype for 16 sessions, every lane, closing strokes and live controls (17 tests, 5 injected bugs caught); Chromium offline renders match the prototype within its own run-to-run variation; commits `ded3ee4`, `218467a` | Audio engine and transport |
 | PH0-04 | Claude | Done | `src/app/`, `index.html`, `vite.config.ts`, `tests/` | 69 of 71 `docs/PARITY.md` items Done and 2 Ported (Bluetooth latency, wake lock: need a phone); rendering identical to the prototype's in differential tests; every view checked at 360 px in both themes in headless Edge (Work log 2026-10-10 12:00); Rinat tried it on a phone and a laptop and kept the folding Sound settings | The prototype's screen, plus foldable Sound settings |
-| PH0-05 | Claude | In progress | CI deploy job | A live URL deployed from `main` that opens on a phone | The new app at the site's root, `/new/` forwarding there (this session) |
-| PH1-01 | Claude | In progress | `src/core/song/`, `src/app/`, `index.html`, `tests/` | — | Song library: search, sort, filter, tags, favourites |
-| PH1-02 | Claude | Proposed | `src/audio/`, `src/core/`, `src/app/`, `tests/` | — | Pitch feedback from the microphone |
-| PH1-03 | Claude | Proposed | `src/app/`, `src/audio/transport.ts`, `tests/` | — | Rewaz routine, practice log, progress |
+| PH0-05 | Claude | Done | CI deploy job | CI run `38073368085` (`ee7bf13`) green; the live root serves the new app and `/new/` forwards to it; in headless Edge the live page loads exercise 3, plays with the highlight moving, no console errors (Work log 2026-10-10 20:00) | The new app at the site's root |
+| PH1-01 | Claude | Review | `src/core/song/`, `src/core/practice/log.ts`, `src/app/songs.ts`, `index.html`, `tests/` | 15 + 9 unit tests; headless Edge on the built site: import with tags, search (Bengali across beats, Latin, taal, tags), filters, stars surviving a reload, open, log after 12 s and not after 3 s, tags edited, title sort remembered, backup carrying tags and stars, 360 px both themes (Work log 2026-10-10 20:00) | Song library and the practice log; waiting for Rinat's use |
+| PH1-02 | Claude | Review | `src/audio/dsp/`, `src/audio/mic.ts`, `src/core/pitch/`, `src/app/pitch.ts`, `tests/` | Detector within 0.03 / 1.3 cents (pure / sung-like tones, C2–C6); end-to-end in Node and in headless Edge with a WAV as the microphone: in tune 100, 35 cents flat 50, delay found within the first line (Work log 2026-10-10 20:00); ADR-003 | Pitch feedback; waiting for Rinat to sing with it |
+| PH1-03 | Claude | Review | `src/core/practice/routine.ts`, `src/app/rewaz.ts`, `src/app/progress.ts`, `src/audio/transport.ts`, `tests/` | 12 unit tests; headless Edge: a 2-item routine ran hands-free to "Rewaz done" (rounds, the pause, "your turn" rounds), logged with its name and tempo; Skip, Stop; Progress and its download; 360 px both themes (Work log 2026-10-10 20:00) | Rewaz routines and Progress; waiting for Rinat's use |
 
 ## Decisions log
 
@@ -430,6 +444,11 @@ consequence.*
 | 2026-10-10 | The new app replaces the prototype at https://rinatmalik.github.io/Gaaner-Sathi/; `/new/` forwards there. The prototype is no longer published but stays in `reference/`, because the differential tests use its code as their oracle (the roadmap had said to remove `reference/` after Phase 0). | Claude, following Rinat's acceptance | Songs saved in the prototype at that address still show in the app (same origin, ADR-002). |
 | 2026-10-10 | Order of work: features and functionality first, built in the web app; then one intuitive design across all of them, in the web app; then a fresh native mobile app (an APK, not a web page in a wrapper). The web screen stays responsive, but phone polish and looks are not a focus until then. | Rinat, chat 2026-10-10 | Roadmap reordered: Phase 1 features, Phase 2 design, Phase 3 native app. The offline, installable web app (old Phase 1) is parked. The Definition of done's 360 px check becomes "responsive: no sideways scrolling". Native apps leave the non-goals. |
 | 2026-10-10 | Phase 1 features, in this order of building: a song library to manage many songs (new), pitch feedback from the microphone, a rewaz routine with a practice log. Claude lists further feature ideas for Rinat to pick from (`docs/ROADMAP.md` → Feature ideas). Features come in only when Rinat asks for them; usable straightaway stays an invariant. | Rinat, chat 2026-10-10 ("add those, and let me know what else can be added") | PH1-01 to PH1-03. "Each song remembers its own sound" follows them. |
+| 2026-10-10 | Library: tags (free text) and a favourite star on each song, as optional fields in storage and song files, so files stay version 1 and prototype songs read exactly as before. The Songs view holds search, sort, filters, new song, import and backup. | Claude, building PH1-01 | Import and "Back up all my songs" moved from the editor's toolbar to the Songs view. |
+| 2026-10-10 | Practice log: every play of 10 s or more (after the count-in) is logged on the device when it stops, under `gaanersathi.log.v1`, appended so another tab's entries survive. | Claude, building PH1-01 and PH1-03 | "Recently practised", Progress, scores and routines all read it. A quick listen is not practice. |
+| 2026-10-10 | Pitch feedback as in ADR-003: hand-written McLeod detector on the page, an AudioWorklet that only collects samples, the guide's AudioContext as the one clock; the delay found from the singing instead of a click calibration (works with headphones); scores on pitch only, any octave by default; "every other round" guide rounds are for listening, so not scored. | Claude, building PH1-02; `docs/adr/ADR-003-pitch-feedback.md` | The roadmap's click calibration and timing score are dropped for now; timing needs the true round-trip delay. |
+| 2026-10-10 | Rewaz: items have their own lines, rounds, tempo and guide, which never change the song or the device settings; the transport can stop a loop after N rounds; a 4 s pause shows what is next; any user play, stop or song change ends the routine; a starter "Daily warm-up" stays on offer like the exercises. | Claude, building PH1-03 | The other Sound settings (rhythm, drone, tempo trainer) apply to routines as set. |
+| 2026-10-10 | Five views under the deck (Songs, Practice, Edit notation, Rewaz, Progress) as tabs, with the deck and Sound bar shown for all. | Claude, following Rinat's "features first, design later" | The navigation is for the Phase 2 design to settle. |
 
 ## Open questions
 
@@ -457,6 +476,72 @@ statements must name the exact command, result, and environment — "tests pass"
 is not sufficient. When this grows long, keep only the last few entries here and
 move older ones into a `HISTORY.md` you create then, so this file stays lean.*
 
+
+### 2026-10-10 20:00 BST — Claude (Opus 5.5) — PH0-05 done; Phase 1: library, pitch feedback, rewaz
+
+- **Goal:** Rinat kept the folding Sound settings ("finalise it, log it"), set the order
+  of work (features and functionality first; then the design; then a fresh native mobile
+  app; the web screen only needs to stay responsive), and asked for three features (pitch
+  feedback, a designed session routine, a library for many songs) plus a list of what
+  else could be added.
+- **Inspected:** the app's wiring (`app.ts`, `view.ts`, `store.ts`, `transport.ts`), the
+  song model and files, exercise 3's notation; the live site after each deploy.
+- **Changed:** `0a84814` (CI: the app at the site's root, `/new/` forwards); `ee7bf13`
+  (roadmap reordered: Phase 1 features, 2 design, 3 native app, feature ideas, offline web
+  app parked; this file's direction and decisions); `79cf406` (Songs view, tags and
+  favourites, practice log); `44db208` (pitch feedback: FFT, McLeod detector, microphone,
+  tracker, meter, trace, beat marks, scores); `0124537` (rewaz routines, rounds in the
+  transport, Progress view); this commit (ADR-003, README, this file).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through
+  the DevTools protocol on the built site served like Pages at 127.0.0.1:8085):
+  - `npm run typecheck` → 0; `npx vitest run` → 19 files, 208 passed;
+    `npm run build` → 114 kB JS (41 kB gzip), 24 kB CSS; `bash reference/tests/run-all.sh`
+    → 31/11/10/12/5 passed, 12 exercises valid; `tests/differential/audio.test.ts` still
+    17/17 after the transport gained `onBeat` and rounds.
+  - CI runs `38073368085` (`ee7bf13`), `38074312838` (`79cf406`), `38075718866`
+    (`44db208`), `38076752956` (`0124537`): core, reference and deploy all green. Live:
+    `/` 200 (the app), `/new/` 200 (the forward page); in Edge `/new/` lands on `/`, all
+    five views open, the starter routine shows, exercise 3 plays, no console errors.
+  - Library (scenario `lib1`): 3 tagged songs imported; search "সোনার" (written "সো নার"
+    across beats), "আমি তোমায়", "purano", "rupak" (a taal), "learning" (a tag) → 1, 1, 1,
+    2, 1 results; tag, favourite and exercise filters; a star survives a reload; opening
+    from the list goes to Practice; 12 s of practice logged (4 rounds), a 3 s listen not;
+    tags edited in the editor update the chips; title sort remembered; the backup file
+    carries tags and stars; 360 px both themes, no overflow; no console errors. Search on
+    300 songs of about 4,000 characters: 53 ms to open the list, then 0.5–2.3 ms a
+    keystroke (41 ms a keystroke before caching each song's search text).
+  - Pitch: detector worst error 0.03 cents (pure tones) and 1.3 cents (sung-like), C2–C6
+    at 44.1 and 48 kHz, 0.24 ms a window. Node end to end (the real transport, a
+    synthetic singer 150 ms late with vibrato, a scoop and noise): in tune → 100, delay
+    found 140 ms; 40 cents flat → 43. Edge with WAVs as the microphone: a steady Sa + 20
+    cents (±10 cents vibrato) read 13–29 cents sharp, "You: সা"; exercise 3 sung in tune →
+    every line 100, 37 beats marked, logged score 100 with per-line scores, delay found
+    within the first line (260–280 ms, the fake file's offset); 35 cents flat → lines
+    48–50, meter "35 cents flat"; 360 px both themes; no console errors. Bug found and
+    fixed: the first note of each run was never scored (the transport schedules it inside
+    `start()`, before the run had begun).
+  - Rewaz (scenario `rewaz1`): the starter shows 4 items, about 3 min; a 2-item routine
+    (line 1, 4 rounds, tempo 120; the second with the guide every other round) ran
+    hands-free: rounds 1–4, "Next … starting in 4 s", "your turn" on rounds 2 and 4,
+    "Rewaz done · 2 items in 35 s"; both logged at 120 with the routine's name; Skip
+    moves to the next item; Play stops the rewaz; Progress shows the run of days, the
+    week, the songs and the history; the log downloads (`gaaner-sathi-log`, 2 entries);
+    360 px both themes; no console errors. Bugs found and fixed: the Rewaz and Progress
+    tabs were not wired; the log kept the song's tempo, not the item's; the starter
+    vanished once a routine was saved; "0 min" for under a minute; five tabs overflowed
+    at 360 px (now they wrap).
+- **Decisions made:** see Decisions log (the last nine 2026-10-10 rows); ADR-003.
+- **Risks or disagreements:** nobody has sung into the real app yet, so the meter's
+  thresholds (in tune within 15 cents; 100 within 10 cents, 0 from 60) and the delay
+  finding need Rinat's voice. On a first run on a new device, the first second or two can
+  compare against the wrong note until the delay is found. iOS Safari may move the sound
+  to the earpiece once the microphone is on (the native app will manage audio sessions).
+  The log shares localStorage with the songs: about 150 bytes a practice, so years fit,
+  but a full browser would refuse writes (the status line says so). The deck and Sound
+  bar sit above all five views, so on a phone the lists start well down the page (for the
+  design phase).
+- **Next handoff:** Rinat tries the three features and picks from Feature ideas; then
+  "each song remembers its own sound" or Rinat's picks.
 
 ### 2026-10-10 12:00 BST — Claude (Opus 5.5) — PH0-04 interface; new app at /new/
 
@@ -553,118 +638,4 @@ move older ones into a `HISTORY.md` you create then, so this file stays lean.*
   limitation, docs/ENGINE.md).
 - **Next handoff:** PH0-04, the interface: then switch the deploy job to the built app.
 
-### 2026-10-10 01:05 BST — Claude (Opus 5.5) — roadmap and hosting decisions
-
-- **Goal:** record Rinat's answers (GitHub Pages, keep every feature) and bring pitch
-  feedback and the rewaz routine back into the plan; answer whether the Bengali folder
-  name causes problems and why the TypeScript port was needed.
-- **Inspected:** this session's tool runs for any path trouble (none: git, Node 24, npm,
-  TypeScript 7, Vite, Vitest, Git Bash, PowerShell and CI all worked with the Bengali
-  path); a web search on Android builds and non-ASCII paths (community reports of the
-  Android Gradle plugin's "Your project path contains non-ASCII characters" error,
-  still seen with plugin 8.2.2, and the `android.overridePathCheck=true` override).
-- **Changed:** `docs/ROADMAP.md` (Phase 2 restored: 1. pitch feedback, 2. daily rewaz
-  routine and practice log, with the kickoff's design notes and done criteria; recorded
-  takes marked optional; Phase 0 deploy on GitHub Pages; ASCII-path note for a future
-  Android build); this file (direction, roadmap summary, microphone privacy invariant,
-  decisions, open questions 3, 5, 6, PH0-05, path gotcha, current state);
-  `SECURITY.md` (microphone line).
-- **Tests / verification:** documentation only; no code changed, so no test run.
-- **Decisions made:** see Decisions log (the last three 2026-10-10 rows).
-- **Risks or disagreements:** Rinat questioned the TypeScript port; Claude recommends
-  continuing it and holds PH0-03 until Rinat answers (Open question 5), to avoid
-  rework.
-- **Next handoff:** Open questions 5 and 6, then PH0-03.
-
-### 2026-10-10 00:40 BST — Claude (Opus 5.5) — PH0-02 (and Rinat's setup answers)
-
-- **Goal:** apply Rinat's answers (decisions, a clean folder, a lighter plan); port the
-  pure core to TypeScript with the reference suites carried over one-for-one.
-- **Inspected:** the Node upgrade (node 24.20.0; npm still 9.8.1, from an old global
-  copy in `%APPDATA%\npm`, because the upgrade left Program Files' npm at 9.8.0); every
-  invisible or look-alike character in the prototype's parser and tests, by code point
-  (only the ZWNJ/ZWJ/BOM set and one ZWNJ in a parser test case).
-- **Changed:**
-  - `4d21c9c`: removed `bootstrap.bat`, `CHANGELOG.md`, `LICENSE`, `.env.example`, the
-    empty `.agents/`, `reference/tests/README.md` (folded into `reference/README.md`) and
-    unused config sections; ADR-001 revised (no React, Playwright or IndexedDB); roadmap
-    trimmed to port and publish, the rest parked; this file, CLAUDE.md, AGENTS.md and
-    SECURITY.md updated for the answers.
-  - `00e5768`, `7e7de7a`: `package.json` (typescript 7.0.2, vite 8.3.4, vitest 5.0.3,
-    exact; no runtime dependencies), `tsconfig.json`, `tsconfig.core.json` (no DOM
-    library for `src/core`, `src/audio/dsp`), `vitest.config.ts`; `src/core/notation`
-    (parse, edit, check), `src/core/taal` (taals, rhythm), `src/core/exercises` (specs
-    generated byte-for-byte from the reference generator by a one-off script, the
-    generator, the 13-item list), `src/core/song` (model, file),
-    `src/audio/dsp/ksPluck.ts`. One deliberate change from the prototype: a taal name
-    inherited from Object (`constructor`, `toString`…) or a non-string now normalises
-    to Dadra; the prototype accepted it and then crashed on play. `00e5768` also adds
-    `reference/tests/package.json` (CommonJS) and ignores `.vitest/`.
-  - `8b5b933`: `tests/differential` (port versus the prototype's code, cut out of the
-    HTML) and a CI core job.
-  - This entry's commit: `docs/NOTATION.md` (BOM line), `docs/PARITY.md` (22 rows →
-    Core), this file.
-- **Tests / verification** (Git Bash, Node v24.20.0, npm 9.8.1, Windows 10):
-  - `npm run typecheck` → exit 0. A probe file in `src/core` using `document`, `window`
-    and `console` made `npx tsc -p tsconfig.core.json` fail (TS2584, TS2304; exit 1) and
-    passed the full config; probe removed.
-  - `npm test` → 11 files, 112 passed, 0 failed, 8.1 s: ported parser 31, checker 11,
-    join-split 10, rhythm 12, tanpura 5 + 5 added, exercises 14 + 2 added;
-    differential 13; unit 9. Each commit checked alone with the rest stashed:
-    `00e5768` → typecheck 0, 52 passed, reference suites green; `7e7de7a` → typecheck 0,
-    99 passed.
-  - Mutation check: dropping `~` from the holds failed all 4 notation differential
-    tests (the ported reference suites alone missed it); changing a tabla-fill
-    velocity (0.3 → 0.31) and the string's DC blocker (0.995 → 0.9951) each failed one
-    differential test. Files restored byte-identical (`cmp`).
-  - Tanpura, 100 seeded plucks: worst pitch error 0.054 cents; −16.2 dB at 1.5 s
-    (−18.6…−14.5) and −33.0 dB at 3.5 s (−37.2…−30.1) relative to the attack, matching
-    ENGINE.md. A 504-beat song: 31 parse-and-check rounds in 38 ms (about 1.2 ms each).
-  - `npm run test:reference` failed once after `"type": "module"` was added (`require
-    is not defined in ES module scope`); after `reference/tests/package.json`: parser
-    31/0, checker 11/0, join-split 10/0, rhythm 12/0, tanpura 5/0, exercises 12 valid.
-  - `git push origin main` → `4da4f8d..8b5b933`. CI run `38005291130`: Core job (npm ci,
-    typecheck, npm test) success; reference job success. This also proves the npm 9
-    lockfile installs on Linux.
-- **Decisions made:** see Decisions log (2026-10-10 rows).
-- **Risks or disagreements:** the lighter stack and trimmed roadmap are Claude's
-  proposals on Rinat's direction; Rinat may veto. The prototype treats a BOM inside a
-  line as a space (JavaScript counts U+FEFF as whitespace), not as "ignored" as
-  NOTATION.md said; kept for parity, doc corrected. No screen exists yet, so nothing is
-  "done" in the app sense.
-- **Next handoff:** PH0-03, the audio engine. Rinat's answers to Open questions 3
-  (hosting) and 5 (features to drop) are needed before the deploy and the interface.
-
-### 2026-10-09 23:45 BST — Claude (Opus 5.5) — PH0-01
-
-- **Goal:** take over from the handover pack: read it, set up the repo on `main`, merge
-  everything into the co-working framework, delete `handover/`, report conflicts.
-- **Inspected:** `handover/KICKOFF.md`, `README.md`, `docs/NOTATION.md`, `ENGINE.md`,
-  `DATA.md`; all of `reference/gaaner-sathi.html` (2,324 lines); `reference/tests/*`;
-  the framework files; the GitHub repo (one commit `4dfc1e2`: GPL-3.0 `LICENSE`, a
-  two-line `README.md`); the local toolchain (Node 20.5.1, npm 9.8.1, git 2.53).
-- **Changed:** `git init -b main` on top of `origin/main`; commit `e0ea8d8` keeps the
-  framework and handover as received. Then: specs moved to `docs/`, prototype and
-  suites to `reference/` (`git mv`; `run-all.sh` marked executable); kickoff merged
-  into this file, `docs/ROADMAP.md` (phases, done criteria, Phase 2 specs) and
-  `docs/PARITY.md` (60-odd features traced through the prototype's code); new
-  `docs/adr/ADR-001-stack.md`, `reference/README.md`, `CHANGELOG.md`, public
-  `README.md`, `.github/workflows/ci.yml`; `CLAUDE.md`, `AGENTS.md`, `SECURITY.md`
-  filled in; `.gitignore` trimmed to this stack; `.env.example` emptied (no keys);
-  `handover/` removed.
-- **Tests / verification:** `bash reference/tests/run-all.sh` (Git Bash, Node v20.5.1,
-  Windows 10), run in `handover/reference/tests` before any change and again from
-  `reference/tests` after the move, both times: parser 31 passed 0 failed, checker
-  11/0, join-split 10/0, rhythm 12/0, tanpura 5/0, exercises 12 valid 0 failed,
-  exit 0. Checked with node: `reference/exercises.json` equals the generator's
-  output and the first 12 exercises embedded in the HTML (the 13th, the Sa Re Ga
-  typing example, exists only in the HTML). `git diff -M --summary e0ea8d8 c684d36`:
-  every moved spec, prototype and suite file is a 100% rename (unchanged).
-  `git push origin main` → `4dfc1e2..c0b057c`. GitHub Actions run `38001060696`
-  (`.github/workflows/ci.yml`, ubuntu-latest, Node 24) on `c0b057c`: completed,
-  success, every step including `bash reference/tests/run-all.sh`.
-- **Decisions made:** see Decisions log (2026-10-09 rows).
-- **Risks or disagreements:** conflicts between the kickoff and the framework are
-  listed in Open questions 5 and 8–12. The machine's Node 20.5.1 blocks the planned
-  toolchain.
-- **Next handoff:** PH0-02, the core port, once Node 24 is available (Open question 8).
+Older entries: `docs/HISTORY.md`.

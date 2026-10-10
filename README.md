@@ -4,14 +4,16 @@ A practice companion for singers who learn Bengali songs from swaralipi (akarmat
 notation). Type the notation once, and Gaaner Sathi plays the melody on harmonium as a
 pitch guide, with tabla, dholak or drums and a tanpura drone, all on one clock so the
 rhythm never drifts from the melody. It highlights the beat you are on, with the lyric
-underneath.
+underneath. It keeps a library of your songs, listens through the microphone and shows
+how in tune you sing, note by note, runs a daily rewaz routine hands-free, and logs your
+practice. Everything stays on your device.
 
 ## Status
 
-The port of the original single-file prototype is finished, and the app is live. Now
-([roadmap](docs/ROADMAP.md), Phase 1): new features, first a song library, pitch
-feedback from the microphone, and a daily rewaz routine with a practice log. The design
-comes after that, then a native mobile app.
+The port of the original single-file prototype is finished, and the app is live. Phase 1
+([roadmap](docs/ROADMAP.md)), features first: the song library, pitch feedback from the
+microphone, and the rewaz routine with a practice log are in; more follow as Rinat picks
+them. The design comes after that, then a native mobile app.
 
 ## Try it
 
@@ -25,7 +27,7 @@ download it and open it in a browser.
 | Path | What it holds |
 |---|---|
 | [`CONTEXT.md`](CONTEXT.md) | The project's shared state: direction, working rules, current state, decisions, work log |
-| [`docs/`](docs/) | Roadmap, parity checklist, notation, engine and data specs, decision records |
+| [`docs/`](docs/) | Roadmap, parity checklist, notation, engine and data specs, decision records, older work log |
 | [`index.html`](index.html), [`src/`](src/) | The app: the page, the pure core (`src/core/`), the sound (`src/audio/`) and the screen (`src/app/`) |
 | [`tests/`](tests/) | Tests for the new code |
 | [`reference/`](reference/) | The working prototype and its reference test suites |
