@@ -57,16 +57,16 @@
 | P2 | Tempo 30–240 matras/min: number field, − and + (steps of 4), slider; saved with the song | — |
 | P3 | Sa: key (C … B, each with its CT-X3000 key, "C · White 1", "C♯ · Black 1" …) and octave (Low 3, Middle 4, High 5); saved with the song; retunes live (drone, tabla pitch, tanpura) | — |
 | P4 | Six taals with theka, vibhags and marks: Dadra, Keherwa, Rupak, Jhaptal, Ektal, Teentaal | Core |
-| P5 | Rhythm: Tabla, Dholak, Drums, Click or Off, with a rhythm volume slider (live) | — |
+| P5 | Rhythm: Tabla, Dholak, Drums, Click or Off, with a rhythm volume slider (live) | Core |
 | P6 | Speed: Half, Normal, Double | Core |
 | P7 | "Fill every 4th cycle" (also fills the count-in); the kit crashes on the sam after a fill | Core |
 | P8 | Layer chips per style (tabla/dholak: manjira, kartal, ghungroo, shaker; dholak adds tambourine; drums: shaker, tambourine, claps, cowbell, congas, ride); each style remembers its own | Core |
-| P9 | Harmonium guide: 1, 2 or 3 reeds (loudness-matched, tone updates live); Guide Full, Soft or Off (live) | — |
-| P10 | Drone: Tanpura or Harmonium, with a volume slider (live; default 0, and picking a drone at 0 sets 0.5); tanpura 1st string Pa, Ma or Ni (shown only for the tanpura) | — |
-| P11 | Master compressor and reverb as in ENGINE.md | — |
-| P12 | Not looping: stops at the first beat after the song, with a final stroke if that beat is sam, ending 1.3 s later | — |
+| P9 | Harmonium guide: 1, 2 or 3 reeds (loudness-matched, tone updates live); Guide Full, Soft or Off (live) | Core |
+| P10 | Drone: Tanpura or Harmonium, with a volume slider (live; default 0, and picking a drone at 0 sets 0.5); tanpura 1st string Pa, Ma or Ni (shown only for the tanpura) | Core |
+| P11 | Master compressor and reverb as in ENGINE.md | Core |
+| P12 | Not looping: stops at the first beat after the song, with a final stroke if that beat is sam, ending 1.3 s later | Core |
 | P13 | Highlight compensates for output latency (Bluetooth) | — |
-| P14 | One clock: melody, rhythm and highlight scheduled from the same audio-clock times (lookahead scheduler) | — |
+| P14 | One clock: melody, rhythm and highlight scheduled from the same audio-clock times (lookahead scheduler) | Core |
 
 ## Practice
 
@@ -74,14 +74,14 @@
 |---|---|---|
 | R1 | "Lines to practise": from-line, loop checkbox, to-line (labels show the line's first 6 beats in the current script); picking a to-line ticks loop; from ≤ to is kept; changing while playing restarts | — |
 | R2 | Tap a line number in the sheet to play from that line | — |
-| R3 | Count-in of one cycle plus any pickup, always starting at sam; the panel counts down ("Count-in · you come in after 3 beats") | — |
-| R4 | When looping, the guide plays every round, the first round only, or every other round (call and response: "your turn, sing it alone") | — |
-| R5 | Tempo trainer: speed up each round by 2, 4, 6, 8 or 10, up to a ceiling (30–240, default 160); ticking it ticks loop; the song's saved tempo is unchanged | — |
+| R3 | Count-in of one cycle plus any pickup, always starting at sam; the panel counts down ("Count-in · you come in after 3 beats") | Core |
+| R4 | When looping, the guide plays every round, the first round only, or every other round (call and response: "your turn, sing it alone") | Core |
+| R5 | Tempo trainer: speed up each round by 2, 4, 6, 8 or 10, up to a ceiling (30–240, default 160); ticking it ticks loop; the song's saved tempo is unchanged | Core |
 | R6 | "Now singing" panel: "Line 3 · beat 2 of 8 · round 2 · 104 per min", the big note, lyric rows, the next four beats (wrapping inside a loop); idle "Ready · starts at line N after one Dadra cycle"; "Finished" at the end | — |
 | R7 | Live taal strip: name in English and Bengali, "6 matras, 3 + 3"; each beat shows its mark, number and the current style's bol; the current beat is lit | — |
 | R8 | Current beat highlighted in both sheets; the sheet scrolls to the current line (smoothly unless reduced motion) | — |
 | R9 | Screen wake lock while playing, requested again when the page becomes visible | — |
-| R10 | A note held across the loop start is re-sounded there; loop rounds clip notes at the loop end | — |
+| R10 | A note held across the loop start is re-sounded there; loop rounds clip notes at the loop end | Core |
 
 ## Songs and files
 

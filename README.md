@@ -31,8 +31,9 @@ browser. It runs offline and keeps your songs in that browser.
 Needs Node 24 LTS.
 
     npm install
-    npm test            # core tests (Vitest)
+    npm test            # all tests (Vitest), including comparisons with the prototype
     npm run typecheck   # TypeScript, including the DOM-free check on src/core
+    npm run dev         # dev server; /dev/render.html is the audio check
 
 `bash reference/tests/run-all.sh` runs the prototype's own suites. GitHub Actions runs
 everything on every push to `main`.

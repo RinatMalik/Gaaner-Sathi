@@ -92,6 +92,12 @@ Nobody on the build side can listen, so the prototype was checked by measurement
 
 Then ask Rinat to listen to specific things and give named feedback: thin, buzzy, nasal, too plucked, too loud against the voice.
 
+**How the TypeScript port is checked** (2026-10-10):
+
+- `tests/differential/audio.test.ts` (runs in CI) drives the prototype's engine and the port with a recording stand-in for Web Audio and the same random numbers. It requires identical call logs (every node, connection, parameter and timing) for 16 practice sessions, every percussion lane, the closing strokes and the live controls.
+- `dev/render.html` (`npm run dev`, then open `/dev/render.html`) renders five sessions through both engines in the browser's own Web Audio and compares the audio sample by sample. The port differs from the prototype by no more than the prototype differs from itself between runs, because Chrome's mixing order varies. That is at most about 7 × 10⁻⁶, more than 100 dB below full scale.
+- Measured there: full mixes −15 to −20 dB RMS with peaks around −2 dBFS; a click with a soft one-reed guide −30 dB RMS.
+
 ## Known limitations
 
 - Synthesised timbres are approximations. Rinat finds the harmonium "OK, could be fuller" (3 reeds is now the default).

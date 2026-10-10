@@ -33,18 +33,17 @@ decision, which always wins (see Source-of-truth order).
 ## Current state
 
 - **Current milestone:** Phase 0, port (Roadmap at a glance below).
-- **Current task:** none in progress. PH0-02 (the pure core in TypeScript) is done.
-- **Next single action:** Rinat answers Open questions 5 (continue the port?) and 6
-  (publish the prototype now?). Then PH0-03, the audio engine: the lookahead scheduler
-  and the synthesised instruments, checked by offline-render measurements against
-  ENGINE.md.
-- **Last known-good commit:** `8b5b933` (CI run `38005291130`: core and reference jobs
-  green).
-- **How to run it now:** the prototype: open `reference/gaaner-sathi.html` in a
-  browser. The new code: `npm install`, then `npm test` (see Conventions → Stack). The
-  new app has no screen yet.
-- **Blockers:** PH0-03 waits on Open question 5. PH0-05 (a live deploy) needs Pages
-  switched on by Rinat.
+- **Current task:** none in progress. PH0-03 (the audio engine and transport) is done.
+- **Next single action:** PH0-04, the interface to parity: the prototype's screen in
+  plain TypeScript with the essentials up front, every `docs/PARITY.md` item, checked
+  in the browser at 360 px in both themes.
+- **Last known-good commit:** `218467a` (CI run `38037906311`: core, reference and
+  deploy jobs green).
+- **How to run it now:** the prototype is live at
+  https://rinatmalik.github.io/Gaaner-Sathi/ (or open `reference/gaaner-sathi.html`).
+  The new code: `npm install`, then `npm test`; `npm run dev` for the audio check page
+  (see Conventions → Stack). The new app has no screen yet.
+- **Blockers:** none.
 - **Uncommitted work:** none.
 
 ## Product direction — what this is meant to be now
@@ -269,10 +268,15 @@ them (level 4); `docs/PARITY.md` is a checklist (level 6).
   `feat:` `fix:` `test:` `docs:` `refactor:` `ci:` `chore:` `wip:`.
 - **Stack / commands:** ADR-001 (revised 2026-10-10): TypeScript (strict), Vite,
   Vitest, no UI framework, no runtime dependencies, Node 24 LTS. Layout: `src/core/`
-  (pure: notation, taal, exercises, song), `src/audio/dsp/` (pure DSP), `tests/ported/`
-  (the reference suites one-for-one), `tests/differential/` (port versus the prototype's
-  own code), `tests/unit/`.
-  - `npm install` once; `npm test` runs every Vitest suite (112 tests, about 8 s).
+  (pure: notation, taal, exercises, song), `src/audio/` (engine, instruments,
+  transport; `src/audio/dsp/` is pure DSP), `tests/ported/` (the reference suites
+  one-for-one), `tests/differential/` (port versus the prototype's own code, including
+  a recording stand-in for Web Audio), `tests/unit/`, `dev/` (dev-only check pages).
+  - `npm install` once; `npm test` runs every Vitest suite (129 tests, about 9 s).
+  - `npm run dev`: the Vite dev server. `/dev/render.html` renders sessions through the
+    prototype's engine and the port's in the browser and compares them (the audio
+    check). Claude starts it with the browser pane's `preview_start` ("dev" in
+    `.claude/launch.json`).
   - `npm run typecheck`: the whole project, then `src/core` and `src/audio/dsp`
     with no DOM library (a DOM call there fails).
   - `npm run test:reference` (or `bash reference/tests/run-all.sh`): the prototype's own
@@ -280,7 +284,8 @@ them (level 4); `docs/PARITY.md` is a checklist (level 6).
     passed and 12 exercises valid.
   - Prototype: open `reference/gaaner-sathi.html` in a browser.
   - CI: `.github/workflows/ci.yml` on every push to `main`: a core job (`npm ci`,
-    type-check, tests) and a reference job.
+    type-check, tests), a reference job, and a deploy job to GitHub Pages that runs
+    after both pass (it publishes the prototype until the new app has a screen).
 - **Environment gotchas:**
   - Windows: system git has `core.autocrlf=true` and `.gitattributes` normalises to LF
     in the repo, so "LF will be replaced by CRLF" warnings are expected noise; `.sh`
@@ -299,6 +304,12 @@ them (level 4); `docs/PARITY.md` is a checklist (level 6).
     CommonJS. Vitest's JSON reporter writes `.vitest/` (git-ignored).
   - Node 24 runs `node -e` code through its TypeScript stripper, which can trip on
     regex escapes: put one-off scripts in a file instead.
+  - Don't use `git stash -u` to test a commit alone: here it could not remove untracked
+    folders (permission denied, probably a handle held by the app's file preview) and
+    left a duplicate stash. Instead: `git worktree add --detach <scratch>/wt <commit>`,
+    `npm ci` and test there, then `git worktree remove`. Delete a leftover folder with
+    the `\\?\` long-path prefix, because `node_modules` paths pass 260 characters
+    under the long scratch path.
   - `gh` is installed but not logged in; pushes go through Git Credential Manager.
 - Keep CLAUDE.md and AGENTS.md aligned so the shared-branch rules survive future
   sessions.
@@ -352,9 +363,9 @@ progress, Blocked, Review, Done, Superseded.*
 |---|---|---|---|---|---|
 | PH0-01 | Claude | Done | framework docs, `docs/`, `reference/`, CI; remove `handover/` | Handover merged and removed; reference suites green locally and in CI run `38001060696`; pushed (`c0b057c`) | Framework and repo setup |
 | PH0-02 | Claude | Done | `src/core/`, `src/audio/dsp/`, `tests/`, `package.json`, configs, CI | 69 reference tests and 12 exercises ported one-for-one and green; differential tests against the prototype green and shown to catch injected bugs; `src/core` type-checks with no DOM library; CI run `38005291130` green (`8b5b933`) | Core port |
-| PH0-03 | — | Proposed | `src/audio/` | Offline-render measurements match ENGINE.md; timing as pure tests | Audio engine |
-| PH0-04 | — | Proposed | `src/app/` | Every `docs/PARITY.md` item Done, checked in the browser at 360 px in both themes | Interface to parity, essentials up front |
-| PH0-05 | — | Proposed | GitHub Pages deploy workflow | A live URL deployed from `main` that opens on a phone | Host decided (GitHub Pages). Needs Rinat to switch Pages on once (Settings → Pages → Source: GitHub Actions) |
+| PH0-03 | Claude | Done | `src/audio/`, `tests/differential/`, `dev/` | Identical recorded Web Audio calls to the prototype for 16 sessions, every lane, closing strokes and live controls (17 tests, 5 injected bugs caught); Chromium offline renders match the prototype within its own run-to-run variation; commits `ded3ee4`, `218467a` | Audio engine and transport |
+| PH0-04 | — | Proposed | `src/app/`, `index.html` | Every `docs/PARITY.md` item Done, checked in the browser at 360 px in both themes | Interface to parity, essentials up front |
+| PH0-05 | Claude | In progress | CI deploy job | A live URL deployed from `main` that opens on a phone | Live with the prototype since 2026-10-10 (CI run `38037906311`); switch the deploy to the built app with PH0-04 |
 
 ## Decisions log
 
@@ -380,6 +391,9 @@ consequence.*
 | 2026-10-10 | Hosting: GitHub Pages, deployed from `main` by GitHub Actions (free, no new account), not a folder on rinatmalik.com. The permanent address (a subdomain of rinatmalik.com or a dedicated domain) is still open. | Rinat, chat 2026-10-10 | PH0-05 needs Pages switched on once and a deploy workflow. |
 | 2026-10-10 | Keep every prototype feature; tuck the advanced ones away rather than drop any. | Rinat, chat 2026-10-10 | `docs/PARITY.md` stays complete. |
 | 2026-10-10 | Planned, not parked: pitch feedback from the microphone, then a daily rewaz routine with a practice log (Phase 2, in that order). Each song remembering its own rhythm, speed and drone settings stays in Phase 1. Recorded instruments, ornaments, error reporting, accounts and native apps stay parked. | Rinat, chat 2026-10-10 | `docs/ROADMAP.md` Phase 2 restored with the kickoff's design notes; the microphone privacy invariant is back. |
+| 2026-10-10 | Continue the TypeScript port rather than grow the single HTML file. | Rinat, chat 2026-10-10 ("yes") | PH0-03 and PH0-04 go ahead. |
+| 2026-10-10 | Publish the prototype on GitHub Pages now, as an interim, until the new app has a screen. | Rinat, chat 2026-10-10 ("yes") | A CI deploy job publishes `reference/gaaner-sathi.html` as the site after the tests pass; it needs Pages switched on once. |
+| 2026-10-10 | Sound is verified by comparing the port with the prototype call for call (recorded Web Audio, in CI), plus an offline-render check page in the browser. | Claude, settling ADR-001's "decided in the audio-engine step" | No Node Web Audio library or browser automation added. |
 
 ## Open questions
 
@@ -397,13 +411,6 @@ current work (unless marked). Defaults apply until answered.*
    later means everyone exports and re-imports.
 4. **Free, paid or donations?** Only matters if the app ever goes to app stores
    (parked). No licence for now.
-5. **Continue the TypeScript port, or develop the single HTML file directly?** Rinat
-   asked on 2026-10-10 why the port was needed, since the prototype is already a web
-   page. Claude recommends continuing the port (see the reply of 2026-10-10 and
-   ADR-001) and waits for Rinat's answer before PH0-03, to avoid rework.
-6. **Publish the prototype on GitHub Pages now,** as an interim so Rinat can use it on
-   a phone while the new app is built? Needs Pages switched on (Settings → Pages →
-   Source: GitHub Actions).
 
 ## Work log
 
@@ -412,6 +419,60 @@ statements must name the exact command, result, and environment — "tests pass"
 is not sufficient. When this grows long, keep only the last few entries here and
 move older ones into a `HISTORY.md` you create then, so this file stays lean.*
 
+
+### 2026-10-10 09:30 BST — Claude (Opus 5.5) — PH0-03 audio engine; PH0-05 prototype live
+
+- **Goal:** Rinat said yes to both: continue the port, and publish the prototype on
+  GitHub Pages now. Port the audio engine and transport, proven identical to the
+  prototype.
+- **Inspected:** the prototype's audio engine, rhythm scheduling, voices, transport and
+  live controls (lines 867–1560, 2098–2111); the GitHub Pages API (needs a login, so
+  enablement could not be checked beforehand); action versions (configure-pages v6,
+  upload-pages-artifact v5, deploy-pages v5).
+- **Changed:**
+  - `6a28b26`: CI deploy job (after the core and reference jobs, `main` only; publishes
+    `reference/gaaner-sathi.html` as the site; runs queue instead of cancelling).
+  - `ded3ee4`: `src/audio/` (engine, session, harmonium, tanpura, percussion, sound
+    settings, transport, `dsp/pitch.ts`); `tests/differential/webaudio-recorder.ts` (a
+    recording stand-in for Web Audio), the prototype's audio world in `prototype.ts`,
+    `audio.test.ts` (16 sessions, every lane, closing strokes, live changes).
+  - `218467a`: `npm run dev`, `.claude/launch.json`, `dev/render.html` + `render.ts`.
+  - This entry's commit: this file, `docs/PARITY.md` (10 more rows → Core),
+    `docs/ENGINE.md` (how the port's sound is checked, measured levels), `README.md`.
+- **Tests / verification** (Git Bash, Node v24.20.0, npm 9.8.1, Windows 10):
+  - `npx vitest run tests/differential/audio.test.ts` → 17 passed. Mutation check (a
+    script applying one bug at a time, then restoring each file byte-identical):
+    harmonium attack 28 → 29 ms failed 17/17; a tanpura gap 0.36 → 0.37 s failed 4;
+    the mid tom 150 → 151 Hz failed 3; the tempo trainer one round early failed 1; two
+    Web Audio calls swapped in `noiseHit` failed 15.
+  - `npm run typecheck` → 0; `npx vitest run` → 12 files, 129 passed; `npm run
+    test:reference` → 31/11/10/12/5 passed, 12 exercises valid.
+  - `ded3ee4` checked alone in a detached worktree in the scratch folder: `npm ci` 0,
+    both type-checks 0, 129 passed. (A first attempt with `git stash -u` could not
+    remove the untracked `dev/` and `.claude/` folders and left a duplicate stash; the
+    working tree was verified identical to it, apart from line endings, before
+    dropping it. Now a gotcha under Conventions.)
+  - Browser pane, `preview_start dev` → `/dev/render.html` (Chromium, OfflineAudioContext,
+    48 kHz), five sessions: port vs prototype max sample difference 1.9e-6, 6.5e-6,
+    5.1e-7, 0, 3.0e-7; prototype vs itself (control) 2.5e-6, 2.1e-6, 5.1e-7, 0, 3.0e-7.
+    Same size, so Chrome's mixing order explains it. Levels −16.7, −16.4, −15.3, −29.9,
+    −19.6 dB RMS; peaks −1.7 to −4.7 dBFS; no console errors.
+  - Deploy: CI run `38036764465` (`6a28b26`) failed at configure-pages ("Get Pages site
+    failed… Pages enabled… GitHub Actions"), core and reference jobs green; after Rinat
+    switched Pages on, run `38037906311` (`218467a`) → core, reference and deploy all
+    success. `curl` of https://rinatmalik.github.io/Gaaner-Sathi/ → 200, 139,839 bytes,
+    byte-identical to `reference/gaaner-sathi.html`.
+  - Browser pane on the live site: renders exercise 3; 360 × 780 viewport, page width
+    360 (no sideways scroll); Play → "Stop", the page's AudioContext `running` and its
+    clock advancing (2.0 s → 4.0 s); no console errors. The highlight did not advance
+    because the pane drew no frames (0 `requestAnimationFrame` callbacks in 2 s: the
+    pane was off-screen), which is the test environment, not the site.
+- **Decisions made:** see Decisions log (the last three 2026-10-10 rows).
+- **Risks or disagreements:** nobody has heard the new engine yet. The renders match the
+  prototype, but Rinat should listen once there is a screen. The live site is the
+  prototype as-is: on an iPhone the ringer switch can silence Web Audio (known
+  limitation, docs/ENGINE.md).
+- **Next handoff:** PH0-04, the interface: then switch the deploy job to the built app.
 
 ### 2026-10-10 01:05 BST — Claude (Opus 5.5) — roadmap and hosting decisions
 
