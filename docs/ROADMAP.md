@@ -48,6 +48,7 @@ in only when Rinat asks for them.
 | 7 | **Beat boxes, round two:** lines dragged to reorder (and moved with ↑ ↓), copying lines, adding a note to a beat | 2026-10-11 | Rinat finds writing a song in the boxes convenient (Rinat, 2026-10-11: "all works") |
 | 8 | **Beat boxes, round three:** ▶ Play on each line; Copy to the end, and several lines selected and copied at once; × at the top of a line; Enter for a second row of words instead of "+ words"; smaller notes in the editor | 2026-10-11 | Rinat finds writing a song in the boxes convenient |
 | 9 | **Words and three more taals:** a line of words pasted under the notes is split into syllables, one to each note; Teora, Kawali and Garba (for Garba and Dandiya) | 2026-10-11 | Rinat's pasted lyrics land mostly right; the three thekas sound right |
+| 10 | **Taal pherta:** a section's heading names a taal of its own (or it is picked beside the heading in the beat boxes); the section plays, is checked, laid out and shown in it, starting on its sam | 2026-10-11 | A song of Rinat's in taal pherta plays as Rinat sings it |
 
 ### Next, as Rinat chooses
 
@@ -93,9 +94,6 @@ Sizes are rough: S a few hours, M a day or two, L more.
 - **Writing the words:** type Bengali phonetically in the app (`amar` → আমার) without
   installing a keyboard (M). (Pasting a line of words split into syllables was built on
   2026-10-11.)
-- **Taal pherta:** a taal per section, for songs that change taal from one part to another
-  (Kaharwa in the sthayi, Dadra in the antara), written in the heading as tempos are (M; Open
-  question 6).
 - **Moving and sharing:** one file that moves everything to another device (songs, practice
   log, rewaz routines, your settings) and brings it all back in (S); send a song to another
   singer as a link that opens it, no file needed (S); a teacher sets a routine and the student

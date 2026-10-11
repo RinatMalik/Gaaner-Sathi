@@ -49,6 +49,60 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-11 10:35 BST — Claude (Opus 5.5) — PH1-08 beat boxes round three
+
+- **Goal:** Rinat ("all works and happy with the decision you made"): remove "+ words" (a
+  row of words is always there); a Play button that plays just that line, to hear a line
+  just written; fonts a little smaller in the editor and its preview; the × at the top of a
+  line; Copy to the end rather than just below, and several lines selected and copied at
+  once, "as long as it doesn't break anything else". Rinat also asked what the colours in a
+  Practice screenshot mean, and whether there is an easier way to type Bengali lyrics.
+- **Inspected:** the transport's start and rounds, `play()`, `stop()`, the practice log and
+  take hooks in `app.ts`; the pitch colour thresholds (`src/app/pitch.ts`: good from 85, ok
+  from 60, off below, not sung); the lyric typing path in the boxes.
+- **Changed:** `3eae75f` (feat): `copyRowsToEnd` replaces `duplicateLine` in
+  `src/core/notation/boxes.ts`; the boxes get ▶ Play (the host's `playLine`: one round of
+  that line, `countIn: false`, the pickers, log and takes left alone; ■ Stop), the box of
+  the beat sounding lit (`markBeat`), tap-to-select on the numbers with a sticky bar (Copy
+  to the end, Clear; Escape or any change ends it), Copy to the end, × first in the row's
+  buttons, Enter in a word box for another verse row; "+ words" removed; CSS sizes; help
+  rows for Play, copying and the words. This commit (docs): NOTATION → Beat boxes, ROADMAP
+  (row 8; a feature idea for writing the words), this file (the 02:20 entry moved to
+  HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
+  DevTools protocol, real mouse, key and touch events):
+  - `npm run typecheck` → 0; `npx vitest run` → 28 files, 288 passed (the copy test rewritten
+    for the end; the HTML test checks the buttons and the selection marks); `npm run build`
+    → 183 kB JS (65.0 kB gzip), 33 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5
+    passed, 12 exercises valid.
+  - Scenario `edit3` (27 checks) on `npm run dev`: a line's buttons are × ▶ Play Copy, the ×
+    8 px from the row's top and flush right; fonts 17/15 px in the boxes, 20/15 px in the
+    editor preview, 22 px still on Practice; ▶ Play on line 2 says ■ Stop, its first box lit
+    125 ms after the tap (no count-in), boxes b:1:0 to b:1:5 lit in order and no others, then
+    it stops by itself, the button back to ▶ Play, the from-line picker and the practice log
+    unchanged; ■ Stop stops; Copy puts line 1 with its words at the end, marked and scrolled
+    to; taps select a heading and two lines ("2 lines and 1 heading selected"), a second tap
+    unselects, Copy to the end copies them in order and ends the selection, one Undo takes
+    it back; Clear and Escape end a selection; Space on a focused number selects; a drag
+    moves and selects nothing; Enter in a word box opens row 2 at the same beat and typing
+    writes `> - তু মি`; on a 360 px touch phone a tap on a number selects; 360 px day and
+    night without sideways scrolling; no console errors. Bug found and fixed on the way:
+    the copies were not marked (writing the text redraws the rows first, so the count was
+    read too late).
+  - Scenario `move` (31 checks, its copy checks changed to "at the end") and `boxes` (29)
+    still pass.
+  - CI run `38128789762` (`3eae75f`): core, reference and deploy jobs green. Live: `edit3`
+    against https://rinatmalik.github.io/Gaaner-Sathi/ passed all 27 checks, no console
+    errors; `/` 200, `/new/` 200.
+- **Decisions made:** see Decisions (beat boxes, round three).
+- **Risks or disagreements:** ▶ Play needs sound on the device, which Rinat will hear but
+  nobody here can. A tap on a number now both selects the row and focuses it, so selecting
+  and moving share the number; a phone that scrolls on a drag elsewhere may still surprise.
+  The pitch marks in Rinat's screenshot were mostly red: either the singing was off by more
+  than 30 cents, or the delay or thresholds need tuning on a real voice (asked).
+- **Next handoff:** Rinat tries ▶ Play and copying several lines; answers on the red marks
+  and on a lyric helper; then the design phase.
+
 ### 2026-10-11 08:57 BST — Claude (Opus 5.5) — PH1-07 beat boxes round two; lean docs
 
 - **Goal:** Rinat: clean up the documentation and framework files no longer needed, remove

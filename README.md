@@ -6,11 +6,12 @@ pitch guide, with tabla, dholak or drums in any of nineteen taals (Tagore's own 
 them) and a tanpura drone, all on one clock so the rhythm never drifts from the melody.
 It highlights the beat you are on, with the lyric underneath. You write a song in a box
 for each beat, laid out by the taal, or as free text, or by playing it on a MIDI keyboard.
-It keeps a library of your songs, each with its own sound, notes and section tempos,
-listens through the microphone and shows how in tune you sing, records takes to play
-back against the guide, finds your Sa from your range, times a held note, runs a daily
-rewaz routine hands-free, and logs your practice. It prints a clean sheet, in day or
-night colours on screen. Everything stays on your device.
+It keeps a library of your songs, each with its own sound and notes, and sections with
+their own tempo or taal (for songs in taal pherta). It listens through the microphone and
+shows how in tune you sing, records takes to play back against the guide, finds your Sa
+from your range, times a held note, runs a daily rewaz routine hands-free, and logs your
+practice. It prints a clean sheet, in day or night colours on screen. Everything stays
+on your device.
 
 ## Try it
 

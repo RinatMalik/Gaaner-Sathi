@@ -28,7 +28,7 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
 - **Count-in:** when on, one full cycle plus any pickup, always starting at sam. The display
   counts down the beats left.
 - `startOn` puts the song's first beat on any taal beat (pickups). The taal position of every
-  beat is `(songBeat + startOn − 1) mod cycle`.
+  beat is `(songBeat + startOn − 1) mod cycle`, in a song in one taal.
 - A note held across the loop start is re-sounded at the loop start (`S.carry`), and loop
   rounds clip notes at the loop end.
 - Not looping: the transport stops at the first beat after the song, plays a final stroke if
@@ -42,6 +42,13 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
   section beat's, and the tempo trainer adds to each section's own
   (`max(base, min(rampMax, base + rampStep × n))`). A rewaz item's tempo still plays every
   beat. Without section tempos nothing changes.
+- **Section taals (taal pherta):** the source's `taalAt(s)` gives each song beat its taal and
+  offset (NOTATION.md → A taal per section): the rhythm table, the taal beat shown, sam's
+  closing stroke and the fills follow it, fills counting cycles from where that taal began. A
+  count-in is a cycle of the taal of the beat it leads to. Without `taalAt` the source's
+  `taal` and `startOn` serve, as before. `tests/unit/pherta.test.ts` checks that a Kaharwa
+  section of a Dadra song plays call for call as a song in Kaharwa plays the same line, and a
+  song naming no taal exactly as without `taalAt`.
 - **Rounds:** the transport can stop a loop after N rounds (rewaz routines).
 - **Hooks:** `onBeat` reports every scheduled matra (pitch feedback, takes); `onNote(t, dur,
   midi)` hears each guide note as it is scheduled, and `localGuide = false` leaves the
@@ -98,7 +105,8 @@ reads their ids as Dadra.
   written theka: this is the 6-matra garba rhythm as tabla players give it (Dhin · DhaTi Dha |
   Tin · TaTi Ta); some play garba songs in an 8-matra Keherwa form instead.
 - **Taal pherta** (তাল ফেরতা) is not a taal but a song that changes taal from one part to
-  another (Kaharwa and Dadra, say). It would need a taal per section: Open question 6.
+  another (Kaharwa and Dadra, say): each section can name its own taal in its heading
+  (NOTATION.md → A taal per section).
 - Their **dholak and drum patterns** were made for this app on the prototype's plan (bass and
   kick on sam and the talis, the closed stroke and snare on khali and the backbeats), not
   taken from a source: they need Rinat's ears.

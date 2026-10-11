@@ -3,7 +3,7 @@
 > The project's shared state, for Rinat, Claude, Codex and any other LLM: what the app is
 > for, how we work, where things stand, the decisions in force and the newest work log.
 >
-> **Last updated:** 2026-10-11 (13:36 BST) by Claude (Opus 5.5)
+> **Last updated:** 2026-10-11 (14:10 BST) by Claude (Opus 5.5)
 
 ## How to use this file
 
@@ -38,12 +38,11 @@ wins, except a later explicit decision by Rinat, which always wins.
 ## Current state
 
 - **Milestone:** Phase 1, features and functionality: closed by Rinat ("That's it for
-  features", 2026-10-11). Everything asked for is built and live (PH1-01 to PH1-09, all in
-  Review), except taal pherta, which waits on Open question 6. Next comes the design (Phase 2).
-- **Next single action:** Rinat answers Open question 6 (a taal per section for taal pherta:
-  now, or later); then the design phase.
-- **Last known-good commit:** `4a6ef09` (CI run `38139753394`: core, reference and deploy jobs green;
-  checked live).
+  features", 2026-10-11). Everything asked for is built and live (PH1-01 to PH1-10, all in
+  Review), taal pherta last. Next comes the design (Phase 2).
+- **Next single action:** start Phase 2, the design (ROADMAP.md → Phase 2), with Rinat;
+  meanwhile Rinat tries a song in taal pherta.
+- **Last known-good commit:** `03e3b31` (CI run `38142030205`: core, reference and deploy jobs green; checked live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -57,6 +56,8 @@ wins, except a later explicit decision by Rinat, which always wins.
   - the CT-X3000 over MIDI: typing, which tone the guide plays in, the GM reed organ;
   - the thirteen new taals' thekas, and the dholak and drum patterns made for them;
   - pasting Rinat's own lyrics: how often the syllable split needs correcting;
+  - a song in taal pherta: whether each change of taal lands where Rinat sings it, starting
+    on sam;
   - the beat boxes with a phone keyboard (Gboard, Avro), and dragging lines on a phone;
   - wake lock and Bluetooth latency on a phone;
   - iOS: the ringer switch, and the sound moving to the earpiece once the microphone is on.
@@ -86,7 +87,7 @@ track, tell the voice what to match.
 - **Built so far** (`docs/ROADMAP.md`): a song library; pitch feedback from the microphone; a
   rewaz routine and practice log; each song's own sound; nineteen taals (Tagore's own six
   among them); beat boxes for writing notation (drag, copy, play a line, words pasted and
-  split into syllables); a Voice tab (range finder,
+  split into syllables); a taal per section (taal pherta); a Voice tab (range finder,
   hold-a-note trainer); takes; MIDI keyboards; sections with their own tempo; notes per song;
   printing; day and night colours.
 - **Non-goals for now:** features Rinat has not asked for; accounts and sync; a server of our
@@ -269,7 +270,7 @@ decision.
 ### Commands
 
 - `npm install` once.
-- `npm test`: every Vitest suite (288 tests, about 10 s). Read the "Test Files" line: a
+- `npm test`: every Vitest suite (308 tests, about 10 s). Read the "Test Files" line: a
   file that fails to load is not counted as a failed test.
 - `npm run typecheck`: the whole project, then `src/core` and `src/audio/dsp` with no DOM
   library (a DOM call there fails).
@@ -339,6 +340,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH1-07 | Claude | Review | Beat boxes: drag, copy, notes in a beat; lean docs | 3 new unit tests; Edge scenarios `move` (31 checks) and `boxes` (29) (HISTORY → Work log 2026-10-11 08:57) | Rinat: "all works", happy with the choices made (2026-10-11) |
 | PH1-08 | Claude | Review | Beat boxes round three: ▶ Play per line, Copy to the end, several rows selected and copied, × at the top, Enter for a second verse, smaller editor fonts | Edge scenario `edit3` (27 checks) locally and on the live site; `move` and `boxes` still pass (Work log 2026-10-11 10:35) | Waiting for Rinat's use |
 | PH1-09 | Claude | Review | Words pasted and split into syllables under the notes; Teora, Kawali, Garba | 4 lyrics tests, taal tests; Edge scenario `words` (17 checks) with a real Ctrl+V; offline renders of the three taals (Work log 2026-10-11 13:36) | Waiting for Rinat's use and ears; taal pherta waits on Open question 6 |
+| PH1-10 | Claude | Review | Taal pherta: a section's heading names a taal of its own (a taal picker beside each heading in the beat boxes); it plays, is checked, laid out and shown in it, from its sam | 16 unit tests (a Kaharwa section's Web Audio calls equal a Kaharwa song's); Edge scenario `pherta` (25 checks) locally and live (Work log 2026-10-11 14:10) | Waiting for Rinat's songs in taal pherta |
 
 ## Decisions
 
@@ -384,6 +386,7 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-11 | Words pasted into a word box are split into sung syllables (a spelling rule: a final single consonant joins the syllable before, a conjunct's first consonant closes it, ৎ and হসন্ত join, a final ই উ এ ও after a vowel is one syllable) and laid one to each beat where a note starts, `-` on held and silent beats, on through the following lines; a note says what was left over. Typing stays literal. | Rinat, chat 2026-10-11 ("yes please"; diaries split words as আ মার সো নার); the rules are Claude's | NOTATION.md → Beat boxes → Pasting words. |
 | 2026-10-11 | Three more taals: Teora (তেওরা, Rabindrasangeet's, talis only), Kawali (কাওয়ালি, from Bengali tabla books), Garba (গরবা, for Garba and Dandiya, the 6-matra rhythm tabla players give). "Ferta" is taal pherta, a song changing taal between parts: not built, asked (Open question 6). | Rinat, chat 2026-10-11 ("Kawali, Teora, Ferta, garba/dandiya"); sources in ENGINE.md → Taals | Nineteen taals. Their dholak and drum patterns are Claude's. |
 | 2026-10-11 | Phase 1's features are complete ("That's it for features"), apart from Open question 6; then the design phase. Hindi (interface and Devanagari notation) and Western music (piano note names, staff notation) are ideas for after the app is public and popular. | Rinat, chat 2026-10-11 | ROADMAP.md → After the app is public. |
+| 2026-10-11 | Taal pherta, built before the design phase: a section's heading may name a taal (any of the nineteen, in English or Bengali spellings: `# অন্তরা · কাহারবা`); that section plays, is checked, laid out in boxes and marked in it, and sections without one are in the song's taal (no carrying on, as with tempos). Each change of taal starts on the new taal's sam, the song's first beat still on `startOn`; singing that comes in later writes `x` for the beats before. A heading naming two taals names none. The beat boxes get a taal picker per heading, which writes the taal's Bengali name into it. | Rinat, chat 2026-10-11 ("do taal pherta now, then we'll start design", answering Open question 6); the rules are Claude's | NOTATION.md → A taal per section. Open question 6 removed. Phase 1's features are all built. |
 
 ## Open questions
 
@@ -403,11 +406,6 @@ records were folded into on 2026-10-11 (the last rows say where).*
 5. **Two taal forms.** Khemta is the 12-matra form of the Bengali tabla books, not Tagore's
    6-matra Kashmiri Khemta; Dhamar is divided as in Rabindrasangeet (3+2+2+3+4), not the
    classical 5+2+3+4 (the checker accepts bars written either way). Default: as built.
-6. **Taal pherta** (তাল ফেরতা, Rinat's "Ferta"): not one taal but a song that changes taal
-   between parts (Kaharwa and Dadra, say). Supporting it means a taal per section, written in
-   the heading as a tempo is, which the playing, the sheet, the taal strip, the beat boxes and
-   the checker would all follow (about a day's work). Build it before the design phase, or
-   later? Default: not built; a song in pherta can be written as two songs meanwhile.
 
 ## Work log
 
@@ -424,6 +422,64 @@ Template:
     - **Decisions made:** rows added above.
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
+
+### 2026-10-11 14:10 BST — Claude (Opus 5.5) — PH1-10 taal pherta: a taal per section
+
+- **Goal:** Rinat: "do taal pherta now, then we'll start design" (Open question 6 answered:
+  build it before the design phase).
+- **Inspected:** every place that took one taal for the whole song: the transport (count-in,
+  taal beat, rhythm table, fills, closing stroke on sam), the sheet's marks and bars, the
+  checker and its panel, the beat boxes (rows, typing, new lines, bars), the deck's taal
+  strip and Ready line, the section buttons, the printed sheet; the heading reader
+  (`sections.ts`, which already gave sections their tempo).
+- **Changed:** `03e3b31` (feat): a heading's taal read and written (`headingTaal`,
+  `headingTaalPart`, `setHeadingTaal`, `TAAL_NAMES`; `headingLabel` leaves the taal out;
+  `SongSection.taal`; `endHeadings`); `src/core/notation/taalmap.ts` (`taalMap`, `oneTaal`,
+  `asTaals`, `placeIn`); the checker, the core boxes, the transport (`taalAt`), the sheet, the
+  checker panel and the printed sheet take the map (and still take one taal and `startOn − 1`);
+  a taal picker on each heading row of the beat boxes; the strip follows the taal playing and
+  shows the starting taal as soon as play is pressed; the section buttons name a section's
+  taal; a help row; the heading row's fields narrower under 520 px so its × stays beside
+  them; 16 tests in `tests/unit/pherta.test.ts`. This commit (docs): NOTATION (A taal per
+  section), ENGINE, DATA, ROADMAP (row 10; the idea taken out), README, this file (Open
+  question 6 answered and removed; the 10:35 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
+  DevTools protocol on `npm run dev`, real mouse and key events):
+  - `npm run typecheck` → 0; `npx vitest run` → 30 files, 308 passed (16 new: taal names in
+    19 spellings and forms, two taals naming none, a name inside a word not counting; labels;
+    writing, replacing and taking out a taal, renaming a heading keeping it; sections; the map
+    (runs from sam, the start beat, a song naming none as one run, a heading after the last
+    line); the checker, the sheet's marks, the boxes and their picker, typing a Kaharwa line;
+    the transport counting each section in its taal, a Kaharwa count-in, a Kaharwa section's
+    Web Audio calls equal to a Kaharwa song's, a song naming no taal equal to before). Made to
+    ignore section taals, the code fails 9 of the 16. The comparisons with the prototype (sheet,
+    checker, checker panel, transport) still pass. `npm run build` → 193 kB JS (68.7 kB gzip),
+    33 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid.
+  - Scenario `pherta` (25 checks): each heading row has a taal picker (song's and 19);
+    picking Kaharwa writes `# অন্তরা · কাহারবা`, keeps the focus, and the empty row under it
+    is 8 boxes marked X···0···; typing 8 notes there makes `পা ধা না র্সা | না ধা পা মা`,
+    boxes 4 | 4 while the sthayi stays 3 | 3; the checker says "in Dadra, then Keherwa" and
+    is happy; the preview marks it in Kaharwa; a sthayi after it is Dadra again; the section
+    buttons read "স্থায়ী / অন্তরা কাহারবা / স্থায়ী"; ready at the antara the strip and the
+    panel say Keherwa; played through, the strip goes Dadra → Keherwa → Dadra, 6 and 8 beats,
+    Kaharwa's lit 0–7 in order; the antara's button counts in with one Kaharwa cycle (the
+    strip on Kaharwa from the start: a bug found and fixed, it showed Dadra until the first
+    beat); the printed sheet says "changing taal by section: Dadra, then Keherwa, then Dadra";
+    "song's" takes it out and the boxes go back to 3 | 3; Undo puts it back; renaming the
+    heading keeps it; 360 px day and night without sideways scrolling; no console errors.
+    `boxes` (29), `move` (31), `edit3` (27), `words` (17) and `sections` (15) still pass.
+  - Sound: no new render. A Kaharwa section's Web Audio calls equal a Kaharwa song's (above),
+    so its levels are Kaharwa's (ENGINE.md → Verifying sound).
+  - CI run `38142030205` (`03e3b31`): core, reference and deploy jobs green. Live: `pherta` against https://rinatmalik.github.io/Gaaner-Sathi/ passed all 25 checks, no console errors; `/` 200, `/new/` 200.
+- **Decisions made:** see Decisions (taal pherta); Open question 6 answered.
+- **Risks or disagreements:** a section whose singing comes in after sam needs `x` for the
+  beats before it (no start beat per section), and a change of taal cuts the old cycle short
+  where the section begins: right for a sthayi ending on sam, to be heard on Rinat's songs.
+  Any taal's name in a heading is read as its taal ("Dadra practice" is Dadra); a name inside
+  a longer word does not count. The prototype plays these songs in the song's taal. A rewaz
+  estimate counts a count-in in the song's taal. On a phone the picker shows a shortened
+  name. Nobody has heard a change of taal.
+- **Next handoff:** Rinat tries a song in taal pherta; then Phase 2, the design, with Rinat.
 
 ### 2026-10-11 13:36 BST — Claude (Opus 5.5) — PH1-09 words split into syllables; Teora, Kawali, Garba
 
@@ -477,59 +533,5 @@ Template:
   dholak and drums are about 2 dB louder than the other taals'. Nobody has heard the three.
 - **Next handoff:** Rinat answers Open question 6 (taal pherta) and tries pasting words and
   the three taals; then the design phase (Phase 2).
-
-### 2026-10-11 10:35 BST — Claude (Opus 5.5) — PH1-08 beat boxes round three
-
-- **Goal:** Rinat ("all works and happy with the decision you made"): remove "+ words" (a
-  row of words is always there); a Play button that plays just that line, to hear a line
-  just written; fonts a little smaller in the editor and its preview; the × at the top of a
-  line; Copy to the end rather than just below, and several lines selected and copied at
-  once, "as long as it doesn't break anything else". Rinat also asked what the colours in a
-  Practice screenshot mean, and whether there is an easier way to type Bengali lyrics.
-- **Inspected:** the transport's start and rounds, `play()`, `stop()`, the practice log and
-  take hooks in `app.ts`; the pitch colour thresholds (`src/app/pitch.ts`: good from 85, ok
-  from 60, off below, not sung); the lyric typing path in the boxes.
-- **Changed:** `3eae75f` (feat): `copyRowsToEnd` replaces `duplicateLine` in
-  `src/core/notation/boxes.ts`; the boxes get ▶ Play (the host's `playLine`: one round of
-  that line, `countIn: false`, the pickers, log and takes left alone; ■ Stop), the box of
-  the beat sounding lit (`markBeat`), tap-to-select on the numbers with a sticky bar (Copy
-  to the end, Clear; Escape or any change ends it), Copy to the end, × first in the row's
-  buttons, Enter in a word box for another verse row; "+ words" removed; CSS sizes; help
-  rows for Play, copying and the words. This commit (docs): NOTATION → Beat boxes, ROADMAP
-  (row 8; a feature idea for writing the words), this file (the 02:20 entry moved to
-  HISTORY).
-- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
-  DevTools protocol, real mouse, key and touch events):
-  - `npm run typecheck` → 0; `npx vitest run` → 28 files, 288 passed (the copy test rewritten
-    for the end; the HTML test checks the buttons and the selection marks); `npm run build`
-    → 183 kB JS (65.0 kB gzip), 33 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5
-    passed, 12 exercises valid.
-  - Scenario `edit3` (27 checks) on `npm run dev`: a line's buttons are × ▶ Play Copy, the ×
-    8 px from the row's top and flush right; fonts 17/15 px in the boxes, 20/15 px in the
-    editor preview, 22 px still on Practice; ▶ Play on line 2 says ■ Stop, its first box lit
-    125 ms after the tap (no count-in), boxes b:1:0 to b:1:5 lit in order and no others, then
-    it stops by itself, the button back to ▶ Play, the from-line picker and the practice log
-    unchanged; ■ Stop stops; Copy puts line 1 with its words at the end, marked and scrolled
-    to; taps select a heading and two lines ("2 lines and 1 heading selected"), a second tap
-    unselects, Copy to the end copies them in order and ends the selection, one Undo takes
-    it back; Clear and Escape end a selection; Space on a focused number selects; a drag
-    moves and selects nothing; Enter in a word box opens row 2 at the same beat and typing
-    writes `> - তু মি`; on a 360 px touch phone a tap on a number selects; 360 px day and
-    night without sideways scrolling; no console errors. Bug found and fixed on the way:
-    the copies were not marked (writing the text redraws the rows first, so the count was
-    read too late).
-  - Scenario `move` (31 checks, its copy checks changed to "at the end") and `boxes` (29)
-    still pass.
-  - CI run `38128789762` (`3eae75f`): core, reference and deploy jobs green. Live: `edit3`
-    against https://rinatmalik.github.io/Gaaner-Sathi/ passed all 27 checks, no console
-    errors; `/` 200, `/new/` 200.
-- **Decisions made:** see Decisions (beat boxes, round three).
-- **Risks or disagreements:** ▶ Play needs sound on the device, which Rinat will hear but
-  nobody here can. A tap on a number now both selects the row and focuses it, so selecting
-  and moving share the number; a phone that scrolls on a drag elsewhere may still surprise.
-  The pitch marks in Rinat's screenshot were mostly red: either the singing was off by more
-  than 30 cents, or the delay or thresholds need tuning on a real voice (asked).
-- **Next handoff:** Rinat tries ▶ Play and copying several lines; answers on the red marks
-  and on a lyric helper; then the design phase.
 
 Older entries: `docs/HISTORY.md`.

@@ -13,7 +13,7 @@ other view (the sheet, the beat boxes) is worked out from it.
 
 | Line starts with | Meaning |
 |---|---|
-| `#` | A heading shown in the sheet (`# স্থায়ী`, `# অন্তরা`, a practice tip). Not timed. It can carry a section tempo (Sections below). |
+| `#` | A heading shown in the sheet (`# স্থায়ী`, `# অন্তরা`, a practice tip). Not timed. It can give its section a tempo and a taal of its own (Sections below). |
 | `>` | Lyrics for the notes line directly above. One group per beat, split on spaces and bar characters. Several `>` lines under one notes line stack as extra rows (verses). A group made only of `০ 0 - – —` is drawn faded as a held vowel. More groups than beats is a warning. |
 | anything else | A notes line. Blank lines are ignored. |
 
@@ -76,9 +76,10 @@ plays what it could read. Errors carry the global beat index so the editor can j
 
 `startOn` (1-based) is the taal beat the song's first beat lands on, for songs that start
 with a pickup. Every later position comes from counting beats; nothing in the text sets
-timing.
+timing, except that where a section's heading changes the taal (A taal per section, below),
+the count starts again on the new taal's sam.
 
-## Sections and their tempo
+## Sections, their tempo and their taal
 
 `src/core/notation/sections.ts`, worked out beside the parser (which stays the prototype's).
 
@@ -96,6 +97,42 @@ timing.
 - The deck shows and changes the tempo of the section playing (or about to play): for a
   section with its own tempo, the change is written back into its heading, keeping its
   words and its digits; otherwise it is the song's tempo.
+
+### A taal per section (taal pherta)
+
+Songs in taal pherta (তাল ফেরতা) change taal from one part to another: Kaharwa in one part,
+Dadra in the next. Built 2026-10-11 at Rinat's request.
+
+- **Written in the heading,** as a tempo is: the taal's name anywhere in it,
+  `# অন্তরা · কাহারবা`, `# Antara (Keherwa)`, `# সঞ্চারী · তাল: দাদরা`. Any of the nineteen
+  taals, by its English or Bengali name in the usual spellings (`TAAL_NAMES` in
+  `src/core/taal/taals.ts`; য় ড় ঢ় ো ৌ in either spelling; a name inside a longer word does
+  not count). A heading naming two different taals, such as a note
+  `তাল ফেরতা: দাদরা/কাহারবা`, names none. Of several headings in a row, the nearest naming
+  a taal gives it.
+- **That section plays and is checked in its taal;** sections without one are in the song's
+  taal (no carrying on, as with tempos). Where the taal changes, the new taal starts on its
+  sam; the song's first beat still falls on `startOn`, and a later section back in the song's
+  taal starts on sam too. Singing that comes in after sam writes `x` (silence) for the beats
+  before it. *Why sam:* a change of taal is where the drummer starts the new cycle, and the
+  silent beats say so in the notation itself, where a start beat for each section would be
+  another setting.
+- **The map:** `taalMap(text, parsed, taal, startOn)` (`src/core/notation/taalmap.ts`) splits
+  the song into runs in one taal, `{from, T, off}`, a beat g falling on taal beat
+  `(g + off) mod cycle`. The checker, the sheet, the beat boxes, the printed sheet and the
+  transport all read it; they also still take one taal and `startOn − 1`, as the prototype's
+  functions did. A song whose headings name no taal is one run, exactly as before. A new line
+  under a heading after the last line is in that heading's taal.
+- **Shown:** the sheet shows the heading as written and marks each section's beats in its own
+  taal; the section buttons add the taal's Bengali name; the checker's summary names the
+  taals in order ("in Dadra, then Keherwa, then Dadra"); the deck's taal strip shows the taal
+  of the section playing (or about to play), and a count-in is a cycle of it; the printed
+  sheet says the taal changes by section. The section's name (`headingLabel`) leaves the
+  taal out, as it leaves out the tempo.
+- In the **beat boxes,** each heading has a taal picker (the song's, or one of the nineteen):
+  it writes the taal's Bengali name into the heading (" · কাহারবা", before any tempo),
+  replaces one already there, or takes it out; renaming a heading keeps its taal and tempo.
+- The prototype reads such a song in the song's own taal throughout.
 
 ## How the editor writes notation
 
@@ -123,8 +160,9 @@ tested, in `src/core/notation/boxes.ts`). Every box edit is a text edit, so Free
 exactly what the boxes wrote, and headings, lyrics and anything else written there are kept.
 Free text is one tap away and remembered.
 
-- **Rows** are the text's lines: each heading (its name, a tempo field and ×), and each notes
-  line as one box per beat (with ×, ▶ Play and Copy at its right), grouped by the taal's vibhags (from where the line falls in the
+- **Rows** are the text's lines: each heading (its name, a tempo field, a taal picker and ×),
+  and each notes line as one box per beat (with ×, ▶ Play and Copy at its right), grouped by
+  the vibhags of its section's taal (from where the line falls in the
   cycle, start beat included), with the taal marks above and a box for the words of each
   verse below. An unfinished line shows empty boxes to the end of its cycle. After the song,
   once its last line is finished or under a heading after it, an empty row as long as the
@@ -175,10 +213,11 @@ Free text is one tap away and remembered.
 - **MIDI keyboards** type here too: each key is a beat, written from the song's Sa
   (`noteToken`, canonical as above), two octaves either side.
 
-## Checker (`checkNotation(parsed, taal, startOff)`)
+## Checker (`checkNotation(parsed, taals)`)
 
 1. **Bars on vibhag lines.** Each bar (or each line with no bars) must end on a vibhag
-   boundary of the taal. Each bar is judged on its own: after a bad bar the position snaps
+   boundary of the taal (its section's own, counted from its sam, in a song that changes
+   taal). Each bar is judged on its own: after a bad bar the position snaps
    to the nearest vibhag, so one extra beat is reported once instead of shifting every later
    bar. Reports the bar, its length and the likely intended length.
 2. **Octave slips.** A run of 1–3 notes that leaps 8+ semitones away from both neighbours

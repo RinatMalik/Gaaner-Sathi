@@ -13,7 +13,7 @@ Clearing a browser's site data ("cookies and site data") deletes it all.
 
 | What | Kept in | Moves to another device or person |
 |---|---|---|
-| Your songs: notation, title, taal, tempo, Sa, start beat, section tempos, tags, star, notes, the song's own sound | `localStorage` | Yes: **Export this song** (one) or **Back up all my songs** (all), then **Import** there |
+| Your songs: notation, title, taal, tempo, Sa, start beat, section tempos and taals, tags, star, notes, the song's own sound | `localStorage` | Yes: **Export this song** (one) or **Back up all my songs** (all), then **Import** there |
 | The built-in exercises and the starter rewaz | The app itself | Everyone has them |
 | Your settings: your usual sound, your Sa, the practice settings, script, theme, the editor view, the MIDI choice | `localStorage` | No |
 | Practice log (Progress) | `localStorage` | Downloadable as a file from Progress, but not importable |
@@ -49,7 +49,7 @@ as it was set up (its sound and notes included), without the sender's log, takes
 
 | Field | Meaning |
 |---|---|
-| `taal` | One of 19 taal ids (ENGINE.md → Taals): `dadra`, `keherwa`, `rupak`, `jhaptal`, `ektal`, `teentaal`, `jhampak`, `shashthi`, `rupakra`, `nabatal`, `ekadashi`, `nabapanchatal`, `khemta`, `deepchandi`, `dhamar`, `jhumra`, `teora`, `kawali`, `garba`. Anything else reads as `dadra` (the prototype also reads the last thirteen as `dadra`). |
+| `taal` | One of 19 taal ids (ENGINE.md → Taals): `dadra`, `keherwa`, `rupak`, `jhaptal`, `ektal`, `teentaal`, `jhampak`, `shashthi`, `rupakra`, `nabatal`, `ekadashi`, `nabapanchatal`, `khemta`, `deepchandi`, `dhamar`, `jhumra`, `teora`, `kawali`, `garba`. Anything else reads as `dadra` (the prototype also reads the last thirteen as `dadra`). Sections may have their own, in their headings (NOTATION.md → A taal per section); the prototype plays them in this one. |
 | `tempo` | Matras per minute, 30–240. Sections may have their own, in their headings (NOTATION.md → Sections). |
 | `saKey` | Semitones above C, 0–11. The app shows the CT-X3000 key too ("C · White 1", "C♯ · Black 1", …). |
 | `saOct` | 3, 4 or 5 (Low, Middle, High); Sa = MIDI 12 × (saOct + 1) + saKey. |
