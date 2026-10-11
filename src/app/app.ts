@@ -21,7 +21,10 @@
  * if its heading gives one; and printing (print.ts).
  */
 import { saFreq } from '../audio/dsp/pitch';
+import { wavFile } from '../audio/dsp/pcm';
 import { createEngine, createLiveContext } from '../audio/engine';
+import { MicError, micProblemText } from '../audio/mic';
+import { Recorder } from '../audio/recorder';
 import type { DroneType, GuideLevel, GuideLoop, SoundSettings } from '../audio/sound';
 import { Transport, type BeatEntry, type PlaySource } from '../audio/transport';
 import { EXERCISES } from '../core/exercises';
@@ -33,6 +36,7 @@ import { AKAR } from '../core/notation/symbols';
 import type { Beat, ParsedSong, Unit } from '../core/notation/types';
 import { lastPractised, logFileText, MIN_LOG_SECS, type LogEntry } from '../core/practice/log';
 import { itemLines, type RoutineItem } from '../core/practice/routine';
+import { clockText, MIN_TAKE_SECS, newTakeId, textSig, type Take } from '../core/practice/take';
 import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefix, type ImportedSong } from '../core/song/file';
 import { cleanNotes, newId, normalize, parseTags, type Song } from '../core/song/model';
 import { soundOf, type SongSound } from '../core/song/sound';
@@ -43,6 +47,7 @@ import { initBoxes, withNewHeading, type Boxes } from './boxes';
 import { initPrint } from './print';
 import { initProgress } from './progress';
 import { initRewaz, type ItemSong, type Rewaz } from './rewaz';
+import { takeBuffer, takeFileName, takesHTML, TakeStore } from './takes';
 import { initVoice, type SaChoice, type VoiceUI } from './voice';
 import { initSongs } from './songs';
 import { loadPrefs, LogStore, RoutineStore, savePrefs as writePrefs, SongStore, TABS, type KeyValueStore, type Tab, type WriteResult } from './store';
@@ -102,7 +107,17 @@ const boxesMode = () => prefs.editMode !== 'text';
 const boxesShown = () => boxesMode() && !$('#edit').hidden;
 const routineStore = new RoutineStore(storage);
 /** While a rewaz item plays: its own tempo and guide, over the song's and the settings'. */
-let itemOverride: { tempo?: number; guide?: GuideLevel; guideLoop?: GuideLoop } | null = null;
+let itemOverride: {
+  tempo?: number;
+  guide?: GuideLevel;
+  guideLoop?: GuideLoop;
+  /** A take playing back: the song's tempo then, and its count-in and tempo trainer. */
+  baseTempo?: number;
+  countIn?: boolean;
+  ramp?: boolean;
+  rampStep?: number;
+  rampMax?: number;
+} | null = null;
 /** Set while the rewaz itself opens a song, which must not stop the rewaz. */
 let runnerLoading = false;
 
@@ -148,6 +163,7 @@ const soundSource = new Proxy<SoundSettings>(prefs, {
   get(_t, k) {
     if (k === 'guide' && itemOverride?.guide) return itemOverride.guide;
     if (k === 'guideLoop' && itemOverride?.guideLoop) return itemOverride.guideLoop;
+    if ((k === 'countIn' || k === 'ramp' || k === 'rampStep' || k === 'rampMax') && itemOverride && itemOverride[k] != null) return itemOverride[k];
     return Reflect.get(sound, k);
   },
 });
@@ -173,13 +189,16 @@ const source: PlaySource = {
  * section's own, else the song's. */
 function baseTempoAt(s: number): number {
   if (itemOverride?.tempo) return itemOverride.tempo;
-  return sections[sectionOfLine(sections, parsed.lineOfBeat[s] ?? -1)]?.tempo ?? current.tempo;
+  return sections[sectionOfLine(sections, parsed.lineOfBeat[s] ?? -1)]?.tempo ?? itemOverride?.baseTempo ?? current.tempo;
 }
 
 function ensureAudio(): Transport {
   if (!T) {
     T = new Transport(createEngine(createLiveContext()));
-    T.onBeat = (q, spb) => pitchUI.beat(q, spb);
+    T.onBeat = (q, spb) => {
+      if (runFirst < 0) runFirst = q.time;
+      pitchUI.beat(q, spb);
+    };
   }
   return T;
 }
@@ -200,6 +219,7 @@ function play(fromN?: number, rounds?: number): void {
   const ctx = tr.E.ctx as AudioContext;
   if (ctx.state !== 'running') void ctx.resume();
   voiceUI.stop();
+  if (takePlay?.how === 'me') stopTakeAlone();
   if (tr.playing) stop(true);
   const L = parsed.noteLines;
   const from = clamp(fromN != null ? fromN : +select('#fromLine').value || 0, 0, L.length - 1);
@@ -214,9 +234,11 @@ function play(fromN?: number, rounds?: number): void {
   deckBeat = -1;
   // Before start: starting schedules the first beat, and pitch feedback must hear of it.
   pitchUI.startRun();
+  runFirst = -1;
   const r = tr.start(source, { from, to, loop, rounds });
   if (!r) return;
   startRun(r.from, r.to, loop);
+  startTakeRun(r.from, loop);
   setPlayUI(true);
   if (r.pre > 0) setNowMessage('Count-in', '', String(r.pre));
   timer = window.setInterval(tick, 25);
@@ -227,6 +249,7 @@ function play(fromN?: number, rounds?: number): void {
 /** Stop playing. `ended`: the song or its rounds came to their end by themselves. */
 function stop(silent?: boolean, ended = false): void {
   if (!T || !T.playing) return;
+  endTakeRun(run?.end || T.E.ctx.currentTime, run);
   endRun(T.E.ctx.currentTime, pitchUI.endRun());
   T.stop();
   clearInterval(timer);
@@ -237,6 +260,17 @@ function stop(silent?: boolean, ended = false): void {
   setPlayUI(false);
   unwake();
   deckBeat = -1;
+  if (takePlay?.how === 'guide') {
+    const src = takePlay.src;
+    takePlay = null;
+    takeBuf = null;
+    try {
+      src?.stop();
+    } catch {
+      // already stopped
+    }
+    void renderTakes();
+  }
   if (!silent) showIdle();
   // A rewaz goes on to its next item when this one ended by itself; any other stop ends it.
   if (ended) rewaz.finished();
@@ -406,7 +440,7 @@ function trackRun(q: BeatEntry, ctxNow: number): void {
 function endRun(at: number, pitch: { score: number; lines: [number, number][] } | null): void {
   const r = run;
   run = null;
-  if (!r || !r.first) return;
+  if (!r || !r.first || takePlay) return;
   const secs = (r.end || at) - r.first;
   if (secs < MIN_LOG_SECS) return;
   const e: LogEntry = {
@@ -640,6 +674,261 @@ function rememberExerciseSa(): void {
   savePrefs();
 }
 
+// ── Takes: record while playing, play back against the guide ──────────────────
+
+let takeStore: TakeStore | null = null;
+let takeStoreTried = false;
+let recorder: Recorder | null = null;
+/** "Record me" is on: each play is a take. */
+let recArmed = false;
+/** AudioContext time of the run's first scheduled beat (count-in included), −1 before it. */
+let runFirst = -1;
+/** What a take being recorded needs from its run. */
+let takeRun: Omit<Take, 'id' | 'at' | 'secs' | 'rate' | 'rounds' | 'to'> & { at: number } | null = null;
+/** The take playing back: with the guide (through the transport) or alone. */
+let takePlay: { take: Take; how: 'guide' | 'me'; src: AudioBufferSourceNode | null } | null = null;
+let takesShown: Take[] = [];
+let takeConfirm = '';
+
+async function takes(): Promise<TakeStore | null> {
+  if (!takeStoreTried) {
+    takeStoreTried = true;
+    takeStore = typeof indexedDB === 'undefined' ? null : await TakeStore.open();
+  }
+  return takeStore;
+}
+const setTakeStatus = (t: string) => {
+  $('#takesStatus').textContent = t;
+};
+
+function setRecUI(): void {
+  const b = $('#recBtn');
+  const live = recArmed && !!recorder?.recording;
+  b.setAttribute('aria-pressed', String(recArmed));
+  b.classList.toggle('live', live);
+  $('#recLab').textContent = !recArmed ? 'Record me' : live ? 'Recording' : 'Recording on';
+}
+
+/** "Record me": open the microphone (and keep it open) or close it. */
+async function toggleRecord(): Promise<void> {
+  if (recArmed) {
+    recArmed = false;
+    if (recorder?.recording && T) await saveTake(recorder, T.E.ctx.currentTime, run);
+    recorder?.close();
+    recorder = null;
+    setRecUI();
+    void renderTakes();
+    return;
+  }
+  const store = await takes();
+  if (!store) {
+    $('#takesBox').hidden = false;
+    setTakeStatus('This browser cannot keep recordings (private browsing, or site data switched off).');
+    return;
+  }
+  let ctx: AudioContext;
+  try {
+    ctx = ensureAudio().E.ctx as AudioContext;
+    if (ctx.state !== 'running') void ctx.resume();
+  } catch {
+    setTakeStatus('Sound is unavailable in this browser.');
+    return;
+  }
+  $('#recLab').textContent = 'Starting…';
+  try {
+    recorder = await Recorder.open(ctx);
+  } catch (e) {
+    recorder = null;
+    setRecUI();
+    $('#takesBox').hidden = false;
+    setTakeStatus(micProblemText(e instanceof MicError ? e.problem : 'other'));
+    return;
+  }
+  recArmed = true;
+  setRecUI();
+  void renderTakes();
+  setTakeStatus('Recording is on: press Play, and each play becomes a take.');
+  // Already playing: record from the next play.
+}
+
+/** A play has started: record it, if recording is on (not while a take plays back). */
+function startTakeRun(from: number, loop: boolean): void {
+  if (takePlay?.how === 'guide' && takePlay.src === null) startTakeVoice();
+  if (!recArmed || !recorder || takePlay || runFirst < 0) {
+    takeRun = null;
+    return;
+  }
+  const s = soundSource;
+  takeRun = {
+    song: current.id, title: current.title, at: Date.now() + (runFirst - recorder.ctx.currentTime) * 1000, from, loop,
+    tempo: current.tempo, countIn: !!s.countIn, ramp: !!s.ramp, rampStep: s.rampStep, rampMax: s.rampMax,
+    lag: prefs.pitchLag ?? recorder.latency(), sig: textSig(current.text),
+  };
+  if (itemOverride?.tempo) takeRun.flat = itemOverride.tempo;
+  recorder.begin(runFirst);
+  setRecUI();
+}
+
+/** A play has stopped (at AudioContext time `at`): keep its take. */
+function endTakeRun(at: number, r: typeof run): void {
+  if (!recorder?.recording) return;
+  void saveTake(recorder, at, r);
+}
+
+async function saveTake(rec: Recorder, at: number, r: typeof run): Promise<void> {
+  const tr = takeRun;
+  takeRun = null;
+  const pcm = await rec.end(at + (tr?.lag ?? 0) + 0.3);
+  setRecUI();
+  if (!tr) return;
+  const secs = pcm.length / rec.rate;
+  if (secs < MIN_TAKE_SECS) {
+    setTakeStatus('That play was too short to keep as a take.');
+    return;
+  }
+  const { at: when, ...rest } = tr;
+  const take: Take = { ...rest, id: newTakeId(), at: Math.round(when), secs: Math.round(secs * 10) / 10, rate: rec.rate, to: r ? (r.loop ? r.to : r.line) : tr.from, rounds: r && r.loop ? r.pass + 1 : 1 };
+  try {
+    await (await takes())!.add(take, pcm);
+    setTakeStatus('Take saved (' + clockText(take.secs) + ').');
+  } catch {
+    setTakeStatus('The take could not be saved: this browser’s storage may be full. Delete old takes, or download them first.');
+  }
+  void renderTakes();
+}
+
+/** The open song's takes, under the sheet. */
+async function renderTakes(): Promise<void> {
+  const store = takeStoreTried ? takeStore : await takes();
+  const song = current.id;
+  const list = store ? await store.list(song) : [];
+  if (song !== current.id) return; // another song opened meanwhile
+  takesShown = list;
+  drawTakes();
+}
+/** The takes as last read (the notation changing only changes their notes). */
+function drawTakes(): void {
+  const list = takesShown;
+  $('#takesBox').hidden = !list.length && !recArmed && !$('#takesStatus').textContent;
+  $('#takesCount').textContent = list.length ? String(list.length) : '';
+  $('#takesList').innerHTML = takesHTML(list, Date.now(), textSig(current.text), { confirm: takeConfirm, playing: takePlay ? { id: takePlay.take.id, how: takePlay.how } : undefined });
+}
+
+async function takeSamples(t: Take): Promise<AudioBuffer | null> {
+  const pcm = await (await takes())?.samples(t.id);
+  if (!pcm) {
+    setTakeStatus('This take’s recording is missing.');
+    return null;
+  }
+  return takeBuffer(ensureAudio().E.ctx, pcm, t.rate);
+}
+
+/** Play a take against the guide: its lines, rounds, tempo, count-in and tempo trainer as
+ * they were, with the guide every round, and the voice in step with it. */
+async function playTakeWithGuide(t: Take): Promise<void> {
+  const buf = await takeSamples(t);
+  if (!buf) return;
+  if (playing()) stop(true);
+  if (takePlay?.how === 'me') stopTakeAlone();
+  rewaz.cancel();
+  clearOverride();
+  select('#fromLine').value = String(t.from);
+  select('#toLine').value = String(t.to);
+  input('#loopChk').checked = t.loop;
+  itemOverride = {
+    baseTempo: t.tempo, countIn: t.countIn, ramp: t.ramp, rampStep: t.rampStep, rampMax: t.rampMax,
+    guideLoop: 'all', guide: sound.guide === 'off' ? 'full' : undefined,
+  };
+  if (t.flat) itemOverride.tempo = t.flat;
+  takePlay = { take: t, how: 'guide', src: null };
+  takeBuf = buf;
+  play(t.from, t.loop ? t.rounds : undefined);
+  if (!playing()) {
+    takePlay = null;
+    clearOverride();
+  }
+  void renderTakes();
+}
+let takeBuf: AudioBuffer | null = null;
+
+/** The voice of the take playing back, from the run's first beat, skipping its delay. */
+function startTakeVoice(): void {
+  if (!takePlay || !takeBuf || !T || runFirst < 0) return;
+  const src = T.E.ctx.createBufferSource();
+  src.buffer = takeBuf;
+  src.connect(T.E.master);
+  src.start(runFirst, Math.min(takePlay.take.lag, takeBuf.duration));
+  takePlay.src = src;
+  src.onended = () => {
+    if (takePlay?.src === src) stop();
+  };
+}
+
+async function playTakeAlone(t: Take): Promise<void> {
+  const buf = await takeSamples(t);
+  if (!buf) return;
+  if (playing()) stop(true);
+  if (takePlay?.how === 'me') stopTakeAlone();
+  const E = ensureAudio().E;
+  const ctx = E.ctx as AudioContext;
+  if (ctx.state !== 'running') void ctx.resume();
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.connect(E.master);
+  src.start(ctx.currentTime + 0.05, Math.min(t.lag, buf.duration));
+  takePlay = { take: t, how: 'me', src };
+  src.onended = () => {
+    if (takePlay?.src === src) {
+      takePlay = null;
+      void renderTakes();
+    }
+  };
+  void renderTakes();
+}
+function stopTakeAlone(): void {
+  if (takePlay?.how !== 'me') return;
+  const src = takePlay.src;
+  takePlay = null;
+  try {
+    src?.stop();
+  } catch {
+    // already stopped
+  }
+  void renderTakes();
+}
+
+async function onTakeClick(e: Event): Promise<void> {
+  const b = (e.target as Element).closest<HTMLElement>('button[data-act]');
+  const t = b && takesShown.find((x) => x.id === b.dataset.id);
+  if (!b || !t) return;
+  const act = b.dataset.act;
+  if (act === 'guide') {
+    if (takePlay?.take.id === t.id && takePlay.how === 'guide') stop();
+    else await playTakeWithGuide(t);
+  } else if (act === 'me') {
+    if (takePlay?.take.id === t.id && takePlay.how === 'me') stopTakeAlone();
+    else await playTakeAlone(t);
+  } else if (act === 'dl') {
+    const pcm = await (await takes())?.samples(t.id);
+    if (pcm) void offerFile(takeFileName(t), new Blob([wavFile(pcm, t.rate) as BlobPart], { type: 'audio/wav' }), setTakeStatus);
+  } else if (act === 'del') {
+    takeConfirm = t.id;
+    void renderTakes();
+  } else if (act === 'no') {
+    takeConfirm = '';
+    void renderTakes();
+  } else if (act === 'yes') {
+    takeConfirm = '';
+    if (takePlay?.take.id === t.id) {
+      if (takePlay.how === 'me') stopTakeAlone();
+      else stop();
+    }
+    await (await takes())?.remove(t.id);
+    setTakeStatus('Take deleted.');
+    void renderTakes();
+  }
+}
+
 /** Day, night, or (unset) as the device says. */
 function applyTheme(): void {
   if (prefs.theme) document.documentElement.setAttribute('data-theme', prefs.theme);
@@ -673,6 +962,7 @@ function reparse(keepLines: boolean): void {
   renderSections();
   refreshSelection();
   if (boxesShown()) boxes.refresh();
+  if (takesShown.length) drawTakes();
   if (!playing()) showIdle();
 }
 
@@ -773,6 +1063,10 @@ function loadSong(song: Song | Exercise): void {
   selTouched = false;
   reparse(false);
   songsView.render();
+  if (takePlay?.how === 'me') stopTakeAlone();
+  takeConfirm = '';
+  setTakeStatus('');
+  void renderTakes();
 }
 
 function changed<K extends keyof Song>(field: K, value: Song[K]): void {
@@ -1004,7 +1298,7 @@ const setLibStatus = (t: string) => setFileStatus(t, '#libStatus');
 const today = () => new Date().toISOString().slice(0, 10);
 
 /** Save a file the ordinary way; inside a frame that may block downloads, copy it instead. */
-async function offerFile(name: string, text: string, say: (t: string) => void = setFileStatus): Promise<void> {
+async function offerFile(name: string, text: string | Blob, say: (t: string) => void = setFileStatus): Promise<void> {
   let framed = true;
   try {
     framed = window.top !== window.self;
@@ -1012,7 +1306,7 @@ async function offerFile(name: string, text: string, say: (t: string) => void = 
     framed = true;
   }
   if (!framed) {
-    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+    const url = URL.createObjectURL(typeof text === 'string' ? new Blob([text], { type: 'application/json' }) : text);
     const a = document.createElement('a');
     a.href = url;
     a.download = name;
@@ -1024,6 +1318,7 @@ async function offerFile(name: string, text: string, say: (t: string) => void = 
     return;
   }
   try {
+    if (typeof text !== 'string') throw new Error('not text');
     await navigator.clipboard.writeText(text);
     say('Copied the song file to the clipboard. Paste it into a text file to keep it.');
   } catch {
@@ -1437,6 +1732,8 @@ export function init(): void {
   $('#tabRewaz').addEventListener('click', () => switchTab('rewaz'));
   $('#tabProgress').addEventListener('click', () => switchTab('progress'));
   $('#tabVoice').addEventListener('click', () => switchTab('voice'));
+  $('#recBtn').addEventListener('click', () => void toggleRecord());
+  $('#takesList').addEventListener('click', (e) => void onTakeClick(e));
   $('#themeSeg').addEventListener('click', (e) => {
     const b = segButton(e);
     if (!b) return;

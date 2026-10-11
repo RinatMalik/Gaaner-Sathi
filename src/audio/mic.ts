@@ -67,6 +67,49 @@ export function micProblemText(p: MicProblem): string {
 
 const loaded = new WeakSet<BaseAudioContext>();
 
+/** Ask for the microphone with the voice processing off. Call from a tap or click. */
+export async function openStream(ctx: AudioContext): Promise<MediaStream> {
+  if (typeof isSecureContext !== 'undefined' && !isSecureContext) throw new MicError('insecure', 'not a secure context');
+  if (!navigator.mediaDevices?.getUserMedia || !ctx.audioWorklet || typeof AudioWorkletNode === 'undefined') throw new MicError('unsupported', 'no getUserMedia or AudioWorklet');
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 },
+    });
+  } catch (e) {
+    const name = e instanceof Error ? e.name : '';
+    const p: MicProblem = name === 'NotAllowedError' || name === 'SecurityError' ? 'denied'
+      : name === 'NotFoundError' || name === 'OverconstrainedError' ? 'nodevice'
+        : name === 'NotReadableError' || name === 'AbortError' ? 'busy' : 'other';
+    throw new MicError(p, name || String(e));
+  }
+}
+
+/**
+ * The microphone into a node that posts its samples in blocks of `hop`, each with the frame
+ * number just after its last sample, kept going by a silent path to the speakers. Returns the
+ * nodes, to disconnect when done.
+ */
+export async function captureStream(ctx: AudioContext, stream: MediaStream, hop: number, onBlock: (end: number, data: Float32Array) => void): Promise<{ source: MediaStreamAudioSourceNode; node: AudioWorkletNode; sink: GainNode }> {
+  if (!loaded.has(ctx)) {
+    const url = URL.createObjectURL(new Blob([WORKLET], { type: 'text/javascript' }));
+    try {
+      await ctx.audioWorklet.addModule(url);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+    loaded.add(ctx);
+  }
+  const source = ctx.createMediaStreamSource(stream);
+  const node = new AudioWorkletNode(ctx, 'gs-capture', { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 1, channelCountMode: 'explicit', processorOptions: { hop } });
+  const sink = ctx.createGain();
+  sink.gain.value = 0;
+  source.connect(node);
+  node.connect(sink);
+  sink.connect(ctx.destination);
+  node.port.onmessage = (m: MessageEvent<{ end: number; data: Float32Array }>) => onBlock(m.data.end, m.data.data);
+  return { source, node, sink };
+}
+
 export class Mic {
   private constructor(
     private readonly ctx: AudioContext,
@@ -78,48 +121,18 @@ export class Mic {
 
   /** Ask for the microphone and start reading pitch. Call from a tap or click. */
   static async open(ctx: AudioContext, onReading: (r: MicReading) => void): Promise<Mic> {
-    if (typeof isSecureContext !== 'undefined' && !isSecureContext) throw new MicError('insecure', 'not a secure context');
-    if (!navigator.mediaDevices?.getUserMedia || !ctx.audioWorklet || typeof AudioWorkletNode === 'undefined') throw new MicError('unsupported', 'no getUserMedia or AudioWorklet');
-    let stream: MediaStream;
+    const stream = await openStream(ctx);
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 },
-      });
-    } catch (e) {
-      const name = e instanceof Error ? e.name : '';
-      const p: MicProblem = name === 'NotAllowedError' || name === 'SecurityError' ? 'denied'
-        : name === 'NotFoundError' || name === 'OverconstrainedError' ? 'nodevice'
-          : name === 'NotReadableError' || name === 'AbortError' ? 'busy' : 'other';
-      throw new MicError(p, name || String(e));
-    }
-    try {
-      if (!loaded.has(ctx)) {
-        const url = URL.createObjectURL(new Blob([WORKLET], { type: 'text/javascript' }));
-        try {
-          await ctx.audioWorklet.addModule(url);
-        } finally {
-          URL.revokeObjectURL(url);
-        }
-        loaded.add(ctx);
-      }
       const N = windowSize(ctx.sampleRate);
       const hop = N / 2;
       const detector = new PitchDetector(N, ctx.sampleRate);
       const win = new Float32Array(N);
-      const source = ctx.createMediaStreamSource(stream);
-      const node = new AudioWorkletNode(ctx, 'gs-capture', { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 1, channelCountMode: 'explicit', processorOptions: { hop } });
-      // A silent path to the speakers keeps the browser pulling audio through the node.
-      const sink = ctx.createGain();
-      sink.gain.value = 0;
-      source.connect(node);
-      node.connect(sink);
-      sink.connect(ctx.destination);
-      node.port.onmessage = (m: MessageEvent<{ end: number; data: Float32Array }>) => {
+      const { source, node, sink } = await captureStream(ctx, stream, hop, (end, data) => {
         win.copyWithin(0, hop);
-        win.set(m.data.data, N - hop);
+        win.set(data, N - hop);
         const r = detector.detect(win);
-        onReading({ ...r, t: (m.data.end - N / 2) / ctx.sampleRate });
-      };
+        onReading({ ...r, t: (end - N / 2) / ctx.sampleRate });
+      });
       return new Mic(ctx, stream, source, node, sink);
     } catch (e) {
       for (const t of stream.getTracks()) t.stop();

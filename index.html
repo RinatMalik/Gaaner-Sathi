@@ -52,8 +52,11 @@
       </div>
     </div>
     <div class="ctl">
-      <span class="lab">Pitch · microphone</span>
+      <span class="lab">Microphone</span>
+      <div class="row">
       <button id="micBtn" class="micbtn" type="button" aria-pressed="false" aria-controls="pitchBox"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="micLab">Check my pitch</span></button>
+      <button id="recBtn" class="micbtn recbtn" type="button" aria-pressed="false" aria-controls="takesBox"><span class="recdot" aria-hidden="true"></span><span id="recLab">Record me</span></button>
+      </div>
     </div>
     <div class="ctl grow">
       <span class="lab">Lines to practise</span>
@@ -166,6 +169,12 @@
       <div class="chips secs" id="secChips" role="group" aria-label="Sections: tap one to play from there" hidden></div>
       <details class="about" id="aboutBox" hidden><summary>About this song</summary><div class="abouttext" id="aboutText"></div></details>
       <div class="sheet" id="sheetP"></div>
+      <details class="takes" id="takesBox" open hidden>
+        <summary>My takes <span class="n" id="takesCount"></span></summary>
+        <p class="phint">While <b>Record me</b> is on, each play is a take. Play one back against the guide to hear where you were off. Takes stay in this browser.</p>
+        <ul class="tklist" id="takesList"></ul>
+        <span class="fstatus" id="takesStatus" aria-live="polite"></span>
+      </details>
     </div>
   </main>
 
