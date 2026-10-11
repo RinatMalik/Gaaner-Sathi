@@ -82,3 +82,49 @@ An unknown character flags its beat (`“ক” is not a note the player knows`)
 3. Parse errors and lyric warnings are listed alongside.
 
 The checker is advisory. Its false-negative and false-positive trade-offs are deliberate; keep the exercise library free of warnings as a regression test.
+
+## Sections (added 2026-10-11)
+
+`src/core/notation/sections.ts`, worked out beside the parser (which stays the prototype's).
+
+- A **section** is a run of notes lines under the same heading. When several headings come one
+  after another, the last names the section (an exercise's tip, then `# আরোহ`, is "আরোহ").
+  Lines before any heading are a section with no name. Practice shows a button for each
+  section when there are two or more; a tap plays from its first line, looping it when
+  looping is on.
+- **A tempo per section:** a heading may give one, as `tempo 110`, `লয় ১১০` (Bengali or Latin
+  digits; য় in either spelling) or `♩=110`, anywhere in it: `# অন্তরা · tempo 110`,
+  `# সঞ্চারী (লয় ৮০)`. A tempo in a heading just above the one that names the section counts
+  too. Clamped to 30–240. Sections without one play at the song's tempo. The sheet shows the
+  heading as written; the section buttons show the name and "♩110".
+- The deck shows and changes the tempo of the section playing (or about to play): for a
+  section with its own tempo, the change is written back into its heading, keeping its words
+  and its digits; otherwise it is the song's tempo.
+
+## Beat boxes (added 2026-10-11)
+
+The editor's default view (`src/app/boxes.ts`; text changes in `src/core/notation/boxes.ts`).
+The text stays the only record: every box edit is a text edit, so Free text shows exactly
+what the boxes wrote, and headings, lyrics and anything else written there are kept.
+
+- **Rows** are the text's lines: each heading (its name and a tempo field), and each notes
+  line as one box per beat grouped by the taal's vibhags (from where the line falls in the
+  cycle, start beat included), taal marks above, a box for the words of each verse below.
+  An unfinished line shows empty boxes to the end of its cycle. After the song, once its last
+  line is finished or under a heading after it, an empty row as long as the line before it
+  (whole cycles) starts a new line; Enter opens one after any line.
+- **Typing:** a space or a bar moves to the next box; several beats typed or pasted into a box
+  write over the boxes after it, then fill the line's empty boxes, then make new lines after
+  it (each as long as the line before). Text pasted with line breaks goes in whole, after the
+  line. Backspace in an empty box goes back, and in an emptied beat removes it (its words
+  too); a beat left empty becomes a hold, or goes if it was the line's last. Undo (Ctrl+Z)
+  takes changes back one box at a time.
+- **Readable input:** a beat the player cannot read is mended when that makes it readable:
+  sargam spelt out (`sa re ga ma pa dha ni`, any case, with octave marks) becomes letters
+  (`S R G M P D N`), and `রে`, `নি` become `রা`, `না`.
+- **Bars:** new lines get bars at the vibhags when the song's lines have bars (or there are
+  none yet), in the bar character the song uses most; a line keeps its own style. Words
+  rewritten under a line get bars where it has them only if they were written with bars.
+  Blank words between others are written `-` (a held vowel).
+- **MIDI keyboards** type here too: each key is a beat, written from the song's Sa
+  (`noteToken` in `edit.ts`, canonical as above), two octaves either side.

@@ -4,7 +4,7 @@
 > the user need to stay in sync lives here: product direction, working rules, live
 > state, decisions, and the work log.
 >
-> **Last updated:** 2026-10-11 by Claude (Opus 5.5)
+> **Last updated:** 2026-10-11 (02:20 BST) by Claude (Opus 5.5)
 
 ## How to use this file
 
@@ -34,20 +34,21 @@ decision, which always wins (see Source-of-truth order).
 
 - **Current milestone:** Phase 1, features and functionality (Roadmap at a glance
   below). Phase 0 (the port) closed on 2026-10-10.
-- **Current task:** Phase 1's features so far are built and live, in Review: PH1-01 song
-  library, PH1-02 pitch feedback, PH1-03 rewaz routine and practice log, PH1-04 each
-  song's own sound, PH1-05 more taals.
-- **Next single action:** Rinat tries them on real songs (above all: sings a line with
-  pitch feedback, listens to the new taals' thekas, sets up a few songs' sounds) and starts
-  a separate session for the next features.
-- **Last known-good commit:** `e1eb3e5` (CI run `38094062227`: core, reference and deploy
-  jobs green); this session's commits are recorded in the newest Work log entry.
+- **Current task:** Phase 1's features are built and live, in Review: PH1-01 song library,
+  PH1-02 pitch feedback, PH1-03 rewaz and practice log, PH1-04 each song's own sound,
+  PH1-05 more taals, and PH1-06, Rinat's ten picks of 2026-10-11 (beat boxes, the Voice
+  tab, takes, MIDI keyboards, sections with their own tempo, notes, print, day and night).
+- **Next single action:** Rinat tries the ten picks on real songs (above all: writes a song
+  in the beat boxes, connects the CT-X3000, records a take and plays it back, finds a Sa),
+  then says what to change; after that, the design phase (Phase 2).
+- **Last known-good commit:** `4799fa6` (CI run `38100429528`: core, reference and deploy
+  jobs green; checked live); this session's commits are in the newest Work log entry.
 - **How to run it now:** https://rinatmalik.github.io/Gaaner-Sathi/ (`/new/` forwards
   there). Locally: `npm install`, then `npm run dev` (the app at `/`, the audio check at
   `/dev/render.html`) and `npm test` (see Conventions → Stack).
 - **Blockers:** none.
-- **Uncommitted work:** Rinat's own draft of the next prompt, appended to the end of
-  `docs/ROADMAP.md` in the working tree. Not Claude's: left untouched and uncommitted.
+- **Uncommitted work:** two blank lines Rinat added at the end of `docs/ROADMAP.md` (what
+  is left of a draft prompt). Not Claude's: left untouched and uncommitted.
 
 ## Product direction — what this is meant to be now
 
@@ -67,7 +68,10 @@ app; then a fresh native mobile app (not a web page in a wrapper).** Until then 
 screen stays tidy and responsive, but its look and phone polish are not a focus. The
 features: a song library for many songs, live pitch feedback from the microphone, a
 daily rewaz routine with a practice log, each song's own sound, sixteen taals (Tagore's
-own among them), then whatever Rinat picks from the feature ideas in `docs/ROADMAP.md`. **Usable straightaway, with no tutorial or learning curve**
+own among them), and Rinat's ten picks from the feature ideas in `docs/ROADMAP.md` (beat
+boxes for writing notation, a Voice tab with a range finder and a hold-a-note trainer,
+takes, MIDI keyboards, sections with their own tempo, notes per song, printing, day and
+night colours). **Usable straightaway, with no tutorial or learning curve**
 (Rinat, 2026-10-10): features come in only when Rinat asks for them, and none may make
 the basics harder to find. North-star flow: open the app (it opens on an exercise,
 ready to play) → press play and sing → pick or type in your own song → loop the hard
@@ -88,7 +92,7 @@ built-in voices (never).
 | Phase | What | Done when |
 |---|---|---|
 | 0 | Port: TypeScript core, audio engine and interface to parity with the prototype; deployed from `main` (done 2026-10-10) | done |
-| **1 ◀ now** | Features and functionality, in the web app: song library; pitch feedback from the microphone; rewaz routine and practice log; each song's own sound; Tagore's taals and four more; then the feature ideas Rinat picks | Rinat has used every feature on real songs and is happy |
+| **1 ◀ now** | Features and functionality, in the web app: song library; pitch feedback from the microphone; rewaz routine and practice log; each song's own sound; Tagore's taals and four more; Rinat's ten picks (2026-10-11) | Rinat has used every feature on real songs and is happy |
 | 2 | Design: one intuitive design across every feature, in the web app | Rinat signs off the design |
 | 3 | Native mobile app: a fresh build, Android first | the app on Rinat's phone does everything the web app does |
 | Parked | Offline web app, permanent web address, recorded instruments, ornaments, error reporting, accounts | only if Rinat asks |
@@ -283,14 +287,17 @@ them (level 4); `docs/PARITY.md` is a checklist (level 6).
   (the page), `src/core/` (pure: notation, taal, exercises, song), `src/audio/` (engine,
   instruments, transport; `src/audio/dsp/` is pure DSP), `src/app/` (the screen:
   `view.ts` pure HTML builders, `store.ts` storage, `app.ts` the wiring, `styles.css`;
-  since Phase 1 also `songs.ts`, `pitch.ts`, `rewaz.ts`, `progress.ts`), `src/core/pitch/` and
-  `src/core/practice/` (pure: scoring, the log, routines), `src/audio/mic.ts`,
+  since Phase 1 also `songs.ts`, `pitch.ts`, `rewaz.ts`, `progress.ts`, `boxes.ts`,
+  `voice.ts`, `takes.ts`, `keyboard.ts`, `print.ts`), `src/core/pitch/` and
+  `src/core/practice/` (pure: scoring, the log, routines, the voice sums, takes),
+  `src/core/notation/sections.ts` and `boxes.ts` (pure), `src/audio/mic.ts`,
+  `recorder.ts`, `midi.ts`,
   `tests/ported/` (the reference suites one-for-one), `tests/differential/` (port
   versus the prototype's own code, including a recording stand-in for Web Audio and fake
   page elements for its rendering), `tests/unit/`, `dev/` (dev-only check pages).
   - **One click away:** the live app, https://rinatmalik.github.io/Gaaner-Sathi/,
     rebuilt from `main` on every push (so never stale).
-  - `npm install` once; `npm test` runs every Vitest suite (226 tests, about 9 s).
+  - `npm install` once; `npm test` runs every Vitest suite (285 tests, about 10 s).
   - `npm run dev`: the Vite dev server, the app at `/`; `/dev/render.html` renders
     sessions through the prototype's engine and the port's and compares them (the
     audio check). Claude starts it with the browser pane's `preview_start` ("dev" in
@@ -349,6 +356,14 @@ them (level 4); `docs/PARITY.md` is a checklist (level 6).
     scripts in a heredoc can also fail to parse; write them to a file too. In a bash
     double-quoted `node -e "…"`, backticks run as commands (one ran a markdown file and
     left two empty files); never put backticks there.
+  - Headless Edge's `--user-data-dir` must be a short path (`%TEMP%\gsp\…`): under the
+    session's scratch folder the profile's IndexedDB files pass 260 characters and every
+    `indexedDB.open` fails with "Internal error opening backing store".
+  - To test MIDI without a keyboard: `Page.addScriptToEvaluateOnNewDocument` with a stand-in
+    `navigator.requestMIDIAccess` whose output records `send(data, at)` and whose input can
+    "press" keys (`onmidimessage`).
+  - Shell heredocs also turn a `\\u0000` meant for page code into a real NUL character:
+    write such edit scripts with the Write tool, and scan for control characters after.
   - To test pitch feedback without a singer: start headless Edge with
     `--use-fake-ui-for-media-stream --use-fake-device-for-media-stream
     --use-file-for-fake-audio-capture=<file.wav>%noloop` (a 16-bit mono WAV, short path);
@@ -417,6 +432,7 @@ progress, Blocked, Review, Done, Superseded.*
 | PH1-03 | Claude | Review | `src/core/practice/routine.ts`, `src/app/rewaz.ts`, `src/app/progress.ts`, `src/audio/transport.ts`, `tests/` | 12 unit tests; headless Edge: a 2-item routine ran hands-free to "Rewaz done" (rounds, the pause, "your turn" rounds), logged with its name and tempo; Skip, Stop; Progress and its download; 360 px both themes (Work log 2026-10-10 20:00) | Rewaz routines and Progress; waiting for Rinat's use |
 | PH1-04 | Claude | Review | `src/core/song/`, `src/audio/sound.ts`, `src/app/`, `index.html`, `tests/` | 8 unit tests; headless Edge on the built site: a song keeps its whole Melody and Rhythm set from its first change while the usual sound stays as it was, through switching songs, a reload, a change while playing, a copy, export and import; "Use my usual sound"; a rewaz plays each item with its own; 360 px both themes (Work log 2026-10-11 00:40) | Each song remembers its own sound; waiting for Rinat's use |
 | PH1-05 | Claude | Review | `src/core/taal/`, `src/audio/instruments/percussion.ts`, `src/app/view.ts`, `tests/`, `dev/` | 10 unit tests; the prototype's six still compared exactly; offline renders: levels like the prototype's, silence exactly on the rests; headless Edge: picker, strip, marks, start beats, checker and playing for all ten (Work log 2026-10-11 00:40) | Tagore's six taals, and Khemta, Deepchandi, Dhamar, Jhumra; waiting for Rinat's ears |
+| PH1-06 | Claude | Review | `index.html`, `src/`, `tests/`, `docs/` | 59 new unit tests (285 in all); headless Edge on the dev server, a scenario each with real key and mouse events: theme and notes (20 checks), sections and tempos (15), print with a PDF made (7), beat boxes (29), Voice with WAVs as the microphone (range 16, hold 10), takes with a WAV microphone (21), MIDI with a stand-in keyboard (20); 360 px both themes; live site checked (Work log 2026-10-11 02:20) | Rinat's ten picks (chat 2026-10-11): day and night, notes per song, sections and their tempo, print or PDF, beat boxes, the Voice tab, takes, MIDI keyboards; waiting for Rinat's use (CT-X3000 not tried) |
 
 ## Decisions log
 
@@ -459,6 +475,12 @@ consequence.*
 | 2026-10-10 | Rewaz: items have their own lines, rounds, tempo and guide, which never change the song or the device settings; the transport can stop a loop after N rounds; a 4 s pause shows what is next; any user play, stop or song change ends the routine; a starter "Daily warm-up" stays on offer like the exercises. | Claude, building PH1-03 | The other Sound settings (rhythm, drone, tempo trainer) apply to routines as set. |
 | 2026-10-10 | Five views under the deck (Songs, Practice, Edit notation, Rewaz, Progress) as tabs, with the deck and Sound bar shown for all. | Claude, following Rinat's "features first, design later" | The navigation is for the Phase 2 design to settle. |
 | 2026-10-11 | Each song remembers its own sound: the Melody and Rhythm settings are saved with one of the user's songs on the first change made while it is open, as a whole set, so it sounds the same whatever changes later. Exercises, new songs and songs not yet changed use "your usual sound" (the device's settings), which a change made on an exercise sets; "Use my usual sound" removes a song's own; the Practice settings stay the device's. Stored and exported as an optional `sound` field (still version 1). | Rinat, chat 2026-10-10 ("please do these 2 tasks only"); the behaviour is Claude's choice | Songs from before sound as they did until changed. To change the usual sound, change it on an exercise (the note in the Sound settings says so). |
+| 2026-10-11 | Beat boxes are the editor's default (Free text one tap away, remembered): a box per beat grouped by the taal's vibhags, words under each beat, headings as rows with a tempo field. The text stays the only record. New lines are as long as the line above (whole cycles, one at first); typed or pasted beats write over the boxes after them, then fill the line, then make new lines; `sa re ga`, রে and নি are mended into notes; bars follow the song's style. | Rinat, chat 2026-10-11 ("a more structured way where there will be sectioned boxes representing each beat … like 2FA boxes"); the details are Claude's reading of it, for Rinat to correct | NOTATION.md → Beat boxes. Headings, lyrics and comments keep working as before. |
+| 2026-10-11 | A section's tempo is written in its heading (`tempo 110`, `লয় ১১০`, `♩=110`); sections without one play at the song's tempo (no carrying on to the next section); the deck shows and changes the tempo of the section playing, writing it back into the heading. | Claude, building Rinat's pick "a tempo per section" | Songs without section tempos play as before; the text stays readable by the prototype. |
+| 2026-10-11 | "Your Sa": the range finder's suggestion (Use as my Sa), or a Sa changed on an exercise, is kept on the device; exercises open in it (they were all C4) and new songs start in it. A song's own Sa is unchanged unless "Use for this song". | Claude, building Rinat's pick "a range finder" | DATA.md → Settings `mySa`. |
+| 2026-10-11 | Takes: captured on the guide's clock, halved to 24 kHz 16-bit, kept in IndexedDB (the app's first use of it), played back against the guide with the run's settings; not in song files; Download as WAV. | Claude; ADR-004 | DATA.md → Takes. |
+| 2026-10-11 | MIDI through Web MIDI for any keyboard, not only the Casio: step typing in the editor, the guide on the keyboard (its own sound by default, or General MIDI reed organ or accordion), and a drawn keyboard showing the keys to press. | Rinat asked that it be brand-agnostic and light (chat 2026-10-11); Claude, ADR-005 | Not tried on the CT-X3000 yet; Safari and iPhones have no Web MIDI. |
+| 2026-10-11 | A Voice tab after Rewaz; day and night as Auto, Day, Night in the header; printing through the browser's own print dialog (its Save as PDF), with a print-only sheet. | Claude, building Rinat's picks (Rinat may move the Voice tab later) | No library for PDFs. |
 | 2026-10-11 | Ten more taals. Tagore's six have only talis, no khali, with the thekas gitabitan.net gives: Subinay Roy's on tabla, and mridanga thekas (Kangalicharan Sen's, Subinay Roy's) where no tabla one exists. Khemta is the 12-matra form, Dhamar is divided as in Rabindrasangeet (3\|2\|2\|3\|4, khali on 4 and 8), Deepchandi and Jhumra are the standard ones. A rest in a theka plays nothing. The app keeps these taal ids; the prototype reads them as Dadra. | Rinat, chat 2026-10-10; Claude's research (sources in `docs/ENGINE.md` → Taals) | Open question 5. Their dholak and drum patterns are Claude's, for Rinat to judge by ear. |
 
 ## Open questions
@@ -470,13 +492,14 @@ current work (unless marked). Defaults apply until answered.*
    হসন্ত after it? Default: keep reading both, write `.`.
 2. **Conjuncts from phonetic keyboards** such as Avro: is `ম্প` lower Ma + Pa (current)
    or plain Ma + Pa? Default: unchanged until decided.
-3. **Permanent web address.** GitHub Pages is decided for now
-   (`rinatmalik.github.io/Gaaner-Sathi`). Later: point a subdomain such as
+3. **Permanent web address** (of the app, not of each song). GitHub Pages is decided for
+   now (`rinatmalik.github.io/Gaaner-Sathi`). Later: point a subdomain such as
    `gaanersathi.rinatmalik.com` (one DNS record at Hostinger) or a dedicated domain at
-   it. Saved songs belong to the web address, so moving later means exporting and
-   re-importing. Less pressing since 2026-10-10: the native app is the product, and the
-   web app is where features and the design are built. Settle it before anyone besides
-   Rinat relies on the web app.
+   it. Browsers keep a site's saved data (songs, settings, log, takes) under its address,
+   separately for each user and device, so moving later means every user backing up at
+   the old address and importing at the new one. Less pressing since 2026-10-10: the
+   native app is the product. Settle it before anyone besides Rinat relies on the web app
+   (Rinat asked what it meant, 2026-10-11; explained in the reply).
 4. **Free, paid or donations?** Matters once the native app heads for an app store
    (Phase 3). No licence for now.
 5. **Two taal forms.** Khemta is the 12-matra form of the Bengali tabla books, not
@@ -490,6 +513,83 @@ current work (unless marked). Defaults apply until answered.*
 statements must name the exact command, result, and environment — "tests pass"
 is not sufficient. When this grows long, keep only the last few entries here and
 move older ones into a `HISTORY.md` you create then, so this file stays lean.*
+
+### 2026-10-11 02:20 BST — Claude (Opus 5.5) — PH1-06 Rinat's ten picks
+
+- **Goal:** Rinat picked ten features before the design phase: a range finder (as a tab
+  beside Rewaz and Progress); MIDI (type a song on the keyboard, the guide on the Casio's
+  harmonium voice, the key to press for each note), brand-agnostic and light; record takes
+  and play them back against the guide; notes per song; jump between sections by heading;
+  a hold-a-note trainer; a tempo per section; print or PDF; night and day; and a structured
+  way to write notation (a box per beat, filled like 2FA boxes), keeping headings and
+  comments working. Rinat also asked what the "permanent web address" question means.
+- **Inspected:** the notation parser, edit operations and checker; `app.ts`, `view.ts`,
+  `store.ts`, the transport, mic and pitch code; DATA, NOTATION, ENGINE, ROADMAP; Casio's
+  CT-X3000 pages (it is General MIDI level 1, 16 parts; its MIDI implementation PDF was not
+  reachable, so channel and tone details are not claimed).
+- **Changed:** `741eb4a` (day and night; notes per song); `232d771` (sections and their
+  tempo; `src/core/notation/sections.ts`, `tempoAt` in the transport); `1a2d9d1` (print or
+  PDF); `d5d7bcf` (beat boxes: `src/core/notation/boxes.ts`, `src/app/boxes.ts`); `84a04ce`
+  (the Voice tab: `src/core/pitch/voice.ts`, `src/app/voice.ts`, "your Sa"); `9c7d03f`
+  (takes: `src/audio/recorder.ts`, `src/audio/dsp/pcm.ts`, `src/core/practice/take.ts`,
+  `src/app/takes.ts`, ADR-004); `4799fa6` (MIDI and the keys: `src/audio/midi.ts`,
+  `src/app/keyboard.ts`, `onNote`/`localGuide` in the transport, ADR-005); this commit
+  (README, NOTATION, DATA, ENGINE, ROADMAP without Rinat's blank lines, this file).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through
+  the DevTools protocol on `npm run dev`, real key and mouse events, profiles under %TEMP%):
+  - `npm run typecheck` → 0; `npx vitest run` → 28 files, 285 passed (59 new: notes and
+    theme 3, sections 8, print 2, boxes 15, voice 13, pcm 3, takes 6, MIDI 8, store 1);
+    `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid;
+    `tests/differential/audio.test.ts` 17/17 after the transport changes (section tempos,
+    guide notes out); `npm run build` → 176 kB JS (62.6 kB gzip), 31 kB CSS.
+  - Theme and notes (20 checks): Auto follows the device, Day and Night override it and
+    survive a reload with no flash; notes saved, shown, searched, copied, removed when
+    emptied. Sections (15): buttons named by headings (আরোহ / অবরোহ on exercises), a tap
+    plays from there and loops the section; the deck follows each section's tempo while
+    playing (120 → 184 → 80) and writes a change into its heading; a Bengali `লয় ৮০` read.
+    Print (7): the button and Ctrl+P fill a print-only sheet, black on white in night
+    colours, PDF named after the song; `Page.printToPDF` made a 51 kB PDF.
+  - Beat boxes (29): typing `s`, `a`, space, `re ga ma` gives `S R G | M`; Bengali; a pasted
+    line fills a row and spills into a new one; Backspace goes back and removes a beat;
+    words a beat each, a gap held with `-`; Enter puts a line in between; Ctrl+Z; + Heading
+    with a tempo; ↑ Higher on the box; note buttons; Free text both ways; Teentaal regroups;
+    a reload keeps it. Bugs found and fixed: lines started from one beat never got bars;
+    two rows of empty boxes after an unfinished last line; lyric bars not shifting when a
+    beat is removed; verses gaining bars they never had.
+  - Voice with WAVs as the microphone: range (16): B2 held, A4 only passed through, G4 held →
+    lowest B2, highest G4, "Your Sa: E (White 3), low octave"; Use as my Sa → exercises and
+    new songs in E3; for a song from `.পা` to `র্সা`, F♯ fits; kept after a reload. Hold (10):
+    a 6 s C4 held 5 cents sharp → "Held 6.0 s, very steady (±5 cents), in tune", best kept.
+  - Takes with a WAV microphone (21): Record me → each play a take (a 15 s play after the
+    count-in: a 16.8 s take, 808 544 bytes of 24 kHz samples in IndexedDB, delay 0.062 s);
+    kept after a reload; Just me; With the guide stopped by itself 17.0 s after the tap;
+    not logged as practice (the recorded play was); WAV download (RIFF, 24 kHz, 808 588
+    bytes); a changed notation noted; delete asks first and removes the samples. Bugs found and
+    fixed: a take ending while the next started shared state; editing a song did not
+    refresh its takes' notes.
+  - MIDI with a stand-in keyboard (20): connect, keys typed as beats from Sa C4
+    (`সা রা পা | র্সা .পা`), an octave typed once, out-of-range refused; the guide on the
+    keyboard: bank 0 / program 20 first, then notes on and off 83–130 ms ahead, spaced
+    545 ms at 110 a minute, first note included; all-notes-off twice on Stop; nothing sent
+    on "This device"; the drawn keys light in turn and stay on after a reload. Bug found and
+    fixed: the first note was sent at once (stamped in the past, then 32 ms early): the
+    audio clock's reading drifts ~32 ms over its first 20 ms (measured), so notes wait for it.
+  - 360 px in both themes for every view touched: no sideways scrolling.
+  - CI runs `38097120319` (`1a2d9d1`), `38098253189` (`d5d7bcf`), `38098711083` (`84a04ce`),
+    `38099833105` (`9c7d03f`), `38100429528` (`4799fa6`): all green, deployed. Live
+    (`s_live`): six tabs with Voice, section buttons, record, keys, print and keyboard
+    controls, exercise 3 plays, a song typed in boxes, no console errors; `/` 200, `/new/` 200.
+- **Decisions made:** see Decisions log (the 2026-10-11 rows on beat boxes, section tempo,
+  your Sa, takes, MIDI, the Voice tab); ADR-004, ADR-005; Open question 3 reworded.
+- **Risks or disagreements:** nothing here has met a real voice, ear or keyboard. The beat
+  boxes are Claude's reading of Rinat's idea (lines a cycle long, writing over on paste);
+  phone keyboards (Gboard, Avro) were not tried. MIDI is untested on the CT-X3000: which
+  tone channel 1 plays and whether its GM reed organ answers are guesses until Rinat tries.
+  Takes line up by the delay pitch feedback found (or the device's guess): Rinat should
+  listen for a voice late against the guide. The Sa suggestion assumes songs span mandra Pa
+  to taar Ga. IndexedDB can be evicted under storage pressure; Download is the safe copy.
+  The deck and settings keep growing above the views: for the design phase.
+- **Next handoff:** Rinat tries the ten on real songs; then the design phase.
 
 ### 2026-10-11 00:40 BST — Claude (Opus 5.5) — PH1-04 each song's own sound; PH1-05 more taals
 

@@ -34,6 +34,7 @@ As implemented in the prototype, plus what the web app has added since (marked *
 | `updatedAt` | ms epoch, used to resolve edits arriving from another device. |
 | `tags` | *Added 2026-10-10.* Library tags, free text: trimmed, single-spaced, no commas, at most 40 characters each and 20 per song, no two the same apart from case. Absent when there are none. |
 | `fav` | *Added 2026-10-10.* `true` for a favourite; absent otherwise. |
+| `notes` | *Added 2026-10-11.* Notes about the song (its meaning, source, a teacher's comments): free text, at most 20 000 characters, shown above the sheet, printed, and searched. Absent when empty. |
 | `sound` | *Added 2026-10-11.* The song's own Melody and Rhythm settings, with the same names and values as the device settings below: `guide`, `reeds`, `droneType`, `droneVol`, `tanTune`, `beat`, `tablaVol`, `speed`, `fills`, `layers`. Absent while the song uses the usual sound. The app writes the whole set; reading checks each field and leaves out any it cannot read, so the device's setting shows through for that one. |
 
 The prototype runs every song through `normalize()` when it loads, which clamps all fields. Keep that tolerance for imported files. The app's `normalize()` also cleans `tags`, `fav` and `sound`, and leaves them out when unset, so a prototype song reads exactly as before.
@@ -45,7 +46,7 @@ The prototype runs every song through `normalize()` when it loads, which clamps 
   "songs": [ { "title": "...", "taal": "...", "tempo": 100, "saKey": 0, "saOct": 4, "startOn": 1, "text": "..." } ] }
 ```
 
-- Each song may also carry `tags` and `fav` (*added 2026-10-10*) and `sound` (*added 2026-10-11*), only when set. They are optional, so files stay version 1: the prototype and older readers skip them (and read a taal they do not know as Dadra), and the app reads them back on import.
+- Each song may also carry `tags` and `fav` (*added 2026-10-10*), `sound` and `notes` (*added 2026-10-11*), only when set. They are optional, so files stay version 1: the prototype and older readers skip them (and read a taal they do not know as Dadra), and the app reads them back on import.
 - **Export this song** writes one song in that envelope; **Back up all my songs** writes them all (examples excluded).
 - **Import** accepts that envelope, a bare array of songs, a single song object, or a plain `.txt`, which becomes one song titled from the file name. Limits are 2 MB per file, 200 songs per import and 200 000 characters per song. Imports always get new ids, so they never overwrite.
 - Files exported before the rename say `"format": "swaralipi-player"`. The importer never checks this field, so both import; keep it that way.
@@ -74,11 +75,18 @@ The prototype runs every song through `normalize()` when it loads, which clamps 
 | `rampStep` | number |
 | `rampMax` | number |
 | `lastSong` | song id |
-| `tab` | `practice` or `edit`; *added:* `songs`, `rewaz`, `progress` |
+| `tab` | `practice` or `edit`; *added:* `songs`, `rewaz`, `progress`, and `voice` (2026-10-11) |
 | `libSort` | *Added.* How the Songs view sorts: `practised`, `changed` or `title` |
 | `pitchOctave` | *Added.* `true` when pitch feedback should count the octave too; absent otherwise |
 | `pitchLag` | *Added.* Pitch feedback: the delay from a beat to the voice found last time, seconds (0–0.6) |
 | `rewazId` | *Added.* The rewaz routine last chosen |
+| `theme` | *Added 2026-10-11.* `light` (Day) or `dark` (Night); absent: Auto, as the device says. Read by a line in the page's head before the app runs, so a reload never flashes the other colours |
+| `editMode` | *Added 2026-10-11.* `text` when the editor shows free text; absent: beat boxes |
+| `mySa` | *Added 2026-10-11.* Your Sa, `{ saKey, saOct }`: from the range finder's "Use as my Sa", or a Sa changed on an exercise. Exercises open in it, and new songs start in it (they took the open song's before) |
+| `voiceRange` | *Added 2026-10-11.* The lowest and highest notes the range finder heard, `{ lo, hi }`, MIDI numbers with fractions |
+| `holdNote`, `holdBest` | *Added 2026-10-11.* The hold trainer's note (cents from Sa: −500, −300, −100, 0, 200, 400, 500, 700, 900, 1100 or 1200) and the longest hold on each, `{ "700": 12.4 }` seconds |
+| `showKeys` | *Added 2026-10-11.* `true` to show the keys to press on the Practice view |
+| `midi` | *Added 2026-10-11.* A MIDI keyboard: `{ route: 'app' \| 'kb' \| 'both', sound: 'keep' \| 'organ' \| 'accordion', out?: id }`: where the guide plays, in what sound, on which keyboard |
 
 Older keys are migrated on load: `extra` → `layers`, and `dropGuide` → `guideLoop: 'first'`.
 
@@ -98,8 +106,32 @@ Older keys are migrated on load: `extra` → `layers`, and `dropGuide` → `guid
   | `gaanersathi.prefs.v1` | Settings, starting from the prototype's the first time, plus `soundOpen` (whether the Sound settings are unfolded; unset until first folded or unfolded) and `libSort` |
   | `gaanersathi.log.v1` | The practice log (below): `[entry, …]`, oldest first; each entry is appended to what is stored, so another tab's entries survive |
   | `gaanersathi.routines.v1` | Rewaz routines (below): `{ [id]: routine }`; each save changes only its own routine |
+  | IndexedDB `gaanersathi` | *Added 2026-10-11.* Takes (below): store `takes` (details, indexed by `song`) and store `audio` (`{ id, pcm }`, the samples) |
 
-  The song list is the prototype's songs with this app's on top (the newer `updatedAt` wins), less the hidden ones. Changes saved in another tab are taken in as they happen. IndexedDB only if large data such as recordings ever arrives; account sync is a parked idea (see the roadmap). Rinat's songs in the claude.ai version come across with "Back up all my songs" there, then Import in the app.
+  The song list is the prototype's songs with this app's on top (the newer `updatedAt` wins), less the hidden ones. Changes saved in another tab are taken in as they happen. Recordings (takes) went to IndexedDB on 2026-10-11 (ADR-004); account sync is a parked idea (see the roadmap). Rinat's songs in the claude.ai version come across with "Back up all my songs" there, then Import in the app.
+
+## Takes (added 2026-10-11)
+
+A recording of the singer during one play, while "Record me" is on (ADR-004). Kept in
+IndexedDB, never in song files; Download writes one as a mono 16-bit WAV file.
+
+```json
+{ "id": "take-mv33v2f4-56twq", "song": "song-…", "title": "…", "at": 1791679736267, "secs": 12.9,
+  "rate": 24000, "from": 0, "to": 2, "loop": false, "rounds": 1, "tempo": 110, "countIn": true,
+  "ramp": false, "rampStep": 4, "rampMax": 160, "lag": 0.18, "sig": "1x3k9q:5c" }
+```
+
+| Field | Meaning |
+|---|---|
+| `at`, `secs`, `rate` | When its first beat sounded; its length; its sample rate (half the device's) |
+| `from`, `to`, `loop`, `rounds` | Lines played, whether they looped, rounds begun |
+| `tempo`, `flat` | The song's tempo then; a rewaz item's tempo, which every beat took, if one played |
+| `countIn`, `ramp`, `rampStep`, `rampMax` | The count-in and tempo trainer as they were, so playback is the same run |
+| `lag` | Seconds from a beat to the voice reaching the app; playback skips that much of the take |
+| `sig` | A fingerprint of the notation then, to say when it has changed since |
+
+The samples are 16-bit, at `rate`, starting at the run's first scheduled beat (count-in
+included). Takes are checked when read; damaged ones are skipped.
 
 ## Practice log (added 2026-10-10)
 

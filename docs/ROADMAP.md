@@ -119,9 +119,29 @@ the dholak and drums (`docs/ENGINE.md` → Taals). The taal picker groups them.
 **Done when (4 and 5):** Rinat has set up a few songs' sounds and found them kept, and the
 new thekas sound right to Rinat.
 
-### 6. Next, as Rinat chooses
+### 6. Rinat's ten picks (built 2026-10-11)
 
-- Anything from Feature ideas below that Rinat picks.
+Picked from the feature ideas, in Rinat's words where they matter:
+
+- **Beat boxes** for writing notation: "as soon as the taal is chosen, it is known how many
+  beats there need to be". A box per beat, laid out by the taal; typing a space or pasting
+  "সা রা গা মা" fills a box each; headings, words and the free text are kept as they are
+  (NOTATION.md → Beat boxes). Free text stays one tap away.
+- **A Voice tab:** a range finder (sing your lowest and highest notes; it suggests your Sa,
+  and the best Sa for the open song) and a hold-a-note trainer for breath and steadiness.
+- **Takes:** record while playing, play back against the guide (ADR-004).
+- **MIDI keyboards**, any brand: type a song by playing it, play the guide on the
+  keyboard's own sound, and the keys to press for each note (ADR-005).
+- **Sections:** jump between them by their headings; a tempo per section.
+- **A notes field per song;** **print or save as PDF;** **day and night colours.**
+
+**Done when (6):** Rinat has used them on real songs: written a song in the boxes, found a
+Sa, held a note, recorded and played back a take, connected the CT-X3000 (typing and the
+guide), jumped between sections, printed a sheet.
+
+### 7. Next, as Rinat chooses
+
+- Anything left in Feature ideas below that Rinat picks.
 
 **Phase done when:** Rinat has used every feature on real songs and is happy with what
 the app can do.
@@ -162,21 +182,18 @@ day or two, L more.
 
 - **Learning songs:** play a line, then leave a gap to sing it back (call and response
   without looping) (S); memory mode that hides the notes, then the lyrics, line by line
-  (S); jump between sections by their headings (sthayi, antara) (S); a notes field per
-  song for meaning, source (Gitabitan, Swarabitan) or a teacher's comments (S).
+  (S). (Jumping between sections and a notes field per song were built on 2026-10-11.)
 - **Voice and ear:** free singing with the drone and the pitch meter, no song needed
-  (S); a range finder that suggests the best Sa for the singer's voice (S); sing-back ear
-  training: the app plays a phrase, the singer repeats it, it scores (M); a hold-a-note
-  trainer for breath and steadiness (S).
-- **The Casio CT-X3000:** type a song by playing it on the keyboard (MIDI over USB into
-  notation) (M); play the guide on the Casio's own harmonium voice through MIDI (S); show
-  which key to press for each note (S).
+  (S); sing-back ear training: the app plays a phrase, the singer repeats it, it scores
+  (M). (The range finder and the hold-a-note trainer were built on 2026-10-11.)
+- **Keyboards:** typing a song in time as it is played (the rhythm from the playing, not
+  just the notes) (M). (Step typing, the guide on the keyboard and the keys to press were
+  built on 2026-10-11, for any MIDI keyboard.)
 - **Notation and rhythm:** ornaments: meend, kan, andolan, murki, khatka in notation and
-  playback (L); a tempo per section (S); print or save a clean swaralipi sheet as PDF (S).
-  (Tagore's taals and four more were built on 2026-10-11.)
-- **Recording:** record takes and play them back against the guide (M); practise with a
-  recording of the original song: loop a section, slow it without changing the pitch,
-  shift the key (L).
+  playback (L). (Tagore's taals and four more, a tempo per section and printing were built
+  on 2026-10-11.)
+- **Recording:** practise with a recording of the original song: loop a section, slow it
+  without changing the pitch, shift the key (L). (Takes were built on 2026-10-11.)
 - **Practice habits:** suggestions of what to revise today (songs not practised for a
   while) (S); goals and daily reminders (native app) (S); a learning stage per song
   (new, learning, ready to perform) (S).
@@ -194,8 +211,12 @@ Each needs Rinat's go-ahead first.
 - **Offline and installable web app** (service worker, web manifest; was Phase 1): the
   native app will be offline by nature. Revisit if Rinat wants to practise offline
   before then.
-- **Permanent web address** (`CONTEXT.md` → Open question 3): songs are saved per web
-  address, so settle it before anyone else relies on the web app.
+- **Permanent web address** (`CONTEXT.md` → Open question 3): the address the app lives at
+  (now rinatmalik.github.io/Gaaner-Sathi), not one per song. A browser keeps each site's
+  saved data under the site's address, so if the app later moves to another address (say
+  gaanersathi.rinatmalik.com), every user's songs stay behind at the old one until they back
+  them up there and import them at the new one. Settle it before anyone besides Rinat relies
+  on the web app.
 - **Recorded instruments** instead of synthesis.
 - **Ornaments in the notation.**
 - **Error reporting** (needs a third-party service; would send no song content).

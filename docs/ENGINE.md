@@ -22,6 +22,8 @@ Because melody, rhythm and highlight all come from the same scheduled times, the
 - Not looping: the transport stops at the first beat after the song, plays a final stroke if that beat is sam, and ends 1.3 s later.
 - **Guide on repeats** (`guideOn`): every round, first round only, or every other round (call and response; the panel says "your turn, sing it alone").
 - **Tempo trainer** (`liveTempo`): when looping, round n plays at `min(rampMax, tempo + rampStep × n)`. The song's saved tempo is not changed.
+- **A tempo per section** (*added 2026-10-11*): the source's `tempoAt(s)` gives each song beat its section's tempo (from its heading, NOTATION.md → Sections), else the song's; the count-in takes the first section beat's, and the tempo trainer adds to each section's own (`max(base, min(rampMax, base + rampStep × n))`). A rewaz item's tempo still plays every beat. Without section tempos nothing changes (the comparisons with the prototype still pass call for call).
+- **Guide notes out** (*added 2026-10-11*): `onNote(t, dur, midi)` hears each guide note as it is scheduled, and `localGuide = false` leaves the harmonium out, for a MIDI keyboard (ADR-005).
 - Screen wake lock is requested while playing.
 
 ## Taals
@@ -178,6 +180,20 @@ The microphone, the detector and the scores (`src/audio/mic.ts`, `src/audio/dsp/
   100 on every line, 35 cents flat 50, the delay found within the first line.
 - **Not yet:** timing (early or late) in the score. It needs the true round-trip delay,
   and the delay found from the singing includes the singer's own lateness.
+
+## Added 2026-10-11
+
+- **Hold-a-note trainer** (Voice tab): its own transport on the same engine plays the note
+  (`S - - -` at 60 a minute, guide on the first round only) over the tanpura, then the drone
+  alone while the voice is timed (`src/core/pitch/voice.ts` → `HoldTimer`).
+- **Takes** (ADR-004): the microphone is captured on the AudioContext clock (frame-stamped
+  worklet blocks), halved in rate as it arrives (31-tap half-band filter: a 440 Hz tone keeps
+  its level within 0.1 dB, 18 kHz drops by more than 40 dB), and played back from the run's
+  first scheduled beat, skipping the singer's delay, through the master bus.
+- **MIDI out** (ADR-005): guide notes on channel 1 at velocity 100 (Soft: 50), timed on the
+  performance clock from a settled `getOutputTimestamp()` reading; measured in Edge with a
+  stand-in keyboard, notes go out spaced exactly at the tempo (545 ms at 110 a minute, the
+  first included) and about 0.1 s ahead.
 
 ## Known limitations
 
