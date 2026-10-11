@@ -1075,7 +1075,7 @@ function applyEditMode(): void {
   for (const el of $$('#pal .tonly')) el.hidden = b;
   for (const el of $$('#pal .bonly')) el.hidden = !b;
   $('#modeHint').textContent = b
-    ? 'A box for each beat: type a note and a space to go on. Notes typed together share a beat (সারা). Tap line numbers to select lines to copy; drag one to move it.'
+    ? 'A box for each beat: type a note and a space to go on. Notes typed together share a beat (সারা). Paste a line of words under its first note to fill a syllable per note. Tap line numbers to select lines to copy; drag one to move it.'
     : 'Type as in your diary: a space between beats, a new line for each line.';
   if (boxesShown()) boxes.render();
 }

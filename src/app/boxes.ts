@@ -1,13 +1,15 @@
 /**
  * Beat boxes in the editor (docs/NOTATION.md → Beat boxes): one box per beat, grouped by the
  * taal's vibhags, a box for the words under each beat, and the headings as their own rows.
- * Typing a space (or a bar) moves to the next box; pasting "সা রা গা মা" fills a box each.
+ * Typing a space (or a bar) moves to the next box; pasting "সা রা গা মা" fills a box each, and
+ * a line of words pasted under the notes is split into syllables, one to each note.
  * A row is dragged by its number (or moved with ↑ ↓ on it); a tap on the number selects it, and
  * Copy puts copies of a line, or of the rows selected, at the end. Play plays one line.
  * Every change goes into the song text (src/core/notation/boxes.ts works it out), which the
  * Free text view shows as it is. The HTML builder is pure and tested in Node.
  */
 import { addHeading, appendBeats, beatsTyped, boxRows, copyRowsToEnd, insertLines, insertText, moveRow, newRowShape, nextSpot, placeBeats, readableBeat, removeBeat, removeHeading, removeLine, setBeat, setHeading, setLyrics, type BoxRow, type BoxSpot, type NewAt } from '../core/notation/boxes';
+import { fillWords, syllables } from '../core/notation/lyrics';
 import { parseSong } from '../core/notation/parse';
 import { setHeadingTempo } from '../core/notation/sections';
 import type { ParsedSong } from '../core/notation/types';
@@ -348,6 +350,34 @@ export function initBoxes(host: BoxesHost): Boxes {
       return;
     }
     write(setLyrics(host.text(), P, +n!, +v!, +j!, [e.value]), key, true);
+  }
+
+  /** Words pasted into a word box: split into sung syllables and laid one to each note, from
+   * this box on through the lines after it. */
+  function pasteWords(key: string, txt: string): boolean {
+    const [, n, v, j] = parts(key);
+    const syl = syllables(txt);
+    const r = fillWords(host.text(), +n!, +v!, +j!, syl);
+    if (!r.placed) return false;
+    write(r.text, key, false);
+    render({ key: 'l:' + r.next.n + ':' + v + ':' + r.next.j, caret: 0 });
+    const rest = syl.slice(r.placed);
+    note(
+      (r.placed === 1 ? '1 syllable' : r.placed + ' syllables') + ' placed, one to each note. ' +
+        (rest.length ? 'No notes left for: ' + rest.join(' ') + '.' : 'Type over any that should go elsewhere.'),
+    );
+    return true;
+  }
+
+  /** A word about the last paste, under the boxes, for a while. */
+  let noteTimer = 0;
+  function note(text: string): void {
+    const p = document.querySelector<HTMLElement>('#bxNote');
+    if (!p) return;
+    p.textContent = text;
+    p.hidden = false;
+    clearTimeout(noteTimer);
+    noteTimer = window.setTimeout(() => (p.hidden = true), 12000);
   }
 
   function onHeadInput(e: HTMLInputElement, key: string): void {
@@ -734,7 +764,10 @@ export function initBoxes(host: BoxesHost): Boxes {
     if (!key || (ev as InputEvent).isComposing) return;
     const k = key[0];
     if (k === 'b' || k === 'g' || k === 'n') onBeatInput(e, key);
-    else if (k === 'l') onLyricInput(e, key);
+    else if (k === 'l' && (ev as InputEvent).inputType === 'insertFromPaste' && e.value.trim()) {
+      // A paste that came without a paste event (a phone keyboard's clipboard): the same.
+      if (!pasteWords(key, e.value)) onLyricInput(e, key);
+    } else if (k === 'l') onLyricInput(e, key);
     else if (k === 'h') onHeadInput(e, key);
   });
   // Phonetic keyboards finish a word here, without another input event.
@@ -750,6 +783,11 @@ export function initBoxes(host: BoxesHost): Boxes {
     const e = ev.target as HTMLInputElement;
     const key = e.dataset.key;
     const txt = ev.clipboardData?.getData('text/plain') ?? '';
+    if (key?.startsWith('l:') && txt.trim()) {
+      ev.preventDefault();
+      pasteWords(key, txt);
+      return;
+    }
     if (!key || !/\n/.test(txt.trim())) return;
     // Several lines: they go in whole (headings, words and all), after this line.
     ev.preventDefault();
