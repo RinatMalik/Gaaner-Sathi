@@ -49,6 +49,59 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-11 13:36 BST — Claude (Opus 5.5) — PH1-09 words split into syllables; Teora, Kawali, Garba
+
+- **Goal:** Rinat: "yes please" to pasting a line of words and having it split into syllables
+  under the notes (Rinat's diaries split words as `আ মার সো নার`); "add a few more taals that
+  are common: Kawali, Teora, Ferta, garba/dandiya"; a roadmap idea for later, after the app is
+  public: Hindi users, and Western music with piano notes. "That's it for features, we'll then
+  move onto the design phase after this."
+- **Inspected:** the taal tables, grooves and their tests; the word boxes' typing and paste
+  paths. Sources: geetabitan.com's taal index and its Teyora and Taal Pherta pages;
+  onushilon.org's Kawali and Kaharba pages (fetched over plain HTTP, read as data; they cite
+  *Tabla Bigyan*, Manas Dasgupta's *Taal-abhidhan*, Prafullakumar Das); nazrulkosh.org entries
+  marked "তাল ফেরতা (দাদরা/কাহারবা)"; kksongs.org's tabla guide (a Qawwali Kaherva); a 2001
+  chandrakantha.com tabla forum thread on the garba rhythm. tablatheka.com was not fetched
+  (it redirected through a gambling site before).
+- **Found:** "Ferta" is taal pherta, songs that change taal between parts, not a taal: asked
+  (Open question 6), not built. No written Garba theka exists in a book; the forum's 6-matra
+  rhythm was used.
+- **Changed:** `bbeba89` (feat): `src/core/notation/lyrics.ts` (`wordSyllables`, `syllables`,
+  `fillWords`), paste into a word box (and a paste that arrives as `insertFromPaste`) fills
+  syllables, a note under the boxes (`#bxNote`), help and hint; 4 tests. `4a6ef09` (feat):
+  Teora, Kawali, Garba in `taals.ts`, their dholak and drum grooves, the picker's More taals
+  group; tests updated. This commit (docs): NOTATION, ENGINE, DATA, ROADMAP (row 9; taal
+  pherta and phonetic typing as ideas; "After the app is public": Hindi, Western music),
+  README, this file (the 08:57 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
+  DevTools protocol on `npm run dev`):
+  - `npm run typecheck` → 0; `npx vitest run` → 29 files, 292 passed (lyrics 4 new: 28 words
+    split as sung, a pasted line with punctuation, laying under notes across lines, the box
+    chosen, a lone `-`, a second verse, words left over; taals: thekas, marks, lengths, 19 in
+    the picker); `npm run build` → 187 kB JS (66.4 kB gzip), 33 kB CSS;
+    `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid.
+  - Scenario `words` (17 checks): a real Ctrl+V (clipboard granted) of
+    "আমার সোনার বাংলা, আমি তোমায়" under line 1's first note gives `> আ মার সো | নার - বাং`
+    and `> লা আ মি | - তো` (held and silent beats `-`), the boxes and sheet show them, the
+    focus goes on, the note says "9 syllables placed … No notes left for: মায়.", one Undo
+    takes it back; a word typed stays whole; the picker offers 19; Teora, Kawali and Garba each
+    check clean with bars on their vibhags, play, and show their theka on the strip; 360 px
+    both themes; no console errors. `boxes` (29) still passes.
+  - Audio (`/dev/render.html`, OfflineAudioContext 48 kHz in headless Edge): the port still
+    matches the prototype (differences 0 on the compared sessions shown); the three new taals'
+    levels are in ENGINE.md → Verifying sound (tabla −18.1 to −19.2 dB RMS, dholak −18.4 to
+    −20.4, drums −21.0 to −23.3, peaks −1.9 to −4.5 dBFS, no silent beats).
+  - CI run `38139753394` (`4a6ef09`): core, reference and deploy jobs green. Live: `words` against
+    https://rinatmalik.github.io/Gaaner-Sathi/ passed all 17 checks, no console errors; `/` 200,
+    `/new/` 200.
+- **Decisions made:** see Decisions (the three newest rows); Open question 6.
+- **Risks or disagreements:** the syllable split is a spelling rule, not a dictionary: words
+  whose sung syllables differ from their spelling (হাওয়া, medial vowels dropped in speech)
+  need a correction by hand. Kawali has other thekas; Garba has no book theka; Kawali's
+  dholak and drums are about 2 dB louder than the other taals'. Nobody has heard the three.
+- **Next handoff:** Rinat answers Open question 6 (taal pherta) and tries pasting words and
+  the three taals; then the design phase (Phase 2).
+
 ### 2026-10-11 10:35 BST — Claude (Opus 5.5) — PH1-08 beat boxes round three
 
 - **Goal:** Rinat ("all works and happy with the decision you made"): remove "+ words" (a

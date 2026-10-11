@@ -184,11 +184,20 @@ Free text is one tap away and remembered.
   a drag). With the number focused, ↑ and ↓ move the row one place. A notes line moves with
   its lyric lines (and any blank lines between them); a heading moves on its own, so moving
   it changes which section the lines around it belong to. Other lines stay where they are.
-- **Copying:** **Copy** on a line puts a copy of it, words and all, at the end of the song.
-  To copy several, tap their numbers (a heading's #, too): each tap selects or unselects a
-  row (✓), and a bar at the top of the boxes copies the rows selected to the end, in the
-  song's order. Clear, Escape on a number, or any change to the song ends the selection. Each
-  move or copy is one undo step.
+  A row that is selected (below) moves with all the rows selected, gathered in the song's
+  order where it is dropped (or one place up or down with the arrows), and they stay
+  selected, to be moved on (`moveRows`).
+- **Selecting:** tap a row's number (a heading's #, too): each tap selects or unselects it
+  (✓). Clear, Escape on a number, or any other change to the song ends the selection.
+- **Copying and pasting:** **Copy** on a line keeps it, words and all; with rows selected,
+  Copy in the bar at the top of the boxes keeps them, in the song's order (`copyRows`). The
+  song is not changed, and the lines also go on the device's clipboard as text. The bar
+  then says what is copied; tapping the number of a row offers **Paste after line N** (or
+  **under the heading**): the copy goes in after the last row selected, after a line's words
+  or just under a heading (`pasteRows`). What is copied stays, to paste again, in this song
+  or another, until **Done**. With a number focused, Ctrl+C copies (the rows selected, or
+  that row) and Ctrl+V pastes after it. Each move or paste is one undo step. (Until
+  2026-10-11's fourth round, Copy put the copy at the end of the song.)
 - **Play** on a line plays just that line once, at its tempo, with no count-in, lighting
   each box as it sounds; ■ Stop stops it. It is not logged as practice or kept as a take,
   and leaves the practice pickers as they were.

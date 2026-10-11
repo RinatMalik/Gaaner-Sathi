@@ -3,7 +3,7 @@
 > The project's shared state, for Rinat, Claude, Codex and any other LLM: what the app is
 > for, how we work, where things stand, the decisions in force and the newest work log.
 >
-> **Last updated:** 2026-10-11 (14:10 BST) by Claude (Opus 5.5)
+> **Last updated:** 2026-10-11 (17:53 BST) by Claude (Opus 5.5)
 
 ## How to use this file
 
@@ -38,11 +38,12 @@ wins, except a later explicit decision by Rinat, which always wins.
 ## Current state
 
 - **Milestone:** Phase 1, features and functionality: closed by Rinat ("That's it for
-  features", 2026-10-11). Everything asked for is built and live (PH1-01 to PH1-10, all in
-  Review), taal pherta last. Next comes the design (Phase 2).
+  features", 2026-10-11). Everything asked for is built and live (PH1-01 to PH1-11, all in
+  Review), the last snags (pasting, dragging several lines, a gentle ending) included. Next
+  comes the design (Phase 2).
 - **Next single action:** start Phase 2, the design (ROADMAP.md → Phase 2), with Rinat;
-  meanwhile Rinat tries a song in taal pherta.
-- **Last known-good commit:** `03e3b31` (CI run `38142030205`: core, reference and deploy jobs green; checked live).
+  meanwhile Rinat tries taal pherta, pasting lines and the new ending.
+- **Last known-good commit:** `7585139` (CI run `38157178276`: core, reference and deploy jobs green; checked live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -58,6 +59,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   - pasting Rinat's own lyrics: how often the syllable split needs correcting;
   - a song in taal pherta: whether each change of taal lands where Rinat sings it, starting
     on sam;
+  - the gentle ending: whether a quarter second's fade sounds natural;
   - the beat boxes with a phone keyboard (Gboard, Avro), and dragging lines on a phone;
   - wake lock and Bluetooth latency on a phone;
   - iOS: the ringer switch, and the sound moving to the earpiece once the microphone is on.
@@ -270,7 +272,7 @@ decision.
 ### Commands
 
 - `npm install` once.
-- `npm test`: every Vitest suite (308 tests, about 10 s). Read the "Test Files" line: a
+- `npm test`: every Vitest suite (312 tests, about 10 s). Read the "Test Files" line: a
   file that fails to load is not counted as a failed test.
 - `npm run typecheck`: the whole project, then `src/core` and `src/audio/dsp` with no DOM
   library (a DOM call there fails).
@@ -341,6 +343,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH1-08 | Claude | Review | Beat boxes round three: ▶ Play per line, Copy to the end, several rows selected and copied, × at the top, Enter for a second verse, smaller editor fonts | Edge scenario `edit3` (27 checks) locally and on the live site; `move` and `boxes` still pass (Work log 2026-10-11 10:35) | Waiting for Rinat's use |
 | PH1-09 | Claude | Review | Words pasted and split into syllables under the notes; Teora, Kawali, Garba | 4 lyrics tests, taal tests; Edge scenario `words` (17 checks) with a real Ctrl+V; offline renders of the three taals (Work log 2026-10-11 13:36) | Waiting for Rinat's use and ears; taal pherta waits on Open question 6 |
 | PH1-10 | Claude | Review | Taal pherta: a section's heading names a taal of its own (a taal picker beside each heading in the beat boxes); it plays, is checked, laid out and shown in it, from its sam | 16 unit tests (a Kaharwa section's Web Audio calls equal a Kaharwa song's); Edge scenario `pherta` (25 checks) locally and live (Work log 2026-10-11 14:10) | Waiting for Rinat's songs in taal pherta |
+| PH1-11 | Claude | Review | Beat boxes round four: Copy keeps lines and Paste puts them after the row selected (in any song); the rows selected are dragged and moved together; smaller boxes and preview (an 8-beat line in one row from a 1024 px window); a gentle ending (the last note and the tail fade over a quarter second) | 5 unit tests; Edge scenarios `paste` (27 checks) and `widths`, locally and live; offline renders of the ending (Work log 2026-10-11 17:53) | Waiting for Rinat's use and ears |
 
 ## Decisions
 
@@ -387,6 +390,8 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-11 | Three more taals: Teora (তেওরা, Rabindrasangeet's, talis only), Kawali (কাওয়ালি, from Bengali tabla books), Garba (গরবা, for Garba and Dandiya, the 6-matra rhythm tabla players give). "Ferta" is taal pherta, a song changing taal between parts: not built, asked (Open question 6). | Rinat, chat 2026-10-11 ("Kawali, Teora, Ferta, garba/dandiya"); sources in ENGINE.md → Taals | Nineteen taals. Their dholak and drum patterns are Claude's. |
 | 2026-10-11 | Phase 1's features are complete ("That's it for features"), apart from Open question 6; then the design phase. Hindi (interface and Devanagari notation) and Western music (piano note names, staff notation) are ideas for after the app is public and popular. | Rinat, chat 2026-10-11 | ROADMAP.md → After the app is public. |
 | 2026-10-11 | Taal pherta, built before the design phase: a section's heading may name a taal (any of the nineteen, in English or Bengali spellings: `# অন্তরা · কাহারবা`); that section plays, is checked, laid out in boxes and marked in it, and sections without one are in the song's taal (no carrying on, as with tempos). Each change of taal starts on the new taal's sam, the song's first beat still on `startOn`; singing that comes in later writes `x` for the beats before. A heading naming two taals names none. The beat boxes get a taal picker per heading, which writes the taal's Bengali name into it. | Rinat, chat 2026-10-11 ("do taal pherta now, then we'll start design", answering Open question 6); the rules are Claude's | NOTATION.md → A taal per section. Open question 6 removed. Phase 1's features are all built. |
+| 2026-10-11 | Beat boxes, round four: Copy no longer pastes; it keeps a line (or the rows selected, also on the device's clipboard), and a bar offers Paste after the last row selected (under a heading when that is selected), in this song or another, until Done; Ctrl+C and Ctrl+V on a number do the same. A selected row dragged (or moved with ↑ ↓) takes every selected row with it, gathered in the song's order, and they stay selected. Boxes 16 px at 2.6em wide, the editor preview 18/14 px. | Rinat, chat 2026-10-11 ("all selected lines could be dragged"; "8 beats are breaking into two lines"; "create a paste button and have it paste after whichever line is selected"); keeping the copy across songs, Ctrl+C/V and the selection staying after a move are Claude's choices | Replaces round three's "Copy … at the end". NOTATION.md → Beat boxes. |
+| 2026-10-11 | A gentle ending: when a song, or the last of a set number of rounds, ends by itself, its last note and then whatever still sounds fade over about a quarter second; a stop pressed by hand stays quick. | Rinat, chat 2026-10-11 ("maybe quarter of a second of fade out?") | ENGINE.md → Transport; the comparisons with the prototype use its own short ending. |
 
 ## Open questions
 
@@ -422,6 +427,67 @@ Template:
     - **Decisions made:** rows added above.
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
+
+### 2026-10-11 17:53 BST — Claude (Opus 5.5) — PH1-11 beat boxes round four; a gentle ending
+
+- **Goal:** Rinat, "a few more snags before we move on": all the lines selected should drag,
+  not one; a smaller preview, "8 beats are breaking into two lines … I would like one line to
+  be shown in one line"; at the end "the sound stops abruptly … maybe quarter of a second of
+  fade out? … happy to skip it if complicated"; copies no longer pasted at the end: "a paste
+  button … paste after whichever line is selected".
+- **Inspected:** where an 8-beat line wraps (scenario `widths`, headless Edge, 900–1920 px
+  windows): the beat boxes wrapped Kaharwa's 8 boxes into two rows at every width (each box
+  53 px; the widest column 565 px is about a pixel short), the preview never did above 900
+  px. The end of playing: the last note's release (time constant 0.04 s) and, 1.3 s after
+  the song, the session cut with 0.025 s (`endSession`); the drone is off by default, so the
+  last note is what stops short.
+- **Changed:** `e7efd4e` (feat): `moveRows`, `copyRows`, `pasteRows` in
+  `src/core/notation/boxes.ts` (`copyRowsToEnd` gone; `moveRow` is `moveRows` of one); the
+  boxes: Copy keeps lines (and writes them to the clipboard as text), a bar offers Paste
+  after the last row selected (or under a heading) until Done, across songs; Ctrl+C and
+  Ctrl+V on a number; a selected row dragged, or moved with ↑ ↓, takes every selected row
+  and they stay selected; boxes 16 px at 2.6em (were 17 px at 3.1em), the editor preview
+  18/14 px (were 20/15); help and hint. `7585139` (feat): `Transport.endFade` (0.25 s): the
+  last note of a song, or of the last of a set number of rounds, lets go with a time
+  constant of `endFade / 3`, and the session's output and reverb send fade over the last
+  `endFade` before the end; `reed()` takes a release; the comparisons with the prototype run
+  with `endFade` 0; `/dev/render.html` measures both endings. This commit (docs): NOTATION
+  (Beat boxes), ENGINE (a gentle ending, its measurement), ROADMAP (row 11), this file.
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
+  DevTools protocol on `npm run dev`, real mouse and key events):
+  - `npm run typecheck` → 0; `npx vitest run` → 31 files, 312 passed (new: copying rows in
+    order, pasting after a line's words, under a heading and at the end, nothing to paste;
+    several rows moved together from anywhere, dropped on themselves, already in place; the
+    ending: the last note's release 0.083 s at 8.095 s, the output and send at 9.17 s, the
+    other 15 notes 0.04 s, the same after the last of 2 rounds, none in an endless loop, none
+    with `endFade` 0); the comparisons with the prototype still pass; `npm run build` → 195
+    kB JS (69.3 kB gzip), 33 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5
+    passed, 12 exercises valid.
+  - Scenario `widths`: after the change, both 8-beat lines (with two-note beats and words)
+    fit one row of boxes at 1024, 1100, 1180, 1366 and 1920 px windows, and one row of the
+    preview down to 900 px; a 16-beat Teentaal line takes two rows of boxes from 1100 px (it took four).
+  - Scenario `paste` (27 checks): Copy leaves the song alone and the bar says "1 line
+    copied. Tap the number of the line to paste after."; a number tapped offers "Paste after
+    line 4", which puts the line and its words there, marked, its handle focused, the copy
+    kept; one Undo takes it back; two lines copied and pasted under a heading go before its
+    lines, in order; the copy is still there in a new song and pastes under its heading;
+    Done forgets it; dragging one of two selected lines lifts both and drops them together
+    at the end, in order, still selected; ↑ moves both on; two Undos take both moves back; an
+    unselected line dragged moves alone; Ctrl+C on a number and Ctrl+V on another paste
+    after it; 360 px day and night without sideways scrolling; no console errors. `move`
+    (30) and `edit3` (30), with their copy checks rewritten for Copy and Paste and the font
+    sizes for round four, `boxes` (30), `words` (17), `sections` (15) and `pherta` (25) pass.
+  - Audio (`/dev/render.html`, OfflineAudioContext 48 kHz in headless Edge): the port still
+    matches the prototype (at most 2.4 × 10⁻⁶, as the prototype against itself); the last
+    note falls 20 dB in 175 ms (95 ms before), a tanpura at the end in 195 ms (65 ms).
+  - CI run `38157178276` (`7585139`): core, reference and deploy jobs green. Live: `paste` against https://rinatmalik.github.io/Gaaner-Sathi/ passed all 27 checks, `widths` the same rows at 1366 and 1024 px, no console errors; `/` 200, `/new/` 200.
+- **Decisions made:** see Decisions (beat boxes, round four; the gentle ending).
+- **Risks or disagreements:** below a 1024 px window (two columns until 860 px) an 8-beat line
+  still takes two rows of boxes, and on a phone always. Copy also overwrites the device's
+  clipboard. The selection bar stays while something is copied, until Done. Nobody has
+  heard the new ending.
+- **Next handoff:** Rinat tries pasting, dragging several lines and the ending; then Phase 2,
+  the design.
 
 ### 2026-10-11 14:10 BST — Claude (Opus 5.5) — PH1-10 taal pherta: a taal per section
 
@@ -480,58 +546,5 @@ Template:
   estimate counts a count-in in the song's taal. On a phone the picker shows a shortened
   name. Nobody has heard a change of taal.
 - **Next handoff:** Rinat tries a song in taal pherta; then Phase 2, the design, with Rinat.
-
-### 2026-10-11 13:36 BST — Claude (Opus 5.5) — PH1-09 words split into syllables; Teora, Kawali, Garba
-
-- **Goal:** Rinat: "yes please" to pasting a line of words and having it split into syllables
-  under the notes (Rinat's diaries split words as `আ মার সো নার`); "add a few more taals that
-  are common: Kawali, Teora, Ferta, garba/dandiya"; a roadmap idea for later, after the app is
-  public: Hindi users, and Western music with piano notes. "That's it for features, we'll then
-  move onto the design phase after this."
-- **Inspected:** the taal tables, grooves and their tests; the word boxes' typing and paste
-  paths. Sources: geetabitan.com's taal index and its Teyora and Taal Pherta pages;
-  onushilon.org's Kawali and Kaharba pages (fetched over plain HTTP, read as data; they cite
-  *Tabla Bigyan*, Manas Dasgupta's *Taal-abhidhan*, Prafullakumar Das); nazrulkosh.org entries
-  marked "তাল ফেরতা (দাদরা/কাহারবা)"; kksongs.org's tabla guide (a Qawwali Kaherva); a 2001
-  chandrakantha.com tabla forum thread on the garba rhythm. tablatheka.com was not fetched
-  (it redirected through a gambling site before).
-- **Found:** "Ferta" is taal pherta, songs that change taal between parts, not a taal: asked
-  (Open question 6), not built. No written Garba theka exists in a book; the forum's 6-matra
-  rhythm was used.
-- **Changed:** `bbeba89` (feat): `src/core/notation/lyrics.ts` (`wordSyllables`, `syllables`,
-  `fillWords`), paste into a word box (and a paste that arrives as `insertFromPaste`) fills
-  syllables, a note under the boxes (`#bxNote`), help and hint; 4 tests. `4a6ef09` (feat):
-  Teora, Kawali, Garba in `taals.ts`, their dholak and drum grooves, the picker's More taals
-  group; tests updated. This commit (docs): NOTATION, ENGINE, DATA, ROADMAP (row 9; taal
-  pherta and phonetic typing as ideas; "After the app is public": Hindi, Western music),
-  README, this file (the 08:57 entry moved to HISTORY).
-- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
-  DevTools protocol on `npm run dev`):
-  - `npm run typecheck` → 0; `npx vitest run` → 29 files, 292 passed (lyrics 4 new: 28 words
-    split as sung, a pasted line with punctuation, laying under notes across lines, the box
-    chosen, a lone `-`, a second verse, words left over; taals: thekas, marks, lengths, 19 in
-    the picker); `npm run build` → 187 kB JS (66.4 kB gzip), 33 kB CSS;
-    `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid.
-  - Scenario `words` (17 checks): a real Ctrl+V (clipboard granted) of
-    "আমার সোনার বাংলা, আমি তোমায়" under line 1's first note gives `> আ মার সো | নার - বাং`
-    and `> লা আ মি | - তো` (held and silent beats `-`), the boxes and sheet show them, the
-    focus goes on, the note says "9 syllables placed … No notes left for: মায়.", one Undo
-    takes it back; a word typed stays whole; the picker offers 19; Teora, Kawali and Garba each
-    check clean with bars on their vibhags, play, and show their theka on the strip; 360 px
-    both themes; no console errors. `boxes` (29) still passes.
-  - Audio (`/dev/render.html`, OfflineAudioContext 48 kHz in headless Edge): the port still
-    matches the prototype (differences 0 on the compared sessions shown); the three new taals'
-    levels are in ENGINE.md → Verifying sound (tabla −18.1 to −19.2 dB RMS, dholak −18.4 to
-    −20.4, drums −21.0 to −23.3, peaks −1.9 to −4.5 dBFS, no silent beats).
-  - CI run `38139753394` (`4a6ef09`): core, reference and deploy jobs green. Live: `words` against
-    https://rinatmalik.github.io/Gaaner-Sathi/ passed all 17 checks, no console errors; `/` 200,
-    `/new/` 200.
-- **Decisions made:** see Decisions (the three newest rows); Open question 6.
-- **Risks or disagreements:** the syllable split is a spelling rule, not a dictionary: words
-  whose sung syllables differ from their spelling (হাওয়া, medial vowels dropped in speech)
-  need a correction by hand. Kawali has other thekas; Garba has no book theka; Kawali's
-  dholak and drums are about 2 dB louder than the other taals'. Nobody has heard the three.
-- **Next handoff:** Rinat answers Open question 6 (taal pherta) and tries pasting words and
-  the three taals; then the design phase (Phase 2).
 
 Older entries: `docs/HISTORY.md`.

@@ -49,6 +49,7 @@ in only when Rinat asks for them.
 | 8 | **Beat boxes, round three:** ▶ Play on each line; Copy to the end, and several lines selected and copied at once; × at the top of a line; Enter for a second row of words instead of "+ words"; smaller notes in the editor | 2026-10-11 | Rinat finds writing a song in the boxes convenient |
 | 9 | **Words and three more taals:** a line of words pasted under the notes is split into syllables, one to each note; Teora, Kawali and Garba (for Garba and Dandiya) | 2026-10-11 | Rinat's pasted lyrics land mostly right; the three thekas sound right |
 | 10 | **Taal pherta:** a section's heading names a taal of its own (or it is picked beside the heading in the beat boxes); the section plays, is checked, laid out and shown in it, starting on its sam | 2026-10-11 | A song of Rinat's in taal pherta plays as Rinat sings it |
+| 11 | **Beat boxes, round four, and a gentle ending:** Copy keeps lines and Paste puts them after the line selected (in any song); the lines selected are dragged together; smaller boxes and preview, so an 8-beat line fits one row; the last note and the tail fade over a quarter second | 2026-10-11 | Rinat finds copying and moving lines easy, and the ending natural |
 
 ### Next, as Rinat chooses
 
