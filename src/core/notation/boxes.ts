@@ -400,36 +400,58 @@ export function rowBlocks(text: string, P: ParsedSong): { first: number; last: n
   return out;
 }
 
+/** The rows picked (indices into rowBlocks), existing and each once, in the song's order. */
+const picked = (blocks: readonly unknown[], rows: Iterable<number>) => Array.from(new Set(rows)).filter((r) => blocks[r]).sort((a, b) => a - b);
+
 /** Move row `from` (an index into rowBlocks) so that it sits before row `to`; `to` equal to the
  * number of rows puts it after the last. Lines outside the rows (blank lines, stray lyrics)
  * stay where they are. */
 export function moveRow(text: string, P: ParsedSong, from: number, to: number): string {
-  const blocks = rowBlocks(text, P);
-  const b = blocks[from];
-  if (!b || to < 0 || to > blocks.length || to === from || to === from + 1) return text;
-  const lines = linesOf(text);
-  const moving = lines.slice(b.first, b.last + 1);
-  const size = moving.length;
-  let at = to < blocks.length ? blocks[to]!.first : blocks[blocks.length - 1]!.last + 1;
-  lines.splice(b.first, size);
-  if (at > b.first) at -= size;
-  lines.splice(at, 0, ...moving);
-  return lines.join('\n');
+  return moveRows(text, P, [from], to).text;
 }
 
-/** Copies of rows (indices into rowBlocks: headings, and notes lines with their lyrics) at the
- * end of the song, in the song's order, before any blank last lines. Returns the text and how
- * many rows were copied. */
-export function copyRowsToEnd(text: string, P: ParsedSong, rows: Iterable<number>): { text: string; count: number } {
+/** Move several rows together, in the song's order, so that they sit before row `to` (or the
+ * first row after it that is not moving; `to` equal to the number of rows: after the last).
+ * Returns the text and where the first of them is now. */
+export function moveRows(text: string, P: ParsedSong, rows: Iterable<number>, to: number): { text: string; at: number } {
   const blocks = rowBlocks(text, P);
-  const pick = Array.from(new Set(rows)).filter((r) => blocks[r]).sort((a, b) => a - b);
-  if (!pick.length) return { text, count: 0 };
+  const pick = picked(blocks, rows);
+  if (!pick.length || to < 0 || to > blocks.length) return { text, at: -1 };
+  const moving = new Set(pick);
+  let t = to;
+  while (t < blocks.length && moving.has(t)) t++;
+  const at = t - pick.filter((r) => r < t).length;
+  // Already there: together, just before row t.
+  if (pick.every((r, i) => r === at + i)) return { text, at };
   const lines = linesOf(text);
-  const add = pick.flatMap((r) => lines.slice(blocks[r]!.first, blocks[r]!.last + 1).map((l) => l.replace(/\r$/, '')));
-  let idx = lines.length;
-  while (idx > 0 && !lines[idx - 1]!.trim()) idx--;
-  lines.splice(idx, 0, ...add);
-  return { text: lines.join('\n'), count: pick.length };
+  const out: string[] = [];
+  const skip = new Set(pick.flatMap((r) => Array.from({ length: blocks[r]!.last - blocks[r]!.first + 1 }, (_, i) => blocks[r]!.first + i)));
+  const take = pick.flatMap((r) => lines.slice(blocks[r]!.first, blocks[r]!.last + 1));
+  const before = t < blocks.length ? blocks[t]!.first : blocks[blocks.length - 1]!.last + 1;
+  lines.forEach((l, i) => {
+    if (i === before) out.push(...take);
+    if (!skip.has(i)) out.push(l);
+  });
+  if (before >= lines.length) out.push(...take);
+  return { text: out.join('\n'), at };
+}
+
+/** The text lines of rows (indices into rowBlocks: headings, and notes lines with their
+ * lyrics), in the song's order, for copying; and how many rows they are. */
+export function copyRows(text: string, P: ParsedSong, rows: Iterable<number>): { lines: string[]; count: number } {
+  const blocks = rowBlocks(text, P);
+  const pick = picked(blocks, rows);
+  const lines = linesOf(text);
+  return { lines: pick.flatMap((r) => lines.slice(blocks[r]!.first, blocks[r]!.last + 1).map((l) => l.replace(/\r$/, ''))), count: pick.length };
+}
+
+/** Lines copied, put in after row `after`: after a notes line's lyrics, or just under a heading. */
+export function pasteRows(text: string, P: ParsedSong, after: number, add: readonly string[]): string {
+  const b = rowBlocks(text, P)[after];
+  if (!b || !add.length) return text;
+  const lines = linesOf(text);
+  lines.splice(b.last + 1, 0, ...add);
+  return lines.join('\n');
 }
 
 /** The 0-based text line of heading k (the k-th line starting with #). */

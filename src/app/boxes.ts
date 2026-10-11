@@ -3,13 +3,14 @@
  * taal's vibhags, a box for the words under each beat, and the headings as their own rows.
  * Typing a space (or a bar) moves to the next box; pasting "সা রা গা মা" fills a box each, and
  * a line of words pasted under the notes is split into syllables, one to each note.
- * A row is dragged by its number (or moved with ↑ ↓ on it); a tap on the number selects it, and
- * Copy puts copies of a line, or of the rows selected, at the end. Play plays one line. A
+ * A row is dragged by its number (or moved with ↑ ↓ on it), with the other rows selected if it is
+ * one of them; a tap on the number selects it. Copy keeps a line, or the rows selected, to paste
+ * after the row selected (in this song or another). Play plays one line. A
  * heading can give its section a tempo and a taal of its own (taal pherta), which the rows
  * under it follow. Every change goes into the song text (src/core/notation/boxes.ts works it out), which the
  * Free text view shows as it is. The HTML builder is pure and tested in Node.
  */
-import { addHeading, appendBeats, beatsTyped, boxRows, copyRowsToEnd, insertLines, insertText, moveRow, newRowShape, nextSpot, placeBeats, readableBeat, removeBeat, removeHeading, removeLine, setBeat, setHeading, setLyrics, type BoxRow, type BoxSpot, type BoxTaal, type NewAt } from '../core/notation/boxes';
+import { addHeading, appendBeats, beatsTyped, boxRows, copyRows, insertLines, insertText, moveRows, newRowShape, nextSpot, pasteRows, placeBeats, readableBeat, removeBeat, removeHeading, removeLine, setBeat, setHeading, setLyrics, type BoxRow, type BoxSpot, type BoxTaal, type NewAt } from '../core/notation/boxes';
 import { fillWords, syllables } from '../core/notation/lyrics';
 import { parseSong } from '../core/notation/parse';
 import { setHeadingTaal, setHeadingTempo } from '../core/notation/sections';
@@ -76,7 +77,7 @@ export function boxesHTML(rows: readonly BoxRow[], verses: (n: number, written: 
       html += open('bxnotes', ' data-n="' + r.n + '"') + grip(rk, String(r.n + 1), 'Line ' + (r.n + 1), selected.has(rk++)) + '<div class="bxbeats">' + groups + '</div>' +
         '<span class="bxacts"><button type="button" class="bxdel" data-act="delline" data-n="' + r.n + '" aria-label="Remove line ' + (r.n + 1) + '" title="Remove this line">×</button>' +
         '<button type="button" class="bxadd bxplay" data-act="play" data-n="' + r.n + '" aria-label="Play line ' + (r.n + 1) + '" title="Play just this line">▶ Play</button>' +
-        '<button type="button" class="bxadd" data-act="copy" data-n="' + r.n + '" aria-label="Copy line ' + (r.n + 1) + ' to the end" title="A copy of this line at the end of the song">Copy</button></span></div>';
+        '<button type="button" class="bxadd" data-act="copy" data-n="' + r.n + '" aria-label="Copy line ' + (r.n + 1) + '" title="Copy this line, then tap the number of the line to paste it after">Copy</button></span></div>';
     } else {
       html += '<div class="bxrow bxnew" data-at="' + atKey(r.at) + '"><span class="bxln" aria-hidden="true">+</span><div class="bxbeats">' + groups + '</div></div>';
     }
@@ -580,15 +581,21 @@ export function initBoxes(host: BoxesHost): Boxes {
   let moves = 0;
   const grips = () => Array.from(box.querySelectorAll<HTMLElement>('.bxgrip'));
 
-  /** Move row r (rowBlocks order) to before row `to`, and show where it went. */
-  function moveTo(r: number, to: number, focus: boolean): void {
-    const t = moveRow(host.text(), parsed(), r, to);
-    if (t === host.text()) {
-      if (focus) grips()[r]?.focus({ preventScroll: true });
+  /** The rows that move with row r: the rows selected, if r is one of them (in order), else r. */
+  const movingWith = (r: number): number[] => (sel.has(r) ? Array.from(sel).sort((a, b) => a - b) : [r]);
+
+  /** Move rows (rowBlocks order) together to before row `to`, and show where they went; rows
+   * that were selected stay selected, so they can be moved on. */
+  function moveTo(rows: readonly number[], to: number, focus: boolean): void {
+    const keep = rows.every((r) => sel.has(r));
+    const m = moveRows(host.text(), parsed(), rows, to);
+    if (m.text === host.text()) {
+      if (focus) grips()[rows[0]!]?.focus({ preventScroll: true });
       return;
     }
-    write(t, 'x:move:' + ++moves, false);
-    afterRows(to > r ? to - 1 : to, focus);
+    write(m.text, 'x:move:' + ++moves, false);
+    if (keep) rows.forEach((_, i) => sel.add(m.at + i));
+    afterRows(m.at, focus, rows.length);
   }
 
   /** After rows moved or were copied: draw again and mark rows r to r + count − 1 (and focus the
@@ -609,14 +616,36 @@ export function initBoxes(host: BoxesHost): Boxes {
     rows[0]!.scrollIntoView({ block: 'nearest' });
   }
 
-  /** Copies of rows at the end of the song. */
-  function copyToEnd(rows: Iterable<number>): void {
-    const r = copyRowsToEnd(host.text(), parsed(), rows);
-    if (!r.count) return;
-    // The copies come after every row there is now (writing the text draws the rows again).
-    const at = grips().length;
-    write(r.text, 'x:copy:' + ++moves, false);
-    afterRows(at, false, r.count);
+  /** Rows copied, kept until Done (across songs too), to paste after the row selected. */
+  let copied: { lines: string[]; count: number; what: string } | null = null;
+
+  /** "2 lines and 1 heading", for some rows. */
+  function rowsText(rows: Iterable<number>): string {
+    const gs = grips();
+    const all = Array.from(rows);
+    const lines = all.filter((r) => gs[r]?.closest('.bxnotes')).length;
+    const heads = all.length - lines;
+    return [lines ? lines + (lines === 1 ? ' line' : ' lines') : '', heads ? heads + (heads === 1 ? ' heading' : ' headings') : ''].filter(Boolean).join(' and ');
+  }
+
+  /** Copy rows (also to the device's clipboard, as text), ending the selection. */
+  function copy(rows: Iterable<number>): void {
+    const pick = Array.from(new Set(rows));
+    const c = copyRows(host.text(), parsed(), pick);
+    if (!c.count) return;
+    copied = { lines: c.lines, count: c.count, what: rowsText(pick) };
+    navigator.clipboard?.writeText(c.lines.join('\n')).catch(() => {});
+    sel.clear();
+    render(activeFocus());
+  }
+
+  /** The rows copied, after row r, as one undo step; they stay copied to paste again. */
+  function paste(r: number): void {
+    if (!copied) return;
+    const t = pasteRows(host.text(), parsed(), r, copied.lines);
+    if (t === host.text()) return;
+    write(t, 'x:paste:' + ++moves, false);
+    afterRows(r + 1, true, copied.count);
   }
 
   // ── Selecting rows ─────────────────────────────────────────────────────────
@@ -643,22 +672,31 @@ export function initBoxes(host: BoxesHost): Boxes {
     for (const row of box.querySelectorAll('.bxrow.sel')) row.classList.remove('sel');
     drawSelBar();
   }
-  /** While rows are selected, a bar at the top of the boxes copies them to the end. */
+  /** Where a paste goes: after the last row selected. */
+  const pasteAfter = () => (sel.size ? Math.max(...sel) : -1);
+
+  /** While rows are selected, or rows are copied, a bar at the top of the boxes: Copy the rows
+   * selected, Paste the rows copied after the last row selected, Clear (or Done). */
   function drawSelBar(): void {
     let bar = box.querySelector<HTMLElement>('.bxselbar');
-    if (!sel.size) {
+    if (!sel.size && !copied) {
       bar?.remove();
       return;
     }
     if (!bar) {
       bar = document.createElement('div');
       bar.className = 'bxselbar';
-      bar.innerHTML = '<span class="bxselt" role="status"></span><button type="button" class="btn primary" data-act="copysel">Copy to the end</button><button type="button" class="btn" data-act="clearsel">Clear</button>';
       box.prepend(bar);
     }
-    const lines = Array.from(sel).filter((r) => grips()[r]?.closest('.bxnotes')).length;
-    const heads = sel.size - lines;
-    bar.querySelector('.bxselt')!.textContent = [lines ? lines + (lines === 1 ? ' line' : ' lines') : '', heads ? heads + (heads === 1 ? ' heading' : ' headings') : ''].filter(Boolean).join(' and ') + ' selected';
+    const r = pasteAfter();
+    const n = r >= 0 ? grips()[r]?.closest<HTMLElement>('.bxnotes')?.dataset.n : undefined;
+    const said = sel.size
+      ? rowsText(sel) + ' selected' + (copied ? ' · ' + copied.what + ' copied' : '')
+      : copied!.what + ' copied. Tap the number of the line to paste after.';
+    bar.innerHTML = '<span class="bxselt" role="status">' + esc(said) + '</span>' +
+      (sel.size ? '<button type="button" class="btn' + (copied ? '' : ' primary') + '" data-act="copysel">Copy</button>' : '') +
+      (sel.size && copied ? '<button type="button" class="btn primary" data-act="paste">Paste ' + (n != null ? 'after line ' + (+n + 1) : 'under the heading') + '</button>' : '') +
+      '<button type="button" class="btn" data-act="clearsel">' + (sel.size ? 'Clear' : 'Done') + '</button>';
   }
 
   // ── Playing a line ─────────────────────────────────────────────────────────
@@ -680,9 +718,17 @@ export function initBoxes(host: BoxesHost): Boxes {
 
   /** A row being dragged by its handle. Positions are in the boxes' scrolled content. */
   let drag: {
-    id: number; r: number; row: HTMLElement; grip: HTMLElement; mark: HTMLElement;
+    id: number; r: number; group: number[]; rows: HTMLElement[]; grip: HTMLElement; mark: HTMLElement;
     y0: number; tops: number[]; bottoms: number[]; to: number; y: number; moved: boolean; raf: number;
   } | null = null;
+
+  /** Whether moving `group` to before row `to` would leave everything where it is. */
+  function staysPut(group: readonly number[], to: number): boolean {
+    let t = to;
+    while (group.includes(t)) t++;
+    const at = t - group.filter((g) => g < t).length;
+    return group.every((g, i) => g === at + i);
+  }
   const contentTop = () => box.getBoundingClientRect().top + box.clientTop - box.scrollTop;
 
   function dragTo(clientY: number): void {
@@ -691,18 +737,18 @@ export function initBoxes(host: BoxesHost): Boxes {
     d.y = clientY;
     const y = clientY - contentTop();
     if (!d.moved && Math.abs(y - d.y0) < 5) return;
-    if (!d.moved) d.row.classList.add('dragging');
+    if (!d.moved) d.rows.forEach((row) => row.classList.add('dragging'));
     d.moved = true;
-    d.row.style.transform = 'translateY(' + (y - d.y0) + 'px)';
+    for (const row of d.rows) row.style.transform = 'translateY(' + (y - d.y0) + 'px)';
     let to = d.tops.length;
     for (let i = 0; i < d.tops.length; i++) {
-      if (i !== d.r && y < (d.tops[i]! + d.bottoms[i]!) / 2) {
+      if (!d.group.includes(i) && y < (d.tops[i]! + d.bottoms[i]!) / 2) {
         to = i;
         break;
       }
     }
     d.to = to;
-    d.mark.hidden = to === d.r || to === d.r + 1;
+    d.mark.hidden = staysPut(d.group, to);
     d.mark.style.top = (to < d.tops.length ? d.tops[to]! : d.bottoms[d.bottoms.length - 1]!) - 2 + 'px';
   }
 
@@ -736,12 +782,14 @@ export function initBoxes(host: BoxesHost): Boxes {
     cancelAnimationFrame(d.raf);
     window.removeEventListener('keydown', dragKey, true);
     d.mark.remove();
-    d.row.classList.remove('dragging');
-    d.row.style.transform = '';
-    if (!d.row.isConnected || !commit) return;
+    for (const row of d.rows) {
+      row.classList.remove('dragging');
+      row.style.transform = '';
+    }
+    if (!d.grip.isConnected || !commit) return;
     // The handle keeps the focus (a tap only focuses it), so ↑ ↓ and Ctrl+Z work on from there.
     if (!d.moved) d.grip.focus();
-    else moveTo(d.r, d.to, true);
+    else moveTo(d.group, d.to, true);
   }
   const dragKey = (ev: KeyboardEvent) => {
     if (ev.key !== 'Escape' || !drag) return;
@@ -762,8 +810,10 @@ export function initBoxes(host: BoxesHost): Boxes {
     mark.hidden = true;
     box.append(mark);
     const r = +g.dataset.r!;
+    const group = movingWith(r);
+    const gs = grips();
     drag = {
-      id: ev.pointerId, r, row, grip: g, mark, y0: ev.clientY - top, y: ev.clientY, to: r, moved: false, raf: 0,
+      id: ev.pointerId, r, group, rows: group.map((i) => gs[i]!.closest<HTMLElement>('.bxrow')!), grip: g, mark, y0: ev.clientY - top, y: ev.clientY, to: r, moved: false, raf: 0,
       tops: rows.map((x) => x.top - top), bottoms: rows.map((x) => x.bottom - top),
     };
     try {
@@ -832,9 +882,15 @@ export function initBoxes(host: BoxesHost): Boxes {
     const e = ev.target as HTMLInputElement;
     if (e.classList.contains('bxgrip')) {
       const r = +e.dataset.r!;
+      const ctrl = (ev.ctrlKey || ev.metaKey) && !ev.altKey && !ev.shiftKey;
       if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
         ev.preventDefault();
-        moveTo(r, ev.key === 'ArrowUp' ? r - 1 : r + 2, true);
+        const group = movingWith(r);
+        moveTo(group, ev.key === 'ArrowUp' ? group[0]! - 1 : group[group.length - 1]! + 2, true);
+      } else if (ctrl && (ev.key.toLowerCase() === 'c' || ev.key.toLowerCase() === 'v')) {
+        ev.preventDefault();
+        if (ev.key.toLowerCase() === 'c') copy(sel.size ? sel : [r]);
+        else paste(r);
       } else if ((ev.ctrlKey || ev.metaKey) && !ev.altKey && !ev.shiftKey && ev.key.toLowerCase() === 'z') {
         ev.preventDefault();
         undo();
@@ -885,11 +941,17 @@ export function initBoxes(host: BoxesHost): Boxes {
       host.playLine(+b.dataset.n!);
     } else if (b.dataset.act === 'copy') {
       const r = +(b.closest('.bxrow')?.querySelector<HTMLElement>('.bxgrip')?.dataset.r ?? -1);
-      copyToEnd([r]);
+      copy([r]);
     } else if (b.dataset.act === 'copysel') {
-      copyToEnd(sel);
+      copy(sel);
+    } else if (b.dataset.act === 'paste') {
+      paste(pasteAfter());
     } else if (b.dataset.act === 'clearsel') {
-      clearSel();
+      if (sel.size) clearSel();
+      else {
+        copied = null;
+        drawSelBar();
+      }
     } else if (b.dataset.act === 'delline') {
       write(removeLine(host.text(), P, +b.dataset.n!), 'x:delline', false);
       extraVerse.clear();

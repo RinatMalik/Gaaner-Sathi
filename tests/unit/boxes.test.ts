@@ -1,7 +1,7 @@
 // Beat boxes (src/core/notation/boxes.ts): the rows shown, and every change a box makes to
 // the song text.
 import { describe, expect, it } from 'vitest';
-import { addHeading, appendBeats, barChar, beatsTyped, boxRows, insertLines, insertText, newRowShape, nextSpot, placeBeats, readableBeat, copyRowsToEnd, moveRow, removeBeat, removeHeading, removeLine, rowBlocks, setBeat, setHeading, setLyrics, verseTokens } from '../../src/core/notation/boxes';
+import { addHeading, appendBeats, barChar, beatsTyped, boxRows, insertLines, insertText, newRowShape, nextSpot, placeBeats, readableBeat, copyRows, moveRow, moveRows, pasteRows, removeBeat, removeHeading, removeLine, rowBlocks, setBeat, setHeading, setLyrics, verseTokens } from '../../src/core/notation/boxes';
 import { boxesHTML } from '../../src/app/boxes';
 import { parseSong } from '../../src/core/notation/parse';
 import { taalInfo } from '../../src/core/taal/taals';
@@ -202,17 +202,38 @@ describe('changes to the text', () => {
     expect(moveRow(u, parseSong(u), 1, 0)).toBe('M P D\nS R G');
   });
 
-  it('rows copied go to the end, in the song’s order, lyrics and headings too', () => {
-    const t = '# স্থায়ী\nসা রা গা\n> আ মার সো\nমা পা ধা\n# অন্তরা\nনা সা রা\n\n';
+  it('rows copied are the song’s lines, in its order; pasted after a line’s lyrics or under a heading', () => {
+    const t = '# স্থায়ী\nসা রা গা\n> আ মার সো\nমা পা ধা\n# অন্তরা\nনা সা রা\n\n';
     const P = parseSong(t);
-    // One line: its copy at the end, before the blank last lines.
-    expect(copyRowsToEnd(t, P, [1])).toEqual({ text: '# স্থায়ী\nসা রা গা\n> আ মার সো\nমা পা ধা\n# অন্তরা\nনা সা রা\nসা রা গা\n> আ মার সো\n\n', count: 1 });
-    // Several, picked in any order (and twice): the heading and its lines, in the song's order.
-    expect(copyRowsToEnd(t, P, [2, 0, 1, 2]).text).toBe('# স্থায়ী\nসা রা গা\n> আ মার সো\nমা পা ধা\n# অন্তরা\nনা সা রা\n# স্থায়ী\nসা রা গা\n> আ মার সো\nমা পা ধা\n\n');
-    // No line break at the end; rows that are not there.
+    // One line, with its lyrics; several, picked in any order (and twice), in the song's order.
+    expect(copyRows(t, P, [1])).toEqual({ lines: ['সা রা গা', '> আ মার সো'], count: 1 });
+    expect(copyRows(t, P, [2, 0, 1, 2]).lines).toEqual(['# স্থায়ী', 'সা রা গা', '> আ মার সো', 'মা পা ধা']);
+    expect(copyRows(t, P, [5, -1])).toEqual({ lines: [], count: 0 });
+    const line1 = copyRows(t, P, [1]).lines;
+    // After line 2 (row 2), after line 1's lyrics (row 1), just under a heading (row 3), after the last line.
+    expect(pasteRows(t, P, 2, line1)).toBe('# স্থায়ী\nসা রা গা\n> আ মার সো\nমা পা ধা\nসা রা গা\n> আ মার সো\n# অন্তরা\nনা সা রা\n\n');
+    expect(pasteRows(t, P, 1, ['S R G'])).toBe('# স্থায়ী\nসা রা গা\n> আ মার সো\nS R G\nমা পা ধা\n# অন্তরা\nনা সা রা\n\n');
+    expect(pasteRows(t, P, 3, ['S R G'])).toBe('# স্থায়ী\nসা রা গা\n> আ মার সো\nমা পা ধা\n# অন্তরা\nS R G\nনা সা রা\n\n');
     const u = 'S R G\nM P D';
-    expect(copyRowsToEnd(u, parseSong(u), [0]).text).toBe('S R G\nM P D\nS R G');
-    expect(copyRowsToEnd(u, parseSong(u), [5, -1])).toEqual({ text: u, count: 0 });
+    expect(pasteRows(u, parseSong(u), 1, ['S R G'])).toBe('S R G\nM P D\nS R G');
+    // Nowhere to paste, or nothing copied: unchanged.
+    expect(pasteRows(u, parseSong(u), 7, ['S'])).toBe(u);
+    expect(pasteRows(u, parseSong(u), 0, [])).toBe(u);
+  });
+
+  it('several rows move together, in the song’s order, wherever they were', () => {
+    const t = '# A\nS R G\n> a b c\nM P D\n# B\nN S R\nG M P\n';
+    const P = parseSong(t);
+    // Rows: 0 # A, 1 S R G (with its lyrics), 2 M P D, 3 # B, 4 N S R, 5 G M P.
+    expect(moveRows(t, P, [1, 4], 6)).toEqual({ text: '# A\nM P D\n# B\nG M P\nS R G\n> a b c\nN S R\n', at: 4 });
+    expect(moveRows(t, P, [5, 2], 0)).toEqual({ text: 'M P D\nG M P\n# A\nS R G\n> a b c\n# B\nN S R\n', at: 0 });
+    // Dropped on one of themselves: they gather there, before the next row that is not moving.
+    expect(moveRows(t, P, [1, 4], 1).text).toBe('# A\nS R G\n> a b c\nN S R\nM P D\n# B\nG M P\n');
+    // Together already where they would go, or nothing to move: unchanged.
+    expect(moveRows(t, P, [1, 2], 3)).toEqual({ text: t, at: 1 });
+    expect(moveRows(t, P, [1, 2], 1).text).toBe(t);
+    expect(moveRows(t, P, [9], 0).text).toBe(t);
+    expect(moveRows(t, P, [1], 7).text).toBe(t);
   });
 });
 
