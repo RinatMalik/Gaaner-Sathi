@@ -49,7 +49,7 @@ as it was set up (its sound and notes included), without the sender's log, takes
 
 | Field | Meaning |
 |---|---|
-| `taal` | One of 16 taal ids (ENGINE.md → Taals): `dadra`, `keherwa`, `rupak`, `jhaptal`, `ektal`, `teentaal`, `jhampak`, `shashthi`, `rupakra`, `nabatal`, `ekadashi`, `nabapanchatal`, `khemta`, `deepchandi`, `dhamar`, `jhumra`. Anything else reads as `dadra` (the prototype also reads the last ten as `dadra`). |
+| `taal` | One of 19 taal ids (ENGINE.md → Taals): `dadra`, `keherwa`, `rupak`, `jhaptal`, `ektal`, `teentaal`, `jhampak`, `shashthi`, `rupakra`, `nabatal`, `ekadashi`, `nabapanchatal`, `khemta`, `deepchandi`, `dhamar`, `jhumra`, `teora`, `kawali`, `garba`. Anything else reads as `dadra` (the prototype also reads the last thirteen as `dadra`). |
 | `tempo` | Matras per minute, 30–240. Sections may have their own, in their headings (NOTATION.md → Sections). |
 | `saKey` | Semitones above C, 0–11. The app shows the CT-X3000 key too ("C · White 1", "C♯ · Black 1", …). |
 | `saOct` | 3, 4 or 5 (Low, Middle, High); Sa = MIDI 12 × (saOct + 1) + saKey. |

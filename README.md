@@ -2,7 +2,7 @@
 
 A practice companion for singers who learn Bengali songs from swaralipi (akarmatrik
 notation). Type the notation once, and Gaaner Sathi plays the melody on harmonium as a
-pitch guide, with tabla, dholak or drums in any of sixteen taals (Tagore's own six among
+pitch guide, with tabla, dholak or drums in any of nineteen taals (Tagore's own six among
 them) and a tanpura drone, all on one clock so the rhythm never drifts from the melody.
 It highlights the beat you are on, with the lyric underneath. You write a song in a box
 for each beat, laid out by the taal, or as free text, or by playing it on a MIDI keyboard.

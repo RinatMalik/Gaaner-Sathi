@@ -47,6 +47,7 @@ in only when Rinat asks for them.
 | 6 | **Rinat's ten picks:** beat boxes for writing notation; a Voice tab (range finder, hold-a-note trainer); takes played back against the guide; MIDI keyboards of any brand (typing, the guide on the keyboard, the keys to press); sections with their own tempo; notes per song; print or save as PDF; day and night | 2026-10-11 | Rinat has written a song in the boxes, found a Sa, held a note, recorded and played back a take, connected the CT-X3000 (typing and the guide), jumped between sections, printed a sheet |
 | 7 | **Beat boxes, round two:** lines dragged to reorder (and moved with ↑ ↓), copying lines, adding a note to a beat | 2026-10-11 | Rinat finds writing a song in the boxes convenient (Rinat, 2026-10-11: "all works") |
 | 8 | **Beat boxes, round three:** ▶ Play on each line; Copy to the end, and several lines selected and copied at once; × at the top of a line; Enter for a second row of words instead of "+ words"; smaller notes in the editor | 2026-10-11 | Rinat finds writing a song in the boxes convenient |
+| 9 | **Words and three more taals:** a line of words pasted under the notes is split into syllables, one to each note; Teora, Kawali and Garba (for Garba and Dandiya) | 2026-10-11 | Rinat's pasted lyrics land mostly right; the three thekas sound right |
 
 ### Next, as Rinat chooses
 
@@ -89,9 +90,12 @@ Sizes are rough: S a few hours, M a day or two, L more.
   without looping) (S); memory mode that hides the notes, then the lyrics, line by line (S).
 - **Voice and ear:** free singing with the drone and the pitch meter, no song needed (S);
   sing-back ear training: the app plays a phrase, the singer repeats it, it scores (M).
-- **Writing the words:** paste a line of lyrics once and have it split into syllables under
-  the notes (one per sung note, `-` on held beats), to correct by hand (S); type Bengali
-  phonetically in the app (`amar` → আমার) without installing a keyboard (M).
+- **Writing the words:** type Bengali phonetically in the app (`amar` → আমার) without
+  installing a keyboard (M). (Pasting a line of words split into syllables was built on
+  2026-10-11.)
+- **Taal pherta:** a taal per section, for songs that change taal from one part to another
+  (Kaharwa in the sthayi, Dadra in the antara), written in the heading as tempos are (M; Open
+  question 6).
 - **Moving and sharing:** one file that moves everything to another device (songs, practice
   log, rewaz routines, your settings) and brings it all back in (S); send a song to another
   singer as a link that opens it, no file needed (S); a teacher sets a routine and the student
@@ -109,6 +113,16 @@ Sizes are rough: S a few hours, M a day or two, L more.
   (S).
 - **Sound:** recorded instruments (sampled harmonium, tabla, tanpura) instead of synthesis
   (L, see Parked).
+
+## After the app is public (Rinat, 2026-10-11)
+
+Big additions, to consider once the app is public and popular.
+
+- **Hindi:** the interface in Hindi, and notation in Devanagari (सा रे ग म प ध नि, komal and
+  tivra marks as Hindi books write them), alongside Bengali and Latin.
+- **Western music:** practising with piano note names and staff notation (C D E, sharps and
+  flats, time signatures instead of taals, a metronome or drum kit), and a piano sound for the
+  guide.
 
 ## Parked (each needs Rinat's go-ahead)
 

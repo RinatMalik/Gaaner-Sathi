@@ -49,6 +49,69 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-11 08:57 BST — Claude (Opus 5.5) — PH1-07 beat boxes round two; lean docs
+
+- **Goal:** Rinat: clean up the documentation and framework files no longer needed, remove
+  duplicates, "a lean framework with context, history and roadmap", rewrite files that have
+  become unorganised (Rinat's two blank lines at the end of ROADMAP deletable); make each
+  beat-box line draggable to reorder, with a button that copies a line just below it; how to
+  type several notes in one beat (typing over a box replaces its note, which is right); and
+  how sharing the link, moving to another device and progress work underneath.
+- **Inspected:** every doc (CONTEXT, HISTORY, ROADMAP, NOTATION, ENGINE, DATA, PARITY,
+  SECURITY, the five ADRs, README, CLAUDE, AGENTS, reference/README); `src/app/boxes.ts` and
+  `src/core/notation/boxes.ts`; what song files carry (`songForFile`) and what import does
+  (new ids, no merging).
+- **Changed:**
+  - `8170085` (feat): `rowBlocks`, `moveRow`, `duplicateLine` in `src/core/notation/boxes.ts`;
+    in the boxes each heading and line has a handle (its number, ⠿): pointer drags (mouse or
+    touch, a brass line where it will land, the boxes or page scrolling at the edges, Escape
+    cancels), ↑ ↓ on a focused handle, Copy on each line; each move or copy one undo step,
+    and undo from a handle keeps the focus on one. An arrow first ends a box's selection
+    (→ then typing adds a note to the beat); `readableBeat` mends sargam among letters
+    (`Sre` → `SR`). Help row and hint say how. 3 new tests.
+  - This commit (docs): CONTEXT rewritten lean (The documents, a list of what waits for a
+    real voice or device, rules merged from SECURITY and the old defaults, decisions in
+    force); HISTORY gains the finished PH0 items, 12 decisions no longer in force and four
+    older log entries, all word for word (moved by a script that checks each boundary);
+    ROADMAP rewritten (a table of what is built and its check, ideas left, a new one: one
+    file that moves everything to another device); NOTATION, ENGINE, DATA rewritten in order,
+    with the ADRs' reasons folded in and DATA → "Where things live, and what travels";
+    CLAUDE and AGENTS short pointers; README and reference/README brought up to date;
+    `SECURITY.md`, `docs/PARITY.md`, `docs/adr/` removed; source comments that named ADR
+    files now name the doc sections.
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
+  DevTools protocol on `npm run dev`, real mouse, key and touch events):
+  - `npm run typecheck` → 0; `npx vitest run` → 28 files, 288 passed; `npm run build` → 181 kB
+    JS (64.1 kB gzip), 32 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed,
+    12 exercises valid.
+  - Scenario `move` (31 checks, all passed, no console errors): handles numbered in row order
+    (`0:# 1:1 2:2 3:# 4:3`), a Copy on each line; a mouse drag lifts the row and shows the
+    drop line, and line 2 dropped above line 1 moves with its words; Undo; a heading dragged
+    up moves alone; Ctrl+Z on the handle; a drop below the last row; Escape mid-drag changes
+    nothing; a 2 px wobble is a tap that focuses the handle; ↓ ↓ ↑ ↑ ↑ ↑ move it down past
+    the heading, back, above the heading and stop at the top; Copy puts the line and its
+    words just below, marked as line 2, which then drags to the end; two Undos; a space
+    selects the next box, → keeps the box and typing গা makes `রাগা`; on a 360 px phone
+    with touch, a line dragged by a finger moves; on an 18-line song (boxes 560 of 3 396 px)
+    held at the bottom edge, the boxes scrolled 2 567 px and the line landed at line 17; 360
+    px day and night with no sideways scrolling. The first run failed 7 checks, all from one
+    cause: after a mouse drop nothing had focus, so Ctrl+Z missed; a drop now focuses the
+    moved row's handle (and edge scrolling now speeds up nearer the edge).
+  - Scenario `boxes` from PH1-06 (29 checks) still all passed.
+  - CI run `38123035124` (`8170085`): core, reference and deploy jobs green. Live: the
+    `move` scenario against https://rinatmalik.github.io/Gaaner-Sathi/ passed all 31 checks,
+    no console errors; `/` 200, `/new/` 200.
+- **Decisions made:** see Decisions (the three newest rows: lean docs; decision records
+  without ADR files; drag and copy in the beat boxes).
+- **Risks or disagreements:** dragging was tried with emulated touch, not a real phone; a long
+  press is not needed (the handle takes the touch at once), which may surprise on a phone
+  that scrolls by dragging anywhere else. Copy copies the words too (Rinat may prefer the
+  notes only, for a repeat with new words). Moving a line changes where it falls in the taal
+  if lines are not whole cycles (the checker then says so). Progress, routines, settings and
+  takes do not move between devices yet (a feature idea).
+- **Next handoff:** Rinat tries dragging and copying lines, and the other features; then the
+  design phase.
+
 ### 2026-10-11 02:20 BST — Claude (Opus 5.5) — PH1-06 Rinat's ten picks
 
 - **Goal:** Rinat picked ten features before the design phase: a range finder (as a tab

@@ -68,10 +68,13 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
 | deepchandi | Deepchandi · দীপচন্দী | 3+4+3+4 | X 2 0 3 | Dha Dhin – · Dha Dha Tin – · Ta Tin – · Dha Dha Dhin – |
 | dhamar | Dhamar · ধামার | 3+2+2+3+4 | X 0 2 0 3 | Ka Dhi Ta · Dhi Ta · Dha – · Ga Di Na · Di Na Ta – |
 | jhumra | Jhumra · ঝুমরা | 3+4+3+4 | X 2 0 3 | Dhin –Dha TiRaKiTa · Dhin Dhin DhaGe TiRaKiTa · Tin –Ta TiRaKiTa · Dhin Dhin DhaGe TiRaKiTa |
+| teora | Teora · তেওরা | 3+2+2 | X 2 3 | Dha Dhi Na · Dhi Na · Dhi Na |
+| kawali | Kawali · কাওয়ালি | 4+4 | X 0 | Dha Dhin DhaDha Dhin · Dha Tin DhaDha Dhin |
+| garba | Garba · গরবা | 3+3 | X 0 | Dhin DhaTi Dha · Tin TaTi Ta |
 
-The first six are the prototype's. The other ten were added on 2026-10-11 at Rinat's request;
-the taal picker groups them as "Tagore's own taals" and "More taals". The prototype reads
-their ids as Dadra.
+The first six are the prototype's. The other thirteen were added on 2026-10-11 at Rinat's
+request; the taal picker groups them as "Tagore's own taals" and "More taals". The prototype
+reads their ids as Dadra.
 
 - **Tagore's own six** have no khali, only talis. Their thekas follow gitabitan.net's page on
   the taals Rabindranath made (from Subinay Roy's *Rabindrasangit Sadhana*, among others):
@@ -88,6 +91,14 @@ their ids as Dadra.
 - **Deepchandi** and **Jhumra** are the standard ones. "–" is a rest: a matra, or the first
   half of one, with no stroke. The taal strip shows a silent beat as "·" and a bol that comes
   after the beat as "–Dha".
+- **Teora** is the Rabindrasangeet one, with talis only, as geetabitan.com gives it.
+  **Kawali** follows onushilon.org (from *Tabla Bigyan*, Manas Dasgupta's *Taal-abhidhan* and
+  Prafullakumar Das's *Rabindrasangit-gabeshana*); other thekas exist, such as
+  Dha Dhin DhaDha Dhin · Na Tin NaNa TiTe. **Garba** (for Garba and Dandiya) has no single
+  written theka: this is the 6-matra garba rhythm as tabla players give it (Dhin · DhaTi Dha |
+  Tin · TaTi Ta); some play garba songs in an 8-matra Keherwa form instead.
+- **Taal pherta** (তাল ফেরতা) is not a taal but a song that changes taal from one part to
+  another (Kaharwa and Dadra, say). It would need a taal per section: Open question 6.
 - Their **dholak and drum patterns** were made for this app on the prototype's plan (bass and
   kick on sam and the talis, the closed stroke and snare on khali and the backbeats), not
   taken from a source: they need Rinat's ears.
@@ -318,6 +329,11 @@ about specific things (thin, buzzy, nasal, too plucked, too loud against the voi
   and 14, Dhamar 7 and 14, Jhumra 2 and 9. Light strokes (Te, TeTe, Ka) sit at −14 to −18 dB,
   as Keherwa's Ti (−18.2) and Ektal's TiRaKiTa (−15.6) do in the prototype. Dhamar's sam is a
   Ka on the closed bayan, 10.7 dB below its loudest Dha.
+- Teora, Kawali and Garba (added later on 2026-10-11), the same way: tabla −19.0, −18.1 and
+  −19.2 dB RMS, dholak −20.4, −18.4 and −19.2, drums −23.3, −21.0 and −21.3, peaks −1.9 to
+  −4.5 dBFS; no silent beats; Kawali's doubled Dha sits within 1.6 dB of the loudest stroke.
+  Kawali's dholak and drums are the loudest of all (about 2 dB above the rest), from their
+  many strokes.
 
 ## Known limitations
 

@@ -3,7 +3,7 @@
 > The project's shared state, for Rinat, Claude, Codex and any other LLM: what the app is
 > for, how we work, where things stand, the decisions in force and the newest work log.
 >
-> **Last updated:** 2026-10-11 (10:35 BST) by Claude (Opus 5.5)
+> **Last updated:** 2026-10-11 (13:36 BST) by Claude (Opus 5.5)
 
 ## How to use this file
 
@@ -37,11 +37,12 @@ wins, except a later explicit decision by Rinat, which always wins.
 
 ## Current state
 
-- **Milestone:** Phase 1, features and functionality. Everything Rinat has asked for is built
-  and live (PH1-01 to PH1-08, all in Review). Next comes the design (Phase 2).
-- **Next single action:** Rinat uses the features on real songs and says what to change;
-  then the design phase.
-- **Last known-good commit:** `3eae75f` (CI run `38128789762`: core, reference and deploy jobs green;
+- **Milestone:** Phase 1, features and functionality: closed by Rinat ("That's it for
+  features", 2026-10-11). Everything asked for is built and live (PH1-01 to PH1-09, all in
+  Review), except taal pherta, which waits on Open question 6. Next comes the design (Phase 2).
+- **Next single action:** Rinat answers Open question 6 (a taal per section for taal pherta:
+  now, or later); then the design phase.
+- **Last known-good commit:** `4a6ef09` (CI run `38139753394`: core, reference and deploy jobs green;
   checked live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
@@ -54,7 +55,8 @@ wins, except a later explicit decision by Rinat, which always wins.
   - whether the range finder's suggested Sa suits Rinat;
   - the hold trainer's feel;
   - the CT-X3000 over MIDI: typing, which tone the guide plays in, the GM reed organ;
-  - the ten new taals' thekas, and the dholak and drum patterns made for them;
+  - the thirteen new taals' thekas, and the dholak and drum patterns made for them;
+  - pasting Rinat's own lyrics: how often the syllable split needs correcting;
   - the beat boxes with a phone keyboard (Gboard, Avro), and dragging lines on a phone;
   - wake lock and Bluetooth latency on a phone;
   - iOS: the ringer switch, and the sound moving to the earpiece once the microphone is on.
@@ -82,8 +84,9 @@ track, tell the voice what to match.
   technical, practise on a phone or a laptop, often with hands busy. Would they find it
   obvious with no manual?
 - **Built so far** (`docs/ROADMAP.md`): a song library; pitch feedback from the microphone; a
-  rewaz routine and practice log; each song's own sound; sixteen taals (Tagore's own six
-  among them); beat boxes for writing notation (drag, copy); a Voice tab (range finder,
+  rewaz routine and practice log; each song's own sound; nineteen taals (Tagore's own six
+  among them); beat boxes for writing notation (drag, copy, play a line, words pasted and
+  split into syllables); a Voice tab (range finder,
   hold-a-note trainer); takes; MIDI keyboards; sections with their own tempo; notes per song;
   printing; day and night colours.
 - **Non-goals for now:** features Rinat has not asked for; accounts and sync; a server of our
@@ -333,8 +336,9 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH1-04 | Claude | Review | Each song's own sound | 8 unit tests; Edge scenarios through reloads, copies, export and import, rewaz (HISTORY → 2026-10-11 00:40) | Waiting for Rinat's use |
 | PH1-05 | Claude | Review | Ten more taals | 10 unit tests; offline renders; picker, strip, checker and playing in Edge (HISTORY → 2026-10-11 00:40) | Waiting for Rinat's ears |
 | PH1-06 | Claude | Review | Rinat's ten picks | 59 unit tests; Edge scenarios with real events, WAV microphones and a stand-in MIDI keyboard (HISTORY → Work log 2026-10-11 02:20) | Waiting for Rinat's use; the CT-X3000 not tried |
-| PH1-07 | Claude | Review | Beat boxes: drag, copy, notes in a beat; lean docs | 3 new unit tests; Edge scenarios `move` (31 checks) and `boxes` (29) (Work log 2026-10-11 08:57) | Rinat: "all works", happy with the choices made (2026-10-11) |
+| PH1-07 | Claude | Review | Beat boxes: drag, copy, notes in a beat; lean docs | 3 new unit tests; Edge scenarios `move` (31 checks) and `boxes` (29) (HISTORY → Work log 2026-10-11 08:57) | Rinat: "all works", happy with the choices made (2026-10-11) |
 | PH1-08 | Claude | Review | Beat boxes round three: ▶ Play per line, Copy to the end, several rows selected and copied, × at the top, Enter for a second verse, smaller editor fonts | Edge scenario `edit3` (27 checks) locally and on the live site; `move` and `boxes` still pass (Work log 2026-10-11 10:35) | Waiting for Rinat's use |
+| PH1-09 | Claude | Review | Words pasted and split into syllables under the notes; Teora, Kawali, Garba | 4 lyrics tests, taal tests; Edge scenario `words` (17 checks) with a real Ctrl+V; offline renders of the three taals (Work log 2026-10-11 13:36) | Waiting for Rinat's use and ears; taal pherta waits on Open question 6 |
 
 ## Decisions
 
@@ -377,6 +381,9 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-11 | Decision records: a row here for every decision; a real architectural trade-off gets a short "why" in the doc it concerns, not a separate ADR file. ADR-001 → Conventions → Stack and ENGINE.md → Verifying sound; ADR-002 → DATA.md → Storage; ADR-003 → ENGINE.md → Pitch feedback; ADR-004 → ENGINE.md and DATA.md → Takes; ADR-005 → ENGINE.md → MIDI keyboards. | Rinat's lean docs (above); replaces the 2026-10-09 decision-records row (in HISTORY) | One place per subject. |
 | 2026-10-11 | Beat boxes: each heading and line is dragged by its number (mouse or touch; or ↑ ↓ once the number is tapped); Copy puts an exact copy of a line, words included, just below it; each is one undo step. Notes typed together share a beat, and → adds to a beat rather than replacing its note. | Rinat, chat 2026-10-11 ("make each line draggable to reorder and have a button to copy/duplicate … paste it immediately after"; "how do I type multiple notes in the same beat?"); copying the words too, and headings being draggable, are Claude's choices | NOTATION.md → Beat boxes. |
 | 2026-10-11 | Beat boxes, round three: Copy puts the copy at the end of the song (no longer just below); tapping line numbers (or a heading's #) selects rows, which a bar copies to the end in the song's order; ▶ Play on each line plays it once at its tempo with no count-in, not logged or kept as a take; "+ words" removed (Enter in the words opens a second verse); × at the top right of a line; notes and words a little smaller in the editor (boxes 17/15 px, preview 20/15 px; Practice unchanged). | Rinat, chat 2026-10-11 ("usually it would be a few lines to copy and they usually would go at the end"; "a Play button that just plays that line"; "+words is kinda redundant"; "fonts just a little smaller"; the × "at the top right or at the top left"); Rinat was happy with the previous round's choices. No count-in, the tap-to-select and Enter for a verse are Claude's choices | Replaces "just below" in the row above. NOTATION.md → Beat boxes. |
+| 2026-10-11 | Words pasted into a word box are split into sung syllables (a spelling rule: a final single consonant joins the syllable before, a conjunct's first consonant closes it, ৎ and হসন্ত join, a final ই উ এ ও after a vowel is one syllable) and laid one to each beat where a note starts, `-` on held and silent beats, on through the following lines; a note says what was left over. Typing stays literal. | Rinat, chat 2026-10-11 ("yes please"; diaries split words as আ মার সো নার); the rules are Claude's | NOTATION.md → Beat boxes → Pasting words. |
+| 2026-10-11 | Three more taals: Teora (তেওরা, Rabindrasangeet's, talis only), Kawali (কাওয়ালি, from Bengali tabla books), Garba (গরবা, for Garba and Dandiya, the 6-matra rhythm tabla players give). "Ferta" is taal pherta, a song changing taal between parts: not built, asked (Open question 6). | Rinat, chat 2026-10-11 ("Kawali, Teora, Ferta, garba/dandiya"); sources in ENGINE.md → Taals | Nineteen taals. Their dholak and drum patterns are Claude's. |
+| 2026-10-11 | Phase 1's features are complete ("That's it for features"), apart from Open question 6; then the design phase. Hindi (interface and Devanagari notation) and Western music (piano note names, staff notation) are ideas for after the app is public and popular. | Rinat, chat 2026-10-11 | ROADMAP.md → After the app is public. |
 
 ## Open questions
 
@@ -396,6 +403,11 @@ records were folded into on 2026-10-11 (the last rows say where).*
 5. **Two taal forms.** Khemta is the 12-matra form of the Bengali tabla books, not Tagore's
    6-matra Kashmiri Khemta; Dhamar is divided as in Rabindrasangeet (3+2+2+3+4), not the
    classical 5+2+3+4 (the checker accepts bars written either way). Default: as built.
+6. **Taal pherta** (তাল ফেরতা, Rinat's "Ferta"): not one taal but a song that changes taal
+   between parts (Kaharwa and Dadra, say). Supporting it means a taal per section, written in
+   the heading as a tempo is, which the playing, the sheet, the taal strip, the beat boxes and
+   the checker would all follow (about a day's work). Build it before the design phase, or
+   later? Default: not built; a song in pherta can be written as two songs meanwhile.
 
 ## Work log
 
@@ -412,6 +424,59 @@ Template:
     - **Decisions made:** rows added above.
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
+
+### 2026-10-11 13:36 BST — Claude (Opus 5.5) — PH1-09 words split into syllables; Teora, Kawali, Garba
+
+- **Goal:** Rinat: "yes please" to pasting a line of words and having it split into syllables
+  under the notes (Rinat's diaries split words as `আ মার সো নার`); "add a few more taals that
+  are common: Kawali, Teora, Ferta, garba/dandiya"; a roadmap idea for later, after the app is
+  public: Hindi users, and Western music with piano notes. "That's it for features, we'll then
+  move onto the design phase after this."
+- **Inspected:** the taal tables, grooves and their tests; the word boxes' typing and paste
+  paths. Sources: geetabitan.com's taal index and its Teyora and Taal Pherta pages;
+  onushilon.org's Kawali and Kaharba pages (fetched over plain HTTP, read as data; they cite
+  *Tabla Bigyan*, Manas Dasgupta's *Taal-abhidhan*, Prafullakumar Das); nazrulkosh.org entries
+  marked "তাল ফেরতা (দাদরা/কাহারবা)"; kksongs.org's tabla guide (a Qawwali Kaherva); a 2001
+  chandrakantha.com tabla forum thread on the garba rhythm. tablatheka.com was not fetched
+  (it redirected through a gambling site before).
+- **Found:** "Ferta" is taal pherta, songs that change taal between parts, not a taal: asked
+  (Open question 6), not built. No written Garba theka exists in a book; the forum's 6-matra
+  rhythm was used.
+- **Changed:** `bbeba89` (feat): `src/core/notation/lyrics.ts` (`wordSyllables`, `syllables`,
+  `fillWords`), paste into a word box (and a paste that arrives as `insertFromPaste`) fills
+  syllables, a note under the boxes (`#bxNote`), help and hint; 4 tests. `4a6ef09` (feat):
+  Teora, Kawali, Garba in `taals.ts`, their dholak and drum grooves, the picker's More taals
+  group; tests updated. This commit (docs): NOTATION, ENGINE, DATA, ROADMAP (row 9; taal
+  pherta and phonetic typing as ideas; "After the app is public": Hindi, Western music),
+  README, this file (the 08:57 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
+  DevTools protocol on `npm run dev`):
+  - `npm run typecheck` → 0; `npx vitest run` → 29 files, 292 passed (lyrics 4 new: 28 words
+    split as sung, a pasted line with punctuation, laying under notes across lines, the box
+    chosen, a lone `-`, a second verse, words left over; taals: thekas, marks, lengths, 19 in
+    the picker); `npm run build` → 187 kB JS (66.4 kB gzip), 33 kB CSS;
+    `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid.
+  - Scenario `words` (17 checks): a real Ctrl+V (clipboard granted) of
+    "আমার সোনার বাংলা, আমি তোমায়" under line 1's first note gives `> আ মার সো | নার - বাং`
+    and `> লা আ মি | - তো` (held and silent beats `-`), the boxes and sheet show them, the
+    focus goes on, the note says "9 syllables placed … No notes left for: মায়.", one Undo
+    takes it back; a word typed stays whole; the picker offers 19; Teora, Kawali and Garba each
+    check clean with bars on their vibhags, play, and show their theka on the strip; 360 px
+    both themes; no console errors. `boxes` (29) still passes.
+  - Audio (`/dev/render.html`, OfflineAudioContext 48 kHz in headless Edge): the port still
+    matches the prototype (differences 0 on the compared sessions shown); the three new taals'
+    levels are in ENGINE.md → Verifying sound (tabla −18.1 to −19.2 dB RMS, dholak −18.4 to
+    −20.4, drums −21.0 to −23.3, peaks −1.9 to −4.5 dBFS, no silent beats).
+  - CI run `38139753394` (`4a6ef09`): core, reference and deploy jobs green. Live: `words` against
+    https://rinatmalik.github.io/Gaaner-Sathi/ passed all 17 checks, no console errors; `/` 200,
+    `/new/` 200.
+- **Decisions made:** see Decisions (the three newest rows); Open question 6.
+- **Risks or disagreements:** the syllable split is a spelling rule, not a dictionary: words
+  whose sung syllables differ from their spelling (হাওয়া, medial vowels dropped in speech)
+  need a correction by hand. Kawali has other thekas; Garba has no book theka; Kawali's
+  dholak and drums are about 2 dB louder than the other taals'. Nobody has heard the three.
+- **Next handoff:** Rinat answers Open question 6 (taal pherta) and tries pasting words and
+  the three taals; then the design phase (Phase 2).
 
 ### 2026-10-11 10:35 BST — Claude (Opus 5.5) — PH1-08 beat boxes round three
 
@@ -466,68 +531,5 @@ Template:
   than 30 cents, or the delay or thresholds need tuning on a real voice (asked).
 - **Next handoff:** Rinat tries ▶ Play and copying several lines; answers on the red marks
   and on a lyric helper; then the design phase.
-
-### 2026-10-11 08:57 BST — Claude (Opus 5.5) — PH1-07 beat boxes round two; lean docs
-
-- **Goal:** Rinat: clean up the documentation and framework files no longer needed, remove
-  duplicates, "a lean framework with context, history and roadmap", rewrite files that have
-  become unorganised (Rinat's two blank lines at the end of ROADMAP deletable); make each
-  beat-box line draggable to reorder, with a button that copies a line just below it; how to
-  type several notes in one beat (typing over a box replaces its note, which is right); and
-  how sharing the link, moving to another device and progress work underneath.
-- **Inspected:** every doc (CONTEXT, HISTORY, ROADMAP, NOTATION, ENGINE, DATA, PARITY,
-  SECURITY, the five ADRs, README, CLAUDE, AGENTS, reference/README); `src/app/boxes.ts` and
-  `src/core/notation/boxes.ts`; what song files carry (`songForFile`) and what import does
-  (new ids, no merging).
-- **Changed:**
-  - `8170085` (feat): `rowBlocks`, `moveRow`, `duplicateLine` in `src/core/notation/boxes.ts`;
-    in the boxes each heading and line has a handle (its number, ⠿): pointer drags (mouse or
-    touch, a brass line where it will land, the boxes or page scrolling at the edges, Escape
-    cancels), ↑ ↓ on a focused handle, Copy on each line; each move or copy one undo step,
-    and undo from a handle keeps the focus on one. An arrow first ends a box's selection
-    (→ then typing adds a note to the beat); `readableBeat` mends sargam among letters
-    (`Sre` → `SR`). Help row and hint say how. 3 new tests.
-  - This commit (docs): CONTEXT rewritten lean (The documents, a list of what waits for a
-    real voice or device, rules merged from SECURITY and the old defaults, decisions in
-    force); HISTORY gains the finished PH0 items, 12 decisions no longer in force and four
-    older log entries, all word for word (moved by a script that checks each boundary);
-    ROADMAP rewritten (a table of what is built and its check, ideas left, a new one: one
-    file that moves everything to another device); NOTATION, ENGINE, DATA rewritten in order,
-    with the ADRs' reasons folded in and DATA → "Where things live, and what travels";
-    CLAUDE and AGENTS short pointers; README and reference/README brought up to date;
-    `SECURITY.md`, `docs/PARITY.md`, `docs/adr/` removed; source comments that named ADR
-    files now name the doc sections.
-- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
-  DevTools protocol on `npm run dev`, real mouse, key and touch events):
-  - `npm run typecheck` → 0; `npx vitest run` → 28 files, 288 passed; `npm run build` → 181 kB
-    JS (64.1 kB gzip), 32 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed,
-    12 exercises valid.
-  - Scenario `move` (31 checks, all passed, no console errors): handles numbered in row order
-    (`0:# 1:1 2:2 3:# 4:3`), a Copy on each line; a mouse drag lifts the row and shows the
-    drop line, and line 2 dropped above line 1 moves with its words; Undo; a heading dragged
-    up moves alone; Ctrl+Z on the handle; a drop below the last row; Escape mid-drag changes
-    nothing; a 2 px wobble is a tap that focuses the handle; ↓ ↓ ↑ ↑ ↑ ↑ move it down past
-    the heading, back, above the heading and stop at the top; Copy puts the line and its
-    words just below, marked as line 2, which then drags to the end; two Undos; a space
-    selects the next box, → keeps the box and typing গা makes `রাগা`; on a 360 px phone
-    with touch, a line dragged by a finger moves; on an 18-line song (boxes 560 of 3 396 px)
-    held at the bottom edge, the boxes scrolled 2 567 px and the line landed at line 17; 360
-    px day and night with no sideways scrolling. The first run failed 7 checks, all from one
-    cause: after a mouse drop nothing had focus, so Ctrl+Z missed; a drop now focuses the
-    moved row's handle (and edge scrolling now speeds up nearer the edge).
-  - Scenario `boxes` from PH1-06 (29 checks) still all passed.
-  - CI run `38123035124` (`8170085`): core, reference and deploy jobs green. Live: the
-    `move` scenario against https://rinatmalik.github.io/Gaaner-Sathi/ passed all 31 checks,
-    no console errors; `/` 200, `/new/` 200.
-- **Decisions made:** see Decisions (the three newest rows: lean docs; decision records
-  without ADR files; drag and copy in the beat boxes).
-- **Risks or disagreements:** dragging was tried with emulated touch, not a real phone; a long
-  press is not needed (the handle takes the touch at once), which may surprise on a phone
-  that scrolls by dragging anywhere else. Copy copies the words too (Rinat may prefer the
-  notes only, for a repeat with new words). Moving a line changes where it falls in the taal
-  if lines are not whole cycles (the checker then says so). Progress, routines, settings and
-  takes do not move between devices yet (a feature idea).
-- **Next handoff:** Rinat tries dragging and copying lines, and the other features; then the
-  design phase.
 
 Older entries: `docs/HISTORY.md`.

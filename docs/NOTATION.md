@@ -157,6 +157,16 @@ Free text is one tap away and remembered.
 - **Words:** typed in the boxes under the notes, a space between beats (`আ মার সো নার` typed
   in the first box fills four), `-` for a beat the vowel is held over. Enter in a word box
   opens another row of words (a second verse) at the same beat.
+- **Pasting words** (`src/core/notation/lyrics.ts`): a line of words pasted into a word box is
+  split into the syllables it is sung in and laid one to each beat where a note starts, `-` on
+  held and silent beats, from that box on through the lines after it (a lone `-` in the paste
+  takes a beat of its own). The split reads Bengali spelling: a letter with its vowel sign
+  (and ঁ ং ঃ) is a syllable; a single consonant at the end of a word joins the one before
+  (আমার → আ মার, বাংলা → বাং লা); ৎ and a consonant with হসন্ত join the one before; inside a
+  word a conjunct's first consonant closes the syllable before it (আনন্দ → আ নন্ দ, স্বপ্ন →
+  স্বপ্ ন); a final ই উ এ ও after a vowel is one syllable with it (যাও, এই). Punctuation is
+  dropped; other scripts are kept whole. A note under the boxes says how many were placed,
+  and any left with no note to go to. Typing is unchanged: a word typed stays whole.
 - **Bars:** new lines get bars at the vibhags when the song's lines have bars (or there are
   none yet), in the bar character the song uses most; a line keeps its own style. Words
   rewritten under a line get bars where it has them only if they were written with bars.
