@@ -79,6 +79,8 @@ export interface Prefs extends SoundSettings {
   rewazId?: string;
   /** Day or night colours; unset follows the device. */
   theme?: 'light' | 'dark';
+  /** The editor shows the notation as free text; unset: beat boxes. */
+  editMode?: 'text';
 }
 
 /** The views under the deck. */
@@ -136,6 +138,7 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
   if (typeof r.pitchLag === 'number' && r.pitchLag >= 0 && r.pitchLag <= 0.6) p.pitchLag = r.pitchLag;
   if (typeof r.rewazId === 'string' && r.rewazId) p.rewazId = r.rewazId;
   if (r.theme === 'light' || r.theme === 'dark') p.theme = r.theme;
+  if (r.editMode === 'text') p.editMode = 'text';
   return p;
 }
 

@@ -46,6 +46,9 @@ export function headingTempo(heading: string): number | undefined {
 /** A heading without its tempo: "অন্তরা · tempo 110" → "অন্তরা". */
 export const headingLabel = (heading: string): string => heading.replace(TEMPO_PART_RE, '').trim();
 
+/** A heading's tempo as written, with what separates it: " · tempo 110", or ''. */
+export const headingTempoPart = (heading: string): string => TEMPO_PART_RE.exec(heading)?.[0] ?? '';
+
 /** The headings of a text, by 1-based line: lines starting with # once trimmed, as the parser reads them. */
 function headings(text: string): Map<number, string> {
   const out = new Map<number, string>();

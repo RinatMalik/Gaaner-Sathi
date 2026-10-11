@@ -219,6 +219,7 @@
       <div class="exNote" id="exNote" hidden>This is a built-in exercise, so edits here are not kept. Press <b>Make a copy</b> to save your own version, or <b>+ New song</b> to start from your diary.</div>
       <div class="edgrid">
         <div class="edcol">
+          <div class="modebar"><span class="lab2" id="modeLab">Write in</span><div class="seg" id="modeSeg" role="group" aria-labelledby="modeLab"><button type="button" data-v="boxes">Beat boxes</button><button type="button" data-v="text">Free text</button></div><span class="phint" id="modeHint"></span></div>
           <div class="pal" id="pal" aria-label="Insert notes">
             <div class="palrow">
               <span class="lab2">Insert notes in</span>
@@ -228,16 +229,20 @@
             <div class="palrow">
               <button type="button" class="xbtn" data-ins="hold">Hold −</button>
               <button type="button" class="xbtn" data-ins="rest">Silence x</button>
-              <button type="button" class="xbtn" data-ins="bar">Bar |</button>
+              <button type="button" class="xbtn tonly" data-ins="bar">Bar |</button>
               <button type="button" class="xbtn" data-ins="nl">New line</button>
-              <button type="button" class="xbtn" data-ins="ly">Lyrics line &gt;</button>
+              <button type="button" class="xbtn tonly" data-ins="ly">Lyrics line &gt;</button>
+              <button type="button" class="xbtn bonly" id="bxHead">+ Heading</button>
+              <button type="button" class="xbtn bonly" id="bxUndo">Undo</button>
             </div>
           </div>
+          <div class="boxes" id="boxes" role="group" aria-label="Notation, a box for each beat"></div>
           <textarea id="notation" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Notation"></textarea>
           <div class="issues" id="issues" aria-live="polite"></div>
           <details class="help" id="help">
             <summary>How to type your diary notation</summary>
             <table>
+              <tr><td>Beat boxes</td><td>Each box is one beat, laid out by the taal. Type the note and a space to go to the next box, or paste a line such as <code>সা রা গা মা</code> into a box to fill a box each. <code>sa re ga</code> works too. Enter starts a new line; Backspace in an empty box removes it. The words go in the boxes under the notes.</td></tr>
               <tr><td>One beat (matra)</td><td>Each group between spaces is one beat: <code>সা রা গা</code> is three beats.</td></tr>
               <tr><td>Notes</td><td><code>সা রা গা মা পা ধা না</code> or <code>S R G M P D N</code></td></tr>
               <tr><td>Komal</td><td><code>ঋা জ্ঞা দা ণা</code> or <code>r g d n</code></td></tr>

@@ -39,6 +39,7 @@ import { soundOf, type SongSound } from '../core/song/sound';
 import { beatLabel, SPEEDS } from '../core/taal/rhythm';
 import { isTaalId, taalInfo, type TaalInfo } from '../core/taal/taals';
 import { initPitch, type PitchUI } from './pitch';
+import { initBoxes, withNewHeading, type Boxes } from './boxes';
 import { initPrint } from './print';
 import { initProgress } from './progress';
 import { initRewaz, type ItemSong, type Rewaz } from './rewaz';
@@ -89,6 +90,13 @@ let pitchUI: PitchUI = { on: false, startRun() {}, beat() {}, endRun: () => null
 /** Rewaz routines and the Progress view, wired up by init. */
 let rewaz: Rewaz = { render() {}, active: false, name: '', finished() {}, cancel() {}, beat() {} };
 let progressView: { render(): void } = { render() {} };
+/** The editor's beat boxes, wired up by init. */
+let boxes: Boxes = { refresh() {}, render() {}, beat: () => -1, type() {}, newLine() {}, showBeat() {}, undo: () => false };
+/** The notation box's pause before parsing while typing. */
+let parseTimer = 0;
+/** The editor shows beat boxes (unless the user chose free text) on the Edit view. */
+const boxesMode = () => prefs.editMode !== 'text';
+const boxesShown = () => boxesMode() && !$('#edit').hidden;
 const routineStore = new RoutineStore(storage);
 /** While a rewaz item plays: its own tempo and guide, over the song's and the settings'. */
 let itemOverride: { tempo?: number; guide?: GuideLevel; guideLoop?: GuideLoop } | null = null;
@@ -643,7 +651,41 @@ function reparse(keepLines: boolean): void {
   renderTaal();
   renderSections();
   refreshSelection();
+  if (boxesShown()) boxes.refresh();
   if (!playing()) showIdle();
+}
+
+/** The beat boxes changed the text: as typing in the notation box does, it stops playing. */
+function setTextFromBoxes(text: string, soon: boolean): void {
+  if (text === current.text) return;
+  if (playing()) stop(true);
+  rewaz.cancel();
+  clearOverride();
+  changed('text', text);
+  notationBox().value = text;
+  clearTimeout(parseTimer);
+  if (soon) parseTimer = window.setTimeout(() => reparse(true), 140);
+  else reparse(true);
+}
+
+/** Beat boxes or free text. */
+function setEditMode(m: 'boxes' | 'text'): void {
+  if (m === 'text') prefs.editMode = 'text';
+  else delete prefs.editMode;
+  savePrefs();
+  applyEditMode();
+}
+function applyEditMode(): void {
+  const b = boxesMode();
+  setSeg('modeSeg', b ? 'boxes' : 'text');
+  $('#boxes').hidden = !b;
+  notationBox().hidden = b;
+  for (const el of $$('#pal .tonly')) el.hidden = b;
+  for (const el of $$('#pal .bonly')) el.hidden = !b;
+  $('#modeHint').textContent = b
+    ? 'A box for each beat: type a note and a space to go on, or paste a line of notes.'
+    : 'Type as in your diary: a space between beats, a new line for each line.';
+  if (boxesShown()) boxes.render();
 }
 
 /** Change the song's text from outside the notation box (the deck, the beat boxes), keeping
@@ -837,7 +879,7 @@ function refreshSelection(): void {
   const info = $('#selInfo');
   if (!info) return;
   if (!selTouched) {
-    info.textContent = 'Tap a beat in the preview, or select notes in the box';
+    info.textContent = boxesMode() ? 'Choose a beat box, or tap a beat in the preview' : 'Tap a beat in the preview, or select notes in the box';
     return;
   }
   const ta = notationBox();
@@ -894,7 +936,7 @@ function applyOctave(delta: number): void {
 function applyTextEdit(r: TextEdit): void {
   const ta = notationBox();
   let done = false;
-  if (finePointer()) {
+  if (finePointer() && !boxesMode()) {
     try {
       ta.focus({ preventScroll: true });
       ta.setSelectionRange(r.lo, r.hi);
@@ -1032,6 +1074,7 @@ function switchTab(t: Tab): void {
   songsView.render();
   rewaz.render();
   progressView.render();
+  if (boxesShown()) boxes.render();
 }
 /** The tempo shown on the deck: a rewaz item's while one plays, else the song's. */
 const shownTempo = () => itemOverride?.tempo ?? deckSection()?.tempo ?? current.tempo;
@@ -1152,6 +1195,20 @@ export function init(): void {
       void offerFile('gaaner-sathi-practice-log-' + d + '.json', logFileText(logStore.load(), d), (t) => setFileStatus(t, '#pgStatus'));
     },
   });
+  boxes = initBoxes({
+    text: () => current.text,
+    setText: setTextFromBoxes,
+    taal: () => taal,
+    off: startOff,
+    focusBeat: (g) => {
+      const b = parsed.beatList[g];
+      if (!b) return;
+      selTouched = true;
+      notationBox().setSelectionRange(b.a, b.b);
+      refreshSelection();
+    },
+  });
+  applyEditMode();
   const printSong = initPrint({ song: () => current, parsed: () => parsed, taal: () => taal, script: () => prefs.script });
   $('#printBtn').addEventListener('click', printSong);
   $('#printBtn2').addEventListener('click', printSong);
@@ -1383,7 +1440,6 @@ export function init(): void {
     reparse(true);
   });
 
-  let parseTimer = 0;
   notationBox().addEventListener('input', (e) => {
     if (playing()) stop(true);
     rewaz.cancel();
@@ -1401,13 +1457,33 @@ export function init(): void {
   });
   $('#noteBtns').addEventListener('click', (e) => {
     const b = (e.target as Element).closest<HTMLElement>('button[data-semi]');
-    if (b) insertText(tokenFor(+b.dataset.semi!));
+    if (!b) return;
+    if (boxesMode()) boxes.type(tokenFor(+b.dataset.semi!).trim());
+    else insertText(tokenFor(+b.dataset.semi!));
   });
   $('#pal').addEventListener('click', (e) => {
     const b = (e.target as Element).closest<HTMLElement>('button[data-ins]');
     if (!b) return;
     const k = b.dataset.ins;
+    if (boxesMode()) {
+      if (k === 'nl') boxes.newLine();
+      else if (k === 'hold' || k === 'rest') boxes.type(k === 'hold' ? '-' : 'x');
+      return;
+    }
     insertText(k === 'hold' ? '- ' : k === 'rest' ? 'x ' : k === 'bar' ? '| ' : k === 'nl' ? '\n' : '\n> ');
+  });
+  $('#modeSeg').addEventListener('click', (e) => {
+    const b = segButton(e);
+    if (b) setEditMode(b.dataset.v === 'text' ? 'text' : 'boxes');
+  });
+  $('#bxHead').addEventListener('click', () => {
+    setTextFromBoxes(withNewHeading(current.text), false);
+    boxes.render();
+    const heads = $$<HTMLInputElement>('#boxes .bxh');
+    heads[heads.length - 1]?.focus();
+  });
+  $('#bxUndo').addEventListener('click', () => {
+    if (!boxes.undo()) $('#selInfo').textContent = 'Nothing to undo in the beat boxes.';
   });
 
   $('#secChips').addEventListener('click', (e) => {
@@ -1463,7 +1539,7 @@ export function init(): void {
   $('#splitBtn').addEventListener('click', () => applyBeatEdit('split'));
   const selectRange = (s: number, en: number) => {
     selTouched = true;
-    if (finePointer()) ta.focus({ preventScroll: true });
+    if (finePointer() && !boxesMode()) ta.focus({ preventScroll: true });
     ta.setSelectionRange(s, en);
     scrollTextareaTo(ta, s);
     refreshSelection();
@@ -1478,6 +1554,9 @@ export function init(): void {
     if (e.shiftKey && selTouched) {
       s = Math.min(s, ta.selectionStart);
       en = Math.max(en, ta.selectionEnd);
+    } else if (boxesMode()) {
+      boxes.showBeat(b.g);
+      return;
     }
     selectRange(s, en);
   });
@@ -1488,7 +1567,10 @@ export function init(): void {
     const r = it && issueRange(it);
     if (!it || !r) return;
     selectRange(r[0], r[1]);
-    if (btn.dataset.act === 'show') {
+    if (btn.dataset.act === 'show' && boxesMode()) {
+      boxes.showBeat(it.g);
+      selectRange(r[0], r[1]);
+    } else if (btn.dataset.act === 'show') {
       const row = $('#sheetE .beat[data-b="' + it.g + '"]');
       if (row) {
         const sh = $('#sheetE');
