@@ -11,7 +11,7 @@ import { beatLabel, GROOVES, LAYERS, layerHits, rhythmTable, type LayerId } from
 import { REST, TAAL_GROUPS, TAAL_IDS, TAALS, taalInfo, type TaalId } from '../../src/core/taal/taals';
 
 const TAGORE: TaalId[] = ['jhampak', 'shashthi', 'rupakra', 'nabatal', 'ekadashi', 'nabapanchatal'];
-const NEW: TaalId[] = [...TAGORE, 'khemta', 'deepchandi', 'dhamar', 'jhumra'];
+const NEW: TaalId[] = [...TAGORE, 'khemta', 'deepchandi', 'dhamar', 'jhumra', 'teora', 'kawali', 'garba'];
 const STYLES = ['tabla', 'dholak', 'kit', 'click'];
 const LAYER_IDS = Object.keys(LAYERS) as LayerId[];
 const fits = (id: LayerId, style: string) => (LAYERS[id].styles as readonly string[]).includes(style);
@@ -37,6 +37,9 @@ describe('the new taals', () => {
       deepchandi: 'Dha Dhin - | Dha Dha Tin - | Ta Tin - | Dha Dha Dhin -',
       dhamar: 'Ka Dhi Ta | Dhi Ta | Dha - | Ga Di Na | Di Na Ta -',
       jhumra: 'Dhin -Dha TiRaKiTa | Dhin Dhin DhaGe TiRaKiTa | Tin -Ta TiRaKiTa | Dhin Dhin DhaGe TiRaKiTa',
+      teora: 'Dha Dhi Na | Dhi Na | Dhi Na',
+      kawali: 'Dha Dhin DhaDha Dhin | Dha Tin DhaDha Dhin',
+      garba: 'Dhin DhaTi Dha | Tin TaTi Ta',
     });
   });
 
@@ -53,6 +56,9 @@ describe('the new taals', () => {
       deepchandi: '1:X 4:2 8:0 11:3',
       dhamar: '1:X 4:0 6:2 8:0 11:3',
       jhumra: '1:X 4:2 8:0 11:3',
+      teora: '1:X 4:2 6:3',
+      kawali: '1:X 5:0',
+      garba: '1:X 4:0',
     });
     for (const id of TAGORE) expect(TAALS[id].marks).not.toContain('0');
   });
@@ -67,7 +73,7 @@ describe('the new taals', () => {
       expect(t.name, id).toMatch(/^[A-Z][a-z]+$/);
       expect(t.bn, id).toMatch(/^[ঀ-৿]+$/);
     }
-    expect(TAAL_IDS.map((id) => TAALS[id].bols.length)).toEqual([6, 8, 7, 10, 12, 16, 5, 6, 8, 9, 11, 18, 12, 14, 14, 14]);
+    expect(TAAL_IDS.map((id) => TAALS[id].bols.length)).toEqual([6, 8, 7, 10, 12, 16, 5, 6, 8, 9, 11, 18, 12, 14, 14, 14, 7, 8, 6]);
   });
 
   it('play every bol with strokes of its own (an unknown bol would sound as Na)', () => {
@@ -128,7 +134,8 @@ describe('the new taals', () => {
     expect(TAAL_GROUPS.flatMap((g) => g.ids).sort()).toEqual([...TAAL_IDS].sort());
     const html = taalOptionsHTML();
     expect(html.match(/<optgroup label="([^"]+)">/g)).toEqual(['<optgroup label="Common taals">', '<optgroup label="Tagore\'s own taals">', '<optgroup label="More taals">']);
-    expect(html.match(/<option /g)).toHaveLength(16);
+    expect(html.match(/<option /g)).toHaveLength(19);
+    expect(html).toContain('<option value="kawali">Kawali · কাওয়ালি (8)</option>');
     expect(html).toContain('<option value="nabapanchatal">Nabapanchatal · নবপঞ্চতাল (18)</option>');
     expect(html).toContain('<option value="jhampak">Jhampak · ঝম্পক (5)</option>');
     expect(startOnOptionsHTML(taalInfo('dhamar'))).toContain('<option value="4">4 · khali (0)</option>');

@@ -6,6 +6,10 @@
  *   Nabatal, Ekadashi), as gitabitan.net gives them.
  * - Khemta (12 matras, as in Bengali tabla books), Deepchandi, Dhamar (divided as in
  *   Rabindrasangeet, 3|2|2|3|4 with khali on 4 and 8) and Jhumra.
+ * Then on 2026-10-11:
+ * - Teora (তেওরা), 3|2|2 with talis only, as geetabitan.com gives it for Rabindrasangeet.
+ * - Kawali (কাওয়ালি), 4|4, as onushilon.org gives it from Bengali tabla books.
+ * - Garba (গরবা, Garba and Dandiya): the 6-matra garba rhythm as tabla players give it.
  */
 
 /** A bol, or several bols sharing one matra (Ektal's DhaGe, TiRaKiTa). REST is a matra, or
@@ -73,6 +77,12 @@ export const TAALS = {
       'Tin', [REST, 'Ta'], ['Ti', 'Ra', 'Ki', 'Ta'], 'Dhin', 'Dhin', ['Dha', 'Ge'], ['Ti', 'Ra', 'Ki', 'Ta'],
     ],
   },
+  teora: { name: 'Teora', bn: 'তেওরা', vib: [3, 2, 2], marks: ['X', '2', '3'], bols: ['Dha', 'Dhi', 'Na', 'Dhi', 'Na', 'Dhi', 'Na'] },
+  kawali: {
+    name: 'Kawali', bn: 'কাওয়ালি', vib: [4, 4], marks: ['X', '0'],
+    bols: ['Dha', 'Dhin', ['Dha', 'Dha'], 'Dhin', 'Dha', 'Tin', ['Dha', 'Dha'], 'Dhin'],
+  },
+  garba: { name: 'Garba', bn: 'গরবা', vib: [3, 3], marks: ['X', '0'], bols: ['Dhin', ['Dha', 'Ti'], 'Dha', 'Tin', ['Ta', 'Ti'], 'Ta'] },
 } as const satisfies Record<string, TaalDef>;
 
 export type TaalId = keyof typeof TAALS;
@@ -82,7 +92,7 @@ export const TAAL_IDS = Object.keys(TAALS) as TaalId[];
 export const TAAL_GROUPS: readonly { label: string; ids: readonly TaalId[] }[] = [
   { label: 'Common taals', ids: ['dadra', 'keherwa', 'rupak', 'jhaptal', 'ektal', 'teentaal'] },
   { label: "Tagore's own taals", ids: ['jhampak', 'shashthi', 'rupakra', 'nabatal', 'ekadashi', 'nabapanchatal'] },
-  { label: 'More taals', ids: ['khemta', 'deepchandi', 'dhamar', 'jhumra'] },
+  { label: 'More taals', ids: ['teora', 'kawali', 'garba', 'khemta', 'deepchandi', 'dhamar', 'jhumra'] },
 ];
 
 /**
