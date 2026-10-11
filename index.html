@@ -112,6 +112,7 @@
       <button type="button" role="tab" id="tabPractice" aria-controls="practice">Practice</button>
       <button type="button" role="tab" id="tabEdit" aria-controls="edit">Edit notation</button>
       <button type="button" role="tab" id="tabRewaz" aria-controls="rewaz">Rewaz</button>
+      <button type="button" role="tab" id="tabVoice" aria-controls="voice">Voice</button>
       <button type="button" role="tab" id="tabProgress" aria-controls="progress">Progress</button>
     </div>
     <div class="seg" id="scriptSeg" role="group" aria-label="Show notes as"><button type="button" data-v="bn">বাংলা</button><button type="button" data-v="lat">Sa Re Ga</button></div>
@@ -188,6 +189,33 @@
         <button id="rwDel" class="btn danger" type="button">Delete routine</button>
         <span id="rwDelConfirm" class="confirm" hidden>Delete this routine? <button id="rwDelYes" class="btn danger" type="button">Delete</button><button id="rwDelNo" class="btn" type="button">Keep</button></span>
       </div>
+    </div>
+  </main>
+
+  <main id="voice" role="tabpanel" aria-labelledby="tabVoice" hidden>
+    <div class="vc">
+      <section class="vcard" aria-labelledby="vRangeHead">
+        <h3 id="vRangeHead">Find your Sa</h3>
+        <p class="rwintro">Sing your lowest comfortable note and hold it for a moment, then your highest. The app suggests the Sa that suits your voice, and the best Sa for the song that is open.</p>
+        <div class="vsteps">
+          <div class="vstep"><span class="lab2">Lowest note</span><b id="vLow">–</b><button id="vLowBtn" class="btn" type="button">Sing my lowest note</button></div>
+          <div class="vstep"><span class="lab2">Highest note</span><b id="vHigh">–</b><button id="vHighBtn" class="btn" type="button">Sing my highest note</button></div>
+        </div>
+        <div class="vlive" id="vLive" hidden><span class="vlnote" id="vLiveNote" aria-live="polite"></span><span class="vlmsg" id="vLiveMsg" aria-live="polite"></span><button id="vDone" class="btn" type="button">Done</button></div>
+        <div class="vresult" id="vResult" aria-live="polite"></div>
+      </section>
+      <section class="vcard" aria-labelledby="vHoldHead">
+        <h3 id="vHoldHead">Hold a note</h3>
+        <p class="rwintro">For breath and a steady voice. The tanpura plays Sa and the harmonium plays your note; then breathe in and hold the note as long and as steadily as you can.</p>
+        <div class="rwtop"><label class="lab2" for="hNote">Note</label><select id="hNote" class="msel"></select><button id="hStart" class="btn primary" type="button">▶ Start</button><span class="phint" id="hSa"></span></div>
+        <div class="hbox" id="hBox" hidden>
+          <div class="htime" id="hTime" aria-live="off">0.0 s</div>
+          <div class="prow"><div class="pmeter" aria-hidden="true"><span class="pz"></span><span class="pc"></span><span class="pn" id="hNeedle" hidden></span></div><span class="pmsg" id="hMsg" aria-live="polite"></span></div>
+          <div id="hResult" aria-live="polite"></div>
+        </div>
+        <p class="phint" id="hBest"></p>
+      </section>
+      <p class="phint">The microphone is on only while listening. Nothing is recorded or sent anywhere.</p>
     </div>
   </main>
 

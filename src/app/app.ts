@@ -43,6 +43,7 @@ import { initBoxes, withNewHeading, type Boxes } from './boxes';
 import { initPrint } from './print';
 import { initProgress } from './progress';
 import { initRewaz, type ItemSong, type Rewaz } from './rewaz';
+import { initVoice, type SaChoice, type VoiceUI } from './voice';
 import { initSongs } from './songs';
 import { loadPrefs, LogStore, RoutineStore, savePrefs as writePrefs, SongStore, TABS, type KeyValueStore, type Tab, type WriteResult } from './store';
 import * as V from './view';
@@ -90,6 +91,8 @@ let pitchUI: PitchUI = { on: false, startRun() {}, beat() {}, endRun: () => null
 /** Rewaz routines and the Progress view, wired up by init. */
 let rewaz: Rewaz = { render() {}, active: false, name: '', finished() {}, cancel() {}, beat() {} };
 let progressView: { render(): void } = { render() {} };
+/** The Voice view, wired up by init. */
+let voiceUI: VoiceUI = { render() {}, stop() {} };
 /** The editor's beat boxes, wired up by init. */
 let boxes: Boxes = { refresh() {}, render() {}, beat: () => -1, type() {}, newLine() {}, showBeat() {}, undo: () => false };
 /** The notation box's pause before parsing while typing. */
@@ -196,6 +199,7 @@ function play(fromN?: number, rounds?: number): void {
   }
   const ctx = tr.E.ctx as AudioContext;
   if (ctx.state !== 'running') void ctx.resume();
+  voiceUI.stop();
   if (tr.playing) stop(true);
   const L = parsed.noteLines;
   const from = clamp(fromN != null ? fromN : +select('#fromLine').value || 0, 0, L.length - 1);
@@ -619,6 +623,23 @@ function forgetSound(): void {
   T?.applyDrone();
   T?.resetTanpura();
 }
+/** Set the open song's Sa (the deck's pickers too); on an exercise it becomes your Sa. */
+function setSa(s: SaChoice): void {
+  const oct = s.saOct === 3 || s.saOct === 5 ? s.saOct : 4;
+  select('#saKey').value = String(s.saKey);
+  select('#saOct').value = String(oct);
+  changed('saKey', s.saKey);
+  changed('saOct', oct);
+  rememberExerciseSa();
+  T?.retune();
+}
+/** A Sa changed on an exercise is kept as your Sa, for every exercise and new song. */
+function rememberExerciseSa(): void {
+  if (!current.example) return;
+  prefs.mySa = { saKey: current.saKey, saOct: current.saOct };
+  savePrefs();
+}
+
 /** Day, night, or (unset) as the device says. */
 function applyTheme(): void {
   if (prefs.theme) document.documentElement.setAttribute('data-theme', prefs.theme);
@@ -724,7 +745,11 @@ function loadSong(song: Song | Exercise): void {
     clearOverride();
   }
   current = normalize(song);
-  if (song.example) current.example = true;
+  if (song.example) {
+    current.example = true;
+    // Exercises sing in your Sa, once you have one (the range finder, or a change on one).
+    if (prefs.mySa) Object.assign(current, prefs.mySa);
+  }
   prefs.lastSong = current.id;
   savePrefs();
   renderSoundControls();
@@ -831,7 +856,8 @@ function setFav(id: string, fav: boolean): void {
 }
 
 function newSong(): void {
-  createSong({ title: 'Untitled song', taal: 'dadra', tempo: 100, saKey: current.saKey, saOct: current.saOct, startOn: 1, text: '# স্থায়ী\n' });
+  const sa = prefs.mySa ?? { saKey: current.saKey, saOct: current.saOct };
+  createSong({ title: 'Untitled song', taal: 'dadra', tempo: 100, saKey: sa.saKey, saOct: sa.saOct, startOn: 1, text: '# স্থায়ী\n' });
   switchTab('edit');
   const t = input('#titleIn');
   t.focus();
@@ -1062,7 +1088,7 @@ function tokenFor(semi: number): string {
   if (prefs.script === 'bn') return (insOct < 0 ? '.' : '') + (insOct > 0 ? 'র্' : '') + V.BN_NAMES[semi] + AKAR + ' ';
   return (insOct < 0 ? '.' : '') + V.LAT_CODE[semi] + (insOct > 0 ? "'" : '') + ' ';
 }
-const TAB_BUTTONS: Record<Tab, string> = { practice: '#tabPractice', edit: '#tabEdit', songs: '#tabSongs', rewaz: '#tabRewaz', progress: '#tabProgress' };
+const TAB_BUTTONS: Record<Tab, string> = { practice: '#tabPractice', edit: '#tabEdit', songs: '#tabSongs', rewaz: '#tabRewaz', voice: '#tabVoice', progress: '#tabProgress' };
 function switchTab(t: Tab): void {
   prefs.tab = t;
   savePrefs();
@@ -1075,6 +1101,8 @@ function switchTab(t: Tab): void {
   rewaz.render();
   progressView.render();
   if (boxesShown()) boxes.render();
+  if (t === 'voice') voiceUI.render();
+  else voiceUI.stop();
 }
 /** The tempo shown on the deck: a rewaz item's while one plays, else the song's. */
 const shownTempo = () => itemOverride?.tempo ?? deckSection()?.tempo ?? current.tempo;
@@ -1187,6 +1215,56 @@ export function init(): void {
     playing,
     showPractice: () => switchTab('practice'),
   });
+  voiceUI = initVoice({
+    audio: () => {
+      try {
+        const tr = ensureAudio();
+        const ctx = tr.E.ctx as AudioContext;
+        if (ctx.state !== 'running') void ctx.resume();
+        return { ctx, E: tr.E };
+      } catch {
+        return null;
+      }
+    },
+    stopMain: () => {
+      if (playing()) stop();
+      rewaz.cancel();
+      clearOverride();
+    },
+    song: () => ({ title: current.title, own: !current.example, parsed, sa: { saKey: current.saKey, saOct: current.saOct } }),
+    setSongSa: setSa,
+    mySa: {
+      get: () => prefs.mySa,
+      set: (s) => {
+        prefs.mySa = { saKey: s.saKey, saOct: s.saOct === 3 || s.saOct === 5 ? s.saOct : 4 };
+        savePrefs();
+        if (current.example) setSa(s);
+      },
+    },
+    range: {
+      get: () => prefs.voiceRange,
+      set: (r) => {
+        prefs.voiceRange = r;
+        savePrefs();
+      },
+    },
+    best: {
+      get: (note) => prefs.holdBest?.[String(note)],
+      set: (note, secs) => {
+        prefs.holdBest = { ...prefs.holdBest, [String(note)]: secs };
+        savePrefs();
+      },
+    },
+    holdNote: {
+      get: () => prefs.holdNote ?? 0,
+      set: (c) => {
+        prefs.holdNote = c;
+        savePrefs();
+      },
+    },
+    sound: () => sound,
+    script: () => prefs.script,
+  });
   progressView = initProgress({
     log: () => logStore.load(),
     title: (id) => (songs.get(id) || EXERCISES.find((x) => x.id === id))?.title ?? null,
@@ -1224,11 +1302,13 @@ export function init(): void {
   input('#tempoNum').addEventListener('change', (e) => setTempo((e.target as HTMLInputElement).value));
   select('#saKey').addEventListener('change', (e) => {
     changed('saKey', +(e.target as HTMLSelectElement).value);
+    rememberExerciseSa();
     T?.retune();
   });
   select('#saOct').addEventListener('change', (e) => {
     const v = +(e.target as HTMLSelectElement).value;
     changed('saOct', v === 3 || v === 5 ? v : 4);
+    rememberExerciseSa();
     T?.retune();
   });
   select('#fromLine').addEventListener('change', () => {
@@ -1356,6 +1436,7 @@ export function init(): void {
   $('#tabSongs').addEventListener('click', () => switchTab('songs'));
   $('#tabRewaz').addEventListener('click', () => switchTab('rewaz'));
   $('#tabProgress').addEventListener('click', () => switchTab('progress'));
+  $('#tabVoice').addEventListener('click', () => switchTab('voice'));
   $('#themeSeg').addEventListener('click', (e) => {
     const b = segButton(e);
     if (!b) return;

@@ -81,11 +81,21 @@ export interface Prefs extends SoundSettings {
   theme?: 'light' | 'dark';
   /** The editor shows the notation as free text; unset: beat boxes. */
   editMode?: 'text';
+  /** Your Sa, from the range finder or set on an exercise: exercises and new songs use it. */
+  mySa?: { saKey: number; saOct: 3 | 4 | 5 };
+  /** The lowest and highest notes the range finder heard, MIDI numbers. */
+  voiceRange?: { lo?: number; hi?: number };
+  /** The hold trainer's note (cents from Sa), and the longest hold on each note, seconds. */
+  holdNote?: number;
+  holdBest?: Record<string, number>;
 }
 
+/** The notes the hold trainer offers, in cents from Sa (src/app/voice.ts names them). */
+export const HOLD_CENTS: readonly number[] = [-500, -300, -100, 0, 200, 400, 500, 700, 900, 1100, 1200];
+
 /** The views under the deck. */
-export type Tab = 'practice' | 'edit' | 'songs' | 'rewaz' | 'progress';
-export const TABS: readonly Tab[] = ['practice', 'edit', 'songs', 'rewaz', 'progress'];
+export type Tab = 'practice' | 'edit' | 'songs' | 'rewaz' | 'voice' | 'progress';
+export const TABS: readonly Tab[] = ['practice', 'edit', 'songs', 'rewaz', 'voice', 'progress'];
 
 /** The prototype's defaults; it opened on exercise 3 the first time. */
 export const DEFAULT_PREFS: Prefs = { ...structuredClone(DEFAULT_SOUND), script: 'bn', lastSong: 'ex-alankar-bn', tab: 'practice', libSort: 'practised' };
@@ -139,6 +149,21 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
   if (typeof r.rewazId === 'string' && r.rewazId) p.rewazId = r.rewazId;
   if (r.theme === 'light' || r.theme === 'dark') p.theme = r.theme;
   if (r.editMode === 'text') p.editMode = 'text';
+  const my = r.mySa as Record<string, unknown> | undefined;
+  if (my && typeof my === 'object' && Number.isInteger(my.saKey) && (my.saKey as number) >= 0 && (my.saKey as number) <= 11 && (my.saOct === 3 || my.saOct === 4 || my.saOct === 5)) p.mySa = { saKey: my.saKey as number, saOct: my.saOct };
+  const vr = r.voiceRange as Record<string, unknown> | undefined;
+  if (vr && typeof vr === 'object') {
+    const range: { lo?: number; hi?: number } = {};
+    for (const k of ['lo', 'hi'] as const) if (typeof vr[k] === 'number' && (vr[k] as number) >= 20 && (vr[k] as number) <= 110) range[k] = vr[k] as number;
+    if (range.lo != null || range.hi != null) p.voiceRange = range;
+  }
+  if (typeof r.holdNote === 'number' && HOLD_CENTS.includes(r.holdNote)) p.holdNote = r.holdNote;
+  const hb = r.holdBest as Record<string, unknown> | undefined;
+  if (hb && typeof hb === 'object' && !Array.isArray(hb)) {
+    const best: Record<string, number> = {};
+    for (const [k, v] of Object.entries(hb)) if (HOLD_CENTS.includes(Number(k)) && typeof v === 'number' && v > 0 && v < 3600) best[k] = v;
+    if (Object.keys(best).length) p.holdBest = best;
+  }
   return p;
 }
 

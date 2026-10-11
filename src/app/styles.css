@@ -430,3 +430,22 @@ textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--
 .bxadd:hover,.bxdel:hover{border-color:var(--ink-2)}
 .bxnew .bxln{color:var(--brass)}
 @media (max-width:520px){.bx,.lx{width:2.8em;min-width:2.8em}.bxgrp{padding:0 5px}.bxacts{padding-top:14px}}
+
+/* The Voice view (new): the range finder and the hold-a-note trainer. */
+.vc{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.vcard{display:grid;gap:10px;padding:14px 16px;background:var(--sheet);border:1px solid var(--line);border-radius:14px;min-width:0}
+.vcard h3{margin:0;font-size:17px}
+.vsteps{display:flex;flex-wrap:wrap;gap:10px 22px}
+.vstep{display:grid;gap:4px;justify-items:start;min-width:0}
+.vstep b{font-size:22px;font-variant-numeric:tabular-nums;min-height:1.3em}
+.vlive{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 12px;border:1px solid var(--brass);border-radius:10px}
+.vlnote{font-size:34px;font-weight:600;min-width:3ch;font-variant-numeric:tabular-nums}
+.vlmsg{flex:1 1 220px;min-width:0;color:var(--ink-2)}
+.vresult p,.hbox p{margin:4px 0}
+.vsa{padding:8px 0;border-top:1px solid var(--rule)}
+.vbig{font-size:17px}
+.vnote{font-family:var(--f-note);font-weight:400;font-size:20px}
+.vtitle{font-family:var(--f-note);font-weight:400}
+.vok{color:var(--good);font-weight:600}
+.hbox{display:grid;gap:8px}
+.htime{font-size:44px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
