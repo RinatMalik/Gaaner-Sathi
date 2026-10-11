@@ -401,13 +401,19 @@ export function moveRow(text: string, P: ParsedSong, from: number, to: number): 
   return lines.join('\n');
 }
 
-/** A copy of notes line n, lyrics and all, just below it. */
-export function duplicateLine(text: string, P: ParsedSong, n: number): string {
-  const b = rowBlocks(text, P).find((x) => x.notes === n);
-  if (!b) return text;
+/** Copies of rows (indices into rowBlocks: headings, and notes lines with their lyrics) at the
+ * end of the song, in the song's order, before any blank last lines. Returns the text and how
+ * many rows were copied. */
+export function copyRowsToEnd(text: string, P: ParsedSong, rows: Iterable<number>): { text: string; count: number } {
+  const blocks = rowBlocks(text, P);
+  const pick = Array.from(new Set(rows)).filter((r) => blocks[r]).sort((a, b) => a - b);
+  if (!pick.length) return { text, count: 0 };
   const lines = linesOf(text);
-  lines.splice(b.last + 1, 0, ...lines.slice(b.first, b.last + 1));
-  return lines.join('\n');
+  const add = pick.flatMap((r) => lines.slice(blocks[r]!.first, blocks[r]!.last + 1).map((l) => l.replace(/\r$/, '')));
+  let idx = lines.length;
+  while (idx > 0 && !lines[idx - 1]!.trim()) idx--;
+  lines.splice(idx, 0, ...add);
+  return { text: lines.join('\n'), count: pick.length };
 }
 
 /** The 0-based text line of heading k (the k-th line starting with #). */

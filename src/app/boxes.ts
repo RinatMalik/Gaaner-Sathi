@@ -2,11 +2,12 @@
  * Beat boxes in the editor (docs/NOTATION.md → Beat boxes): one box per beat, grouped by the
  * taal's vibhags, a box for the words under each beat, and the headings as their own rows.
  * Typing a space (or a bar) moves to the next box; pasting "সা রা গা মা" fills a box each.
- * A row is dragged by its number (or moved with ↑ ↓ on it); Copy puts a copy of a line below it.
+ * A row is dragged by its number (or moved with ↑ ↓ on it); a tap on the number selects it, and
+ * Copy puts copies of a line, or of the rows selected, at the end. Play plays one line.
  * Every change goes into the song text (src/core/notation/boxes.ts works it out), which the
  * Free text view shows as it is. The HTML builder is pure and tested in Node.
  */
-import { addHeading, appendBeats, beatsTyped, boxRows, duplicateLine, insertLines, insertText, moveRow, newRowShape, nextSpot, placeBeats, readableBeat, removeBeat, removeHeading, removeLine, setBeat, setHeading, setLyrics, type BoxRow, type BoxSpot, type NewAt } from '../core/notation/boxes';
+import { addHeading, appendBeats, beatsTyped, boxRows, copyRowsToEnd, insertLines, insertText, moveRow, newRowShape, nextSpot, placeBeats, readableBeat, removeBeat, removeHeading, removeLine, setBeat, setHeading, setLyrics, type BoxRow, type BoxSpot, type NewAt } from '../core/notation/boxes';
 import { parseSong } from '../core/notation/parse';
 import { setHeadingTempo } from '../core/notation/sections';
 import type { ParsedSong } from '../core/notation/types';
@@ -17,18 +18,21 @@ const atKey = (at: NewAt) => ('end' in at ? 'end' : String(at.after));
 const input = (key: string, cls: string, value: string, label: string, extra = '') =>
   '<input class="' + cls + '" data-key="' + key + '" value="' + esc(value) + '" aria-label="' + esc(label) + '" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"' + extra + '>';
 
-/** The handle a row is dragged by (row r of rowBlocks): its line number, or # for a heading. */
-const grip = (r: number, num: string, what: string) =>
-  '<button type="button" class="bxln bxgrip" data-r="' + r + '" aria-label="' + esc(what) + ': drag to move it, or press ↑ or ↓" title="Drag to move">' +
-  '<span>' + esc(num) + '</span><span class="bxdots" aria-hidden="true">⠿</span></button>';
+/** The handle of row r (of rowBlocks): its line number, or # for a heading. A tap selects the
+ * row (for copying several); dragging it, or ↑ ↓, moves it. */
+const grip = (r: number, num: string, what: string, sel: boolean) =>
+  '<button type="button" class="bxln bxgrip" data-r="' + r + '" aria-pressed="' + sel + '" aria-label="' + esc(what) + ': select it, or drag it (or press ↑ ↓) to move it" title="Tap to select · drag to move">' +
+  '<span>' + esc(num) + '</span><span class="bxdots" aria-hidden="true">' + (sel ? '✓' : '⠿') + '</span></button>';
 
-/** The rows as HTML. `verses`: how many word rows each notes line shows (at least one). */
-export function boxesHTML(rows: readonly BoxRow[], T: TaalInfo, verses: (n: number, written: number) => number): string {
+/** The rows as HTML. `verses`: how many word rows each notes line shows (at least one);
+ * `selected`: the rows selected (rowBlocks indices). */
+export function boxesHTML(rows: readonly BoxRow[], T: TaalInfo, verses: (n: number, written: number) => number, selected: ReadonlySet<number> = new Set()): string {
   let html = '';
   let rk = 0;
+  const open = (cls: string, extra = '') => '<div class="bxrow ' + cls + (selected.has(rk) ? ' sel' : '') + '"' + extra + '>';
   for (const r of rows) {
     if (r.kind === 'head') {
-      html += '<div class="bxrow bxhead">' + grip(rk++, '#', 'Heading') +
+      html += open('bxhead') + grip(rk, '#', 'Heading', selected.has(rk++)) +
         input('h:' + r.k, 'bxh', r.label, 'Heading', ' placeholder="Heading, such as স্থায়ী or অন্তরা"') +
         '<label class="bxtl">tempo ' + input('t:' + r.k, 'bxt', r.tempo != null ? String(r.tempo) : '', 'Tempo of this section', ' type="number" min="30" max="240" inputmode="numeric" placeholder="song’s"') + '</label>' +
         '<button type="button" class="bxdel" data-act="delhead" data-k="' + r.k + '" aria-label="Remove this heading">×</button></div>';
@@ -55,10 +59,10 @@ export function boxesHTML(rows: readonly BoxRow[], T: TaalInfo, verses: (n: numb
     });
     if (cells.length) groups += '</span>';
     if (r.kind === 'notes') {
-      html += '<div class="bxrow bxnotes" data-n="' + r.n + '">' + grip(rk++, String(r.n + 1), 'Line ' + (r.n + 1)) + '<div class="bxbeats">' + groups + '</div>' +
-        '<span class="bxacts"><button type="button" class="bxadd" data-act="verse" data-n="' + r.n + '" title="Another row of words (a verse)">+ words</button>' +
-        '<button type="button" class="bxadd" data-act="copy" data-n="' + r.n + '" aria-label="Copy line ' + (r.n + 1) + ' just below it" title="A copy of this line just below it">Copy</button>' +
-        '<button type="button" class="bxdel" data-act="delline" data-n="' + r.n + '" aria-label="Remove line ' + (r.n + 1) + '">×</button></span></div>';
+      html += open('bxnotes', ' data-n="' + r.n + '"') + grip(rk, String(r.n + 1), 'Line ' + (r.n + 1), selected.has(rk++)) + '<div class="bxbeats">' + groups + '</div>' +
+        '<span class="bxacts"><button type="button" class="bxdel" data-act="delline" data-n="' + r.n + '" aria-label="Remove line ' + (r.n + 1) + '" title="Remove this line">×</button>' +
+        '<button type="button" class="bxadd bxplay" data-act="play" data-n="' + r.n + '" aria-label="Play line ' + (r.n + 1) + '" title="Play just this line">▶ Play</button>' +
+        '<button type="button" class="bxadd" data-act="copy" data-n="' + r.n + '" aria-label="Copy line ' + (r.n + 1) + ' to the end" title="A copy of this line at the end of the song">Copy</button></span></div>';
     } else {
       html += '<div class="bxrow bxnew" data-at="' + atKey(r.at) + '"><span class="bxln" aria-hidden="true">+</span><div class="bxbeats">' + groups + '</div></div>';
     }
@@ -83,6 +87,8 @@ export interface BoxesHost {
   off(): number;
   /** The beat being typed in, for the octave and beat buttons (−1 when none). */
   focusBeat(g: number): void;
+  /** Play notes line n once (or stop it, if it is the line playing). */
+  playLine(n: number): void;
 }
 
 export interface Boxes {
@@ -99,6 +105,10 @@ export interface Boxes {
   /** Go to the box of a beat (the preview, the checker). */
   showBeat(g: number): void;
   undo(): boolean;
+  /** The line playing on its own (−1: none), for its Play button. */
+  linePlaying(n: number): void;
+  /** The beat sounding now (−1: none), lit in its box. */
+  markBeat(g: number): void;
 }
 
 export function initBoxes(host: BoxesHost): Boxes {
@@ -113,6 +123,12 @@ export function initBoxes(host: BoxesHost): Boxes {
   let lastKey = '';
   /** Undo: the text before each change, and the box it was made in. */
   const undoStack: { text: string; key: string; at: number }[] = [];
+  /** The song as last drawn; the rows selected (rowBlocks indices); the line playing on its own
+   * and the beat sounding, kept across drawing again. */
+  let drawnP: ParsedSong | null = null;
+  const sel = new Set<number>();
+  let playingLine = -1;
+  let beatNow = -1;
 
   const parsed = (): ParsedSong => parseSong(host.text());
   const el = (key: string) => box.querySelector<HTMLInputElement>('[data-key="' + key + '"]');
@@ -129,12 +145,16 @@ export function initBoxes(host: BoxesHost): Boxes {
     drawn = shapeOf();
     if (pending != null && pending > P.noteLines.length - 1) pending = null;
     const rows = boxRows(text, P, host.taal(), host.off(), { pending, grow });
+    drawnP = P;
     rendering = true;
     try {
-      box.innerHTML = boxesHTML(rows, host.taal(), (n, written) => Math.max(1, written + (extraVerse.has(n) ? 1 : 0)));
+      box.innerHTML = boxesHTML(rows, host.taal(), (n, written) => Math.max(1, written + (extraVerse.has(n) ? 1 : 0)), sel);
     } finally {
       rendering = false;
     }
+    drawSelBar();
+    showPlaying();
+    lightBeat();
     if (focus) focusKey(focus.key, focus.select, focus.caret);
     markCurrent();
   }
@@ -168,6 +188,7 @@ export function initBoxes(host: BoxesHost): Boxes {
   function write(text: string, key: string, soon: boolean): void {
     const old = host.text();
     if (text === old) return;
+    clearSel();
     const top = undoStack[undoStack.length - 1];
     if (!top || top.key !== key || Date.now() - top.at > 4000) {
       undoStack.push({ text: old, key, at: Date.now() });
@@ -241,7 +262,7 @@ export function initBoxes(host: BoxesHost): Boxes {
     row.dataset.n = String(n);
     delete row.dataset.at;
     const ln = row.querySelector('.bxln');
-    if (ln) ln.outerHTML = grip(Array.from(box.querySelectorAll('.bxhead, .bxnotes')).indexOf(row), String(n + 1), 'Line ' + (n + 1));
+    if (ln) ln.outerHTML = grip(Array.from(box.querySelectorAll('.bxhead, .bxnotes')).indexOf(row), String(n + 1), 'Line ' + (n + 1), false);
     Array.from(row.querySelectorAll<HTMLInputElement>('input.bx')).forEach((x, i) => {
       x.dataset.key = (i === 0 ? 'b:' : 'g:') + n + ':' + i;
       x.setAttribute('aria-label', 'Line ' + (n + 1) + ', beat ' + (i + 1));
@@ -460,6 +481,17 @@ export function initBoxes(host: BoxesHost): Boxes {
         l.focus();
       }
     }
+    if (k === 'l' && ev.key === 'Enter' && !ev.isComposing) {
+      // The next row of words (a verse), made when this is the last one written.
+      ev.preventDefault();
+      const [, n, v, j] = parts(key);
+      if (!el('l:' + n + ':' + (+v! + 1) + ':' + j) && e.value.trim()) {
+        extraVerse.add(+n!);
+        render();
+      }
+      el('l:' + n + ':' + (+v! + 1) + ':' + j)?.focus();
+      return;
+    }
     if (k === 'l' && ev.key === 'ArrowUp') {
       ev.preventDefault();
       el('b:' + a + ':' + parts(key)[3])?.focus();
@@ -501,21 +533,91 @@ export function initBoxes(host: BoxesHost): Boxes {
     afterRows(to > r ? to - 1 : to, focus);
   }
 
-  /** After rows moved or a line was copied: draw again and mark row r (and focus its handle,
-   * so the arrow keys move it on). */
-  function afterRows(r: number, focus: boolean): void {
+  /** After rows moved or were copied: draw again and mark rows r to r + count − 1 (and focus the
+   * first one's handle, so the arrow keys move it on). */
+  function afterRows(r: number, focus: boolean, count = 1): void {
     grow = null;
     pending = null;
     extraVerse.clear();
     lastKey = '';
     render();
+    const gs = grips().slice(r, r + count);
+    const rows = gs.map((g) => g.closest<HTMLElement>('.bxrow')!);
+    if (!rows.length) return;
+    for (const row of rows) row.classList.add('moved');
+    window.setTimeout(() => rows.forEach((row) => row.classList.remove('moved')), 1200);
+    if (focus) gs[0]!.focus({ preventScroll: true });
+    rows[rows.length - 1]!.scrollIntoView({ block: 'nearest' });
+    rows[0]!.scrollIntoView({ block: 'nearest' });
+  }
+
+  /** Copies of rows at the end of the song. */
+  function copyToEnd(rows: Iterable<number>): void {
+    const r = copyRowsToEnd(host.text(), parsed(), rows);
+    if (!r.count) return;
+    // The copies come after every row there is now (writing the text draws the rows again).
+    const at = grips().length;
+    write(r.text, 'x:copy:' + ++moves, false);
+    afterRows(at, false, r.count);
+  }
+
+  // ── Selecting rows ─────────────────────────────────────────────────────────
+
+  /** A tap on a handle selects its row, or unselects it. */
+  function toggleSel(r: number): void {
+    if (sel.has(r)) sel.delete(r);
+    else sel.add(r);
     const g = grips()[r];
-    const row = g?.closest<HTMLElement>('.bxrow');
-    if (!g || !row) return;
-    row.classList.add('moved');
-    window.setTimeout(() => row.classList.remove('moved'), 1200);
-    if (focus) g.focus({ preventScroll: true });
-    row.scrollIntoView({ block: 'nearest' });
+    if (g) {
+      g.setAttribute('aria-pressed', String(sel.has(r)));
+      g.querySelector('.bxdots')!.textContent = sel.has(r) ? '✓' : '⠿';
+      g.closest('.bxrow')?.classList.toggle('sel', sel.has(r));
+    }
+    drawSelBar();
+  }
+  function clearSel(): void {
+    if (!sel.size) return;
+    sel.clear();
+    for (const g of box.querySelectorAll<HTMLElement>('.bxgrip[aria-pressed="true"]')) {
+      g.setAttribute('aria-pressed', 'false');
+      g.querySelector('.bxdots')!.textContent = '⠿';
+    }
+    for (const row of box.querySelectorAll('.bxrow.sel')) row.classList.remove('sel');
+    drawSelBar();
+  }
+  /** While rows are selected, a bar at the top of the boxes copies them to the end. */
+  function drawSelBar(): void {
+    let bar = box.querySelector<HTMLElement>('.bxselbar');
+    if (!sel.size) {
+      bar?.remove();
+      return;
+    }
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.className = 'bxselbar';
+      bar.innerHTML = '<span class="bxselt" role="status"></span><button type="button" class="btn primary" data-act="copysel">Copy to the end</button><button type="button" class="btn" data-act="clearsel">Clear</button>';
+      box.prepend(bar);
+    }
+    const lines = Array.from(sel).filter((r) => grips()[r]?.closest('.bxnotes')).length;
+    const heads = sel.size - lines;
+    bar.querySelector('.bxselt')!.textContent = [lines ? lines + (lines === 1 ? ' line' : ' lines') : '', heads ? heads + (heads === 1 ? ' heading' : ' headings') : ''].filter(Boolean).join(' and ') + ' selected';
+  }
+
+  // ── Playing a line ─────────────────────────────────────────────────────────
+
+  function showPlaying(): void {
+    for (const b of box.querySelectorAll<HTMLElement>('.bxplay')) {
+      const on = +b.dataset.n! === playingLine;
+      b.classList.toggle('on', on);
+      b.textContent = on ? '■ Stop' : '▶ Play';
+      b.setAttribute('aria-label', (on ? 'Stop line ' : 'Play line ') + (+b.dataset.n! + 1));
+    }
+  }
+  function lightBeat(): void {
+    for (const e of box.querySelectorAll('.bx.playing')) e.classList.remove('playing');
+    const P = drawnP;
+    const n = P && beatNow >= 0 ? P.lineOfBeat[beatNow] : undefined;
+    if (P && n != null) el('b:' + n + ':' + (beatNow - P.noteLines[n]!.start))?.classList.add('playing');
   }
 
   /** A row being dragged by its handle. Positions are in the boxes' scrolled content. */
@@ -566,10 +668,13 @@ export function initBoxes(host: BoxesHost): Boxes {
     d.raf = requestAnimationFrame(edgeScroll);
   }
 
+  /** When the last drag ended, so the click that follows it is not taken for a tap. */
+  let dragEnded = 0;
   function endDrag(commit: boolean): void {
     const d = drag;
     if (!d) return;
     drag = null;
+    if (d.moved) dragEnded = Date.now();
     cancelAnimationFrame(d.raf);
     window.removeEventListener('keydown', dragKey, true);
     d.mark.remove();
@@ -666,6 +771,8 @@ export function initBoxes(host: BoxesHost): Boxes {
       } else if ((ev.ctrlKey || ev.metaKey) && !ev.altKey && !ev.shiftKey && ev.key.toLowerCase() === 'z') {
         ev.preventDefault();
         undo();
+      } else if (ev.key === 'Escape' && sel.size && !drag) {
+        clearSel();
       }
       return;
     }
@@ -698,21 +805,24 @@ export function initBoxes(host: BoxesHost): Boxes {
     if (e.dataset.key) leave(e, e.dataset.key, (ev as FocusEvent).relatedTarget);
   });
   box.addEventListener('click', (ev) => {
+    const g = (ev.target as Element).closest<HTMLElement>('.bxgrip');
+    if (g) {
+      // A tap or a key (Enter, Space) on a handle; not the end of a drag.
+      if (Date.now() > dragEnded + 400) toggleSel(+g.dataset.r!);
+      return;
+    }
     const b = (ev.target as Element).closest<HTMLElement>('button[data-act]');
     if (!b) return;
     const P = parsed();
-    if (b.dataset.act === 'verse') {
-      extraVerse.add(+b.dataset.n!);
-      render();
-      const nl = P.noteLines[+b.dataset.n!];
-      if (nl) {
-        const rows = box.querySelectorAll<HTMLInputElement>('[data-key^="l:' + nl.n + ':"][data-key$=":0"]');
-        rows[rows.length - 1]?.focus();
-      }
+    if (b.dataset.act === 'play') {
+      host.playLine(+b.dataset.n!);
     } else if (b.dataset.act === 'copy') {
-      const r = +(b.closest('.bxrow')?.querySelector<HTMLElement>('.bxgrip')?.dataset.r ?? -2);
-      write(duplicateLine(host.text(), P, +b.dataset.n!), 'x:copy:' + ++moves, false);
-      afterRows(r + 1, false);
+      const r = +(b.closest('.bxrow')?.querySelector<HTMLElement>('.bxgrip')?.dataset.r ?? -1);
+      copyToEnd([r]);
+    } else if (b.dataset.act === 'copysel') {
+      copyToEnd(sel);
+    } else if (b.dataset.act === 'clearsel') {
+      clearSel();
     } else if (b.dataset.act === 'delline') {
       write(removeLine(host.text(), P, +b.dataset.n!), 'x:delline', false);
       extraVerse.clear();
@@ -771,6 +881,15 @@ export function initBoxes(host: BoxesHost): Boxes {
       el(key)?.scrollIntoView({ block: 'nearest' });
     },
     undo,
+    linePlaying(n: number) {
+      playingLine = n;
+      showPlaying();
+    },
+    markBeat(g: number) {
+      if (g === beatNow) return;
+      beatNow = g;
+      lightBeat();
+    },
   };
 }
 

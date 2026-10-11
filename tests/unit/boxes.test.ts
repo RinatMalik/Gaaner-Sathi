@@ -1,7 +1,7 @@
 // Beat boxes (src/core/notation/boxes.ts): the rows shown, and every change a box makes to
 // the song text.
 import { describe, expect, it } from 'vitest';
-import { addHeading, appendBeats, barChar, beatsTyped, boxRows, insertLines, insertText, newRowShape, nextSpot, placeBeats, readableBeat, duplicateLine, moveRow, removeBeat, removeHeading, removeLine, rowBlocks, setBeat, setHeading, setLyrics, verseTokens } from '../../src/core/notation/boxes';
+import { addHeading, appendBeats, barChar, beatsTyped, boxRows, insertLines, insertText, newRowShape, nextSpot, placeBeats, readableBeat, copyRowsToEnd, moveRow, removeBeat, removeHeading, removeLine, rowBlocks, setBeat, setHeading, setLyrics, verseTokens } from '../../src/core/notation/boxes';
 import { boxesHTML } from '../../src/app/boxes';
 import { parseSong } from '../../src/core/notation/parse';
 import { taalInfo } from '../../src/core/taal/taals';
@@ -202,26 +202,38 @@ describe('changes to the text', () => {
     expect(moveRow(u, parseSong(u), 1, 0)).toBe('M P D\nS R G');
   });
 
-  it('a line copied goes just below it, with its lyrics', () => {
-    const t = '# স্থায়ী\nসা রা গা\n> আ মার সো\nমা পা ধা';
+  it('rows copied go to the end, in the song’s order, lyrics and headings too', () => {
+    const t = '# স্থায়ী\nসা রা গা\n> আ মার সো\nমা পা ধা\n# অন্তরা\nনা সা রা\n\n';
     const P = parseSong(t);
-    expect(duplicateLine(t, P, 0)).toBe('# স্থায়ী\nসা রা গা\n> আ মার সো\nসা রা গা\n> আ মার সো\nমা পা ধা');
-    expect(duplicateLine(t, P, 1)).toBe('# স্থায়ী\nসা রা গা\n> আ মার সো\nমা পা ধা\nমা পা ধা');
-    expect(duplicateLine(t, P, 2)).toBe(t);
+    // One line: its copy at the end, before the blank last lines.
+    expect(copyRowsToEnd(t, P, [1])).toEqual({ text: '# স্থায়ী\nসা রা গা\n> আ মার সো\nমা পা ধা\n# অন্তরা\nনা সা রা\nসা রা গা\n> আ মার সো\n\n', count: 1 });
+    // Several, picked in any order (and twice): the heading and its lines, in the song's order.
+    expect(copyRowsToEnd(t, P, [2, 0, 1, 2]).text).toBe('# স্থায়ী\nসা রা গা\n> আ মার সো\nমা পা ধা\n# অন্তরা\nনা সা রা\n# স্থায়ী\nসা রা গা\n> আ মার সো\nমা পা ধা\n\n');
+    // No line break at the end; rows that are not there.
+    const u = 'S R G\nM P D';
+    expect(copyRowsToEnd(u, parseSong(u), [0]).text).toBe('S R G\nM P D\nS R G');
+    expect(copyRowsToEnd(u, parseSong(u), [5, -1])).toEqual({ text: u, count: 0 });
   });
 });
 
 describe('the boxes as HTML', () => {
-  it('give each heading and line a handle numbered in row order, and each line a Copy button', () => {
+  it('give each heading and line a handle numbered in row order, and each line its ×, Play and Copy', () => {
     const t = '# স্থায়ী\nসা রা গা | মা পা ধা\n# অন্তরা\nনা সা রা | গা মা পা';
     const html = boxesHTML(boxRows(t, parseSong(t), DADRA, 0), DADRA, () => 1);
-    expect(Array.from(html.matchAll(/class="bxln bxgrip" data-r="(\d+)" aria-label="([^"]+)"/g), (m) => m[1] + ' ' + m[2])).toEqual([
-      '0 Heading: drag to move it, or press ↑ or ↓',
-      '1 Line 1: drag to move it, or press ↑ or ↓',
-      '2 Heading: drag to move it, or press ↑ or ↓',
-      '3 Line 2: drag to move it, or press ↑ or ↓',
+    const L = ': select it, or drag it (or press ↑ ↓) to move it';
+    expect(Array.from(html.matchAll(/class="bxln bxgrip" data-r="(\d+)" aria-pressed="(\w+)" aria-label="([^"]+)"/g), (m) => m[1] + ' ' + m[2] + ' ' + m[3])).toEqual([
+      '0 false Heading' + L,
+      '1 false Line 1' + L,
+      '2 false Heading' + L,
+      '3 false Line 2' + L,
     ]);
+    // Selected rows: marked, their handles pressed and ticked.
+    const picked = boxesHTML(boxRows(t, parseSong(t), DADRA, 0), DADRA, () => 1, new Set([1, 2]));
+    expect(Array.from(picked.matchAll(/<div class="bxrow (\w+)( sel)?"/g), (m) => m[1] + (m[2] ?? ''))).toEqual(['bxhead', 'bxnotes sel', 'bxhead sel', 'bxnotes', 'bxnew']);
+    expect(Array.from(picked.matchAll(/aria-pressed="true"[^>]*><span>[^<]*<\/span><span class="bxdots" aria-hidden="true">(.)/g), (m) => m[1])).toEqual(['✓', '✓']);
     expect(Array.from(html.matchAll(/data-act="copy" data-n="(\d+)"/g), (m) => +m[1]!)).toEqual([0, 1]);
+    expect(html).not.toContain('data-act="verse"');
+    expect(Array.from(html.matchAll(/data-act="(delline|play|copy)" data-n="0"/g), (m) => m[1])).toEqual(['delline', 'play', 'copy']);
     // The empty row to start a new line has no handle.
     expect(html).toContain('<div class="bxrow bxnew" data-at="end"><span class="bxln" aria-hidden="true">+</span>');
   });

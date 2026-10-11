@@ -103,7 +103,7 @@ let keyboard: KeyboardUI = { playStarting() {}, playStopped() {} };
 /** The Voice view, wired up by init. */
 let voiceUI: VoiceUI = { render() {}, stop() {} };
 /** The editor's beat boxes, wired up by init. */
-let boxes: Boxes = { refresh() {}, render() {}, beat: () => -1, type() {}, newLine() {}, showBeat() {}, undo: () => false };
+let boxes: Boxes = { refresh() {}, render() {}, beat: () => -1, type() {}, newLine() {}, showBeat() {}, undo: () => false, linePlaying() {}, markBeat() {} };
 /** The notation box's pause before parsing while typing. */
 let parseTimer = 0;
 /** The editor shows beat boxes (unless the user chose free text) on the Edit view. */
@@ -207,8 +207,9 @@ function ensureAudio(): Transport {
   return T;
 }
 
-/** Play from line `fromN` (or the picker's); `rounds` stops a loop after that many. */
-function play(fromN?: number, rounds?: number): void {
+/** Play from line `fromN` (or the picker's); `rounds` stops a loop after that many. `check`:
+ * one line on its own (the editor's Play), which leaves the pickers, the log and takes alone. */
+function play(fromN?: number, rounds?: number, check = false): void {
   if (!parsed.noteLines.length) {
     setNowMessage('No notes to play yet', 'Open Edit notation and type a line from your diary.');
     return;
@@ -227,9 +228,9 @@ function play(fromN?: number, rounds?: number): void {
   if (tr.playing) stop(true);
   const L = parsed.noteLines;
   const from = clamp(fromN != null ? fromN : +select('#fromLine').value || 0, 0, L.length - 1);
-  select('#fromLine').value = String(from);
-  const loop = input('#loopChk').checked;
-  let to = clamp(+select('#toLine').value || 0, 0, L.length - 1);
+  if (!check) select('#fromLine').value = String(from);
+  const loop = check || input('#loopChk').checked;
+  let to = check ? from : clamp(+select('#toLine').value || 0, 0, L.length - 1);
   if (to < from) {
     to = from;
     select('#toLine').value = String(to);
@@ -242,8 +243,10 @@ function play(fromN?: number, rounds?: number): void {
   runFirst = -1;
   const r = tr.start(source, { from, to, loop, rounds });
   if (!r) return;
-  startRun(r.from, r.to, loop);
-  startTakeRun(r.from, loop);
+  if (!check) {
+    startRun(r.from, r.to, loop);
+    startTakeRun(r.from, loop);
+  }
   setPlayUI(true);
   if (r.pre > 0) setNowMessage('Count-in', '', String(r.pre));
   timer = window.setInterval(tick, 25);
@@ -262,6 +265,11 @@ function stop(silent?: boolean, ended = false): void {
   timer = 0;
   cancelAnimationFrame(raf);
   clearHighlight();
+  boxes.markBeat(-1);
+  if (lineCheck >= 0) {
+    lineCheck = -1;
+    boxes.linePlaying(-1);
+  }
   markTaal(-1);
   setPlayUI(false);
   unwake();
@@ -295,6 +303,31 @@ function userToggle(): void {
   if (playing()) stop();
   else play();
 }
+/** The line the editor's Play is playing on its own, or −1. */
+let lineCheck = -1;
+/** The editor's Play on a line: that line once, at its tempo, with no count-in (or Stop). */
+function playLine(n: number): void {
+  const again = lineCheck === n && playing();
+  if (playing()) stop(true);
+  rewaz.cancel();
+  clearOverride();
+  if (again) {
+    showIdle();
+    return;
+  }
+  // The text may have changed a moment ago (it is parsed after a pause while typing).
+  clearTimeout(parseTimer);
+  reparse(true);
+  itemOverride = { countIn: false };
+  play(n, 1, true);
+  if (!playing()) {
+    clearOverride();
+    return;
+  }
+  lineCheck = n;
+  boxes.linePlaying(n);
+}
+
 /** A tap on a line number: play from there (ending any rewaz). */
 function userPlay(n: number): void {
   if (playing()) stop(true);
@@ -532,6 +565,7 @@ function showBeat(q: BeatEntry): void {
     highlight(q.s);
     deckBeat = q.s;
   }
+  boxes.markBeat(q.pass < 0 ? -1 : q.s);
   // The deck follows the tempo of the section playing (not while it is being changed).
   const t = shownTempo();
   const busy = document.activeElement === input('#tempoRange') || document.activeElement === input('#tempoNum');
@@ -1041,7 +1075,7 @@ function applyEditMode(): void {
   for (const el of $$('#pal .tonly')) el.hidden = b;
   for (const el of $$('#pal .bonly')) el.hidden = !b;
   $('#modeHint').textContent = b
-    ? 'A box for each beat: type a note and a space to go on, or paste a line of notes. Notes typed together share a beat (সারা).'
+    ? 'A box for each beat: type a note and a space to go on. Notes typed together share a beat (সারা). Tap line numbers to select lines to copy; drag one to move it.'
     : 'Type as in your diary: a space between beats, a new line for each line.';
   if (boxesShown()) boxes.render();
 }
@@ -1645,6 +1679,7 @@ export function init(): void {
       notationBox().setSelectionRange(b.a, b.b);
       refreshSelection();
     },
+    playLine,
   });
   applyEditMode();
   const printSong = initPrint({ song: () => current, parsed: () => parsed, taal: () => taal, script: () => prefs.script });
