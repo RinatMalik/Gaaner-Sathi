@@ -1087,11 +1087,15 @@ function applyEditMode(): void {
   setSeg('modeSeg', b ? 'boxes' : 'text');
   $('#boxes').hidden = !b;
   notationBox().hidden = b;
+  // The beat boxes show what the preview would, so they take the whole width (Rinat, 2026-10-11).
+  $('#prevCol').hidden = b;
+  $('.edgrid').classList.toggle('solo', b);
   for (const el of $$('#pal .tonly')) el.hidden = b;
   for (const el of $$('#pal .bonly')) el.hidden = !b;
   $('#modeHint').textContent = b
-    ? 'A box for each beat: type a note and a space to go on. Notes typed together share a beat (সারা). Paste a line of words under its first note to fill a syllable per note. Tap line numbers to select lines, then drag to move them, or Copy and Paste them after another line.'
+    ? 'A box for each beat: type a note and a space to go on. Notes typed together share a beat (সারা). Paste a line of words under its first note to fill a syllable per note. Tap line numbers to select lines, then drag to move them, or Copy them and Paste after another line.'
     : 'Type as in your diary: a space between beats, a new line for each line.';
+  refreshSelection();
   if (boxesShown()) boxes.render();
 }
 
@@ -1289,6 +1293,8 @@ function syncFromStorage(): void {
 let selTouched = false;
 let selEls: HTMLElement[] = [];
 const finePointer = () => matchMedia('(pointer:fine)').matches;
+/** How to choose notes to change: a beat box, or (in Free text) the preview. */
+const chooseFirst = () => (boxesMode() ? 'Choose a beat box' : 'Tap a beat in the preview');
 
 function refreshSelection(): void {
   for (const el of selEls) el.classList.remove('sel');
@@ -1296,7 +1302,7 @@ function refreshSelection(): void {
   const info = $('#selInfo');
   if (!info) return;
   if (!selTouched) {
-    info.textContent = boxesMode() ? 'Choose a beat box, or tap a beat in the preview' : 'Tap a beat in the preview, or select notes in the box';
+    info.textContent = boxesMode() ? 'Choose a beat box' : 'Tap a beat in the preview, or select notes in the box';
     return;
   }
   const ta = notationBox();
@@ -1313,7 +1319,7 @@ function refreshSelection(): void {
     }
   }
   if (!r.notes.length) {
-    info.textContent = 'No notes selected. Tap a beat in the preview.';
+    info.textContent = 'No notes selected. ' + chooseFirst() + '.';
     return;
   }
   const lines = Array.from(new Set(beats.map((b) => parsed.lineOfBeat[b.g]! + 1)));
@@ -1333,7 +1339,7 @@ function scrollTextareaTo(ta: HTMLTextAreaElement, pos: number): void {
 function applyOctave(delta: number): void {
   const ta = notationBox();
   if (!selTouched) {
-    $('#selInfo').textContent = 'Tap a beat in the preview first, then press ' + (delta > 0 ? '↑' : '↓') + '.';
+    $('#selInfo').textContent = chooseFirst() + ' first, then press ' + (delta > 0 ? '↑' : '↓') + '.';
     return;
   }
   const r = shiftOctaves(ta.value, ta.selectionStart, ta.selectionEnd, delta);
@@ -1342,7 +1348,7 @@ function applyOctave(delta: number): void {
       ? delta > 0
         ? 'Already two octaves up, the highest the player goes.'
         : 'Already two octaves down, the lowest the player goes.'
-      : 'No notes selected. Tap a beat in the preview.';
+      : 'No notes selected. ' + chooseFirst() + '.';
     return;
   }
   applyTextEdit(r);
@@ -1375,7 +1381,7 @@ function applyTextEdit(r: TextEdit): void {
 function applyBeatEdit(kind: 'join' | 'split'): void {
   const ta = notationBox();
   if (!selTouched) {
-    $('#selInfo').textContent = 'Tap a beat in the preview first, then press ' + (kind === 'join' ? 'Join' : 'Split') + '.';
+    $('#selInfo').textContent = chooseFirst() + ' first, then press ' + (kind === 'join' ? 'Join' : 'Split') + '.';
     return;
   }
   const r = (kind === 'join' ? joinBeats : splitBeats)(ta.value, ta.selectionStart, ta.selectionEnd);

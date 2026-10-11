@@ -4,8 +4,8 @@
  * Typing a space (or a bar) moves to the next box; pasting "সা রা গা মা" fills a box each, and
  * a line of words pasted under the notes is split into syllables, one to each note.
  * A row is dragged by its number (or moved with ↑ ↓ on it), with the other rows selected if it is
- * one of them; a tap on the number selects it. Copy keeps a line, or the rows selected, to paste
- * after the row selected (in this song or another). Play plays one line. A
+ * one of them; a tap on the number selects it. The rows selected can be copied, to paste after
+ * the row selected (in this song or another). ▶ under a line's number plays that line. A
  * heading can give its section a tempo and a taal of its own (taal pherta), which the rows
  * under it follow. Every change goes into the song text (src/core/notation/boxes.ts works it out), which the
  * Free text view shows as it is. The HTML builder is pure and tested in Node.
@@ -24,10 +24,15 @@ const input = (key: string, cls: string, value: string, label: string, extra = '
   '<input class="' + cls + '" data-key="' + key + '" value="' + esc(value) + '" aria-label="' + esc(label) + '" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"' + extra + '>';
 
 /** The handle of row r (of rowBlocks): its line number, or # for a heading. A tap selects the
- * row (for copying several); dragging it, or ↑ ↓, moves it. */
+ * row (to copy it, or to paste after it); dragging it, or ↑ ↓, moves it. */
 const grip = (r: number, num: string, what: string, sel: boolean) =>
   '<button type="button" class="bxln bxgrip" data-r="' + r + '" aria-pressed="' + sel + '" aria-label="' + esc(what) + ': select it, or drag it (or press ↑ ↓) to move it" title="Tap to select · drag to move">' +
-  '<span>' + esc(num) + '</span><span class="bxdots" aria-hidden="true">' + (sel ? '✓' : '⠿') + '</span></button>';
+  '<span>' + esc(num) + '</span></button>';
+
+/** The front of notes line n (row r): its handle, and ▶ just under the number to play it. */
+const lead = (r: number, n: number, sel: boolean) =>
+  '<span class="bxlead">' + grip(r, String(n + 1), 'Line ' + (n + 1), sel) +
+  '<button type="button" class="bxplay" data-act="play" data-n="' + n + '" aria-label="Play line ' + (n + 1) + '" title="Play just this line">▶</button></span>';
 
 /** A heading's taal picker: the song's, or one of the taals for this section alone. */
 const taalPicker = (k: number, id: string | undefined) =>
@@ -45,11 +50,12 @@ export function boxesHTML(rows: readonly BoxRow[], verses: (n: number, written: 
   const open = (cls: string, extra = '') => '<div class="bxrow ' + cls + (selected.has(rk) ? ' sel' : '') + '"' + extra + '>';
   for (const r of rows) {
     if (r.kind === 'head') {
-      html += open('bxhead') + grip(rk, '#', 'Heading', selected.has(rk++)) +
+      // The fields wrap among themselves, so the × stays at the top right, as on a line.
+      html += open('bxhead') + grip(rk, '#', 'Heading', selected.has(rk++)) + '<span class="bxhf">' +
         input('h:' + r.k, 'bxh', r.label, 'Heading', ' placeholder="Heading, such as স্থায়ী or অন্তরা"') +
         '<label class="bxtl">tempo ' + input('t:' + r.k, 'bxt', r.tempo != null ? String(r.tempo) : '', 'Tempo of this section', ' type="number" min="30" max="240" inputmode="numeric" placeholder="song’s"') + '</label>' +
-        taalPicker(r.k, r.taal) +
-        '<button type="button" class="bxdel" data-act="delhead" data-k="' + r.k + '" aria-label="Remove this heading">×</button></div>';
+        taalPicker(r.k, r.taal) + '</span>' +
+        '<button type="button" class="bxdel" data-act="delhead" data-k="' + r.k + '" aria-label="Remove this heading" title="Remove this heading">×</button></div>';
       continue;
     }
     const T = r.T;
@@ -74,10 +80,8 @@ export function boxesHTML(rows: readonly BoxRow[], verses: (n: number, written: 
     });
     if (cells.length) groups += '</span>';
     if (r.kind === 'notes') {
-      html += open('bxnotes', ' data-n="' + r.n + '"') + grip(rk, String(r.n + 1), 'Line ' + (r.n + 1), selected.has(rk++)) + '<div class="bxbeats">' + groups + '</div>' +
-        '<span class="bxacts"><button type="button" class="bxdel" data-act="delline" data-n="' + r.n + '" aria-label="Remove line ' + (r.n + 1) + '" title="Remove this line">×</button>' +
-        '<button type="button" class="bxadd bxplay" data-act="play" data-n="' + r.n + '" aria-label="Play line ' + (r.n + 1) + '" title="Play just this line">▶ Play</button>' +
-        '<button type="button" class="bxadd" data-act="copy" data-n="' + r.n + '" aria-label="Copy line ' + (r.n + 1) + '" title="Copy this line, then tap the number of the line to paste it after">Copy</button></span></div>';
+      html += open('bxnotes', ' data-n="' + r.n + '"') + lead(rk, r.n, selected.has(rk++)) + '<div class="bxbeats">' + groups + '</div>' +
+        '<button type="button" class="bxdel" data-act="delline" data-n="' + r.n + '" aria-label="Remove line ' + (r.n + 1) + '" title="Remove this line">×</button></div>';
     } else {
       html += '<div class="bxrow bxnew" data-at="' + atKey(r.at) + '"><span class="bxln" aria-hidden="true">+</span><div class="bxbeats">' + groups + '</div></div>';
     }
@@ -281,7 +285,7 @@ export function initBoxes(host: BoxesHost): Boxes {
     row.dataset.n = String(n);
     delete row.dataset.at;
     const ln = row.querySelector('.bxln');
-    if (ln) ln.outerHTML = grip(Array.from(box.querySelectorAll('.bxhead, .bxnotes')).indexOf(row), String(n + 1), 'Line ' + (n + 1), false);
+    if (ln) ln.outerHTML = lead(Array.from(box.querySelectorAll('.bxhead, .bxnotes')).indexOf(row), n, false);
     Array.from(row.querySelectorAll<HTMLInputElement>('input.bx')).forEach((x, i) => {
       x.dataset.key = (i === 0 ? 'b:' : 'g:') + n + ':' + i;
       x.setAttribute('aria-label', 'Line ' + (n + 1) + ', beat ' + (i + 1));
@@ -616,8 +620,11 @@ export function initBoxes(host: BoxesHost): Boxes {
     rows[0]!.scrollIntoView({ block: 'nearest' });
   }
 
-  /** Rows copied, kept until Done (across songs too), to paste after the row selected. */
+  /** Rows copied, kept (across songs too) until something else is copied, to paste after the
+   * row selected as often as wanted. Just after copying, the bar says how to paste, for a while. */
   let copied: { lines: string[]; count: number; what: string } | null = null;
+  let justCopied = false;
+  let copiedTimer = 0;
 
   /** "2 lines and 1 heading", for some rows. */
   function rowsText(rows: Iterable<number>): string {
@@ -636,12 +643,19 @@ export function initBoxes(host: BoxesHost): Boxes {
     copied = { lines: c.lines, count: c.count, what: rowsText(pick) };
     navigator.clipboard?.writeText(c.lines.join('\n')).catch(() => {});
     sel.clear();
+    justCopied = true;
+    clearTimeout(copiedTimer);
+    copiedTimer = window.setTimeout(() => {
+      justCopied = false;
+      drawSelBar();
+    }, 6000);
     render(activeFocus());
   }
 
   /** The rows copied, after row r, as one undo step; they stay copied to paste again. */
   function paste(r: number): void {
-    if (!copied) return;
+    if (!copied || r < 0) return;
+    justCopied = false;
     const t = pasteRows(host.text(), parsed(), r, copied.lines);
     if (t === host.text()) return;
     write(t, 'x:paste:' + ++moves, false);
@@ -657,7 +671,6 @@ export function initBoxes(host: BoxesHost): Boxes {
     const g = grips()[r];
     if (g) {
       g.setAttribute('aria-pressed', String(sel.has(r)));
-      g.querySelector('.bxdots')!.textContent = sel.has(r) ? '✓' : '⠿';
       g.closest('.bxrow')?.classList.toggle('sel', sel.has(r));
     }
     drawSelBar();
@@ -665,21 +678,18 @@ export function initBoxes(host: BoxesHost): Boxes {
   function clearSel(): void {
     if (!sel.size) return;
     sel.clear();
-    for (const g of box.querySelectorAll<HTMLElement>('.bxgrip[aria-pressed="true"]')) {
-      g.setAttribute('aria-pressed', 'false');
-      g.querySelector('.bxdots')!.textContent = '⠿';
-    }
+    for (const g of box.querySelectorAll<HTMLElement>('.bxgrip[aria-pressed="true"]')) g.setAttribute('aria-pressed', 'false');
     for (const row of box.querySelectorAll('.bxrow.sel')) row.classList.remove('sel');
     drawSelBar();
   }
   /** Where a paste goes: after the last row selected. */
   const pasteAfter = () => (sel.size ? Math.max(...sel) : -1);
 
-  /** While rows are selected, or rows are copied, a bar at the top of the boxes: Copy the rows
-   * selected, Paste the rows copied after the last row selected, Clear (or Done). */
+  /** While rows are selected, a bar at the top of the boxes: Copy them, Paste the rows copied
+   * after the last one, Clear. Just after a copy, it says how to paste. */
   function drawSelBar(): void {
     let bar = box.querySelector<HTMLElement>('.bxselbar');
-    if (!sel.size && !copied) {
+    if (!sel.size && !(copied && justCopied)) {
       bar?.remove();
       return;
     }
@@ -696,7 +706,7 @@ export function initBoxes(host: BoxesHost): Boxes {
     bar.innerHTML = '<span class="bxselt" role="status">' + esc(said) + '</span>' +
       (sel.size ? '<button type="button" class="btn' + (copied ? '' : ' primary') + '" data-act="copysel">Copy</button>' : '') +
       (sel.size && copied ? '<button type="button" class="btn primary" data-act="paste">Paste ' + (n != null ? 'after line ' + (+n + 1) : 'under the heading') + '</button>' : '') +
-      '<button type="button" class="btn" data-act="clearsel">' + (sel.size ? 'Clear' : 'Done') + '</button>';
+      (sel.size ? '<button type="button" class="btn" data-act="clearsel">Clear</button>' : '');
   }
 
   // ── Playing a line ─────────────────────────────────────────────────────────
@@ -705,8 +715,9 @@ export function initBoxes(host: BoxesHost): Boxes {
     for (const b of box.querySelectorAll<HTMLElement>('.bxplay')) {
       const on = +b.dataset.n! === playingLine;
       b.classList.toggle('on', on);
-      b.textContent = on ? '■ Stop' : '▶ Play';
+      b.textContent = on ? '■' : '▶';
       b.setAttribute('aria-label', (on ? 'Stop line ' : 'Play line ') + (+b.dataset.n! + 1));
+      b.title = on ? 'Stop' : 'Play just this line';
     }
   }
   function lightBeat(): void {
@@ -939,19 +950,12 @@ export function initBoxes(host: BoxesHost): Boxes {
     const P = parsed();
     if (b.dataset.act === 'play') {
       host.playLine(+b.dataset.n!);
-    } else if (b.dataset.act === 'copy') {
-      const r = +(b.closest('.bxrow')?.querySelector<HTMLElement>('.bxgrip')?.dataset.r ?? -1);
-      copy([r]);
     } else if (b.dataset.act === 'copysel') {
       copy(sel);
     } else if (b.dataset.act === 'paste') {
       paste(pasteAfter());
     } else if (b.dataset.act === 'clearsel') {
-      if (sel.size) clearSel();
-      else {
-        copied = null;
-        drawSelBar();
-      }
+      clearSel();
     } else if (b.dataset.act === 'delline') {
       write(removeLine(host.text(), P, +b.dataset.n!), 'x:delline', false);
       extraVerse.clear();

@@ -204,6 +204,7 @@ button{cursor:pointer}
 .exNote{font-size:14px;color:var(--ink-2);border-left:3px solid var(--brass);padding:4px 10px}
 .edgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
 .edcol{display:grid;gap:10px;min-width:0}
+.edgrid.solo{grid-template-columns:minmax(0,1fr)}
 .pal{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .pal .nbtn{min-width:2.9em;padding:4px 8px;border:1px solid var(--line);border-radius:8px;background:var(--sheet);font-family:var(--f-note);font-size:18px;line-height:1.4}
 .pal .nbtn:hover{border-color:var(--ink-2)}
@@ -406,9 +407,9 @@ textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--
 .boxes{display:grid;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:4px 10px;max-height:72vh;overflow:auto;overscroll-behavior:contain}
 .bxrow{display:flex;align-items:flex-start;gap:6px;padding:8px 0;border-bottom:1px solid var(--rule);min-width:0}
 .bxrow:last-child{border-bottom:0}
-.bxln{flex:none;width:22px;text-align:center;color:var(--ink-2);font-size:13px;font-weight:600;padding-top:20px;font-variant-numeric:tabular-nums}
-.bxhead{align-items:center;flex-wrap:wrap}
-.bxhead .bxln{padding-top:0}
+.bxln{flex:none;width:26px;text-align:center;color:var(--ink-2);font-size:13px;font-weight:600;padding-top:20px;font-variant-numeric:tabular-nums}
+/* A heading's fields wrap among themselves; its × stays at the top right, as on a line. */
+.bxhf{flex:1 1 auto;display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0}
 .bxbeats{flex:1 1 auto;display:flex;flex-wrap:wrap;gap:8px 0;min-width:0}
 .bxgrp{display:flex;gap:3px;padding:0 7px;border-left:1.5px solid var(--ink-2)}
 .bxgrp:first-child{border-left:0;padding-left:0}
@@ -427,28 +428,31 @@ textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--
 .bxtl{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--ink-2)}
 .bxt{width:5em;padding:4px 6px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:14px}
 .bxtaal{max-width:11em;padding:4px 6px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:14px;color:var(--ink)}
-.bxacts{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
-.bxadd,.bxdel{border:1px solid var(--line);background:var(--sheet);border-radius:7px;font-size:12px;color:var(--ink-2);padding:1px 7px}
-.bxdel{font-size:15px;line-height:1.2;padding:0 7px}
-.bxadd:hover,.bxdel:hover{border-color:var(--ink-2)}
+.bxplay,.bxdel{border:1px solid var(--line);background:var(--sheet);border-radius:7px;color:var(--ink-2)}
+.bxdel{flex:none;font-size:15px;line-height:1.2;padding:0 7px}
+.bxhead>.bxdel{margin-top:6px}
+.bxplay,.bxdel{cursor:pointer}
+.bxplay:hover,.bxdel:hover{border-color:var(--ink-2);color:var(--ink)}
 .bxnew .bxln{color:var(--brass)}
-@media (max-width:520px){.bxgrp{padding:0 5px}.bxt{width:4em}.bxtaal{max-width:9em}.bxhead{gap:6px 5px}}
+/* The front of a line: its number (the handle), and ▶ just under it. */
+.bxlead{flex:none;display:grid;justify-items:center;align-content:start;gap:5px;width:26px}
+.bxplay{width:26px;height:22px;padding:0;font-size:11px;line-height:1}
+@media (max-width:520px){.bxgrp{padding:0 5px}.bxt{width:4em}.bxtaal{max-width:9em}.bxhf{gap:6px 5px}}
 /* Moving rows: the number is the handle; a brass line shows where the row will go. */
 .boxes{position:relative}
-.bxgrip{display:grid;justify-items:center;align-content:start;gap:3px;width:24px;padding:20px 0 4px;border:0;border-radius:6px;background:transparent;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
-.bxhead .bxgrip{padding:2px 0}
-.bxdots{font-size:15px;line-height:1;font-weight:400;opacity:.7}
-.bxgrip:hover .bxdots,.bxgrip:focus-visible .bxdots{opacity:1;color:var(--brass)}
+.bxgrip{display:grid;justify-items:center;align-content:start;width:26px;padding:20px 0 2px;border:0;border-radius:6px;background:transparent;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.bxgrip>span{min-width:20px;padding:1px 3px;border-radius:999px;line-height:16px}
+.bxhead .bxgrip{padding:8px 0 2px}
+.bxgrip:hover>span{background:var(--chip);color:var(--ink)}
 .bxgrip:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 .bxrow.dragging{position:relative;z-index:3;background:var(--sheet);box-shadow:0 6px 18px var(--shadow);border-radius:8px}
 .bxrow.dragging,.bxrow.dragging .bxgrip{cursor:grabbing}
 .bxrow.moved{animation:bxmoved 1.2s ease-out}
 @keyframes bxmoved{from{background:color-mix(in srgb,var(--brass) 24%,transparent)}to{background:transparent}}
 .bxdrop{position:absolute;left:4px;right:4px;height:3px;border-radius:2px;background:var(--brass);pointer-events:none;z-index:4}
-/* Selecting rows to copy, playing one line, the beat sounding. */
+/* Selecting rows (to copy, move or paste after), playing one line, the beat sounding. */
 .bxrow.sel{background:color-mix(in srgb,var(--brass) 13%,transparent)}
-.bxgrip[aria-pressed="true"]{color:var(--brass)}
-.bxgrip[aria-pressed="true"] .bxdots{opacity:1;color:var(--brass);font-weight:700}
+.bxgrip[aria-pressed="true"]>span{background:var(--brass);color:var(--brass-ink)}
 .bxselbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:8px 2px;background:var(--sheet);border-bottom:1px solid var(--rule)}
 .bxselbar .bxselt{flex:1 1 auto;font-weight:600}
 .bxplay.on{background:var(--brass);border-color:var(--brass);color:var(--brass-ink)}

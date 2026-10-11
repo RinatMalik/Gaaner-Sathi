@@ -287,6 +287,15 @@
               <button type="button" class="xbtn bonly" id="bxUndo">Undo</button>
             </div>
           </div>
+          <div class="fixrow" id="fixRow">
+            <span class="lab2">Octave</span>
+            <button type="button" class="obtn" id="octDown" aria-label="Move the selected notes down an octave">↓ Lower</button>
+            <button type="button" class="obtn" id="octUp" aria-label="Move the selected notes up an octave">↑ Higher</button>
+            <span class="lab2">Beat</span>
+            <button type="button" class="obtn" id="joinBtn" title="Put the selected beats, or this beat and the next, into one beat">Join</button>
+            <button type="button" class="obtn" id="splitBtn" title="Give each note in the selected beat its own beat">Split</button>
+            <span class="selinfo" id="selInfo" aria-live="polite">Choose a beat box</span>
+          </div>
           <div class="boxes" id="boxes" role="group" aria-label="Notation, a box for each beat"></div>
           <p class="phint bxnote" id="bxNote" aria-live="polite" hidden></p>
           <textarea id="notation" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Notation"></textarea>
@@ -294,7 +303,7 @@
           <details class="help" id="help">
             <summary>How to type your diary notation</summary>
             <table>
-              <tr><td>Beat boxes</td><td>Each box is one beat, laid out by the taal. Type the note and a space to go to the next box, or paste a line such as <code>সা রা গা মা</code> into a box to fill a box each. <code>sa re ga</code> works too. Enter starts a new line; Backspace in an empty box removes it. ▶ Play plays just that line. Drag a line by its number to move it (or press ↑ ↓ on the number); tap the numbers of several lines first to move them together. <b>Copy</b> keeps a line, or the lines selected, to paste: tap the number of the line it should go after, then <b>Paste</b> (in this song or another). Ctrl+C and Ctrl+V on a number do the same.</td></tr>
+              <tr><td>Beat boxes</td><td>Each box is one beat, laid out by the taal. Type the note and a space to go to the next box, or paste a line such as <code>সা রা গা মা</code> into a box to fill a box each. <code>sa re ga</code> works too. Enter starts a new line; Backspace in an empty box removes it. ▶ under a line's number plays just that line. Drag a line by its number to move it (or press ↑ ↓ on the number); tap the numbers of several lines first to move them together. To copy lines, tap their numbers and press <b>Copy</b>; then tap the number of the line they should go after and press <b>Paste</b>, as often as you like, in this song or another. Ctrl+C and Ctrl+V on a number do the same.</td></tr>
               <tr><td>Words</td><td>Paste a line of the song's words into the word box under its first note: they are split into syllables, one under each note, with <code>-</code> where a note is held, on into the next lines. Or type them, a space between beats: <code>আ মার সো নার</code> typed in the first box fills four. Correct any syllable by typing over it. Enter in the words adds another row of them (a second verse).</td></tr>
               <tr><td>Two notes in one beat</td><td>Type them together, with no space: <code>সারা</code>, <code>SR</code> or <code>sare</code>. They share the beat equally. To add a note to a box that has one, tap at the end of it (or press →) and type.</td></tr>
               <tr><td>One beat (matra)</td><td>Each group between spaces is one beat: <code>সা রা গা</code> is three beats.</td></tr>
@@ -303,10 +312,10 @@
               <tr><td>Tivra Ma</td><td><code>হ্মা</code> or <code>M#</code></td></tr>
               <tr><td>Upper octave (তার)</td><td><code>র্সা</code> (রেফ) or <code>S'</code></td></tr>
               <tr><td>Lower octave (মন্দ্র)</td><td><code>.না</code> or <code>ন্</code> with হসন্ত, or <code>.N</code></td></tr>
-              <tr><td>Fix a wrong octave</td><td>Tap the beat in the preview, or select notes in the box, then press <b>↑ Higher</b> or <b>↓ Lower</b>. Shift-tap a second beat to select a run. While typing, Alt + ↑ and Alt + ↓ do the same.</td></tr>
+              <tr><td>Fix a wrong octave</td><td>Choose the beat's box, then press <b>↑ Higher</b> or <b>↓ Lower</b>. In Free text, tap the beat in the preview (shift-tap a second beat to select a run) or select notes in the text; there Alt + ↑ and Alt + ↓ do the same while typing.</td></tr>
               <tr><td>Hold the note</td><td><code>-া</code> or <code>-</code></td></tr>
-              <tr><td>Silence</td><td><code>x</code></td></tr>
-              <tr><td>Two or more notes in one beat</td><td>Type them together with no space: <code>পধা</code>, <code>পাধা</code> or <code>PD</code>. Uneven: <code>S-R</code> gives Sa two thirds and Re one third. Or tap a beat in the preview and press <b>Join</b> to merge it with the next one, or <b>Split</b> to separate its notes.</td></tr>
+              <tr><td>Silence</td><td><code>x</code>. The note before it fades out gently.</td></tr>
+              <tr><td>Two or more notes in one beat</td><td>Type them together with no space: <code>পধা</code>, <code>পাধা</code> or <code>PD</code>. Uneven: <code>S-R</code> gives Sa two thirds and Re one third. Or choose a beat (its box, or in Free text the beat in the preview) and press <b>Join</b> to merge it with the next one, or <b>Split</b> to separate its notes.</td></tr>
               <tr><td>Bars</td><td><code>|</code> <code>।</code> <code>॥</code> are for reading only. Timing comes from the beats.</td></tr>
               <tr><td>Lyrics</td><td>A line starting with <code>&gt;</code> under its notes line, one group per beat. Use <code>০</code> for a held vowel.</td></tr>
               <tr><td>Headings</td><td>A line starting with <code>#</code>, such as <code># অন্তরা</code>. A tempo for that section alone can go in it: <code># অন্তরা · tempo 110</code>.</td></tr>
@@ -315,17 +324,8 @@
             <p>Set the taal and the beat the song starts on above. The player checks every beat against the taal, so the tabla always lands with the melody, at any tempo.</p>
           </details>
         </div>
-        <div class="edcol">
+        <div class="edcol" id="prevCol">
           <div class="prevlab">Preview · tap a beat to select it</div>
-          <div class="fixrow" id="fixRow">
-            <span class="lab2">Octave</span>
-            <button type="button" class="obtn" id="octDown" aria-label="Move the selected notes down an octave">↓ Lower</button>
-            <button type="button" class="obtn" id="octUp" aria-label="Move the selected notes up an octave">↑ Higher</button>
-            <span class="lab2">Beat</span>
-            <button type="button" class="obtn" id="joinBtn" title="Put the selected beats, or this beat and the next, into one beat">Join</button>
-            <button type="button" class="obtn" id="splitBtn" title="Give each note in the selected beat its own beat">Split</button>
-            <span class="selinfo" id="selInfo" aria-live="polite">Tap a beat in the preview, or select notes in the box</span>
-          </div>
           <div class="sheet" id="sheetE"></div>
         </div>
       </div>

@@ -238,7 +238,7 @@ describe('changes to the text', () => {
 });
 
 describe('the boxes as HTML', () => {
-  it('give each heading and line a handle numbered in row order, and each line its ×, Play and Copy', () => {
+  it('give each heading and line a handle numbered in row order, each line ▶ under it, and each row its × last', () => {
     const t = '# স্থায়ী\nসা রা গা | মা পা ধা\n# অন্তরা\nনা সা রা | গা মা পা';
     const html = boxesHTML(boxRows(t, parseSong(t), DADRA, 0), () => 1);
     const L = ': select it, or drag it (or press ↑ ↓) to move it';
@@ -248,13 +248,19 @@ describe('the boxes as HTML', () => {
       '2 false Heading' + L,
       '3 false Line 2' + L,
     ]);
-    // Selected rows: marked, their handles pressed and ticked.
+    // Selected rows: marked, their handles pressed.
     const picked = boxesHTML(boxRows(t, parseSong(t), DADRA, 0), () => 1, new Set([1, 2]));
     expect(Array.from(picked.matchAll(/<div class="bxrow (\w+)( sel)?"/g), (m) => m[1] + (m[2] ?? ''))).toEqual(['bxhead', 'bxnotes sel', 'bxhead sel', 'bxnotes', 'bxnew']);
-    expect(Array.from(picked.matchAll(/aria-pressed="true"[^>]*><span>[^<]*<\/span><span class="bxdots" aria-hidden="true">(.)/g), (m) => m[1])).toEqual(['✓', '✓']);
-    expect(Array.from(html.matchAll(/data-act="copy" data-n="(\d+)"/g), (m) => +m[1]!)).toEqual([0, 1]);
+    expect(Array.from(picked.matchAll(/data-r="(\d)" aria-pressed="true"/g), (m) => +m[1]!)).toEqual([1, 2]);
+    // A line: its number, ▶ just under it (icon only), the boxes, then × (no Copy of its own).
+    expect(html).not.toContain('data-act="copy"');
     expect(html).not.toContain('data-act="verse"');
-    expect(Array.from(html.matchAll(/data-act="(delline|play|copy)" data-n="0"/g), (m) => m[1])).toEqual(['delline', 'play', 'copy']);
+    expect(html).toContain('<span class="bxlead"><button type="button" class="bxln bxgrip" data-r="1"');
+    expect(Array.from(html.matchAll(/class="bxplay" data-act="play" data-n="(\d)" aria-label="([^"]+)"[^>]*>([^<]*)</g), (m) => m[1] + ' ' + m[2] + ' ' + m[3])).toEqual(['0 Play line 1 ▶', '1 Play line 2 ▶']);
+    expect(Array.from(html.matchAll(/data-act="(delline|play)" data-n="0"/g), (m) => m[1])).toEqual(['play', 'delline']);
+    expect(html).toMatch(/<\/div><button type="button" class="bxdel" data-act="delline" data-n="0"[^>]*>×<\/button><\/div>/);
+    // A heading: its fields together, then × at the end of the row (its top right).
+    expect(html).toMatch(/<span class="bxhf"><input class="bxh"[\s\S]*?<\/select><\/label><\/span><button type="button" class="bxdel" data-act="delhead" data-k="0"/);
     // The empty row to start a new line has no handle.
     expect(html).toContain('<div class="bxrow bxnew" data-at="end"><span class="bxln" aria-hidden="true">+</span>');
   });
