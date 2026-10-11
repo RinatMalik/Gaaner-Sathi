@@ -28,10 +28,11 @@ deployed from `main` on every push. `reference/` stays, unpublished: the compari
 use the prototype's own code as their oracle. The parity checklist is in git history
 (`docs/PARITY.md`, removed 2026-10-11).
 
-## Phase 1: features and functionality ◀ now
+## Phase 1: features and functionality
 
-Built in the web app and kept as light as the rest: no runtime library unless it clearly
-earns its place, and everything stays on the device. The screen stays tidy and responsive
+Closed by Rinat on 2026-10-11 ("That's it for features"). Built in the web app and kept as
+light as the rest: no runtime library unless it clearly earns its place, and everything
+stays on the device. The screen stays tidy and responsive
 (no sideways scrolling on a phone), but its look and layout wait for Phase 2. Features come
 in only when Rinat asks for them.
 
@@ -55,7 +56,7 @@ in only when Rinat asks for them.
 
 Anything from Feature ideas below.
 
-## Phase 2: design
+## Phase 2: design ◀ now
 
 One intuitive design across every feature, worked out in the web app once all the pieces
 exist, so it is designed once: navigation between songs, practice, rewaz, voice and progress
@@ -65,6 +66,12 @@ a short privacy note (nothing leaves the device) and an accessibility check (key
 contrast, screen reader).
 
 **Done when:** Rinat signs off the design.
+
+Begun 2026-10-11 with Rinat's comments on the screen as it is ("mostly design amends").
+
+| # | Change | Made | Rinat's check (done when) |
+|---|---|---|---|
+| 1 | **Beat boxes, round five:** ▶ in front of each line, just under its number (icons only); no Copy on each line and no Done (select, Copy, then Paste as often as wanted); a heading's × at its top right; no preview beside the beat boxes, so they take the full width (a 16-beat line on one row from a 900 px window); a note followed by silence fades out gently | 2026-10-11 | Rinat finds the editor easier to manage |
 
 ## Phase 3: native mobile app
 

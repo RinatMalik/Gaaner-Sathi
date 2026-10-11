@@ -49,6 +49,64 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-11 14:10 BST — Claude (Opus 5.5) — PH1-10 taal pherta: a taal per section
+
+- **Goal:** Rinat: "do taal pherta now, then we'll start design" (Open question 6 answered:
+  build it before the design phase).
+- **Inspected:** every place that took one taal for the whole song: the transport (count-in,
+  taal beat, rhythm table, fills, closing stroke on sam), the sheet's marks and bars, the
+  checker and its panel, the beat boxes (rows, typing, new lines, bars), the deck's taal
+  strip and Ready line, the section buttons, the printed sheet; the heading reader
+  (`sections.ts`, which already gave sections their tempo).
+- **Changed:** `03e3b31` (feat): a heading's taal read and written (`headingTaal`,
+  `headingTaalPart`, `setHeadingTaal`, `TAAL_NAMES`; `headingLabel` leaves the taal out;
+  `SongSection.taal`; `endHeadings`); `src/core/notation/taalmap.ts` (`taalMap`, `oneTaal`,
+  `asTaals`, `placeIn`); the checker, the core boxes, the transport (`taalAt`), the sheet, the
+  checker panel and the printed sheet take the map (and still take one taal and `startOn − 1`);
+  a taal picker on each heading row of the beat boxes; the strip follows the taal playing and
+  shows the starting taal as soon as play is pressed; the section buttons name a section's
+  taal; a help row; the heading row's fields narrower under 520 px so its × stays beside
+  them; 16 tests in `tests/unit/pherta.test.ts`. This commit (docs): NOTATION (A taal per
+  section), ENGINE, DATA, ROADMAP (row 10; the idea taken out), README, this file (Open
+  question 6 answered and removed; the 10:35 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
+  DevTools protocol on `npm run dev`, real mouse and key events):
+  - `npm run typecheck` → 0; `npx vitest run` → 30 files, 308 passed (16 new: taal names in
+    19 spellings and forms, two taals naming none, a name inside a word not counting; labels;
+    writing, replacing and taking out a taal, renaming a heading keeping it; sections; the map
+    (runs from sam, the start beat, a song naming none as one run, a heading after the last
+    line); the checker, the sheet's marks, the boxes and their picker, typing a Kaharwa line;
+    the transport counting each section in its taal, a Kaharwa count-in, a Kaharwa section's
+    Web Audio calls equal to a Kaharwa song's, a song naming no taal equal to before). Made to
+    ignore section taals, the code fails 9 of the 16. The comparisons with the prototype (sheet,
+    checker, checker panel, transport) still pass. `npm run build` → 193 kB JS (68.7 kB gzip),
+    33 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid.
+  - Scenario `pherta` (25 checks): each heading row has a taal picker (song's and 19);
+    picking Kaharwa writes `# অন্তরা · কাহারবা`, keeps the focus, and the empty row under it
+    is 8 boxes marked X···0···; typing 8 notes there makes `পা ধা না র্সা | না ধা পা মা`,
+    boxes 4 | 4 while the sthayi stays 3 | 3; the checker says "in Dadra, then Keherwa" and
+    is happy; the preview marks it in Kaharwa; a sthayi after it is Dadra again; the section
+    buttons read "স্থায়ী / অন্তরা কাহারবা / স্থায়ী"; ready at the antara the strip and the
+    panel say Keherwa; played through, the strip goes Dadra → Keherwa → Dadra, 6 and 8 beats,
+    Kaharwa's lit 0–7 in order; the antara's button counts in with one Kaharwa cycle (the
+    strip on Kaharwa from the start: a bug found and fixed, it showed Dadra until the first
+    beat); the printed sheet says "changing taal by section: Dadra, then Keherwa, then Dadra";
+    "song's" takes it out and the boxes go back to 3 | 3; Undo puts it back; renaming the
+    heading keeps it; 360 px day and night without sideways scrolling; no console errors.
+    `boxes` (29), `move` (31), `edit3` (27), `words` (17) and `sections` (15) still pass.
+  - Sound: no new render. A Kaharwa section's Web Audio calls equal a Kaharwa song's (above),
+    so its levels are Kaharwa's (ENGINE.md → Verifying sound).
+  - CI run `38142030205` (`03e3b31`): core, reference and deploy jobs green. Live: `pherta` against https://rinatmalik.github.io/Gaaner-Sathi/ passed all 25 checks, no console errors; `/` 200, `/new/` 200.
+- **Decisions made:** see Decisions (taal pherta); Open question 6 answered.
+- **Risks or disagreements:** a section whose singing comes in after sam needs `x` for the
+  beats before it (no start beat per section), and a change of taal cuts the old cycle short
+  where the section begins: right for a sthayi ending on sam, to be heard on Rinat's songs.
+  Any taal's name in a heading is read as its taal ("Dadra practice" is Dadra); a name inside
+  a longer word does not count. The prototype plays these songs in the song's taal. A rewaz
+  estimate counts a count-in in the song's taal. On a phone the picker shows a shortened
+  name. Nobody has heard a change of taal.
+- **Next handoff:** Rinat tries a song in taal pherta; then Phase 2, the design, with Rinat.
+
 ### 2026-10-11 13:36 BST — Claude (Opus 5.5) — PH1-09 words split into syllables; Teora, Kawali, Garba
 
 - **Goal:** Rinat: "yes please" to pasting a line of words and having it split into syllables

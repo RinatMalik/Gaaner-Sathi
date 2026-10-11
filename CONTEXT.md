@@ -3,7 +3,7 @@
 > The project's shared state, for Rinat, Claude, Codex and any other LLM: what the app is
 > for, how we work, where things stand, the decisions in force and the newest work log.
 >
-> **Last updated:** 2026-10-11 (17:53 BST) by Claude (Opus 5.5)
+> **Last updated:** 2026-10-11 (18:56 BST) by Claude (Opus 5.5)
 
 ## How to use this file
 
@@ -37,13 +37,13 @@ wins, except a later explicit decision by Rinat, which always wins.
 
 ## Current state
 
-- **Milestone:** Phase 1, features and functionality: closed by Rinat ("That's it for
-  features", 2026-10-11). Everything asked for is built and live (PH1-01 to PH1-11, all in
-  Review), the last snags (pasting, dragging several lines, a gentle ending) included. Next
-  comes the design (Phase 2).
-- **Next single action:** start Phase 2, the design (ROADMAP.md → Phase 2), with Rinat;
-  meanwhile Rinat tries taal pherta, pasting lines and the new ending.
-- **Last known-good commit:** `7585139` (CI run `38157178276`: core, reference and deploy jobs green; checked live).
+- **Milestone:** Phase 2, the design (ROADMAP.md → Phase 2), begun 2026-10-11 with Rinat's
+  comments on the screen as it is; round one (PH2-01: the beat boxes, a fade before silence)
+  is built and live. Phase 1, features, was closed by Rinat ("That's it for features",
+  2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
+- **Next single action:** Rinat tries round one and sends more design comments; meanwhile
+  Rinat tries taal pherta and the gentle endings.
+- **Last known-good commit:** `51d2543` (CI run `38161509189`: core, reference and deploy jobs green; checked live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -59,7 +59,8 @@ wins, except a later explicit decision by Rinat, which always wins.
   - pasting Rinat's own lyrics: how often the syllable split needs correcting;
   - a song in taal pherta: whether each change of taal lands where Rinat sings it, starting
     on sam;
-  - the gentle ending: whether a quarter second's fade sounds natural;
+  - the gentle ending: whether a quarter second's fade sounds natural, at the end and before
+    a silence;
   - the beat boxes with a phone keyboard (Gboard, Avro), and dragging lines on a phone;
   - wake lock and Bluetooth latency on a phone;
   - iOS: the ringer switch, and the sound moving to the earpiece once the microphone is on.
@@ -272,7 +273,7 @@ decision.
 ### Commands
 
 - `npm install` once.
-- `npm test`: every Vitest suite (312 tests, about 10 s). Read the "Test Files" line: a
+- `npm test`: every Vitest suite (313 tests, about 10 s). Read the "Test Files" line: a
   file that fails to load is not counted as a failed test.
 - `npm run typecheck`: the whole project, then `src/core` and `src/audio/dsp` with no DOM
   library (a DOM call there fails).
@@ -344,6 +345,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH1-09 | Claude | Review | Words pasted and split into syllables under the notes; Teora, Kawali, Garba | 4 lyrics tests, taal tests; Edge scenario `words` (17 checks) with a real Ctrl+V; offline renders of the three taals (Work log 2026-10-11 13:36) | Waiting for Rinat's use and ears; taal pherta waits on Open question 6 |
 | PH1-10 | Claude | Review | Taal pherta: a section's heading names a taal of its own (a taal picker beside each heading in the beat boxes); it plays, is checked, laid out and shown in it, from its sam | 16 unit tests (a Kaharwa section's Web Audio calls equal a Kaharwa song's); Edge scenario `pherta` (25 checks) locally and live (Work log 2026-10-11 14:10) | Waiting for Rinat's songs in taal pherta |
 | PH1-11 | Claude | Review | Beat boxes round four: Copy keeps lines and Paste puts them after the row selected (in any song); the rows selected are dragged and moved together; smaller boxes and preview (an 8-beat line in one row from a 1024 px window); a gentle ending (the last note and the tail fade over a quarter second) | 5 unit tests; Edge scenarios `paste` (27 checks) and `widths`, locally and live; offline renders of the ending (Work log 2026-10-11 17:53) | Waiting for Rinat's use and ears |
+| PH2-01 | Claude | Review | Design, round one: ▶ under each line's number (icons only), no Copy on a line and no Done (select, Copy, Paste as often as wanted), a heading's × at its top right, no preview beside the beat boxes (full width: 16 beats on a row), a note before silence fades out | 1 unit test and the boxes' HTML test; Edge scenario `round5` (32 checks); offline renders (Work log 2026-10-11 18:56) | Waiting for Rinat's use, ears and next comments |
 
 ## Decisions
 
@@ -392,6 +394,9 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-11 | Taal pherta, built before the design phase: a section's heading may name a taal (any of the nineteen, in English or Bengali spellings: `# অন্তরা · কাহারবা`); that section plays, is checked, laid out in boxes and marked in it, and sections without one are in the song's taal (no carrying on, as with tempos). Each change of taal starts on the new taal's sam, the song's first beat still on `startOn`; singing that comes in later writes `x` for the beats before. A heading naming two taals names none. The beat boxes get a taal picker per heading, which writes the taal's Bengali name into it. | Rinat, chat 2026-10-11 ("do taal pherta now, then we'll start design", answering Open question 6); the rules are Claude's | NOTATION.md → A taal per section. Open question 6 removed. Phase 1's features are all built. |
 | 2026-10-11 | Beat boxes, round four: Copy no longer pastes; it keeps a line (or the rows selected, also on the device's clipboard), and a bar offers Paste after the last row selected (under a heading when that is selected), in this song or another, until Done; Ctrl+C and Ctrl+V on a number do the same. A selected row dragged (or moved with ↑ ↓) takes every selected row with it, gathered in the song's order, and they stay selected. Boxes 16 px at 2.6em wide, the editor preview 18/14 px. | Rinat, chat 2026-10-11 ("all selected lines could be dragged"; "8 beats are breaking into two lines"; "create a paste button and have it paste after whichever line is selected"); keeping the copy across songs, Ctrl+C/V and the selection staying after a move are Claude's choices | Replaces round three's "Copy … at the end". NOTATION.md → Beat boxes. |
 | 2026-10-11 | A gentle ending: when a song, or the last of a set number of rounds, ends by itself, its last note and then whatever still sounds fade over about a quarter second; a stop pressed by hand stays quick. | Rinat, chat 2026-10-11 ("maybe quarter of a second of fade out?") | ENGINE.md → Transport; the comparisons with the prototype use its own short ending. |
+| 2026-10-11 | Phase 2, the design, begun: Rinat's comments on the screen as it is come in rounds and are built as they come, as the features were. | Rinat, chat 2026-10-11 ("the comments I am gonna make are mostly design amends anyway so i guess you could call this moving to the design phase") | ROADMAP.md → Phase 2 lists each round. |
+| 2026-10-11 | Beat boxes, round five: ▶ in front of each line, just under its number, icons only (▶ / ■); no Copy on each line (select, then Copy in the bar) and no Done: what is copied stays, to paste as often as wanted, until something else is copied, and the bar shows only while rows are selected (and for six seconds after a Copy, to say how to paste); a heading's × at its top right; no preview beside the beat boxes, which take the editor's full width (Free text keeps it); the Octave and Join/Split row above the boxes; a selected row's number shows as a brass chip. | Rinat, chat 2026-10-11 ("no need for the copy button at the end of each line", "Bring the play button to the front of the line … just have the icons", "get rid of the done button. just copy and paste", "bring it to top right", "get rid of the preview pane from the editing window"); keeping the preview in Free text, the six-second hint and the brass chip are Claude's choices | Replaces round four's Copy on each line and its Done. NOTATION.md → Beat boxes. |
+| 2026-10-11 | A note followed by silence (`x`) fades out as the song's last note does (over about a quarter second). | Rinat, chat 2026-10-11 ("make the faded ending on any note that is followed by a 'Silence x' beat") | ENGINE.md → Transport. |
 
 ## Open questions
 
@@ -427,6 +432,74 @@ Template:
     - **Decisions made:** rows added above.
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
+
+### 2026-10-11 18:56 BST — Claude (Opus 5.5) — PH2-01 design, round one: beat boxes round five; a fade before silence
+
+- **Goal:** Rinat, starting the design phase ("mostly design amends … you could call this
+  moving to the design phase"): no Copy at the end of each line, and "Bring the play button to
+  the front of the line … just below the line number … just have the icons"; no Done ("just
+  copy and paste"); the heading's ×, "at the bottom left corner", to the top right like the
+  others; "the faded ending on any note that is followed by a 'Silence x' beat"; no preview
+  pane in the editor, so "the beat boxes can have the full width and can fit 16 boxes in one
+  line".
+- **Inspected:** `src/app/boxes.ts` (row HTML, the selection bar, Done clearing the copy);
+  the heading row (one flex row with `flex-wrap`, so its × wrapped to the start of a new line
+  whenever the fields did); the editor grid in `index.html` (the Octave and Join/Split row
+  lived in the preview column; in the boxes it works on the box chosen through `focusBeat`);
+  the transport's note scheduling and how the parser makes events (a rest ends a note; a hold
+  lengthens it).
+- **Changed:** `8d02aed` (feat): `silenceAt(P, t)` in `src/audio/transport.ts`; a note whose
+  next share of a beat is a rest lets go with `endFade / 3` (off with `endFade` 0); a test;
+  `/dev/render.html` measures it. `51d2543` (feat): a line's number with ▶ just under it in
+  front (▶ / ■, labelled), × alone at its top right, no Copy on the line; the number of a
+  selected row shows as a brass chip (the ⠿ / ✓ under it made way); a heading's fields in
+  their own wrapping group, its × at the top right; the selection bar only while rows are
+  selected (Copy, Paste after line N, Clear), and for six seconds after Copy a hint with no
+  button; no Done (the copy stays until something else is copied); the preview column hidden
+  in the beat boxes (`#prevCol`, `.edgrid.solo`), kept in Free text; the Octave and Join/Split
+  row moved above the boxes and its messages say "Choose a beat box"; help and hint. This
+  commit (docs): NOTATION (Beat boxes), ENGINE (the fade before silence, its measurement),
+  ROADMAP (Phase 1 closed, Phase 2 now, its first row), this file (the 14:10 entry moved to
+  HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
+  DevTools protocol on `npm run dev`, real mouse and key events; the browser pane was hidden):
+  - `npm run typecheck` → 0; `npx vitest run` → 31 files, 313 passed (new: Re for half a beat
+    then `x`, and Ga held into `x`, let go with 0.083 s at 0.845 s and 2.095 s, Ni (last) too;
+    Sa, Pa, Dha before notes with 0.04 s; none with `endFade` 0; the boxes' HTML: ▶ under the
+    number, icon only, × last, no Copy, a heading's fields then its ×); `npm run build` → 195
+    kB JS (69.4 kB gzip), 33 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed,
+    12 exercises valid.
+  - Scenario `round5` (32 checks): in the beat boxes no preview, one column, the boxes as wide
+    as the editor (1148 px at 1280), the Octave row just above them; Free text shows the
+    preview beside the text; ▶ just under line 1's number, centred on it, level with the
+    words, in front of the boxes, "▶" labelled "Play line 1", no Copy; it plays the line
+    showing ■ and ■ stops it; a line's × and a heading's × at the top right, the heading's
+    level with its name, at 1280 and 360 px (where its fields wrap onto three lines); a number
+    tapped: "1 line selected Copy Clear"; Copy: "1 line copied. Tap the number of the line to
+    paste after." with no button, the song unchanged; Paste after line 4, then again after
+    line 2 with no second Copy; two Undos; the hint gone by itself after six seconds and the
+    copy still pasting under a heading; no Done anywhere; ↑ Higher on a chosen box raises its
+    note (the row says "র্সা · line 1") and ↓ Lower restores it; a Teentaal song's two 16-beat
+    lines (one with two notes in each of 8 beats) on one row each at 1366, 1280, 1024 and 900
+    px windows (two rows at 860, 800 and 768); 360 px day and night without sideways
+    scrolling; no console errors. `paste` (27), `move` (30) and `edit3` (30), their Copy, Done
+    and "▶ Play" checks rewritten for round five, and `boxes`, `words`, `sections`, `pherta`
+    pass.
+  - Audio (`/dev/render.html`, OfflineAudioContext 48 kHz in headless Edge): the port still
+    matches the prototype within its own run-to-run variation (three runs: at most 6.8 × 10⁻⁶
+    against the prototype, which differed from itself by up to 6.4 × 10⁻⁶); Ga before a beat
+    of silence falls 20 dB in 195 ms (95 ms with the old release); the last note 175 ms and a
+    tanpura at the end 195 ms, as before.
+  - CI run `38161509189` (`51d2543`): core, reference and deploy jobs green. Live: `round5` (32 checks) and `paste` (27) against https://rinatmalik.github.io/Gaaner-Sathi/ passed, no console errors; `/` 200, `/new/` 200.
+- **Decisions made:** see Decisions (Phase 2 begun; beat boxes, round five; a fade before
+  silence).
+- **Risks or disagreements:** the preview stays in Free text (Rinat's reason, that the boxes
+  show the same, does not hold there); say if it should go there too. Below a 900 px window a
+  16-beat line with two-note beats takes two rows, and on a phone always. The drag dots (⠿)
+  under each number are gone, so a number no longer hints that it can be dragged except by
+  its pointer and the hint text. After Copy the hint shows for six seconds only. Nobody has
+  heard a note fade into silence.
+- **Next handoff:** Rinat tries round five and sends more design comments (Phase 2).
 
 ### 2026-10-11 17:53 BST — Claude (Opus 5.5) — PH1-11 beat boxes round four; a gentle ending
 
@@ -488,63 +561,5 @@ Template:
   heard the new ending.
 - **Next handoff:** Rinat tries pasting, dragging several lines and the ending; then Phase 2,
   the design.
-
-### 2026-10-11 14:10 BST — Claude (Opus 5.5) — PH1-10 taal pherta: a taal per section
-
-- **Goal:** Rinat: "do taal pherta now, then we'll start design" (Open question 6 answered:
-  build it before the design phase).
-- **Inspected:** every place that took one taal for the whole song: the transport (count-in,
-  taal beat, rhythm table, fills, closing stroke on sam), the sheet's marks and bars, the
-  checker and its panel, the beat boxes (rows, typing, new lines, bars), the deck's taal
-  strip and Ready line, the section buttons, the printed sheet; the heading reader
-  (`sections.ts`, which already gave sections their tempo).
-- **Changed:** `03e3b31` (feat): a heading's taal read and written (`headingTaal`,
-  `headingTaalPart`, `setHeadingTaal`, `TAAL_NAMES`; `headingLabel` leaves the taal out;
-  `SongSection.taal`; `endHeadings`); `src/core/notation/taalmap.ts` (`taalMap`, `oneTaal`,
-  `asTaals`, `placeIn`); the checker, the core boxes, the transport (`taalAt`), the sheet, the
-  checker panel and the printed sheet take the map (and still take one taal and `startOn − 1`);
-  a taal picker on each heading row of the beat boxes; the strip follows the taal playing and
-  shows the starting taal as soon as play is pressed; the section buttons name a section's
-  taal; a help row; the heading row's fields narrower under 520 px so its × stays beside
-  them; 16 tests in `tests/unit/pherta.test.ts`. This commit (docs): NOTATION (A taal per
-  section), ENGINE, DATA, ROADMAP (row 10; the idea taken out), README, this file (Open
-  question 6 answered and removed; the 10:35 entry moved to HISTORY).
-- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
-  DevTools protocol on `npm run dev`, real mouse and key events):
-  - `npm run typecheck` → 0; `npx vitest run` → 30 files, 308 passed (16 new: taal names in
-    19 spellings and forms, two taals naming none, a name inside a word not counting; labels;
-    writing, replacing and taking out a taal, renaming a heading keeping it; sections; the map
-    (runs from sam, the start beat, a song naming none as one run, a heading after the last
-    line); the checker, the sheet's marks, the boxes and their picker, typing a Kaharwa line;
-    the transport counting each section in its taal, a Kaharwa count-in, a Kaharwa section's
-    Web Audio calls equal to a Kaharwa song's, a song naming no taal equal to before). Made to
-    ignore section taals, the code fails 9 of the 16. The comparisons with the prototype (sheet,
-    checker, checker panel, transport) still pass. `npm run build` → 193 kB JS (68.7 kB gzip),
-    33 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid.
-  - Scenario `pherta` (25 checks): each heading row has a taal picker (song's and 19);
-    picking Kaharwa writes `# অন্তরা · কাহারবা`, keeps the focus, and the empty row under it
-    is 8 boxes marked X···0···; typing 8 notes there makes `পা ধা না র্সা | না ধা পা মা`,
-    boxes 4 | 4 while the sthayi stays 3 | 3; the checker says "in Dadra, then Keherwa" and
-    is happy; the preview marks it in Kaharwa; a sthayi after it is Dadra again; the section
-    buttons read "স্থায়ী / অন্তরা কাহারবা / স্থায়ী"; ready at the antara the strip and the
-    panel say Keherwa; played through, the strip goes Dadra → Keherwa → Dadra, 6 and 8 beats,
-    Kaharwa's lit 0–7 in order; the antara's button counts in with one Kaharwa cycle (the
-    strip on Kaharwa from the start: a bug found and fixed, it showed Dadra until the first
-    beat); the printed sheet says "changing taal by section: Dadra, then Keherwa, then Dadra";
-    "song's" takes it out and the boxes go back to 3 | 3; Undo puts it back; renaming the
-    heading keeps it; 360 px day and night without sideways scrolling; no console errors.
-    `boxes` (29), `move` (31), `edit3` (27), `words` (17) and `sections` (15) still pass.
-  - Sound: no new render. A Kaharwa section's Web Audio calls equal a Kaharwa song's (above),
-    so its levels are Kaharwa's (ENGINE.md → Verifying sound).
-  - CI run `38142030205` (`03e3b31`): core, reference and deploy jobs green. Live: `pherta` against https://rinatmalik.github.io/Gaaner-Sathi/ passed all 25 checks, no console errors; `/` 200, `/new/` 200.
-- **Decisions made:** see Decisions (taal pherta); Open question 6 answered.
-- **Risks or disagreements:** a section whose singing comes in after sam needs `x` for the
-  beats before it (no start beat per section), and a change of taal cuts the old cycle short
-  where the section begins: right for a sthayi ending on sam, to be heard on Rinat's songs.
-  Any taal's name in a heading is read as its taal ("Dadra practice" is Dadra); a name inside
-  a longer word does not count. The prototype plays these songs in the song's taal. A rewaz
-  estimate counts a count-in in the song's taal. On a phone the picker shows a shortened
-  name. Nobody has heard a change of taal.
-- **Next handoff:** Rinat tries a song in taal pherta; then Phase 2, the design, with Rinat.
 
 Older entries: `docs/HISTORY.md`.

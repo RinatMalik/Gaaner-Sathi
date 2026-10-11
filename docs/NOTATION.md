@@ -158,10 +158,14 @@ Dadra in the next. Built 2026-10-11 at Rinat's request.
 The editor's default view (`src/app/boxes.ts`; the text changes are worked out, pure and
 tested, in `src/core/notation/boxes.ts`). Every box edit is a text edit, so Free text shows
 exactly what the boxes wrote, and headings, lyrics and anything else written there are kept.
-Free text is one tap away and remembered.
+Free text is one tap away and remembered. The beat boxes take the editor's whole width, with
+no preview beside them (they show the same; Rinat, 2026-10-11); Free text keeps its preview,
+where a beat is tapped to choose it. The Octave and Join/Split row sits above the boxes (or
+the text) and works on the box chosen (or the beats chosen).
 
-- **Rows** are the text's lines: each heading (its name, a tempo field, a taal picker and ×),
-  and each notes line as one box per beat (with ×, ▶ Play and Copy at its right), grouped by
+- **Rows** are the text's lines: each heading (its name, a tempo field and a taal picker,
+  which wrap among themselves, and × at its top right), and each notes line (its number in
+  front with ▶ just under it, × at its top right) as one box per beat, grouped by
   the vibhags of its section's taal (from where the line falls in the
   cycle, start beat included), with the taal marks above and a box for the words of each
   verse below. An unfinished line shows empty boxes to the end of its cycle. After the song,
@@ -179,7 +183,7 @@ Free text is one tap away and remembered.
 - **Readable input:** a beat the player cannot read is mended when that makes it readable:
   sargam spelt out, alone or among letters (`sa re`, `sare`, `Sre`, any case, with octave
   marks), becomes letters (`S R`, `SR`), and `রে`, `নি` become `রা`, `না`.
-- **Moving:** each heading and line is dragged by its number (⠿), with a mouse or a finger;
+- **Moving:** each heading and line is dragged by its number, with a mouse or a finger;
   a brass line shows where it will go, and the boxes scroll near their edges (Escape cancels
   a drag). With the number focused, ↑ and ↓ move the row one place. A notes line moves with
   its lyric lines (and any blank lines between them); a heading moves on its own, so moving
@@ -188,18 +192,20 @@ Free text is one tap away and remembered.
   order where it is dropped (or one place up or down with the arrows), and they stay
   selected, to be moved on (`moveRows`).
 - **Selecting:** tap a row's number (a heading's #, too): each tap selects or unselects it
-  (✓). Clear, Escape on a number, or any other change to the song ends the selection.
-- **Copying and pasting:** **Copy** on a line keeps it, words and all; with rows selected,
-  Copy in the bar at the top of the boxes keeps them, in the song's order (`copyRows`). The
-  song is not changed, and the lines also go on the device's clipboard as text. The bar
-  then says what is copied; tapping the number of a row offers **Paste after line N** (or
+  (the number turns brass). Clear, Escape on a number, or any other change to the song ends
+  the selection.
+- **Copying and pasting:** with rows selected, **Copy** in the bar at the top of the boxes
+  keeps them, words and all, in the song's order (`copyRows`). The song is not changed, and
+  the lines also go on the device's clipboard as text. For six seconds the bar says what is
+  copied and how to paste it; tapping the number of a row offers **Paste after line N** (or
   **under the heading**): the copy goes in after the last row selected, after a line's words
-  or just under a heading (`pasteRows`). What is copied stays, to paste again, in this song
-  or another, until **Done**. With a number focused, Ctrl+C copies (the rows selected, or
-  that row) and Ctrl+V pastes after it. Each move or paste is one undo step. (Until
-  2026-10-11's fourth round, Copy put the copy at the end of the song.)
-- **Play** on a line plays just that line once, at its tempo, with no count-in, lighting
-  each box as it sounds; ■ Stop stops it. It is not logged as practice or kept as a take,
+  or just under a heading (`pasteRows`). What is copied stays, to paste as often as wanted,
+  in this song or another, until something else is copied; nothing needs closing. With a
+  number focused, Ctrl+C copies (the rows selected, or that row) and Ctrl+V pastes after it.
+  Each move or paste is one undo step. (Round three put copies at the end of the song; round
+  four had a Copy on each line and a Done that forgot the copy.)
+- **▶**, just under a line's number, plays that line once, at its tempo, with no count-in,
+  lighting each box as it sounds; ■ stops it. It is not logged as practice or kept as a take,
   and leaves the practice pickers as they were.
 - **Words:** typed in the boxes under the notes, a space between beats (`আ মার সো নার` typed
   in the first box fills four), `-` for a beat the vowel is held over. Enter in a word box

@@ -37,8 +37,10 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
   set number of rounds (a line played on its own, a rewaz item), ends by itself, the last
   note lets go with a time constant of `endFade / 3` instead of 0.04 s, and the session's
   output and reverb send fade the same way over the last `endFade` before the end, so a
-  drone or a ringing stroke is not cut off. A stop pressed by hand stays quick. The
-  comparisons with the prototype set `endFade` to 0, its own short ending.
+  drone or a ringing stroke is not cut off. A stop pressed by hand stays quick. A note
+  followed by silence (`x`: the next share of a beat is a rest, `silenceAt`) lets go the same
+  gentle way (Rinat, 2026-10-11). The comparisons with the prototype set `endFade` to 0, its
+  own short ending, which turns both off.
 - **Guide on repeats** (`guideOn`): every round, first round only, or every other round
   (call and response; the panel says "your turn, sing it alone").
 - **Tempo trainer** (`liveTempo`): when looping, round n plays at
@@ -346,7 +348,8 @@ about specific things (thin, buzzy, nasal, too plucked, too loud against the voi
 - **The ending,** on the same page: "S R G M | P D N S" in Keherwa at 120, stopped as the app
   stops it. The last note falls 20 dB in 175 ms (95 ms with the prototype's ending); a
   tanpura at the end falls 20 dB in 195 ms (65 ms). Falling 40 dB takes about 0.5 s either
-  way: that is the reverb's own tail.
+  way: that is the reverb's own tail. In "S R G x | P D N S", Ga before the silence falls
+  20 dB in 195 ms (95 ms before).
 - Teora, Kawali and Garba (added later on 2026-10-11), the same way: tabla −19.0, −18.1 and
   −19.2 dB RMS, dholak −20.4, −18.4 and −19.2, drums −23.3, −21.0 and −21.3, peaks −1.9 to
   −4.5 dBFS; no silent beats; Kawali's doubled Dha sits within 1.6 dB of the loudest stroke.
