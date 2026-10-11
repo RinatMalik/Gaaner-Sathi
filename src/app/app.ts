@@ -33,6 +33,7 @@ import { joinBeats, notesInRange, shiftOctaves, splitBeats, type TextEdit } from
 import { parseSong } from '../core/notation/parse';
 import { sectionOfLine, setHeadingTempo, songSections, type SongSection } from '../core/notation/sections';
 import { AKAR } from '../core/notation/symbols';
+import { oneTaal, taalMap, type Taals } from '../core/notation/taalmap';
 import type { Beat, ParsedSong, Unit } from '../core/notation/types';
 import { lastPractised, logFileText, MIN_LOG_SECS, type LogEntry } from '../core/practice/log';
 import { songSpan } from '../core/pitch/voice';
@@ -42,7 +43,7 @@ import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefi
 import { cleanNotes, newId, normalize, parseTags, type Song } from '../core/song/model';
 import { soundOf, type SongSound } from '../core/song/sound';
 import { beatLabel, SPEEDS } from '../core/taal/rhythm';
-import { isTaalId, taalInfo, type TaalInfo } from '../core/taal/taals';
+import { isTaalId, taalInfo, TAALS, type TaalInfo } from '../core/taal/taals';
 import { initPitch, type PitchUI } from './pitch';
 import { initBoxes, withNewHeading, type Boxes } from './boxes';
 import { initKeyboard, keyboardHTML, keyName, keyRange, type KeyboardUI } from './keyboard';
@@ -85,6 +86,10 @@ let parsed: ParsedSong = parseSong('');
 /** The song's sections (its headings), worked out with each parse. */
 let sections: SongSection[] = [];
 let taal: TaalInfo = taalInfo('dadra');
+/** Each beat's taal: the song's, or a section's own (taal pherta); worked out with each parse. */
+let taals: Taals = oneTaal(taal, 0);
+/** The taal the deck's strip shows. */
+let stripTaal: TaalInfo | null = null;
 let insOct = 0;
 let userPicked = false;
 const beatEls = new Map<number, HTMLElement[]>();
@@ -124,8 +129,6 @@ let itemOverride: {
 } | null = null;
 /** Set while the rewaz itself opens a song, which must not stop the rewaz. */
 let runnerLoading = false;
-
-const startOff = () => (current ? current.startOn : 1) - 1;
 
 // ── Transport: one clock drives the rhythm, the melody and the highlight ─────
 
@@ -187,6 +190,7 @@ const source: PlaySource = {
     return soundSource;
   },
   tempoAt: (s) => baseTempoAt(s),
+  taalAt: (s) => taals.beat(s),
 };
 
 /** The tempo a song beat plays at before the tempo trainer: a rewaz item's, else its
@@ -248,6 +252,8 @@ function play(fromN?: number, rounds?: number, check = false): void {
     startTakeRun(r.from, loop);
   }
   setPlayUI(true);
+  // The strip shows the taal it starts in straightaway, not when the first beat sounds.
+  if (taals.line(r.from).T.id !== stripTaal?.id) renderTaal(taals.line(r.from).T);
   if (r.pre > 0) setNowMessage('Count-in', '', String(r.pre));
   timer = window.setInterval(tick, 25);
   raf = requestAnimationFrame(frame);
@@ -501,7 +507,7 @@ function endRun(at: number, pitch: { score: number; lines: [number, number][] } 
 // ── Rendering ────────────────────────────────────────────────────────────────
 
 function renderSheets(): void {
-  const html = V.sheetHTML(parsed, taal, startOff(), current.example, prefs.script);
+  const html = V.sheetHTML(parsed, taals, 0, current.example, prefs.script);
   $('#sheetP').innerHTML = html;
   $('#sheetE').innerHTML = html;
   beatEls.clear();
@@ -513,10 +519,14 @@ function renderSheets(): void {
   curEls = [];
 }
 
-function renderTaal(): void {
-  $('#taalName').textContent = V.taalName(taal);
-  $('#taalSub').textContent = V.taalSub(taal);
-  $('#taalStrip').innerHTML = V.taalStripHTML(taal, (p) => beatLabel(sound.beat, taal.id, SPEEDS[sound.speed] || 1, p));
+/** The taal playing would start in: the from-line's. */
+const idleTaal = (): TaalInfo => taals.line(+select('#fromLine').value || 0).T;
+/** The deck's taal strip: the taal playing, or the one playing would start in. */
+function renderTaal(T: TaalInfo = playing() && stripTaal ? stripTaal : idleTaal()): void {
+  stripTaal = T;
+  $('#taalName').textContent = V.taalName(T);
+  $('#taalSub').textContent = V.taalSub(T);
+  $('#taalStrip').innerHTML = V.taalStripHTML(T, (p) => beatLabel(sound.beat, T.id, SPEEDS[sound.speed] || 1, p));
 }
 
 function markTaal(p: number): void {
@@ -558,6 +568,9 @@ function setNowMessage(label: string, sub: string, big = ''): void {
   setNow(V.nowMessage(label, sub, big));
 }
 function showBeat(q: BeatEntry): void {
+  // Where the taal changes, the strip changes with it (the count-in is in the first beat's).
+  const tq = taals.beat(q.pass < 0 ? (T?.secStart ?? 0) : q.s).T;
+  if (tq.id !== stripTaal?.id) renderTaal(tq);
   markTaal(q.p);
   if (prefs.showKeys) markKeys(q.pass < 0 ? -1 : q.s, q.pass < 0 ? (T?.secStart ?? 0) : nextBeat(q.s));
   if (q.pass < 0) clearHighlight();
@@ -575,6 +588,7 @@ function showBeat(q: BeatEntry): void {
   rewaz.beat(q.pass);
 }
 function showIdle(): void {
+  if (idleTaal().id !== stripTaal?.id) renderTaal(idleTaal());
   markTaal(-1);
   if (prefs.showKeys) {
     const first = parsed.noteLines[+select('#fromLine').value || 0]?.start ?? -1;
@@ -582,7 +596,7 @@ function showIdle(): void {
   }
   markSection();
   showTempo(shownTempo());
-  setNow(V.nowIdle(parsed, taal, +select('#fromLine').value || 0, current.example, prefs.countIn, prefs.script));
+  setNow(V.nowIdle(parsed, idleTaal(), +select('#fromLine').value || 0, current.example, prefs.countIn, prefs.script));
 }
 
 function renderLineSelects(keep: boolean): void {
@@ -598,7 +612,7 @@ function renderLineSelects(keep: boolean): void {
 
 let issueList: V.IssueTarget[] = [];
 function renderIssues(): void {
-  const r = V.issuesHTML(parsed, taal, startOff(), prefs.script);
+  const r = V.issuesHTML(parsed, taals, 0, prefs.script);
   issueList = r.list;
   $('#issues').innerHTML = r.html;
 }
@@ -1035,6 +1049,7 @@ function reparse(keepLines: boolean): void {
   parsed = parseSong(current.text);
   sections = songSections(current.text, parsed);
   taal = taalInfo(current.taal);
+  taals = taalMap(current.text, parsed, current.taal, current.startOn, sections);
   renderSheets();
   renderLineSelects(keepLines);
   renderIssues();
@@ -1097,6 +1112,7 @@ function renderSections(): void {
   box.innerHTML = sections.length < 2 ? '' : sections.map((sec, i) =>
     '<button type="button" class="chip" data-sec="' + i + '" aria-pressed="false">' +
     V.esc(sec.label || (sec.last > sec.first ? 'Lines ' + (sec.first + 1) + '–' + (sec.last + 1) : 'Line ' + (sec.first + 1))) +
+    (sec.taal && sec.taal !== current.taal ? ' <span class="n">' + TAALS[sec.taal].bn + '</span>' : '') +
     (sec.tempo != null ? ' <span class="n">♩' + sec.tempo + '</span>' : '') + '</button>').join('');
   markSection();
 }
@@ -1670,8 +1686,7 @@ export function init(): void {
   boxes = initBoxes({
     text: () => current.text,
     setText: setTextFromBoxes,
-    taal: () => taal,
-    off: startOff,
+    songTaal: () => ({ taal: current.taal, startOn: current.startOn }),
     focusBeat: (g) => {
       const b = parsed.beatList[g];
       if (!b) return;
@@ -1682,7 +1697,7 @@ export function init(): void {
     playLine,
   });
   applyEditMode();
-  const printSong = initPrint({ song: () => current, parsed: () => parsed, taal: () => taal, script: () => prefs.script });
+  const printSong = initPrint({ song: () => current, parsed: () => parsed, taals: () => taals, script: () => prefs.script });
   $('#printBtn').addEventListener('click', printSong);
   $('#printBtn2').addEventListener('click', printSong);
   const startSong = EXERCISES.find((e) => e.id === wanted) || EXERCISES[0]!;

@@ -219,7 +219,7 @@ describe('changes to the text', () => {
 describe('the boxes as HTML', () => {
   it('give each heading and line a handle numbered in row order, and each line its ×, Play and Copy', () => {
     const t = '# স্থায়ী\nসা রা গা | মা পা ধা\n# অন্তরা\nনা সা রা | গা মা পা';
-    const html = boxesHTML(boxRows(t, parseSong(t), DADRA, 0), DADRA, () => 1);
+    const html = boxesHTML(boxRows(t, parseSong(t), DADRA, 0), () => 1);
     const L = ': select it, or drag it (or press ↑ ↓) to move it';
     expect(Array.from(html.matchAll(/class="bxln bxgrip" data-r="(\d+)" aria-pressed="(\w+)" aria-label="([^"]+)"/g), (m) => m[1] + ' ' + m[2] + ' ' + m[3])).toEqual([
       '0 false Heading' + L,
@@ -228,7 +228,7 @@ describe('the boxes as HTML', () => {
       '3 false Line 2' + L,
     ]);
     // Selected rows: marked, their handles pressed and ticked.
-    const picked = boxesHTML(boxRows(t, parseSong(t), DADRA, 0), DADRA, () => 1, new Set([1, 2]));
+    const picked = boxesHTML(boxRows(t, parseSong(t), DADRA, 0), () => 1, new Set([1, 2]));
     expect(Array.from(picked.matchAll(/<div class="bxrow (\w+)( sel)?"/g), (m) => m[1] + (m[2] ?? ''))).toEqual(['bxhead', 'bxnotes sel', 'bxhead sel', 'bxnotes', 'bxnew']);
     expect(Array.from(picked.matchAll(/aria-pressed="true"[^>]*><span>[^<]*<\/span><span class="bxdots" aria-hidden="true">(.)/g), (m) => m[1])).toEqual(['✓', '✓']);
     expect(Array.from(html.matchAll(/data-act="copy" data-n="(\d+)"/g), (m) => +m[1]!)).toEqual([0, 1]);

@@ -9,9 +9,10 @@
  * taal cycle; after the song once its last line is finished (and after any line the singer
  * asks for one) comes an empty row as long as the line before it, to start a new line in.
  */
-import { headingLabel, headingTempo, headingTempoPart } from './sections';
+import { headingLabel, headingTaal, headingTaalPart, headingTempo, headingTempoPart } from './sections';
 import { parseNotesLine, parseSong } from './parse';
 import { BAR_CH } from './symbols';
+import { asTaals, oneTaal, placeIn, type TaalRun, type Taals } from './taalmap';
 import type { NotesLine, ParsedSong } from './types';
 
 /** The parts of a taal the boxes need. */
@@ -20,6 +21,9 @@ export interface BoxTaal {
   starts: readonly number[];
   markAt: ReadonlyMap<number, string>;
 }
+/** The taal the boxes follow: the song's taal map (a taal per section), or one taal for the
+ * whole song with `off`, where the song starts in it. */
+type BoxTaals = BoxTaal | Taals<BoxTaal>;
 
 export interface BoxBeat {
   /** Index in its line; g in the song; p in the taal cycle. */
@@ -36,10 +40,12 @@ export interface BoxGhost {
   j: number;
   p: number;
 }
+/** A row: a heading (with the tempo and the taal it gives its section, if any), a notes line,
+ * or an empty row to start a new line in; the boxes' rows with the taal they are in. */
 export type BoxRow =
-  | { kind: 'head'; k: number; line: number; label: string; tempo?: number }
-  | { kind: 'notes'; n: number; line: number; beats: BoxBeat[]; ghosts: BoxGhost[]; verses: number }
-  | { kind: 'new'; at: NewAt; ghosts: BoxGhost[] };
+  | { kind: 'head'; k: number; line: number; label: string; tempo?: number; taal?: string }
+  | { kind: 'notes'; n: number; line: number; beats: BoxBeat[]; ghosts: BoxGhost[]; verses: number; T: BoxTaal }
+  | { kind: 'new'; at: NewAt; ghosts: BoxGhost[]; T: BoxTaal };
 
 /** Where a new line goes: after notes line n (with its lyrics), or at the end of the text. */
 export type NewAt = { after: number } | { end: true };
@@ -79,28 +85,37 @@ function insertIndex(lines: readonly string[], P: ParsedSong, at: NewAt): number
 /** How many cycles long a line is, at least one. */
 const cyclesOf = (len: number, cycle: number) => Math.max(1, Math.round(len / cycle));
 
+/** The taal a new line at a place goes in: after line n, line n's; at the end, the map's end. */
+const runAt = (M: Taals<BoxTaal>, at: NewAt): TaalRun<BoxTaal> => ('end' in at ? M.end : M.line(at.after));
+
 /** Where the song is in the taal after a place for a new line, and how many boxes the new
  * row offers: as many cycles as the line before it, finishing the cycle it starts in. */
-export function newRowShape(P: ParsedSong, T: BoxTaal, off: number, at: NewAt): { start: number; p: number; count: number } {
+export function newRowShape(P: ParsedSong, T: BoxTaals, off: number, at: NewAt): { start: number; p: number; count: number } {
   const n = 'end' in at ? P.noteLines.length - 1 : at.after;
   const prev = P.noteLines[n];
   const start = 'end' in at ? P.total : prev ? prev.end : 0;
-  const p = mod(start + off, T.cycle);
-  const lc = prev ? cyclesOf(prev.beats.length, T.cycle) : 1;
-  return { start, p, count: lc * T.cycle - p };
+  const { T: t, p } = placeIn(runAt(asTaals(T, off), at), start);
+  const lc = prev ? cyclesOf(prev.beats.length, t.cycle) : 1;
+  return { start, p, count: lc * t.cycle - p };
 }
 
 /**
  * The rows to show. `pending`: an empty row asked for after notes line n. `grow`: a line
  * being typed from an empty row keeps its empty boxes up to `to` beats.
  */
-export function boxRows(text: string, P: ParsedSong, T: BoxTaal, off: number, o: { pending?: number | null; grow?: { n: number; to: number } | null } = {}): BoxRow[] {
+export function boxRows(text: string, P: ParsedSong, T: BoxTaals, off: number, o: { pending?: number | null; grow?: { n: number; to: number } | null } = {}): BoxRow[] {
+  const M = asTaals(T, off);
   const lines = linesOf(text);
   const rows: BoxRow[] = [];
   let k = 0;
   const byLine = new Map(P.noteLines.map((nl) => [nl.srcLine, nl] as const));
-  const ghostRow = (start: number, count: number, from: number): BoxGhost[] =>
-    Array.from({ length: Math.max(0, count) }, (_, i) => ({ j: from + i, p: mod(start + i + off, T.cycle) }));
+  const ghostRow = (r: TaalRun<BoxTaal>, start: number, count: number, from: number): BoxGhost[] =>
+    Array.from({ length: Math.max(0, count) }, (_, i) => ({ j: from + i, p: placeIn(r, start + i).p }));
+  const newRow = (at: NewAt): BoxRow => {
+    const s = newRowShape(P, M, 0, at);
+    const r = runAt(M, at);
+    return { kind: 'new', at, ghosts: ghostRow(r, s.start, s.count, 0), T: r.T };
+  };
   lines.forEach((raw, i) => {
     const t = raw.trim();
     if (t[0] === '#') {
@@ -108,30 +123,27 @@ export function boxRows(text: string, P: ParsedSong, T: BoxTaal, off: number, o:
       const row: BoxRow = { kind: 'head', k: k++, line: i, label: headingLabel(h) };
       const tempo = headingTempo(h);
       if (tempo != null) row.tempo = tempo;
+      const taal = headingTaal(h);
+      if (taal) row.taal = taal;
       rows.push(row);
       return;
     }
     const nl = byLine.get(i + 1);
     if (!nl) return;
-    const beats: BoxBeat[] = nl.beats.map((b, j) => ({ j, g: b.g, p: mod(b.g + off, T.cycle), src: b.src, err: b.err, lyrics: b.lyrics ? b.lyrics.slice() : [] }));
+    const r = M.line(nl.n);
+    const beats: BoxBeat[] = nl.beats.map((b, j) => ({ j, g: b.g, p: placeIn(r, b.g).p, src: b.src, err: b.err, lyrics: b.lyrics ? b.lyrics.slice() : [] }));
     const len = beats.length;
-    const toCycle = mod(T.cycle - mod(nl.end + off, T.cycle), T.cycle);
+    const toCycle = mod(r.T.cycle - placeIn(r, nl.end).p, r.T.cycle);
     const want = o.grow && o.grow.n === nl.n ? Math.max(toCycle, o.grow.to - len) : toCycle;
-    rows.push({ kind: 'notes', n: nl.n, line: i, beats, ghosts: ghostRow(nl.end, want, len), verses: verseLines(lines, nl).length });
-    if (o.pending === nl.n && nl.n < P.noteLines.length - 1) {
-      const s = newRowShape(P, T, off, { after: nl.n });
-      rows.push({ kind: 'new', at: { after: nl.n }, ghosts: ghostRow(s.start, s.count, 0) });
-    }
+    rows.push({ kind: 'notes', n: nl.n, line: i, beats, ghosts: ghostRow(r, nl.end, want, len), verses: verseLines(lines, nl).length, T: r.T });
+    if (o.pending === nl.n && nl.n < P.noteLines.length - 1) rows.push(newRow({ after: nl.n }));
   });
   // The empty row at the end: once the last line is finished, or under a heading after it, or
   // when asked for (Enter on the last line).
   const last = P.noteLines[P.noteLines.length - 1];
-  const finished = !last || mod(last.end + off, T.cycle) === 0;
+  const finished = !last || placeIn(M.line(last.n), last.end).p === 0;
   const headAfter = !!last && lines.slice(last.srcLine).some((l) => l.trim()[0] === '#');
-  if (finished || headAfter || o.pending === last!.n) {
-    const s = newRowShape(P, T, off, { end: true });
-    rows.push({ kind: 'new', at: { end: true }, ghosts: ghostRow(s.start, s.count, 0) });
-  }
+  if (finished || headAfter || o.pending === last!.n) rows.push(newRow({ end: true }));
   return rows;
 }
 
@@ -294,9 +306,11 @@ export function removeBeat(text: string, P: ParsedSong, g: number): string {
 }
 
 /** Add beats at the end of notes line n, with bars at vibhag lines if the line has bars. */
-export function appendBeats(text: string, P: ParsedSong, T: BoxTaal, off: number, n: number, tokens: readonly string[]): string {
+export function appendBeats(text: string, P: ParsedSong, taals: BoxTaals, off: number, n: number, tokens: readonly string[]): string {
   const nl = P.noteLines[n];
   if (!nl || !tokens.length) return text;
+  const r = asTaals(taals, off).line(n);
+  const T = r.T;
   const lines = linesOf(text);
   const li = nl.srcLine - 1;
   const raw = lines[li]!;
@@ -304,11 +318,11 @@ export function appendBeats(text: string, P: ParsedSong, T: BoxTaal, off: number
   let out = (cr ? raw.slice(0, -1) : raw).replace(/\s+$/, '');
   // A line with bars keeps having them; one too short to have crossed a vibhag yet follows
   // the song's other lines (bars when they have them, or when there are none).
-  const crosses = nl.beats.some((b, i) => i > 0 && T.markAt.has(mod(b.g + off, T.cycle)));
+  const crosses = nl.beats.some((b, i) => i > 0 && T.markAt.has(placeIn(r, b.g).p));
   const others = P.noteLines.filter((l) => l !== nl);
   const bar = nl.bars.size > 0 ? barChar(out) : !crosses && (!others.length || others.some((l) => l.bars.size > 0)) ? barChar(text) : null;
   tokens.forEach((t, i) => {
-    const p = mod(nl.end + i + off, T.cycle);
+    const p = placeIn(r, nl.end + i).p;
     out += bar && T.markAt.has(p) && !BAR_END.test(out) ? ' ' + bar + ' ' + t : ' ' + t;
   });
   lines[li] = out + cr;
@@ -320,9 +334,11 @@ export function appendBeats(text: string, P: ParsedSong, T: BoxTaal, off: number
  * `firstLen`), the rest as many cycles each as the line before. Returns the text and how many
  * lines were made.
  */
-export function insertLines(text: string, P: ParsedSong, T: BoxTaal, off: number, at: NewAt, tokens: readonly string[], firstLen?: number): { text: string; count: number } {
+export function insertLines(text: string, P: ParsedSong, taals: BoxTaals, off: number, at: NewAt, tokens: readonly string[], firstLen?: number): { text: string; count: number } {
   if (!tokens.length) return { text, count: 0 };
-  const shape = newRowShape(P, T, off, at);
+  const M = asTaals(taals, off);
+  const T = runAt(M, at).T;
+  const shape = newRowShape(P, M, 0, at);
   const full = shape.count + shape.p;
   const bar = songUsesBars(P) ? barChar(text) : null;
   const made: string[] = [];
@@ -426,7 +442,7 @@ function headLine(lines: readonly string[], k: number): number {
   return -1;
 }
 
-/** Rename heading k, keeping its tempo as written. */
+/** Rename heading k, keeping its taal and its tempo as written. */
 export function setHeading(text: string, k: number, label: string): string {
   const lines = linesOf(text);
   const i = headLine(lines, k);
@@ -435,8 +451,9 @@ export function setHeading(text: string, k: number, label: string): string {
   const cr = raw.endsWith('\r') ? '\r' : '';
   const h = (cr ? raw.slice(0, -1) : raw).trim().replace(/^#+\s*/, '');
   const tempo = headingTempoPart(h);
+  const kept = headingTaalPart(h.replace(tempo, '')) + tempo;
   const lab = label.replace(/\s+/g, ' ').trim();
-  lines[i] = ('# ' + (lab ? lab + tempo : tempo.trim())).trimEnd() + cr;
+  lines[i] = ('# ' + (lab ? lab + kept : kept.replace(/^[\s·•,;|\-–—]+/, ''))).trimEnd() + cr;
   return lines.join('\n');
 }
 
@@ -465,34 +482,38 @@ export type BoxSpot = { n: number; j: number } | { end: true; j: number };
 
 /** How many boxes line n has room for: its beats and the empty boxes to the end of its cycle,
  * or `target` beats if more (a line being typed in a row as long as the one before it). */
-export function lineRoom(P: ParsedSong, T: BoxTaal, off: number, n: number, target = 0): number {
+export function lineRoom(P: ParsedSong, taals: BoxTaals, off: number, n: number, target = 0): number {
   const nl = P.noteLines[n];
   if (!nl) return 0;
-  return Math.max(nl.beats.length + mod(T.cycle - mod(nl.end + off, T.cycle), T.cycle), target);
+  const r = asTaals(taals, off).line(n);
+  return Math.max(nl.beats.length + mod(r.T.cycle - placeIn(r, nl.end).p, r.T.cycle), target);
 }
 
 /**
  * Beats typed or pasted into a box: the first goes in the box, the rest into the boxes after
  * it, writing over the line's beats, then filling its empty boxes, then making new lines (as
  * long as the line before each) after it. `from` is a box of an existing line or an empty row;
- * `target` keeps a line being typed as long as the row it started in. Returns the text and
- * the box to go to next.
+ * `target` keeps a line being typed as long as the row it started in. `taals` is one taal
+ * (with `off`), or works out the song's taal map for a text as it changes. Returns the text
+ * and the box to go to next.
  */
-export function placeBeats(text: string, T: BoxTaal, off: number, from: { n: number; j: number } | { at: NewAt }, tokens: readonly string[], target = 0): { text: string; next: BoxSpot } {
+export function placeBeats(text: string, taals: BoxTaal | ((text: string, P: ParsedSong) => Taals<BoxTaal>), off: number, from: { n: number; j: number } | { at: NewAt }, tokens: readonly string[], target = 0): { text: string; next: BoxSpot } {
+  const mapOf = (t: string, P: ParsedSong): Taals<BoxTaal> => (typeof taals === 'function' ? taals(t, P) : oneTaal(taals, off));
   let P = parseSong(text);
   if (!tokens.length) return { text, next: 'at' in from ? { end: true, j: 0 } : { n: from.n, j: from.j } };
   let t = text;
   let rest = tokens.slice();
   if ('at' in from) {
     // A new row: its first line takes up to the row's length; more beats make more lines.
-    const shape = newRowShape(P, T, off, from.at);
+    const M = mapOf(t, P);
+    const shape = newRowShape(P, M, 0, from.at);
     const first = 'end' in from.at ? P.noteLines.length : from.at.after + 1;
-    const r = insertLines(t, P, T, off, from.at, rest, shape.count);
+    const r = insertLines(t, P, M, 0, from.at, rest, shape.count);
     t = r.text;
     P = parseSong(t);
     const lastN = first + r.count - 1;
     const used = rest.length - (P.noteLines[lastN]!.start - P.noteLines[first]!.start);
-    return { text: t, next: nextSpot(P, T, off, lastN, used, r.count === 1 ? shape.count : 0) };
+    return { text: t, next: nextSpot(P, mapOf(t, P), 0, lastN, used, r.count === 1 ? shape.count : 0) };
   }
   const n = from.n;
   const nl = P.noteLines[n];
@@ -503,24 +524,26 @@ export function placeBeats(text: string, T: BoxTaal, off: number, from: { n: num
   for (let i = over - 1; i >= 0; i--) t = setBeat(t, P, nl.start + j0 + i, rest[i]!);
   rest = rest.slice(over);
   P = parseSong(t);
-  if (!rest.length) return { text: t, next: nextSpot(P, T, off, n, j0 + over, target) };
+  if (!rest.length) return { text: t, next: nextSpot(P, mapOf(t, P), 0, n, j0 + over, target) };
   // 2. Fill the line's empty boxes.
-  const fill = rest.slice(0, lineRoom(P, T, off, n, target) - P.noteLines[n]!.beats.length);
-  t = appendBeats(t, P, T, off, n, fill);
+  let M = mapOf(t, P);
+  const fill = rest.slice(0, lineRoom(P, M, 0, n, target) - P.noteLines[n]!.beats.length);
+  t = appendBeats(t, P, M, 0, n, fill);
   rest = rest.slice(fill.length);
   P = parseSong(t);
-  if (!rest.length) return { text: t, next: nextSpot(P, T, off, n, P.noteLines[n]!.beats.length, target) };
+  M = mapOf(t, P);
+  if (!rest.length) return { text: t, next: nextSpot(P, M, 0, n, P.noteLines[n]!.beats.length, target) };
   // 3. New lines after it.
-  const r = insertLines(t, P, T, off, { after: n }, rest);
+  const r = insertLines(t, P, M, 0, { after: n }, rest);
   t = r.text;
   P = parseSong(t);
   const lastN = n + r.count;
-  return { text: t, next: nextSpot(P, T, off, lastN, P.noteLines[lastN]!.beats.length) };
+  return { text: t, next: nextSpot(P, mapOf(t, P), 0, lastN, P.noteLines[lastN]!.beats.length) };
 }
 
 /** The box at index j of line n; past its room, the first box of the next line, or the empty
  * row at the end. */
-export function nextSpot(P: ParsedSong, T: BoxTaal, off: number, n: number, j: number, target = 0): BoxSpot {
+export function nextSpot(P: ParsedSong, T: BoxTaals, off: number, n: number, j: number, target = 0): BoxSpot {
   if (!P.noteLines[n]) return { end: true, j: 0 };
   if (j < lineRoom(P, T, off, n, target)) return { n, j };
   if (n + 1 < P.noteLines.length) return { n: n + 1, j: 0 };

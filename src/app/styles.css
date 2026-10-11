@@ -426,12 +426,13 @@ textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--
 .bxh{flex:1 1 180px;min-width:0;padding:5px 9px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-family:var(--f-note);font-size:17px}
 .bxtl{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--ink-2)}
 .bxt{width:5em;padding:4px 6px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:14px}
+.bxtaal{max-width:11em;padding:4px 6px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:14px;color:var(--ink)}
 .bxacts{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 .bxadd,.bxdel{border:1px solid var(--line);background:var(--sheet);border-radius:7px;font-size:12px;color:var(--ink-2);padding:1px 7px}
 .bxdel{font-size:15px;line-height:1.2;padding:0 7px}
 .bxadd:hover,.bxdel:hover{border-color:var(--ink-2)}
 .bxnew .bxln{color:var(--brass)}
-@media (max-width:520px){.bx,.lx{width:2.8em;min-width:2.8em}.bxgrp{padding:0 5px}}
+@media (max-width:520px){.bx,.lx{width:2.8em;min-width:2.8em}.bxgrp{padding:0 5px}.bxt{width:4em}.bxtaal{max-width:9em}.bxhead{gap:6px 5px}}
 /* Moving rows: the number is the handle; a brass line shows where the row will go. */
 .boxes{position:relative}
 .bxgrip{display:grid;justify-items:center;align-content:start;gap:3px;width:24px;padding:20px 0 4px;border:0;border-radius:6px;background:transparent;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}

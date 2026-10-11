@@ -3,6 +3,7 @@
  * false-positive trade-offs are deliberate, and the exercise library must stay free of
  * warnings.
  */
+import { asTaals, type TaalRun, type Taals } from './taalmap';
 import type { NoteUnit, ParsedSong } from './types';
 
 /** The parts of a taal the checker needs. */
@@ -32,18 +33,21 @@ export interface OctaveIssue {
 export type CheckIssue = BarIssue | OctaveIssue;
 
 /**
- * `off` is where the song starts in the taal (startOn − 1).
+ * `taals` is the song's taal map, or one taal with `off` where the song starts in it
+ * (startOn − 1).
  * 1) Every bar, and every line with no bars, should end on a vibhag line. Each bar is
  *    judged on its own, so one extra beat is reported once instead of shifting every bar
- *    after it.
+ *    after it. Where the taal changes, the count starts again on the new taal's sam.
  * 2) A run of 1–3 notes that leaps 8+ semitones away from both neighbours and comes back,
  *    where moving it one octave puts it within 5 semitones of both, is a likely octave slip.
  */
-export function checkNotation(P: ParsedSong, T: TaalShape, off: number): CheckIssue[] {
+export function checkNotation(P: ParsedSong, taals: TaalShape | Taals<TaalShape>, off = 0): CheckIssue[] {
   const out: CheckIssue[] = [];
-  const cyc = T.cycle;
-  const vib = new Set(T.starts);
+  const M = asTaals(taals, off);
   const md = (a: number, n: number) => ((a % n) + n) % n;
+  let T = M.runs[0]!.T;
+  let cyc = T.cycle;
+  let vib = new Set(T.starts);
   const snap = (x: number) => {
     let best = T.starts[0]!;
     let bd = Infinity;
@@ -58,8 +62,17 @@ export function checkNotation(P: ParsedSong, T: TaalShape, off: number): CheckIs
     }
     return best;
   };
-  let vp = md(off, cyc);
+  let run: TaalRun<TaalShape> | null = null;
+  let vp = 0;
   for (const nl of P.noteLines) {
+    const r = M.line(nl.n);
+    if (r !== run) {
+      run = r;
+      T = r.T;
+      cyc = T.cycle;
+      vib = new Set(T.starts);
+      vp = md(nl.start + r.off, cyc);
+    }
     const n = nl.beats.length;
     const bounds = Array.from(new Set(Array.from(nl.bars).filter((x) => x > 0 && x < n))).sort((a, b) => a - b);
     bounds.push(n);

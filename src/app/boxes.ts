@@ -4,16 +4,18 @@
  * Typing a space (or a bar) moves to the next box; pasting "সা রা গা মা" fills a box each, and
  * a line of words pasted under the notes is split into syllables, one to each note.
  * A row is dragged by its number (or moved with ↑ ↓ on it); a tap on the number selects it, and
- * Copy puts copies of a line, or of the rows selected, at the end. Play plays one line.
- * Every change goes into the song text (src/core/notation/boxes.ts works it out), which the
+ * Copy puts copies of a line, or of the rows selected, at the end. Play plays one line. A
+ * heading can give its section a tempo and a taal of its own (taal pherta), which the rows
+ * under it follow. Every change goes into the song text (src/core/notation/boxes.ts works it out), which the
  * Free text view shows as it is. The HTML builder is pure and tested in Node.
  */
-import { addHeading, appendBeats, beatsTyped, boxRows, copyRowsToEnd, insertLines, insertText, moveRow, newRowShape, nextSpot, placeBeats, readableBeat, removeBeat, removeHeading, removeLine, setBeat, setHeading, setLyrics, type BoxRow, type BoxSpot, type NewAt } from '../core/notation/boxes';
+import { addHeading, appendBeats, beatsTyped, boxRows, copyRowsToEnd, insertLines, insertText, moveRow, newRowShape, nextSpot, placeBeats, readableBeat, removeBeat, removeHeading, removeLine, setBeat, setHeading, setLyrics, type BoxRow, type BoxSpot, type BoxTaal, type NewAt } from '../core/notation/boxes';
 import { fillWords, syllables } from '../core/notation/lyrics';
 import { parseSong } from '../core/notation/parse';
-import { setHeadingTempo } from '../core/notation/sections';
+import { setHeadingTaal, setHeadingTempo } from '../core/notation/sections';
+import { taalMap, type Taals } from '../core/notation/taalmap';
 import type { ParsedSong } from '../core/notation/types';
-import type { TaalInfo } from '../core/taal/taals';
+import { isTaalId, TAAL_GROUPS, TAALS } from '../core/taal/taals';
 import { esc } from './view';
 
 const atKey = (at: NewAt) => ('end' in at ? 'end' : String(at.after));
@@ -26,9 +28,17 @@ const grip = (r: number, num: string, what: string, sel: boolean) =>
   '<button type="button" class="bxln bxgrip" data-r="' + r + '" aria-pressed="' + sel + '" aria-label="' + esc(what) + ': select it, or drag it (or press ↑ ↓) to move it" title="Tap to select · drag to move">' +
   '<span>' + esc(num) + '</span><span class="bxdots" aria-hidden="true">' + (sel ? '✓' : '⠿') + '</span></button>';
 
-/** The rows as HTML. `verses`: how many word rows each notes line shows (at least one);
- * `selected`: the rows selected (rowBlocks indices). */
-export function boxesHTML(rows: readonly BoxRow[], T: TaalInfo, verses: (n: number, written: number) => number, selected: ReadonlySet<number> = new Set()): string {
+/** A heading's taal picker: the song's, or one of the taals for this section alone. */
+const taalPicker = (k: number, id: string | undefined) =>
+  '<label class="bxtl">taal <select class="bxtaal" data-key="a:' + k + '" aria-label="Taal of this section">' +
+  '<option value=""' + (id ? '' : ' selected') + '>song’s</option>' +
+  TAAL_GROUPS.map((g) => '<optgroup label="' + esc(g.label) + '">' +
+    g.ids.map((t) => '<option value="' + t + '"' + (t === id ? ' selected' : '') + '>' + TAALS[t].name + ' · ' + TAALS[t].bn + '</option>').join('') + '</optgroup>').join('') +
+  '</select></label>';
+
+/** The rows as HTML, each in its own taal. `verses`: how many word rows each notes line shows
+ * (at least one); `selected`: the rows selected (rowBlocks indices). */
+export function boxesHTML(rows: readonly BoxRow[], verses: (n: number, written: number) => number, selected: ReadonlySet<number> = new Set()): string {
   let html = '';
   let rk = 0;
   const open = (cls: string, extra = '') => '<div class="bxrow ' + cls + (selected.has(rk) ? ' sel' : '') + '"' + extra + '>';
@@ -37,9 +47,11 @@ export function boxesHTML(rows: readonly BoxRow[], T: TaalInfo, verses: (n: numb
       html += open('bxhead') + grip(rk, '#', 'Heading', selected.has(rk++)) +
         input('h:' + r.k, 'bxh', r.label, 'Heading', ' placeholder="Heading, such as স্থায়ী or অন্তরা"') +
         '<label class="bxtl">tempo ' + input('t:' + r.k, 'bxt', r.tempo != null ? String(r.tempo) : '', 'Tempo of this section', ' type="number" min="30" max="240" inputmode="numeric" placeholder="song’s"') + '</label>' +
+        taalPicker(r.k, r.taal) +
         '<button type="button" class="bxdel" data-act="delhead" data-k="' + r.k + '" aria-label="Remove this heading">×</button></div>';
       continue;
     }
+    const T = r.T;
     const nv = r.kind === 'notes' ? verses(r.n, r.verses) : 0;
     const cells: { p: number; html: string }[] = [];
     if (r.kind === 'notes') {
@@ -73,7 +85,7 @@ export function boxesHTML(rows: readonly BoxRow[], T: TaalInfo, verses: (n: numb
 }
 
 /** An empty box; only the first of a row takes typing (the others lead there). */
-function ghostCell(key: string, T: TaalInfo, p: number, first: boolean, label: string, verses: number): string {
+function ghostCell(key: string, T: BoxTaal, p: number, first: boolean, label: string, verses: number): string {
   return '<span class="bxcell ghost"><span class="bxmark">' + (T.markAt.get(p) ?? '') + '</span>' +
     input(key, 'bx', '', label, first ? '' : ' tabindex="-1"') + '<span class="lxgap" style="--v:' + verses + '"></span></span>';
 }
@@ -84,9 +96,8 @@ export interface BoxesHost {
   text(): string;
   /** Write the song text; `soon`: parse and redraw the sheets after a pause (while typing). */
   setText(text: string, soon: boolean): void;
-  taal(): TaalInfo;
-  /** startOn − 1. */
-  off(): number;
+  /** The song's taal and the beat it starts on (sections may name taals of their own). */
+  songTaal(): { taal: string; startOn: number };
   /** The beat being typed in, for the octave and beat buttons (−1 when none). */
   focusBeat(g: number): void;
   /** Play notes line n once (or stop it, if it is the line playing). */
@@ -137,8 +148,13 @@ export function initBoxes(host: BoxesHost): Boxes {
   const parts = (key: string) => key.split(':');
   const atOf = (s: string): NewAt => (s === 'end' ? { end: true } : { after: +s });
 
+  /** The song's taal map for a text (it changes as lines and headings do). */
+  const taalsOf = (text: string, P: ParsedSong): Taals => {
+    const st = host.songTaal();
+    return taalMap(text, P, st.taal, st.startOn);
+  };
   /** What the boxes were drawn from: the text, the taal and where the song starts in it. */
-  const shapeOf = () => host.text() + '\u0000' + host.taal().id + '\u0000' + host.off();
+  const shapeOf = () => host.text() + '\u0000' + host.songTaal().taal + '\u0000' + host.songTaal().startOn;
   let rendering = false;
 
   function render(focus?: { key: string; select?: boolean; caret?: number }): void {
@@ -146,11 +162,11 @@ export function initBoxes(host: BoxesHost): Boxes {
     const P = parseSong(text);
     drawn = shapeOf();
     if (pending != null && pending > P.noteLines.length - 1) pending = null;
-    const rows = boxRows(text, P, host.taal(), host.off(), { pending, grow });
+    const rows = boxRows(text, P, taalsOf(text, P), 0, { pending, grow });
     drawnP = P;
     rendering = true;
     try {
-      box.innerHTML = boxesHTML(rows, host.taal(), (n, written) => Math.max(1, written + (extraVerse.has(n) ? 1 : 0)), sel);
+      box.innerHTML = boxesHTML(rows, (n, written) => Math.max(1, written + (extraVerse.has(n) ? 1 : 0)), sel);
     } finally {
       rendering = false;
     }
@@ -224,20 +240,20 @@ export function initBoxes(host: BoxesHost): Boxes {
    * (without focusing it for the note buttons, so a phone's keyboard stays down). */
   function place(key: string, tokens: string[], focus = true): void {
     const [k, a, j] = parts(key);
-    const T = host.taal();
     const P = parsed();
+    const M = taalsOf(host.text(), P);
     let from: { n: number; j: number } | { at: NewAt };
     let tgt = 0;
     if (k === 'n') {
       const at = atOf(a!);
       from = { at };
-      grow = { n: 'end' in at ? P.noteLines.length : at.after + 1, to: newRowShape(P, T, host.off(), at).count };
+      grow = { n: 'end' in at ? P.noteLines.length : at.after + 1, to: newRowShape(P, M, 0, at).count };
       pending = null;
     } else {
       from = { n: +a!, j: +j! };
       tgt = target(+a!);
     }
-    const r = placeBeats(host.text(), T, host.off(), from, tokens, tgt);
+    const r = placeBeats(host.text(), taalsOf, 0, from, tokens, tgt);
     if ('end' in r.next || (grow && r.next.n !== grow.n)) grow = null;
     write(r.text, key, false);
     lastKey = spotKey(r.next);
@@ -278,22 +294,22 @@ export function initBoxes(host: BoxesHost): Boxes {
   /** One beat into a box (or an empty box), staying in it. */
   function putBeat(e: HTMLInputElement, key: string, tok: string, soon: boolean): void {
     const [k, a, j] = parts(key);
-    const T = host.taal();
     const P = parsed();
+    const M = taalsOf(host.text(), P);
     if (k === 'b') {
       const nl = P.noteLines[+a!];
       if (nl && nl.beats[+j!]) write(setBeat(host.text(), P, nl.start + +j!, tok), key, soon);
       return;
     }
     if (k === 'g') {
-      write(appendBeats(host.text(), P, T, host.off(), +a!, [tok]), key, soon);
+      write(appendBeats(host.text(), P, M, 0, +a!, [tok]), key, soon);
       becomeBeat(e, +a!, +j!);
       return;
     }
     const at = atOf(a!);
-    const shape = newRowShape(P, T, host.off(), at);
+    const shape = newRowShape(P, M, 0, at);
     const n = 'end' in at ? P.noteLines.length : at.after + 1;
-    write(insertLines(host.text(), P, T, host.off(), at, [tok], shape.count).text, key, soon);
+    write(insertLines(host.text(), P, M, 0, at, [tok], shape.count).text, key, soon);
     grow = { n, to: shape.count };
     pending = null;
     if ('end' in at) becomeLine(e, n);
@@ -330,7 +346,7 @@ export function initBoxes(host: BoxesHost): Boxes {
       const P = parsed();
       const cur = el(now);
       if (cur) cur.value = P.noteLines[+a2!]?.beats[+j2!]?.src ?? '';
-      goTo(spotKey(nextSpot(P, host.taal(), host.off(), +a2!, +j2! + 1, target(+a2!))));
+      goTo(spotKey(nextSpot(P, taalsOf(host.text(), P), 0, +a2!, +j2! + 1, target(+a2!))));
       return;
     }
     if (!v) return; // an emptied box is dealt with when it is left, or by Backspace
@@ -385,16 +401,28 @@ export function initBoxes(host: BoxesHost): Boxes {
     write(setHeading(host.text(), +k!, e.value), key, true);
   }
 
-  function onTempoChange(e: HTMLInputElement, key: string): void {
-    const [, k] = parts(key);
+  /** The 1-based text line of heading k, or 0. */
+  function headingLine(k: number): number {
     const lines = host.text().split('\n');
     let seen = 0;
-    let line = -1;
-    for (let i = 0; i < lines.length; i++) if (lines[i]!.trim()[0] === '#' && seen++ === +k!) line = i;
-    if (line < 0) return;
+    for (let i = 0; i < lines.length; i++) if (lines[i]!.trim()[0] === '#' && seen++ === k) return i + 1;
+    return 0;
+  }
+
+  function onTempoChange(e: HTMLInputElement, key: string): void {
+    const line = headingLine(+parts(key)[1]!);
+    if (!line) return;
     const n = Math.round(+e.value);
-    write(setHeadingTempo(host.text(), line + 1, e.value.trim() && n > 0 ? n : null), key, false);
+    write(setHeadingTempo(host.text(), line, e.value.trim() && n > 0 ? n : null), key, false);
     render();
+  }
+
+  /** A heading's taal picked: written into the heading, or taken out for the song's. */
+  function onTaalChange(e: HTMLSelectElement, key: string): void {
+    const line = headingLine(+parts(key)[1]!);
+    if (!line) return;
+    write(setHeadingTaal(host.text(), line, isTaalId(e.value) ? e.value : null), key, false);
+    render({ key, select: false });
   }
 
   /** A box being left: an emptied beat becomes a hold, or goes if it was the last of its line;
@@ -778,6 +806,7 @@ export function initBoxes(host: BoxesHost): Boxes {
   box.addEventListener('change', (ev) => {
     const e = ev.target as HTMLInputElement;
     if (e.dataset.key?.startsWith('t:')) onTempoChange(e, e.dataset.key);
+    else if (e.dataset.key?.startsWith('a:')) onTaalChange(e as unknown as HTMLSelectElement, e.dataset.key);
   });
   box.addEventListener('paste', (ev) => {
     const e = ev.target as HTMLInputElement;

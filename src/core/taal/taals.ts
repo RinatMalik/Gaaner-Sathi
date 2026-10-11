@@ -96,6 +96,33 @@ export const TAAL_GROUPS: readonly { label: string; ids: readonly TaalId[] }[] =
 ];
 
 /**
+ * The names a taal goes by when written in a section heading (taal pherta: docs/NOTATION.md
+ * → A taal per section): its English spellings (in lower case) and Bengali ones, besides its
+ * name and its `bn` above. "Tivra" is left out of Teora's, as it also names the sharp Ma.
+ */
+export const TAAL_NAMES: Record<TaalId, readonly string[]> = {
+  dadra: ['দাদ্রা'],
+  keherwa: ['kaharwa', 'kaherwa', 'keharwa', 'kaharba', 'kaherva', 'keherva', 'kaharva', 'কাহার্বা', 'কাহারওয়া'],
+  rupak: ['rupaka', 'roopak', 'রুপক'],
+  jhaptal: ['jhaptaal', 'jhap tal', 'jhap taal', 'ঝাপতাল', 'ঝাঁপ তাল'],
+  ektal: ['ektaal', 'ektala', 'ek taal', 'একতালা'],
+  teentaal: ['teental', 'tintal', 'teen taal', 'trital', 'tritaal', 'তিনতাল', 'তিন তাল', 'তিনতালা'],
+  jhampak: ['jhampaka'],
+  shashthi: ['shasthi', 'sasthi', 'shashti'],
+  rupakra: ['rupakda', 'রুপকড়া'],
+  nabatal: ['navatal', 'nabataal'],
+  ekadashi: ['ekadasi'],
+  nabapanchatal: ['navapanchatal', 'nabapancha tal'],
+  khemta: [],
+  deepchandi: ['dipchandi', 'দীপচন্দি', 'দীপচণ্ডী'],
+  dhamar: ['dhamaar'],
+  jhumra: ['jhoomra'],
+  teora: ['teyora', 'tevra', 'tewra', 'তেওড়া'],
+  kawali: ['kawwali', 'qawwali', 'qawali', 'kaoali', 'কাওয়ালী'],
+  garba: ['dandiya', 'dandia', 'গর্বা', 'ডান্ডিয়া', 'ডাণ্ডিয়া'],
+};
+
+/**
  * Own keys only. (The prototype's `TAALS[id]` also accepted names such as "constructor"
  * from an imported file, which then crashed playback.)
  */

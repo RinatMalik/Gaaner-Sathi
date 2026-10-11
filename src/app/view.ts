@@ -8,6 +8,7 @@
 import type { GuideLevel, SoundSettings } from '../audio/sound';
 import type { BeatEntry } from '../audio/transport';
 import { checkNotation, type CheckIssue } from '../core/notation/check';
+import { asTaals, placeIn, type Taals } from '../core/notation/taalmap';
 import { AKAR, BN_LETTER, LAT_LETTER, REPH } from '../core/notation/symbols';
 import type { NoteUnit, ParsedSong, Unit } from '../core/notation/types';
 import { LAYERS, type LayerId } from '../core/taal/rhythm';
@@ -16,7 +17,6 @@ import { TAAL_GROUPS, TAALS, type TaalInfo } from '../core/taal/taals';
 /** Show notes as বাংলা or Sa Re Ga. */
 export type Script = 'bn' | 'lat';
 
-const mod = (a: number, n: number) => ((a % n) + n) % n;
 const ESC: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
 export const esc = (s: unknown): string => String(s).replace(/[&<>"]/g, (c) => ESC[c]!);
 
@@ -88,8 +88,10 @@ export function plainBeat(b: { units: readonly Unit[] }, script: Script): string
 // ── The diary sheet ──────────────────────────────────────────────────────────
 
 /** The sheet: headings, then each notes line with its number button, taal marks and bars
- * (the writer's bars, else vibhag lines). `off` is startOn − 1. */
-export function sheetHTML(P: ParsedSong, T: TaalInfo, off: number, example: boolean, script: Script): string {
+ * (the writer's bars, else vibhag lines). `taals`: the song's taal map, or one taal with `off`,
+ * startOn − 1. */
+export function sheetHTML(P: ParsedSong, taals: TaalInfo | Taals, off: number, example: boolean, script: Script): string {
+  const M = asTaals(taals, off);
   if (!P.items.length) {
     return '<div class="empty">No notes yet. ' + (example ? '' : 'Type the first line from your diary in the box on the left, or use the note buttons.') + '</div>';
   }
@@ -100,9 +102,11 @@ export function sheetHTML(P: ParsedSong, T: TaalInfo, off: number, example: bool
       continue;
     }
     const userBars = it.bars.size > 0;
+    const r = M.line(it.n);
+    const T = r.T;
     let row = '';
     it.beats.forEach((b, j) => {
-      const p = mod(b.g + off, T.cycle);
+      const p = placeIn(r, b.g).p;
       if (j > 0 && (userBars ? it.bars.has(j) : T.markAt.has(p))) row += '<span class="bar" aria-hidden="true"></span>';
       const mk = T.markAt.get(p);
       row += '<span class="beat' + (b.err ? ' bad' : '') + '" data-b="' + b.g + '"' + (b.err ? ' title="' + esc(b.err) + '"' : '') + '>' +
@@ -273,28 +277,34 @@ export type IssueTarget = { kind: 'read'; g: number; g2: number } | CheckIssue;
 
 /** The checker panel: a summary, then read errors, lyric warnings, bar and line lengths
  * and octave slips (the first 12), or an all-clear line. */
-export function issuesHTML(P: ParsedSong, T: TaalInfo, off: number, script: Script): { html: string; list: IssueTarget[] } {
+export function issuesHTML(P: ParsedSong, taals: TaalInfo | Taals, off: number, script: Script): { html: string; list: IssueTarget[] } {
+  const M = asTaals(taals, off);
+  const T = M.runs[0]!.T;
   const cyc = T.cycle;
   const list: IssueTarget[] = [];
   if (!P.noteLines.length) return { html: '<span class="ok">Nothing to play yet.</span>', list };
   const cycles = Math.floor(P.total / cyc);
   const rem = P.total % cyc;
-  let html = '<span class="ok">' + P.noteLines.length + ' line' + (P.noteLines.length === 1 ? '' : 's') + ' · ' + P.total + ' matras · ' + cycles + ' cycle' + (cycles === 1 ? '' : 's') + ' of ' + T.name +
-    (rem ? ' and ' + rem + ' matra' + (rem === 1 ? '' : 's') : '') + '</span>';
+  // A song that changes taal (taal pherta) names its taals in order instead of counting cycles.
+  const inTaal = M.changes
+    ? 'in ' + M.runs.map((r) => r.T.name).join(', then ')
+    : cycles + ' cycle' + (cycles === 1 ? '' : 's') + ' of ' + T.name + (rem ? ' and ' + rem + ' matra' + (rem === 1 ? '' : 's') : '');
+  let html = '<span class="ok">' + P.noteLines.length + ' line' + (P.noteLines.length === 1 ? '' : 's') + ' · ' + P.total + ' matras · ' + inTaal + '</span>';
   const rows: { cls: string; text: string; i?: number; fix?: boolean }[] = [];
   P.errors.forEach((e) => {
     list.push({ kind: 'read', g: e.g, g2: e.g });
     rows.push({ cls: 'err', text: 'Line ' + e.line + ', “' + esc(e.tok) + '”: ' + esc(e.msg) + '. That beat plays what it could read.', i: list.length - 1 });
   });
   P.warnings.forEach((w) => rows.push({ cls: 'err', text: esc(w) }));
-  for (const it of checkNotation(P, T, off)) {
+  for (const it of checkNotation(P, M)) {
     list.push(it);
     const i = list.length - 1;
+    const name = M.line(it.line).T.name;
     if (it.kind === 'octave') rows.push({ cls: 'warn', i, fix: true, text: 'Line ' + (it.line + 1) + ': <b>' + noteNames(it.notes, 0, script) + '</b> jumps more than an octave away from the notes on either side. Should ' + (it.notes.length > 1 ? 'they' : 'it') + ' be <b>' + noteNames(it.notes, it.delta, script) + '</b>?' });
-    else if (it.kind === 'bar') rows.push({ cls: 'warn', i, text: 'Line ' + (it.line + 1) + ', bar ' + it.bar + ' has ' + it.len + ' beats. In ' + T.name + ' this bar should probably have ' + it.exp + ', so a beat may be missing or extra.' });
-    else rows.push({ cls: 'warn', i, text: 'Line ' + (it.line + 1) + ' has ' + it.len + ' beats, so it ends partway through a ' + T.name + ' vibhag. A beat may be missing or extra.' });
+    else if (it.kind === 'bar') rows.push({ cls: 'warn', i, text: 'Line ' + (it.line + 1) + ', bar ' + it.bar + ' has ' + it.len + ' beats. In ' + name + ' this bar should probably have ' + it.exp + ', so a beat may be missing or extra.' });
+    else rows.push({ cls: 'warn', i, text: 'Line ' + (it.line + 1) + ' has ' + it.len + ' beats, so it ends partway through a ' + name + ' vibhag. A beat may be missing or extra.' });
   }
-  if (!rows.length) html += '<div class="chkok">Checked: every bar lands on a ' + T.name + ' vibhag line and no note looks like an octave slip.</div>';
+  if (!rows.length) html += '<div class="chkok">Checked: every bar lands on a ' + (M.changes ? 'vibhag line of its section’s taal' : T.name + ' vibhag line') + ' and no note looks like an octave slip.</div>';
   else {
     html += '<div class="chkhead">' + rows.length + ' thing' + (rows.length === 1 ? '' : 's') + ' to check</div><ul>' +
       rows.slice(0, 12).map((r) => '<li class="' + r.cls + '"><span class="t">' + r.text + '</span>' +

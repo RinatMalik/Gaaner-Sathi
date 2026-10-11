@@ -5,7 +5,9 @@
  * guide notes and a display entry. The tanpura keeps its own free rhythm on the same tick.
  *
  * It reads the song, taal and settings live through `PlaySource`, as the prototype read
- * its globals, so a change made while playing takes effect on the next beat.
+ * its globals, so a change made while playing takes effect on the next beat. A song whose
+ * sections change taal (taal pherta) gives each beat its own taal through `taalAt`: the
+ * rhythm, the taal beat shown and the count-in all follow it.
  */
 import type { NoteEvent, ParsedSong } from '../core/notation/types';
 import { activeLayers, rhythmTable, SPEEDS } from '../core/taal/rhythm';
@@ -26,6 +28,9 @@ export interface PlaySource {
   sound: SoundSettings;
   /** The tempo for a song beat, when sections have their own (absent: the song's tempo). */
   tempoAt?(s: number): number;
+  /** The taal of a song beat and where its cycle counts from (taal beat (s + off) mod
+   * cycle), when sections have their own (absent: `taal` from startOn throughout). */
+  taalAt?(s: number): { T: TaalInfo; off: number };
 }
 
 /** A scheduled matra, for the highlight: s is the song beat (negative or before the
@@ -89,6 +94,11 @@ export class Transport {
     return this.src.song.startOn - 1;
   }
 
+  /** The taal of song beat s, and its offset. */
+  private taalOf(s: number): { T: TaalInfo; off: number } {
+    return this.src.taalAt ? this.src.taalAt(s) : { T: this.src.taal, off: this.startOff() };
+  }
+
   /**
    * Start playing from note line `from` (and loop to line `to`, for `rounds` rounds if
    * given). Count-in: one cycle plus any pickup, always starting at sam. Returns the lines
@@ -107,8 +117,9 @@ export class Transport {
     this.secStart = L[from]!.start;
     this.secEnd = this.loop ? L[to]!.end : src.parsed.total;
     this.secLen = Math.max(1, this.secEnd - this.secStart);
-    const cyc = src.taal.cycle;
-    const pos = mod(this.secStart + this.startOff(), cyc);
+    const at = this.taalOf(this.secStart);
+    const cyc = at.T.cycle;
+    const pos = mod(this.secStart + at.off, cyc);
     const pre = pos + (src.sound.countIn ? cyc : 0);
     this.s0 = this.secStart - pre;
     this.t = 0;
@@ -158,8 +169,6 @@ export class Transport {
   tick(now: number = this.E.ctx.currentTime): void {
     if (!this.playing || this.endAt) return;
     this.scheduleTanpura(now);
-    const cyc = this.src.taal.cycle;
-    const off = this.startOff();
     while (this.nextTime < now + 0.16) {
       const raw = this.s0 + this.t;
       let s = raw;
@@ -174,13 +183,17 @@ export class Transport {
       const spb = 60 / this.liveTempo(pass, s);
       const roundsDone = this.rounds > 0 && raw >= this.secStart + this.rounds * this.secLen;
       if ((!this.loop && raw >= this.secEnd) || roundsDone) {
-        const p = mod((roundsDone ? this.secStart : raw) + off, cyc);
+        const e = roundsDone ? this.secStart : raw;
+        const at = this.taalOf(e);
+        const p = mod(e + at.off, at.T.cycle);
         if (p === 0) finalHit(this.E, this.sess!, this.nextTime, this.src.sound.beat);
         this.queue.push({ time: this.nextTime, end: true, p });
         this.endAt = this.nextTime + 1.3;
         return;
       }
-      this.scheduleBeat(this.nextTime, s, raw, pass, spb, mod(s + off, cyc));
+      // The count-in is in the taal of the beat it leads to.
+      const at = this.taalOf(raw < this.secStart ? this.secStart : s);
+      this.scheduleBeat(this.nextTime, s, raw, pass, spb, at);
       this.nextTime += spb;
       this.t++;
     }
@@ -193,9 +206,10 @@ export class Transport {
     return cur;
   }
 
-  private scheduleBeat(time: number, s: number, raw: number, pass: number, spb: number, p: number): void {
+  private scheduleBeat(time: number, s: number, raw: number, pass: number, spb: number, at: { T: TaalInfo; off: number }): void {
     const sess = this.sess!;
-    this.scheduleRhythm(time, s, pass, spb, p);
+    const p = mod(s + at.off, at.T.cycle);
+    this.scheduleRhythm(time, s, pass, spb, p, at);
     if (this.guideOn(pass)) {
       const evs: { start: number; dur: number; semi: number; oct: number }[] = (this.src.parsed.byBeat[s] || []).slice();
       if (s === this.secStart) for (const e of this.carry) evs.push({ start: this.secStart, dur: e.start + e.dur - this.secStart, semi: e.semi, oct: e.oct });
@@ -213,12 +227,12 @@ export class Transport {
     this.onBeat?.(q, spb);
   }
 
-  private scheduleRhythm(time: number, s: number, pass: number, spb: number, p: number): void {
+  private scheduleRhythm(time: number, s: number, pass: number, spb: number, p: number, at: { T: TaalInfo; off: number }): void {
     const sound = this.src.sound;
     const st = sound.beat;
     if (st === 'off') return;
-    const R = rhythmTable(st, this.src.taal.id, SPEEDS[sound.speed] || 1, activeLayers(sound.layers, st));
-    const cycNo = Math.floor((s + this.startOff()) / R.cyc);
+    const R = rhythmTable(st, at.T.id, SPEEDS[sound.speed] || 1, activeLayers(sound.layers, st));
+    const cycNo = Math.floor((s + at.off) / R.cyc);
     if (p === 0 && this.afterFill) {
       this.afterFill = false;
       if (st === 'kit') crash(this.E, this.sess!, time, 0.8);
