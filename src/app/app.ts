@@ -17,7 +17,8 @@
  * feedback from the microphone (pitch.ts), whose scores go into the log, rewaz routines
  * that play items one after another (rewaz.ts), the Progress view (progress.ts), and each
  * song's own sound: its Melody and Rhythm settings, over the device's usual ones; day and
- * night colours; and notes about each song.
+ * night colours; notes about each song; sections to jump between, each with its own tempo
+ * if its heading gives one; and printing (print.ts).
  */
 import { saFreq } from '../audio/dsp/pitch';
 import { createEngine, createLiveContext } from '../audio/engine';
@@ -38,6 +39,7 @@ import { soundOf, type SongSound } from '../core/song/sound';
 import { beatLabel, SPEEDS } from '../core/taal/rhythm';
 import { isTaalId, taalInfo, type TaalInfo } from '../core/taal/taals';
 import { initPitch, type PitchUI } from './pitch';
+import { initPrint } from './print';
 import { initProgress } from './progress';
 import { initRewaz, type ItemSong, type Rewaz } from './rewaz';
 import { initSongs } from './songs';
@@ -1150,6 +1152,9 @@ export function init(): void {
       void offerFile('gaaner-sathi-practice-log-' + d + '.json', logFileText(logStore.load(), d), (t) => setFileStatus(t, '#pgStatus'));
     },
   });
+  const printSong = initPrint({ song: () => current, parsed: () => parsed, taal: () => taal, script: () => prefs.script });
+  $('#printBtn').addEventListener('click', printSong);
+  $('#printBtn2').addEventListener('click', printSong);
   const startSong = EXERCISES.find((e) => e.id === wanted) || EXERCISES[0]!;
   loadSong(startSong);
   renderLibrary();

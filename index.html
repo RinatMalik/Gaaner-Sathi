@@ -161,7 +161,7 @@
           <div class="popts"><label class="chk2"><input type="checkbox" id="pOct"> The octave must match too</label><span class="phint">Headphones help: otherwise the microphone also hears the harmonium.</span><span class="phint" id="pLag"></span></div>
         </div>
       </section>
-      <div class="sheetHead"><h2 id="songTitle"></h2><span class="hint">Tap a section or a line number to play from there · Space bar plays and stops</span></div>
+      <div class="sheetHead"><h2 id="songTitle"></h2><span class="hint">Tap a section or a line number to play from there · Space bar plays and stops</span><button id="printBtn" class="ibtn" type="button">Print or save as PDF</button></div>
       <div class="chips secs" id="secChips" role="group" aria-label="Sections: tap one to play from there" hidden></div>
       <details class="about" id="aboutBox" hidden><summary>About this song</summary><div class="abouttext" id="aboutText"></div></details>
       <div class="sheet" id="sheetP"></div>
@@ -210,6 +210,7 @@
       <div class="toolbar">
         <button id="copyBtn" class="btn" type="button">Make a copy</button>
         <button id="expBtn" class="btn" type="button">Export this song</button>
+        <button id="printBtn2" class="btn" type="button">Print or save as PDF</button>
         <span id="fileStatus" class="fstatus" aria-live="polite"></span>
         <span class="spacer"></span>
         <button id="delBtn" class="btn danger" type="button">Delete song</button>
@@ -271,5 +272,6 @@
     </div>
   </main>
 </div>
+<div id="printSheet" class="printsheet"></div>
 </body>
 </html>

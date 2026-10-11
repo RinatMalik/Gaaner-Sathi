@@ -375,3 +375,26 @@ textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--
 .about{background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:8px 14px}
 .about summary{cursor:pointer;font-weight:600}
 .abouttext{margin-top:6px;font-family:var(--f-note);font-size:16px;white-space:pre-wrap;overflow-wrap:anywhere;max-width:75ch}
+
+/* Print or save as PDF (new): only the sheet, black on white, whatever the colours on screen. */
+.printsheet{display:none}
+@media print{
+  @page{margin:14mm 12mm}
+  body{background:#fff}
+  body>.wrap{display:none!important}
+  .printsheet{display:block;color:#000;background:#fff;
+    --ink:#000;--ink-2:#4a4a4a;--red-ink:#a3150f;--rule:#d0d0d0;--margin:#e2aaa4;--sheet:#fff;--line:#bdbdbd;--chip:#fff;--mark:#fff;--mark-ink:#000}
+  .prhead h1{font-family:var(--f-note);font-weight:400;font-size:24pt;margin:0 0 2mm}
+  .prhead p{margin:0 0 1mm;font-size:10pt;color:#333}
+  .prtags{font-style:italic}
+  .prsheet{max-height:none;overflow:visible;border:0;border-radius:0;margin-top:5mm}
+  .prsheet .line{break-inside:avoid}
+  .prsheet .shead{break-after:avoid;padding-left:12mm}
+  .prsheet .ln{font-size:9pt;padding-top:3.5mm}
+  .prsheet .line{grid-template-columns:10mm minmax(0,1fr)}
+  .prsheet .beat{min-width:2.3em}
+  .prnotes{margin-top:6mm;break-inside:avoid}
+  .prnotes h2{font-size:11pt;margin:0 0 1mm}
+  .prnotes p{margin:0;font-family:var(--f-note);font-size:11pt;white-space:pre-wrap;overflow-wrap:anywhere}
+  .prfoot{margin-top:6mm;font-size:8pt;color:#777}
+}
