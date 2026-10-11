@@ -1,5 +1,5 @@
 /**
- * The keyboard (docs/ROADMAP.md → Phase 1; docs/adr/ADR-005-midi.md): which key to press for
+ * The keyboard (docs/ENGINE.md → MIDI keyboards): which key to press for
  * each note, drawn on the Practice view; and a MIDI keyboard, connected in the Sound settings,
  * whose keys type notes into the editor and which can play the guide in its own sound. The
  * HTML builders are pure and tested in Node.

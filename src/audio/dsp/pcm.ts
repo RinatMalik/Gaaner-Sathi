@@ -1,5 +1,5 @@
 /**
- * Takes' samples (docs/adr/ADR-004-takes.md): halved in rate to save room (a voice needs
+ * Takes' samples (docs/ENGINE.md → Takes): halved in rate to save room (a voice needs
  * nothing above 10 kHz), kept as 16-bit numbers, and written as a WAV file when downloaded.
  * Pure, so it is tested in Node.
  */

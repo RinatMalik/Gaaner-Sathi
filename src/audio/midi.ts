@@ -1,5 +1,5 @@
 /**
- * Keyboards over MIDI (docs/adr/ADR-005-midi.md): any keyboard that shows up as a MIDI device
+ * Keyboards over MIDI (docs/ENGINE.md → MIDI keyboards): any keyboard that shows up as a MIDI device
  * (USB "to host", or a MIDI interface) works the same, the Casio CT-X3000 among them. Notes
  * played come in to type a song; the guide can go out to the keyboard's own sound, timed from
  * the AudioContext clock that schedules everything else. Web MIDI is built into Chrome, Edge,

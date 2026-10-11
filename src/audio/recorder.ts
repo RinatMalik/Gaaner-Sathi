@@ -1,5 +1,5 @@
 /**
- * Recording takes (docs/adr/ADR-004-takes.md): the microphone's samples, timed on the same
+ * Recording takes (docs/ENGINE.md → Takes): the microphone's samples, timed on the same
  * AudioContext clock that schedules the guide, so a take lines up with the guide exactly.
  * The microphone opens when recording is switched on and stays open while it is on; each
  * run keeps the samples from its first beat until a moment after it stops, at half the

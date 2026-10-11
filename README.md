@@ -12,31 +12,28 @@ back against the guide, finds your Sa from your range, times a held note, runs a
 rewaz routine hands-free, and logs your practice. It prints a clean sheet, in day or
 night colours on screen. Everything stays on your device.
 
-## Status
-
-The port of the original single-file prototype is finished, and the app is live. Phase 1
-([roadmap](docs/ROADMAP.md)), features first: the song library, pitch feedback from the
-microphone, the rewaz routine with a practice log, each song's own sound, Tagore's taals
-with four more, and Rinat's ten picks of 2026-10-11 (beat boxes, the Voice tab, takes,
-MIDI keyboards, sections with their own tempo, notes, printing, day and night) are in.
-The design comes after that, then a native mobile app.
-
 ## Try it
 
 https://rinatmalik.github.io/Gaaner-Sathi/ keeps your songs in your browser, with no
-account. Songs saved in the earlier prototype at the same address show up there too.
-The prototype itself is [`reference/gaaner-sathi.html`](reference/gaaner-sathi.html):
-download it and open it in a browser.
+account. To move them to another device, use **Back up all my songs** and **Import**.
+
+## Status
+
+The features come first, then one design across them, then a native mobile app
+([roadmap](docs/ROADMAP.md)). The features Rinat has asked for so far are built and
+live; the design is next.
 
 ## Find your way around
 
 | Path | What it holds |
 |---|---|
-| [`CONTEXT.md`](CONTEXT.md) | The project's shared state: direction, working rules, current state, decisions, work log |
-| [`docs/`](docs/) | Roadmap, parity checklist, notation, engine and data specs, decision records, older work log |
-| [`index.html`](index.html), [`src/`](src/) | The app: the page, the pure core (`src/core/`), the sound (`src/audio/`) and the screen (`src/app/`) |
-| [`tests/`](tests/) | Tests for the new code |
-| [`reference/`](reference/) | The working prototype and its reference test suites |
+| [`CONTEXT.md`](CONTEXT.md) | The project's shared state: direction, working rules, current state, decisions, newest work log |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | The phases, what is built, ideas to pick from next |
+| [`docs/HISTORY.md`](docs/HISTORY.md) | Older work log entries and decisions |
+| [`docs/NOTATION.md`](docs/NOTATION.md), [`ENGINE.md`](docs/ENGINE.md), [`DATA.md`](docs/DATA.md) | How the notation, the sound and the data work |
+| [`index.html`](index.html), [`src/`](src/) | The app: the pure core (`src/core/`), the sound (`src/audio/`) and the screen (`src/app/`) |
+| [`tests/`](tests/) | The tests |
+| [`reference/`](reference/) | The original single-file prototype and its test suites |
 
 ## Develop
 
@@ -49,7 +46,7 @@ Needs Node 24 LTS.
     npm run build       # the published files, in dist/
 
 `bash reference/tests/run-all.sh` runs the prototype's own suites. GitHub Actions runs
-everything on every push to `main`.
+everything on every push to `main` and publishes the app.
 
 ## Licence
 

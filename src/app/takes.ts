@@ -1,5 +1,5 @@
 /**
- * Takes on the Practice view (docs/ROADMAP.md → Phase 1; docs/adr/ADR-004-takes.md): the
+ * Takes on the Practice view (docs/ENGINE.md → Takes; docs/DATA.md → Takes): the
  * open song's takes, newest first, each to play back against the guide or alone, download as
  * a WAV file, or delete. Takes are kept in this browser's IndexedDB (localStorage cannot hold
  * sound): the details in one store, the samples in another, so listing never loads sound.

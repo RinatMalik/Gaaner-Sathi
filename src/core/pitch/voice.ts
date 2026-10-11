@@ -1,5 +1,5 @@
 /**
- * The Voice view's sums (docs/ROADMAP.md → Phase 1): the range finder, which hears the
+ * The Voice view's sums (docs/ENGINE.md → The Voice tab): the range finder, which hears the
  * lowest and highest notes held and suggests a Sa, and the hold-a-note trainer, which times
  * one held note and says how steady it was. Pure (no DOM, no audio), so it is tested in Node.
  * Pitches are MIDI note numbers with fractions (60 is middle C, 69 is A 440).
