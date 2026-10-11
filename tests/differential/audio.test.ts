@@ -129,6 +129,9 @@ function runPort(sc: Scenario): { log: Entry[]; queue: unknown[] } {
   const later: (() => void)[] = [];
   const E = createEngine(rec as unknown as BaseAudioContext, seeded(sc.seed));
   const T = new Transport(E, (fn) => later.push(fn));
+  // The prototype's ending, which stopped short (the gentle one is the port's own:
+  // tests/unit/ending.test.ts).
+  T.endFade = 0;
   const src: PlaySource = { parsed: parseSong(sc.text), taal: taalInfo(sc.taal), song: songOf(sc), sound: settings(sc) };
   T.start(src, { from: sc.from ?? 0, to: sc.to ?? 0, loop: !!sc.loop });
   let applied = false;

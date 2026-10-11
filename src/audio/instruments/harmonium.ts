@@ -24,8 +24,9 @@ export const REED_SETS: Record<1 | 2 | 3, ReedSet> = {
 };
 export const reedSet = (reeds: number): ReedSet => REED_SETS[reeds as 1 | 2 | 3] || REED_SETS[3];
 
-/** One guide note: 28 ms attack, settles to 82 %, releases 25 ms before the note ends. */
-export function reed(E: Engine, sess: Session, set: ReedSet, t: number, dur: number, freq: number, vel: number): void {
+/** One guide note: 28 ms attack, settles to 82 %, releases 25 ms before the note ends, with a
+ * time constant of `release` seconds (a key let go; longer for the last note of a song). */
+export function reed(E: Engine, sess: Session, set: ReedSet, t: number, dur: number, freq: number, vel: number, release = 0.04): void {
   const ctx = E.ctx;
   const g = ctx.createGain();
   const v = vel * set.gain;
@@ -33,9 +34,9 @@ export function reed(E: Engine, sess: Session, set: ReedSet, t: number, dur: num
   g.gain.linearRampToValueAtTime(v, t + 0.028);
   g.gain.setTargetAtTime(v * 0.82, t + 0.03, 0.12);
   const off = t + Math.max(0.06, dur - 0.025);
-  g.gain.setTargetAtTime(0, off, 0.04);
+  g.gain.setTargetAtTime(0, off, release);
   g.connect(sess.mel);
-  const stopAt = off + 0.35;
+  const stopAt = off + Math.max(0.35, release * 8);
   for (const [ratio, cents, amp, pan] of set.reeds) {
     const o = ctx.createOscillator();
     o.setPeriodicWave(E.reed);

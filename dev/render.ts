@@ -3,7 +3,8 @@
  * reference/gaaner-sathi.html) and the port's, each in an OfflineAudioContext in the
  * browser's real Web Audio, and compares the audio sample by sample, with loudness figures.
  * Then renders the taals the prototype never had, through the port alone: their loudness in
- * each rhythm style, and which beats of the tabla's theka start silent.
+ * each rhythm style, and which beats of the tabla's theka start silent. Then the end of a song,
+ * with the port's gentle ending and with the prototype's short one.
  * Not part of the app build. Open /dev/render.html on the dev server (`npm run dev`).
  */
 import { createEngine } from '../src/audio/engine';
@@ -78,6 +79,7 @@ async function renderPort(c: Case): Promise<AudioBuffer> {
   const off = new OfflineAudioContext(2, SR * c.secs, SR);
   const { ctx, setNow } = timed(off);
   const T = new Transport(createEngine(ctx, seeded(c.seed)), () => 0);
+  T.endFade = 0; // the prototype's ending, to compare like with like
   T.start({ parsed: parseSong(c.text), taal: taalInfo(c.taal), song: song(c), sound: settings(c) }, { from: 0, to: 0, loop: false });
   for (let i = 1; i * 0.025 <= c.secs; i++) {
     setNow(i * 0.025);
@@ -164,6 +166,63 @@ async function newTaals(show: (r: unknown) => void) {
   }
 }
 
+// ── The end of a song (2026-10-11): the last note and the tail fade over a quarter second ──
+
+/** RMS level (dB) of the 10 ms from time t. */
+function levelAt(buf: AudioBuffer, t: number): number {
+  let sum = 0;
+  let n = 0;
+  for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+    const x = buf.getChannelData(ch);
+    for (let i = Math.round(t * SR); i < Math.round((t + 0.01) * SR) && i < x.length; i++) {
+      sum += x[i]! * x[i]!;
+      n++;
+    }
+  }
+  return 10 * Math.log10(sum / Math.max(1, n) + 1e-20);
+}
+/** How long after `from` the level first falls `drop` dB below its level just before. */
+function fallMs(buf: AudioBuffer, from: number, drop: number): number {
+  const ref = levelAt(buf, from - 0.06);
+  for (let t = from; t < buf.duration - 0.01; t += 0.005) if (levelAt(buf, t) < ref - drop) return Math.round((t - from) * 1000);
+  return -1;
+}
+
+/** "S R G M | P D N S" in Keherwa at 120, no count-in, played to its end as the app does
+ * (stopping when the transport says the end has come): the guide alone, then with a
+ * tanpura. The last note lets go at 4.095 s; the end comes 1.3 s after the song, at 5.42 s. */
+async function renderEnding(endFade: number, droneVol: number): Promise<AudioBuffer> {
+  const secs = 6.2;
+  const off = new OfflineAudioContext(2, SR * secs, SR);
+  const { ctx, setNow } = timed(off);
+  const T = new Transport(createEngine(ctx, seeded(9)), () => 0);
+  T.endFade = endFade;
+  const sound: SoundSettings = structuredClone({ ...DEFAULT_SOUND, beat: 'off', countIn: false, droneVol });
+  T.start({ parsed: parseSong('S R G M | P D N S\n'), taal: taalInfo('keherwa'), song: { tempo: 120, saKey: 0, saOct: 4, startOn: 1 }, sound }, { from: 0, to: 0, loop: false });
+  for (let i = 1; i * 0.025 <= secs; i++) {
+    setNow(i * 0.025);
+    if (T.endAt && i * 0.025 >= T.endAt) T.stop();
+    else T.tick();
+  }
+  return off.startRendering();
+}
+
+async function ending() {
+  const rows = [];
+  for (const endFade of [0.25, 0]) {
+    const note = await renderEnding(endFade, 0);
+    const tan = await renderEnding(endFade, 0.6);
+    rows.push({
+      ending: endFade ? 'gentle (the app now)' : 'short (the prototype)',
+      lastNoteFalls20dBInMs: fallMs(note, 4.095, 20),
+      lastNoteFalls40dBInMs: fallMs(note, 4.095, 40),
+      tanpuraFalls20dBInMs: endFade ? fallMs(tan, 5.42 - endFade, 20) : fallMs(tan, 5.42, 20),
+      tanpuraFalls40dBInMs: endFade ? fallMs(tan, 5.42 - endFade, 40) : fallMs(tan, 5.42, 40),
+    });
+  }
+  return rows;
+}
+
 async function main() {
   const out = document.getElementById('out')!;
   const results = [];
@@ -176,7 +235,8 @@ async function main() {
   }
   const first = JSON.stringify(results, null, 2) + '\n\nTaals added since (port only):\n';
   await newTaals((rows) => (out.textContent = first + JSON.stringify(rows, null, 1) + '\n\nRendering…'));
-  out.textContent = out.textContent!.replace(/\n\nRendering…$/, '');
+  const ends = await ending();
+  out.textContent = out.textContent!.replace(/\n\nRendering…$/, '') + '\n\nThe end of a song:\n' + JSON.stringify(ends, null, 1);
   document.title = 'Audio check: done';
 }
 main().catch((e: unknown) => {

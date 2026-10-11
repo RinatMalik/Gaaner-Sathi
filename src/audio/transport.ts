@@ -75,6 +75,9 @@ export class Transport {
    * (a keyboard plays it). `localGuide` false leaves the harmonium out. */
   onNote: ((t: number, dur: number, note: number) => void) | null = null;
   localGuide = true;
+  /** When the song (or its rounds) ends by itself, its last note and then whatever still sounds
+   * fade out over this many seconds, rather than stopping short. 0: the prototype's ending. */
+  endFade = 0.25;
   private src!: PlaySource;
   private t = 0;
   private nextTime = 0;
@@ -189,6 +192,8 @@ export class Transport {
         if (p === 0) finalHit(this.E, this.sess!, this.nextTime, this.src.sound.beat);
         this.queue.push({ time: this.nextTime, end: true, p });
         this.endAt = this.nextTime + 1.3;
+        // The drone and any ringing stroke fade out just before the end, not cut off.
+        if (this.endFade > 0) for (const g of [this.sess!.out.gain, this.sess!.send.gain]) g.setTargetAtTime(0, this.endAt - this.endFade, this.endFade / 3);
         return;
       }
       // The count-in is in the taal of the beat it leads to.
@@ -218,7 +223,10 @@ export class Transport {
         if (this.loop) d = Math.min(d, this.secEnd - e.start);
         if (d <= 0) continue;
         const at = time + (e.start - s) * spb;
-        if (this.localGuide) reed(this.E, sess, reedSet(this.src.sound.reeds), at, d * spb, noteFreq(this.src.song, e), 0.32);
+        // The song's last note fades out gently (where it reaches the end of the song, or of
+        // the last of a set number of rounds).
+        const last = this.endFade > 0 && e.start + d >= this.secEnd - 1e-9 && (!this.loop || (this.rounds > 0 && pass === this.rounds - 1));
+        if (this.localGuide) reed(this.E, sess, reedSet(this.src.sound.reeds), at, d * spb, noteFreq(this.src.song, e), 0.32, last ? this.endFade / 3 : undefined);
         this.onNote?.(at, d * spb, saMidi(this.src.song) + e.semi + 12 * e.oct);
       }
     }
