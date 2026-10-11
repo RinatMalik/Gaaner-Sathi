@@ -156,3 +156,11 @@ export function splitBeats(text: string, s: number, e: number): BeatEdit {
   }
   return { ok: true, n, text: text.slice(0, lo) + region + text.slice(hi), s: lo, e: lo + region.length, lo, hi, rep: region };
 }
+
+/** One note written as the editor writes it: Bengali with its আকার, upper octave রেফ and
+ * lower dots before; Sa Re Ga letters with upper marks after (docs/NOTATION.md → Canonical). */
+export function noteToken(semi: number, oct: number, script: 'bn' | 'lat'): string {
+  const lower = '.'.repeat(Math.max(0, -oct));
+  if (script === 'bn') return lower + REPH.repeat(Math.max(0, oct)) + BN_LETTER[semi] + AKAR;
+  return lower + LAT_LETTER[semi] + "'".repeat(Math.max(0, oct));
+}

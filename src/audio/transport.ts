@@ -10,7 +10,7 @@
 import type { NoteEvent, ParsedSong } from '../core/notation/types';
 import { activeLayers, rhythmTable, SPEEDS } from '../core/taal/rhythm';
 import type { TaalInfo } from '../core/taal/taals';
-import { noteFreq, saFreq, tablaPitch, type SaKey } from './dsp/pitch';
+import { noteFreq, saFreq, saMidi, tablaPitch, type SaKey } from './dsp/pitch';
 import { liveGain, type Engine } from './engine';
 import { applyReedTone, reed, reedSet, startDrone } from './instruments/harmonium';
 import { crash, finalHit, playHit } from './instruments/percussion';
@@ -66,6 +66,10 @@ export class Transport {
   endAt = 0;
   /** Told of each matra as it is scheduled, with its seconds per beat (pitch feedback). */
   onBeat: ((q: BeatEntry, spb: number) => void) | null = null;
+  /** Told of each guide note as it is scheduled: its time, length (seconds) and MIDI note
+   * (a keyboard plays it). `localGuide` false leaves the harmonium out. */
+  onNote: ((t: number, dur: number, note: number) => void) | null = null;
+  localGuide = true;
   private src!: PlaySource;
   private t = 0;
   private nextTime = 0;
@@ -199,7 +203,9 @@ export class Transport {
         let d = e.dur;
         if (this.loop) d = Math.min(d, this.secEnd - e.start);
         if (d <= 0) continue;
-        reed(this.E, sess, reedSet(this.src.sound.reeds), time + (e.start - s) * spb, d * spb, noteFreq(this.src.song, e), 0.32);
+        const at = time + (e.start - s) * spb;
+        if (this.localGuide) reed(this.E, sess, reedSet(this.src.sound.reeds), at, d * spb, noteFreq(this.src.song, e), 0.32);
+        this.onNote?.(at, d * spb, saMidi(this.src.song) + e.semi + 12 * e.oct);
       }
     }
     const q: BeatEntry = { time, s, raw, p, pass, tempo: Math.round(60 / spb), guide: this.guideOn(pass) };

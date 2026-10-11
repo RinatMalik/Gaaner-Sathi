@@ -88,6 +88,10 @@ export interface Prefs extends SoundSettings {
   /** The hold trainer's note (cents from Sa), and the longest hold on each note, seconds. */
   holdNote?: number;
   holdBest?: Record<string, number>;
+  /** Show the keys to press on the Practice view. */
+  showKeys?: boolean;
+  /** A MIDI keyboard: where the guide plays, in what sound, and on which keyboard. */
+  midi?: { route: 'app' | 'kb' | 'both'; sound: 'keep' | 'organ' | 'accordion'; out?: string };
 }
 
 /** The notes the hold trainer offers, in cents from Sa (src/app/voice.ts names them). */
@@ -158,6 +162,12 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
     if (range.lo != null || range.hi != null) p.voiceRange = range;
   }
   if (typeof r.holdNote === 'number' && HOLD_CENTS.includes(r.holdNote)) p.holdNote = r.holdNote;
+  if (r.showKeys === true) p.showKeys = true;
+  const mi = r.midi as Record<string, unknown> | undefined;
+  if (mi && typeof mi === 'object') {
+    p.midi = { route: oneOf(mi.route, ['app', 'kb', 'both'] as const, 'app'), sound: oneOf(mi.sound, ['keep', 'organ', 'accordion'] as const, 'keep') };
+    if (typeof mi.out === 'string' && mi.out) p.midi.out = mi.out;
+  }
   const hb = r.holdBest as Record<string, unknown> | undefined;
   if (hb && typeof hb === 'object' && !Array.isArray(hb)) {
     const best: Record<string, number> = {};

@@ -20,7 +20,7 @@
  * night colours; notes about each song; sections to jump between, each with its own tempo
  * if its heading gives one; and printing (print.ts).
  */
-import { saFreq } from '../audio/dsp/pitch';
+import { saFreq, saMidi } from '../audio/dsp/pitch';
 import { wavFile } from '../audio/dsp/pcm';
 import { createEngine, createLiveContext } from '../audio/engine';
 import { MicError, micProblemText } from '../audio/mic';
@@ -35,6 +35,7 @@ import { sectionOfLine, setHeadingTempo, songSections, type SongSection } from '
 import { AKAR } from '../core/notation/symbols';
 import type { Beat, ParsedSong, Unit } from '../core/notation/types';
 import { lastPractised, logFileText, MIN_LOG_SECS, type LogEntry } from '../core/practice/log';
+import { songSpan } from '../core/pitch/voice';
 import { itemLines, type RoutineItem } from '../core/practice/routine';
 import { clockText, MIN_TAKE_SECS, newTakeId, textSig, type Take } from '../core/practice/take';
 import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefix, type ImportedSong } from '../core/song/file';
@@ -44,6 +45,7 @@ import { beatLabel, SPEEDS } from '../core/taal/rhythm';
 import { isTaalId, taalInfo, type TaalInfo } from '../core/taal/taals';
 import { initPitch, type PitchUI } from './pitch';
 import { initBoxes, withNewHeading, type Boxes } from './boxes';
+import { initKeyboard, keyboardHTML, keyName, keyRange, type KeyboardUI } from './keyboard';
 import { initPrint } from './print';
 import { initProgress } from './progress';
 import { initRewaz, type ItemSong, type Rewaz } from './rewaz';
@@ -96,6 +98,8 @@ let pitchUI: PitchUI = { on: false, startRun() {}, beat() {}, endRun: () => null
 /** Rewaz routines and the Progress view, wired up by init. */
 let rewaz: Rewaz = { render() {}, active: false, name: '', finished() {}, cancel() {}, beat() {} };
 let progressView: { render(): void } = { render() {} };
+/** A MIDI keyboard, wired up by init. */
+let keyboard: KeyboardUI = { playStarting() {}, playStopped() {} };
 /** The Voice view, wired up by init. */
 let voiceUI: VoiceUI = { render() {}, stop() {} };
 /** The editor's beat boxes, wired up by init. */
@@ -234,6 +238,7 @@ function play(fromN?: number, rounds?: number): void {
   deckBeat = -1;
   // Before start: starting schedules the first beat, and pitch feedback must hear of it.
   pitchUI.startRun();
+  keyboard.playStarting(tr);
   runFirst = -1;
   const r = tr.start(source, { from, to, loop, rounds });
   if (!r) return;
@@ -252,6 +257,7 @@ function stop(silent?: boolean, ended = false): void {
   endTakeRun(run?.end || T.E.ctx.currentTime, run);
   endRun(T.E.ctx.currentTime, pitchUI.endRun());
   T.stop();
+  keyboard.playStopped();
   clearInterval(timer);
   timer = 0;
   cancelAnimationFrame(raf);
@@ -520,6 +526,7 @@ function setNowMessage(label: string, sub: string, big = ''): void {
 }
 function showBeat(q: BeatEntry): void {
   markTaal(q.p);
+  if (prefs.showKeys) markKeys(q.pass < 0 ? -1 : q.s, q.pass < 0 ? (T?.secStart ?? 0) : nextBeat(q.s));
   if (q.pass < 0) clearHighlight();
   else {
     highlight(q.s);
@@ -535,6 +542,10 @@ function showBeat(q: BeatEntry): void {
 }
 function showIdle(): void {
   markTaal(-1);
+  if (prefs.showKeys) {
+    const first = parsed.noteLines[+select('#fromLine').value || 0]?.start ?? -1;
+    markKeys(-1, first);
+  }
   markSection();
   showTempo(shownTempo());
   setNow(V.nowIdle(parsed, taal, +select('#fromLine').value || 0, current.example, prefs.countIn, prefs.script));
@@ -666,6 +677,8 @@ function setSa(s: SaChoice): void {
   changed('saOct', oct);
   rememberExerciseSa();
   T?.retune();
+  renderKeys();
+  if (!playing()) showIdle();
 }
 /** A Sa changed on an exercise is kept as your Sa, for every exercise and new song. */
 function rememberExerciseSa(): void {
@@ -929,6 +942,39 @@ async function onTakeClick(e: Event): Promise<void> {
   }
 }
 
+/** The keyboard on the Practice view: the song's notes' range in whole octaves. */
+function renderKeys(): void {
+  const row = $('#keysRow');
+  row.hidden = !prefs.showKeys;
+  input('#keysChk').checked = !!prefs.showKeys;
+  if (!prefs.showKeys) return;
+  const sa = saMidi(current);
+  const span = songSpan(parsed) ?? { lo: 0, hi: 12 };
+  const [lo, hi] = keyRange(sa + span.lo, sa + span.hi);
+  $('#keysBoard').innerHTML = keyboardHTML(lo, hi, sa);
+  $('#keyName').textContent = '';
+}
+/** The beat after g while playing (inside the loop when looping), or −1. */
+function nextBeat(g: number): number {
+  if (!T) return -1;
+  const n = g + 1;
+  if (T.loop && n >= T.secEnd) return T.secStart;
+  return n < parsed.total ? n : -1;
+}
+/** Press the keys of beat `now` and outline the first note of beat `next`. */
+function markKeys(now: number, next: number): void {
+  const notes = (g: number) => (parsed.beatList[g]?.units ?? []).flatMap((u) => (u.k === 'note' ? [saMidi(current) + u.semi + 12 * u.oct] : []));
+  const on = new Set(now >= 0 ? notes(now) : []);
+  const soon = next >= 0 ? notes(next).slice(0, 1) : [];
+  for (const k of $$('#keysBoard [data-m]')) {
+    const m = +k.dataset.m!;
+    k.classList.toggle('now', on.has(m));
+    k.classList.toggle('next', !on.has(m) && soon.includes(m));
+  }
+  const shown = on.size ? Array.from(on) : soon;
+  $('#keyName').textContent = shown.length ? (on.size ? 'Now: ' : 'First: ') + shown.map(keyName).join(', ') : '';
+}
+
 /** Day, night, or (unset) as the device says. */
 function applyTheme(): void {
   if (prefs.theme) document.documentElement.setAttribute('data-theme', prefs.theme);
@@ -960,6 +1006,7 @@ function reparse(keepLines: boolean): void {
   renderIssues();
   renderTaal();
   renderSections();
+  renderKeys();
   refreshSelection();
   if (boxesShown()) boxes.refresh();
   if (takesShown.length) drawTakes();
@@ -1510,6 +1557,24 @@ export function init(): void {
     playing,
     showPractice: () => switchTab('practice'),
   });
+  keyboard = initKeyboard({
+    saMidi: () => saMidi(current),
+    editorOpen: () => !$('#edit').hidden,
+    type: (token) => {
+      if (boxesMode()) boxes.type(token);
+      else insertText(token + ' ');
+    },
+    script: () => prefs.script,
+    guide: () => soundSource.guide,
+    audio: () => (T ? (T.E.ctx as AudioContext) : null),
+    prefs: {
+      get: () => prefs.midi ?? { route: 'app', sound: 'keep' },
+      set: (m) => {
+        prefs.midi = m;
+        savePrefs();
+      },
+    },
+  });
   voiceUI = initVoice({
     audio: () => {
       try {
@@ -1598,12 +1663,16 @@ export function init(): void {
   select('#saKey').addEventListener('change', (e) => {
     changed('saKey', +(e.target as HTMLSelectElement).value);
     rememberExerciseSa();
+    renderKeys();
+    if (!playing()) showIdle();
     T?.retune();
   });
   select('#saOct').addEventListener('change', (e) => {
     const v = +(e.target as HTMLSelectElement).value;
     changed('saOct', v === 3 || v === 5 ? v : 4);
     rememberExerciseSa();
+    renderKeys();
+    if (!playing()) showIdle();
     T?.retune();
   });
   select('#fromLine').addEventListener('change', () => {
@@ -1733,6 +1802,13 @@ export function init(): void {
   $('#tabProgress').addEventListener('click', () => switchTab('progress'));
   $('#tabVoice').addEventListener('click', () => switchTab('voice'));
   $('#recBtn').addEventListener('click', () => void toggleRecord());
+  input('#keysChk').addEventListener('change', (e) => {
+    if ((e.target as HTMLInputElement).checked) prefs.showKeys = true;
+    else delete prefs.showKeys;
+    savePrefs();
+    renderKeys();
+    if (!playing()) showIdle();
+  });
   $('#takesList').addEventListener('click', (e) => void onTakeClick(e));
   $('#themeSeg').addEventListener('click', (e) => {
     const b = segButton(e);
