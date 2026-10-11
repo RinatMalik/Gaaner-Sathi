@@ -24,6 +24,8 @@ export interface PlaySource {
   taal: TaalInfo;
   song: SaKey & { tempo: number; startOn: number };
   sound: SoundSettings;
+  /** The tempo for a song beat, when sections have their own (absent: the song's tempo). */
+  tempoAt?(s: number): number;
 }
 
 /** A scheduled matra, for the highlight: s is the song beat (negative or before the
@@ -131,9 +133,10 @@ export class Transport {
     this.endAt = 0;
   }
 
-  /** Tempo trainer: each new round of a loop gets faster by rampStep, never past rampMax. */
-  liveTempo(pass: number): number {
-    const base = this.src.song.tempo;
+  /** Tempo trainer: each new round of a loop gets faster by rampStep, never past rampMax.
+   * `beat` is the song beat, for a section's own tempo (the count-in takes the first beat's). */
+  liveTempo(pass: number, beat: number = this.secStart): number {
+    const base = this.src.tempoAt ? this.src.tempoAt(Math.max(beat, this.secStart)) : this.src.song.tempo;
     const s = this.src.sound;
     if (!s.ramp || !this.loop || pass < 1) return base;
     return Math.max(base, Math.min(s.rampMax, base + s.rampStep * pass));
@@ -164,7 +167,7 @@ export class Transport {
           s = this.secStart + (k % this.secLen);
         } else pass = 0;
       }
-      const spb = 60 / this.liveTempo(pass);
+      const spb = 60 / this.liveTempo(pass, s);
       const roundsDone = this.rounds > 0 && raw >= this.secStart + this.rounds * this.secLen;
       if ((!this.loop && raw >= this.secEnd) || roundsDone) {
         const p = mod((roundsDone ? this.secStart : raw) + off, cyc);

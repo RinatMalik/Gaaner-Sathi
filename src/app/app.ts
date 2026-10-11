@@ -27,6 +27,7 @@ import { EXERCISES } from '../core/exercises';
 import type { Exercise } from '../core/exercises/types';
 import { joinBeats, notesInRange, shiftOctaves, splitBeats, type TextEdit } from '../core/notation/edit';
 import { parseSong } from '../core/notation/parse';
+import { sectionOfLine, setHeadingTempo, songSections, type SongSection } from '../core/notation/sections';
 import { AKAR } from '../core/notation/symbols';
 import type { Beat, ParsedSong, Unit } from '../core/notation/types';
 import { lastPractised, logFileText, MIN_LOG_SECS, type LogEntry } from '../core/practice/log';
@@ -70,6 +71,8 @@ const wanted = prefs.lastSong;
 let songs = new Map<string, Song>(); // the user's own songs
 let current!: Song; // the song being shown (set by init)
 let parsed: ParsedSong = parseSong('');
+/** The song's sections (its headings), worked out with each parse. */
+let sections: SongSection[] = [];
 let taal: TaalInfo = taalInfo('dadra');
 let insOct = 0;
 let userPicked = false;
@@ -99,6 +102,8 @@ let timer = 0;
 let raf = 0;
 let curEls: HTMLElement[] = [];
 let lastLine = -1;
+/** The song beat showing while playing (−1 before the first), for the deck's tempo. */
+let deckBeat = -1;
 let wakeLock: WakeLockSentinel | null = null;
 const playing = () => !!T && T.playing;
 
@@ -148,7 +153,15 @@ const source: PlaySource = {
   get sound() {
     return soundSource;
   },
+  tempoAt: (s) => baseTempoAt(s),
 };
+
+/** The tempo a song beat plays at before the tempo trainer: a rewaz item's, else its
+ * section's own, else the song's. */
+function baseTempoAt(s: number): number {
+  if (itemOverride?.tempo) return itemOverride.tempo;
+  return sections[sectionOfLine(sections, parsed.lineOfBeat[s] ?? -1)]?.tempo ?? current.tempo;
+}
 
 function ensureAudio(): Transport {
   if (!T) {
@@ -184,6 +197,7 @@ function play(fromN?: number, rounds?: number): void {
     select('#toLine').value = String(to);
   }
   lastLine = -1;
+  deckBeat = -1;
   // Before start: starting schedules the first beat, and pitch feedback must hear of it.
   pitchUI.startRun();
   const r = tr.start(source, { from, to, loop, rounds });
@@ -208,6 +222,7 @@ function stop(silent?: boolean, ended = false): void {
   markTaal(-1);
   setPlayUI(false);
   unwake();
+  deckBeat = -1;
   if (!silent) showIdle();
   // A rewaz goes on to its next item when this one ended by itself; any other stop ends it.
   if (ended) rewaz.finished();
@@ -241,7 +256,7 @@ function showTempo(t: number): void {
 function clearOverride(): void {
   if (!itemOverride) return;
   itemOverride = null;
-  if (current) showTempo(current.tempo);
+  if (current) showTempo(shownTempo());
 }
 
 /** Play a rewaz item: its song, its lines for its rounds, at its tempo, with its guide. */
@@ -262,7 +277,7 @@ function playItem(it: RoutineItem): boolean {
   input('#loopChk').checked = true;
   const g = it.guide;
   itemOverride = { tempo: it.tempo, guide: g === 'off' ? 'off' : g && sound.guide === 'off' ? 'full' : undefined, guideLoop: g && g !== 'off' ? g : undefined };
-  showTempo(itemOverride.tempo ?? current.tempo);
+  showTempo(shownTempo());
   play(a, it.rounds);
   return playing();
 }
@@ -356,7 +371,8 @@ interface Run {
 let run: Run | null = null;
 
 function startRun(from: number, to: number, loop: boolean): void {
-  run = { song: current.id, title: current.title, from, to, loop, tempo: songSource.tempo, top: songSource.tempo, first: 0, wall: 0, pass: 0, line: from, end: 0 };
+  const t = baseTempoAt(parsed.noteLines[from]?.start ?? 0);
+  run = { song: current.id, title: current.title, from, to, loop, tempo: t, top: t, first: 0, wall: 0, pass: 0, line: from, end: 0 };
 }
 
 /** A beat is showing: note how far the practice has got. */
@@ -430,6 +446,7 @@ function highlight(g: number): void {
   const ln = parsed.lineOfBeat[g];
   if (ln !== lastLine) {
     lastLine = ln ?? -1;
+    markSection();
     for (const sheet of [$('#sheetP'), $('#sheetE')]) {
       if (!sheet.offsetParent) continue;
       const row = sheet.querySelector<HTMLElement>('.line[data-n="' + ln + '"]');
@@ -456,13 +473,22 @@ function setNowMessage(label: string, sub: string, big = ''): void {
 function showBeat(q: BeatEntry): void {
   markTaal(q.p);
   if (q.pass < 0) clearHighlight();
-  else highlight(q.s);
+  else {
+    highlight(q.s);
+    deckBeat = q.s;
+  }
+  // The deck follows the tempo of the section playing (not while it is being changed).
+  const t = shownTempo();
+  const busy = document.activeElement === input('#tempoRange') || document.activeElement === input('#tempoNum');
+  if (!busy && input('#tempoNum').value !== String(t)) showTempo(t);
   const v = V.nowBeat(parsed, q, T!, prefs.ramp, soundSource.guide, prefs.script);
   if (v) setNow(v);
   rewaz.beat(q.pass);
 }
 function showIdle(): void {
   markTaal(-1);
+  markSection();
+  showTempo(shownTempo());
   setNow(V.nowIdle(parsed, taal, +select('#fromLine').value || 0, current.example, prefs.countIn, prefs.script));
 }
 
@@ -607,13 +633,43 @@ function setSoundOpen(open: boolean): void {
 
 function reparse(keepLines: boolean): void {
   parsed = parseSong(current.text);
+  sections = songSections(current.text, parsed);
   taal = taalInfo(current.taal);
   renderSheets();
   renderLineSelects(keepLines);
   renderIssues();
   renderTaal();
+  renderSections();
   refreshSelection();
   if (!playing()) showIdle();
+}
+
+/** Change the song's text from outside the notation box (the deck, the beat boxes), keeping
+ * whatever is playing going. */
+function setText(text: string): void {
+  if (text === current.text) return;
+  changed('text', text);
+  const ta = notationBox();
+  if (ta.value !== text) ta.value = text;
+  reparse(true);
+}
+
+/** Buttons for the song's sections, when it has more than one: each plays from there. */
+function renderSections(): void {
+  const box = $('#secChips');
+  box.hidden = sections.length < 2;
+  box.innerHTML = sections.length < 2 ? '' : sections.map((sec, i) =>
+    '<button type="button" class="chip" data-sec="' + i + '" aria-pressed="false">' +
+    V.esc(sec.label || (sec.last > sec.first ? 'Lines ' + (sec.first + 1) + '–' + (sec.last + 1) : 'Line ' + (sec.first + 1))) +
+    (sec.tempo != null ? ' <span class="n">♩' + sec.tempo + '</span>' : '') + '</button>').join('');
+  markSection();
+}
+/** Press the button of the section playing, or the one playing would start in. */
+function markSection(): void {
+  if (sections.length < 2) return;
+  const line = playing() && lastLine >= 0 ? lastLine : +select('#fromLine').value || 0;
+  const k = sectionOfLine(sections, line);
+  for (const b of $$('#secChips button')) b.setAttribute('aria-pressed', String(+b.dataset.sec! === k));
 }
 
 function loadSong(song: Song | Exercise): void {
@@ -636,8 +692,6 @@ function loadSong(song: Song | Exercise): void {
   $('#notesF').hidden = current.example;
   renderAbout();
   notationBox().value = current.text;
-  input('#tempoNum').value = String(current.tempo);
-  input('#tempoRange').value = String(current.tempo);
   select('#saKey').value = String(current.saKey);
   select('#saOct').value = String(current.saOct);
   select('#taalSel').value = current.taal;
@@ -978,12 +1032,24 @@ function switchTab(t: Tab): void {
   progressView.render();
 }
 /** The tempo shown on the deck: a rewaz item's while one plays, else the song's. */
-const shownTempo = () => itemOverride?.tempo ?? current.tempo;
+const shownTempo = () => itemOverride?.tempo ?? deckSection()?.tempo ?? current.tempo;
+/** The section the deck's tempo is for: the one playing, or the one playing would start in. */
+function deckSection(): SongSection | null {
+  const line = playing() && deckBeat >= 0 ? (parsed.lineOfBeat[deckBeat] ?? 0) : +select('#fromLine').value || 0;
+  return sections[sectionOfLine(sections, line)] ?? null;
+}
+/** The deck's tempo changed: a rewaz item's, a section's own (written in its heading), or
+ * the song's. */
 function setTempo(v: number | string): void {
   const t = clamp(Math.round(+v || 100), 30, 240);
   showTempo(t);
   if (itemOverride && rewaz.active) {
     itemOverride.tempo = t;
+    return;
+  }
+  const sec = deckSection();
+  if (sec && sec.tempo != null && sec.tempoLine) {
+    if (t !== sec.tempo) setText(setHeadingTempo(current.text, sec.tempoLine, t));
     return;
   }
   if (t !== current.tempo) changed('tempo', t);
@@ -1339,6 +1405,14 @@ export function init(): void {
     insertText(k === 'hold' ? '- ' : k === 'rest' ? 'x ' : k === 'bar' ? '| ' : k === 'nl' ? '\n' : '\n> ');
   });
 
+  $('#secChips').addEventListener('click', (e) => {
+    const b = (e.target as Element).closest<HTMLElement>('button[data-sec]');
+    const sec = b && sections[+b.dataset.sec!];
+    if (!sec) return;
+    select('#fromLine').value = String(sec.first);
+    select('#toLine').value = String(sec.last);
+    userPlay(sec.first);
+  });
   document.addEventListener('click', (e) => {
     const b = (e.target as Element).closest<HTMLElement>('.ln[data-n]');
     if (b) {
