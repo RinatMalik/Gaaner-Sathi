@@ -49,6 +49,83 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-11 02:20 BST — Claude (Opus 5.5) — PH1-06 Rinat's ten picks
+
+- **Goal:** Rinat picked ten features before the design phase: a range finder (as a tab
+  beside Rewaz and Progress); MIDI (type a song on the keyboard, the guide on the Casio's
+  harmonium voice, the key to press for each note), brand-agnostic and light; record takes
+  and play them back against the guide; notes per song; jump between sections by heading;
+  a hold-a-note trainer; a tempo per section; print or PDF; night and day; and a structured
+  way to write notation (a box per beat, filled like 2FA boxes), keeping headings and
+  comments working. Rinat also asked what the "permanent web address" question means.
+- **Inspected:** the notation parser, edit operations and checker; `app.ts`, `view.ts`,
+  `store.ts`, the transport, mic and pitch code; DATA, NOTATION, ENGINE, ROADMAP; Casio's
+  CT-X3000 pages (it is General MIDI level 1, 16 parts; its MIDI implementation PDF was not
+  reachable, so channel and tone details are not claimed).
+- **Changed:** `741eb4a` (day and night; notes per song); `232d771` (sections and their
+  tempo; `src/core/notation/sections.ts`, `tempoAt` in the transport); `1a2d9d1` (print or
+  PDF); `d5d7bcf` (beat boxes: `src/core/notation/boxes.ts`, `src/app/boxes.ts`); `84a04ce`
+  (the Voice tab: `src/core/pitch/voice.ts`, `src/app/voice.ts`, "your Sa"); `9c7d03f`
+  (takes: `src/audio/recorder.ts`, `src/audio/dsp/pcm.ts`, `src/core/practice/take.ts`,
+  `src/app/takes.ts`, ADR-004); `4799fa6` (MIDI and the keys: `src/audio/midi.ts`,
+  `src/app/keyboard.ts`, `onNote`/`localGuide` in the transport, ADR-005); this commit
+  (README, NOTATION, DATA, ENGINE, ROADMAP without Rinat's blank lines, this file).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through
+  the DevTools protocol on `npm run dev`, real key and mouse events, profiles under %TEMP%):
+  - `npm run typecheck` → 0; `npx vitest run` → 28 files, 285 passed (59 new: notes and
+    theme 3, sections 8, print 2, boxes 15, voice 13, pcm 3, takes 6, MIDI 8, store 1);
+    `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid;
+    `tests/differential/audio.test.ts` 17/17 after the transport changes (section tempos,
+    guide notes out); `npm run build` → 176 kB JS (62.6 kB gzip), 31 kB CSS.
+  - Theme and notes (20 checks): Auto follows the device, Day and Night override it and
+    survive a reload with no flash; notes saved, shown, searched, copied, removed when
+    emptied. Sections (15): buttons named by headings (আরোহ / অবরোহ on exercises), a tap
+    plays from there and loops the section; the deck follows each section's tempo while
+    playing (120 → 184 → 80) and writes a change into its heading; a Bengali `লয় ৮০` read.
+    Print (7): the button and Ctrl+P fill a print-only sheet, black on white in night
+    colours, PDF named after the song; `Page.printToPDF` made a 51 kB PDF.
+  - Beat boxes (29): typing `s`, `a`, space, `re ga ma` gives `S R G | M`; Bengali; a pasted
+    line fills a row and spills into a new one; Backspace goes back and removes a beat;
+    words a beat each, a gap held with `-`; Enter puts a line in between; Ctrl+Z; + Heading
+    with a tempo; ↑ Higher on the box; note buttons; Free text both ways; Teentaal regroups;
+    a reload keeps it. Bugs found and fixed: lines started from one beat never got bars;
+    two rows of empty boxes after an unfinished last line; lyric bars not shifting when a
+    beat is removed; verses gaining bars they never had.
+  - Voice with WAVs as the microphone: range (16): B2 held, A4 only passed through, G4 held →
+    lowest B2, highest G4, "Your Sa: E (White 3), low octave"; Use as my Sa → exercises and
+    new songs in E3; for a song from `.পা` to `র্সা`, F♯ fits; kept after a reload. Hold (10):
+    a 6 s C4 held 5 cents sharp → "Held 6.0 s, very steady (±5 cents), in tune", best kept.
+  - Takes with a WAV microphone (21): Record me → each play a take (a 15 s play after the
+    count-in: a 16.8 s take, 808 544 bytes of 24 kHz samples in IndexedDB, delay 0.062 s);
+    kept after a reload; Just me; With the guide stopped by itself 17.0 s after the tap;
+    not logged as practice (the recorded play was); WAV download (RIFF, 24 kHz, 808 588
+    bytes); a changed notation noted; delete asks first and removes the samples. Bugs found and
+    fixed: a take ending while the next started shared state; editing a song did not
+    refresh its takes' notes.
+  - MIDI with a stand-in keyboard (20): connect, keys typed as beats from Sa C4
+    (`সা রা পা | র্সা .পা`), an octave typed once, out-of-range refused; the guide on the
+    keyboard: bank 0 / program 20 first, then notes on and off 83–130 ms ahead, spaced
+    545 ms at 110 a minute, first note included; all-notes-off twice on Stop; nothing sent
+    on "This device"; the drawn keys light in turn and stay on after a reload. Bug found and
+    fixed: the first note was sent at once (stamped in the past, then 32 ms early): the
+    audio clock's reading drifts ~32 ms over its first 20 ms (measured), so notes wait for it.
+  - 360 px in both themes for every view touched: no sideways scrolling.
+  - CI runs `38097120319` (`1a2d9d1`), `38098253189` (`d5d7bcf`), `38098711083` (`84a04ce`),
+    `38099833105` (`9c7d03f`), `38100429528` (`4799fa6`): all green, deployed. Live
+    (`s_live`): six tabs with Voice, section buttons, record, keys, print and keyboard
+    controls, exercise 3 plays, a song typed in boxes, no console errors; `/` 200, `/new/` 200.
+- **Decisions made:** see Decisions log (the 2026-10-11 rows on beat boxes, section tempo,
+  your Sa, takes, MIDI, the Voice tab); ADR-004, ADR-005; Open question 3 reworded.
+- **Risks or disagreements:** nothing here has met a real voice, ear or keyboard. The beat
+  boxes are Claude's reading of Rinat's idea (lines a cycle long, writing over on paste);
+  phone keyboards (Gboard, Avro) were not tried. MIDI is untested on the CT-X3000: which
+  tone channel 1 plays and whether its GM reed organ answers are guesses until Rinat tries.
+  Takes line up by the delay pitch feedback found (or the device's guess): Rinat should
+  listen for a voice late against the guide. The Sa suggestion assumes songs span mandra Pa
+  to taar Ga. IndexedDB can be evicted under storage pressure; Download is the safe copy.
+  The deck and settings keep growing above the views: for the design phase.
+- **Next handoff:** Rinat tries the ten on real songs; then the design phase.
+
 ### 2026-10-11 00:40 BST — Claude (Opus 5.5) — PH1-04 each song's own sound; PH1-05 more taals
 
 - **Goal:** Rinat checked the three features and asked for two more, only these: each song

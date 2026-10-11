@@ -3,7 +3,7 @@
 > The project's shared state, for Rinat, Claude, Codex and any other LLM: what the app is
 > for, how we work, where things stand, the decisions in force and the newest work log.
 >
-> **Last updated:** 2026-10-11 (08:57 BST) by Claude (Opus 5.5)
+> **Last updated:** 2026-10-11 (10:35 BST) by Claude (Opus 5.5)
 
 ## How to use this file
 
@@ -38,15 +38,18 @@ wins, except a later explicit decision by Rinat, which always wins.
 ## Current state
 
 - **Milestone:** Phase 1, features and functionality. Everything Rinat has asked for is built
-  and live (PH1-01 to PH1-07, all in Review). Next comes the design (Phase 2).
+  and live (PH1-01 to PH1-08, all in Review). Next comes the design (Phase 2).
 - **Next single action:** Rinat uses the features on real songs and says what to change;
   then the design phase.
-- **Last known-good commit:** `8170085` (CI run `38123035124`: core, reference and deploy jobs green; checked live).
+- **Last known-good commit:** `3eae75f` (CI run `38128789762`: core, reference and deploy jobs green;
+  checked live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
 - **Waiting for a real voice, ear, phone or keyboard** (none of it can be checked here):
-  - the pitch meter's thresholds and the delay it finds, on Rinat's voice;
+  - the pitch meter's thresholds and the delay it finds, on Rinat's voice (Rinat has sung with
+    it: a screenshot of 2026-10-11 shows most beats marked red, i.e. more than 30 cents off;
+    asked whether that matched what Rinat heard);
   - whether a take's voice lines up with the guide when played back;
   - whether the range finder's suggested Sa suits Rinat;
   - the hold trainer's feel;
@@ -329,8 +332,9 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH1-03 | Claude | Review | Rewaz routines and Progress | 12 unit tests; a routine ran hands-free to "Rewaz done" in Edge (HISTORY → 2026-10-10 20:00) | Waiting for Rinat's use |
 | PH1-04 | Claude | Review | Each song's own sound | 8 unit tests; Edge scenarios through reloads, copies, export and import, rewaz (HISTORY → 2026-10-11 00:40) | Waiting for Rinat's use |
 | PH1-05 | Claude | Review | Ten more taals | 10 unit tests; offline renders; picker, strip, checker and playing in Edge (HISTORY → 2026-10-11 00:40) | Waiting for Rinat's ears |
-| PH1-06 | Claude | Review | Rinat's ten picks | 59 unit tests; Edge scenarios with real events, WAV microphones and a stand-in MIDI keyboard (Work log 2026-10-11 02:20) | Waiting for Rinat's use; the CT-X3000 not tried |
-| PH1-07 | Claude | Review | Beat boxes: drag, copy, notes in a beat; lean docs | 3 new unit tests; Edge scenarios `move` (31 checks) and `boxes` (29) (Work log 2026-10-11 08:57) | Waiting for Rinat's use |
+| PH1-06 | Claude | Review | Rinat's ten picks | 59 unit tests; Edge scenarios with real events, WAV microphones and a stand-in MIDI keyboard (HISTORY → Work log 2026-10-11 02:20) | Waiting for Rinat's use; the CT-X3000 not tried |
+| PH1-07 | Claude | Review | Beat boxes: drag, copy, notes in a beat; lean docs | 3 new unit tests; Edge scenarios `move` (31 checks) and `boxes` (29) (Work log 2026-10-11 08:57) | Rinat: "all works", happy with the choices made (2026-10-11) |
+| PH1-08 | Claude | Review | Beat boxes round three: ▶ Play per line, Copy to the end, several rows selected and copied, × at the top, Enter for a second verse, smaller editor fonts | Edge scenario `edit3` (27 checks) locally and on the live site; `move` and `boxes` still pass (Work log 2026-10-11 10:35) | Waiting for Rinat's use |
 
 ## Decisions
 
@@ -372,6 +376,7 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-11 | Lean docs: `CONTEXT.md`, `docs/ROADMAP.md` and `docs/HISTORY.md` are the framework, with three technical docs (NOTATION, ENGINE, DATA) rewritten in order. Removed: `SECURITY.md` (its rules are in Working rules → Secrets, privacy and safety), `docs/PARITY.md` (Phase 0 is done), `docs/adr/` (folded into the docs, next row). `CLAUDE.md` and `AGENTS.md` are short pointers. Finished work items, older work log entries and decisions no longer in force moved to HISTORY word for word. | Rinat, chat 2026-10-11 ("a lean framework with context, history and roadmap … re-write files that have become unorganised"; Rinat's two blank lines in ROADMAP deletable) | All removed files are in git history (before this commit). |
 | 2026-10-11 | Decision records: a row here for every decision; a real architectural trade-off gets a short "why" in the doc it concerns, not a separate ADR file. ADR-001 → Conventions → Stack and ENGINE.md → Verifying sound; ADR-002 → DATA.md → Storage; ADR-003 → ENGINE.md → Pitch feedback; ADR-004 → ENGINE.md and DATA.md → Takes; ADR-005 → ENGINE.md → MIDI keyboards. | Rinat's lean docs (above); replaces the 2026-10-09 decision-records row (in HISTORY) | One place per subject. |
 | 2026-10-11 | Beat boxes: each heading and line is dragged by its number (mouse or touch; or ↑ ↓ once the number is tapped); Copy puts an exact copy of a line, words included, just below it; each is one undo step. Notes typed together share a beat, and → adds to a beat rather than replacing its note. | Rinat, chat 2026-10-11 ("make each line draggable to reorder and have a button to copy/duplicate … paste it immediately after"; "how do I type multiple notes in the same beat?"); copying the words too, and headings being draggable, are Claude's choices | NOTATION.md → Beat boxes. |
+| 2026-10-11 | Beat boxes, round three: Copy puts the copy at the end of the song (no longer just below); tapping line numbers (or a heading's #) selects rows, which a bar copies to the end in the song's order; ▶ Play on each line plays it once at its tempo with no count-in, not logged or kept as a take; "+ words" removed (Enter in the words opens a second verse); × at the top right of a line; notes and words a little smaller in the editor (boxes 17/15 px, preview 20/15 px; Practice unchanged). | Rinat, chat 2026-10-11 ("usually it would be a few lines to copy and they usually would go at the end"; "a Play button that just plays that line"; "+words is kinda redundant"; "fonts just a little smaller"; the × "at the top right or at the top left"); Rinat was happy with the previous round's choices. No count-in, the tap-to-select and Enter for a verse are Claude's choices | Replaces "just below" in the row above. NOTATION.md → Beat boxes. |
 
 ## Open questions
 
@@ -407,6 +412,60 @@ Template:
     - **Decisions made:** rows added above.
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
+
+### 2026-10-11 10:35 BST — Claude (Opus 5.5) — PH1-08 beat boxes round three
+
+- **Goal:** Rinat ("all works and happy with the decision you made"): remove "+ words" (a
+  row of words is always there); a Play button that plays just that line, to hear a line
+  just written; fonts a little smaller in the editor and its preview; the × at the top of a
+  line; Copy to the end rather than just below, and several lines selected and copied at
+  once, "as long as it doesn't break anything else". Rinat also asked what the colours in a
+  Practice screenshot mean, and whether there is an easier way to type Bengali lyrics.
+- **Inspected:** the transport's start and rounds, `play()`, `stop()`, the practice log and
+  take hooks in `app.ts`; the pitch colour thresholds (`src/app/pitch.ts`: good from 85, ok
+  from 60, off below, not sung); the lyric typing path in the boxes.
+- **Changed:** `3eae75f` (feat): `copyRowsToEnd` replaces `duplicateLine` in
+  `src/core/notation/boxes.ts`; the boxes get ▶ Play (the host's `playLine`: one round of
+  that line, `countIn: false`, the pickers, log and takes left alone; ■ Stop), the box of
+  the beat sounding lit (`markBeat`), tap-to-select on the numbers with a sticky bar (Copy
+  to the end, Clear; Escape or any change ends it), Copy to the end, × first in the row's
+  buttons, Enter in a word box for another verse row; "+ words" removed; CSS sizes; help
+  rows for Play, copying and the words. This commit (docs): NOTATION → Beat boxes, ROADMAP
+  (row 8; a feature idea for writing the words), this file (the 02:20 entry moved to
+  HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
+  DevTools protocol, real mouse, key and touch events):
+  - `npm run typecheck` → 0; `npx vitest run` → 28 files, 288 passed (the copy test rewritten
+    for the end; the HTML test checks the buttons and the selection marks); `npm run build`
+    → 183 kB JS (65.0 kB gzip), 33 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5
+    passed, 12 exercises valid.
+  - Scenario `edit3` (27 checks) on `npm run dev`: a line's buttons are × ▶ Play Copy, the ×
+    8 px from the row's top and flush right; fonts 17/15 px in the boxes, 20/15 px in the
+    editor preview, 22 px still on Practice; ▶ Play on line 2 says ■ Stop, its first box lit
+    125 ms after the tap (no count-in), boxes b:1:0 to b:1:5 lit in order and no others, then
+    it stops by itself, the button back to ▶ Play, the from-line picker and the practice log
+    unchanged; ■ Stop stops; Copy puts line 1 with its words at the end, marked and scrolled
+    to; taps select a heading and two lines ("2 lines and 1 heading selected"), a second tap
+    unselects, Copy to the end copies them in order and ends the selection, one Undo takes
+    it back; Clear and Escape end a selection; Space on a focused number selects; a drag
+    moves and selects nothing; Enter in a word box opens row 2 at the same beat and typing
+    writes `> - তু মি`; on a 360 px touch phone a tap on a number selects; 360 px day and
+    night without sideways scrolling; no console errors. Bug found and fixed on the way:
+    the copies were not marked (writing the text redraws the rows first, so the count was
+    read too late).
+  - Scenario `move` (31 checks, its copy checks changed to "at the end") and `boxes` (29)
+    still pass.
+  - CI run `38128789762` (`3eae75f`): core, reference and deploy jobs green. Live: `edit3`
+    against https://rinatmalik.github.io/Gaaner-Sathi/ passed all 27 checks, no console
+    errors; `/` 200, `/new/` 200.
+- **Decisions made:** see Decisions (beat boxes, round three).
+- **Risks or disagreements:** ▶ Play needs sound on the device, which Rinat will hear but
+  nobody here can. A tap on a number now both selects the row and focuses it, so selecting
+  and moving share the number; a phone that scrolls on a drag elsewhere may still surprise.
+  The pitch marks in Rinat's screenshot were mostly red: either the singing was off by more
+  than 30 cents, or the delay or thresholds need tuning on a real voice (asked).
+- **Next handoff:** Rinat tries ▶ Play and copying several lines; answers on the red marks
+  and on a lyric helper; then the design phase.
 
 ### 2026-10-11 08:57 BST — Claude (Opus 5.5) — PH1-07 beat boxes round two; lean docs
 
@@ -470,82 +529,5 @@ Template:
   takes do not move between devices yet (a feature idea).
 - **Next handoff:** Rinat tries dragging and copying lines, and the other features; then the
   design phase.
-
-### 2026-10-11 02:20 BST — Claude (Opus 5.5) — PH1-06 Rinat's ten picks
-
-- **Goal:** Rinat picked ten features before the design phase: a range finder (as a tab
-  beside Rewaz and Progress); MIDI (type a song on the keyboard, the guide on the Casio's
-  harmonium voice, the key to press for each note), brand-agnostic and light; record takes
-  and play them back against the guide; notes per song; jump between sections by heading;
-  a hold-a-note trainer; a tempo per section; print or PDF; night and day; and a structured
-  way to write notation (a box per beat, filled like 2FA boxes), keeping headings and
-  comments working. Rinat also asked what the "permanent web address" question means.
-- **Inspected:** the notation parser, edit operations and checker; `app.ts`, `view.ts`,
-  `store.ts`, the transport, mic and pitch code; DATA, NOTATION, ENGINE, ROADMAP; Casio's
-  CT-X3000 pages (it is General MIDI level 1, 16 parts; its MIDI implementation PDF was not
-  reachable, so channel and tone details are not claimed).
-- **Changed:** `741eb4a` (day and night; notes per song); `232d771` (sections and their
-  tempo; `src/core/notation/sections.ts`, `tempoAt` in the transport); `1a2d9d1` (print or
-  PDF); `d5d7bcf` (beat boxes: `src/core/notation/boxes.ts`, `src/app/boxes.ts`); `84a04ce`
-  (the Voice tab: `src/core/pitch/voice.ts`, `src/app/voice.ts`, "your Sa"); `9c7d03f`
-  (takes: `src/audio/recorder.ts`, `src/audio/dsp/pcm.ts`, `src/core/practice/take.ts`,
-  `src/app/takes.ts`, ADR-004); `4799fa6` (MIDI and the keys: `src/audio/midi.ts`,
-  `src/app/keyboard.ts`, `onNote`/`localGuide` in the transport, ADR-005); this commit
-  (README, NOTATION, DATA, ENGINE, ROADMAP without Rinat's blank lines, this file).
-- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through
-  the DevTools protocol on `npm run dev`, real key and mouse events, profiles under %TEMP%):
-  - `npm run typecheck` → 0; `npx vitest run` → 28 files, 285 passed (59 new: notes and
-    theme 3, sections 8, print 2, boxes 15, voice 13, pcm 3, takes 6, MIDI 8, store 1);
-    `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid;
-    `tests/differential/audio.test.ts` 17/17 after the transport changes (section tempos,
-    guide notes out); `npm run build` → 176 kB JS (62.6 kB gzip), 31 kB CSS.
-  - Theme and notes (20 checks): Auto follows the device, Day and Night override it and
-    survive a reload with no flash; notes saved, shown, searched, copied, removed when
-    emptied. Sections (15): buttons named by headings (আরোহ / অবরোহ on exercises), a tap
-    plays from there and loops the section; the deck follows each section's tempo while
-    playing (120 → 184 → 80) and writes a change into its heading; a Bengali `লয় ৮০` read.
-    Print (7): the button and Ctrl+P fill a print-only sheet, black on white in night
-    colours, PDF named after the song; `Page.printToPDF` made a 51 kB PDF.
-  - Beat boxes (29): typing `s`, `a`, space, `re ga ma` gives `S R G | M`; Bengali; a pasted
-    line fills a row and spills into a new one; Backspace goes back and removes a beat;
-    words a beat each, a gap held with `-`; Enter puts a line in between; Ctrl+Z; + Heading
-    with a tempo; ↑ Higher on the box; note buttons; Free text both ways; Teentaal regroups;
-    a reload keeps it. Bugs found and fixed: lines started from one beat never got bars;
-    two rows of empty boxes after an unfinished last line; lyric bars not shifting when a
-    beat is removed; verses gaining bars they never had.
-  - Voice with WAVs as the microphone: range (16): B2 held, A4 only passed through, G4 held →
-    lowest B2, highest G4, "Your Sa: E (White 3), low octave"; Use as my Sa → exercises and
-    new songs in E3; for a song from `.পা` to `র্সা`, F♯ fits; kept after a reload. Hold (10):
-    a 6 s C4 held 5 cents sharp → "Held 6.0 s, very steady (±5 cents), in tune", best kept.
-  - Takes with a WAV microphone (21): Record me → each play a take (a 15 s play after the
-    count-in: a 16.8 s take, 808 544 bytes of 24 kHz samples in IndexedDB, delay 0.062 s);
-    kept after a reload; Just me; With the guide stopped by itself 17.0 s after the tap;
-    not logged as practice (the recorded play was); WAV download (RIFF, 24 kHz, 808 588
-    bytes); a changed notation noted; delete asks first and removes the samples. Bugs found and
-    fixed: a take ending while the next started shared state; editing a song did not
-    refresh its takes' notes.
-  - MIDI with a stand-in keyboard (20): connect, keys typed as beats from Sa C4
-    (`সা রা পা | র্সা .পা`), an octave typed once, out-of-range refused; the guide on the
-    keyboard: bank 0 / program 20 first, then notes on and off 83–130 ms ahead, spaced
-    545 ms at 110 a minute, first note included; all-notes-off twice on Stop; nothing sent
-    on "This device"; the drawn keys light in turn and stay on after a reload. Bug found and
-    fixed: the first note was sent at once (stamped in the past, then 32 ms early): the
-    audio clock's reading drifts ~32 ms over its first 20 ms (measured), so notes wait for it.
-  - 360 px in both themes for every view touched: no sideways scrolling.
-  - CI runs `38097120319` (`1a2d9d1`), `38098253189` (`d5d7bcf`), `38098711083` (`84a04ce`),
-    `38099833105` (`9c7d03f`), `38100429528` (`4799fa6`): all green, deployed. Live
-    (`s_live`): six tabs with Voice, section buttons, record, keys, print and keyboard
-    controls, exercise 3 plays, a song typed in boxes, no console errors; `/` 200, `/new/` 200.
-- **Decisions made:** see Decisions log (the 2026-10-11 rows on beat boxes, section tempo,
-  your Sa, takes, MIDI, the Voice tab); ADR-004, ADR-005; Open question 3 reworded.
-- **Risks or disagreements:** nothing here has met a real voice, ear or keyboard. The beat
-  boxes are Claude's reading of Rinat's idea (lines a cycle long, writing over on paste);
-  phone keyboards (Gboard, Avro) were not tried. MIDI is untested on the CT-X3000: which
-  tone channel 1 plays and whether its GM reed organ answers are guesses until Rinat tries.
-  Takes line up by the delay pitch feedback found (or the device's guess): Rinat should
-  listen for a voice late against the guide. The Sa suggestion assumes songs span mandra Pa
-  to taar Ga. IndexedDB can be evicted under storage pressure; Download is the safe copy.
-  The deck and settings keep growing above the views: for the design phase.
-- **Next handoff:** Rinat tries the ten on real songs; then the design phase.
 
 Older entries: `docs/HISTORY.md`.

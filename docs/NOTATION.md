@@ -123,8 +123,8 @@ tested, in `src/core/notation/boxes.ts`). Every box edit is a text edit, so Free
 exactly what the boxes wrote, and headings, lyrics and anything else written there are kept.
 Free text is one tap away and remembered.
 
-- **Rows** are the text's lines: each heading (its name and a tempo field), and each notes
-  line as one box per beat, grouped by the taal's vibhags (from where the line falls in the
+- **Rows** are the text's lines: each heading (its name, a tempo field and ×), and each notes
+  line as one box per beat (with ×, ▶ Play and Copy at its right), grouped by the taal's vibhags (from where the line falls in the
   cycle, start beat included), with the taal marks above and a box for the words of each
   verse below. An unfinished line shows empty boxes to the end of its cycle. After the song,
   once its last line is finished or under a heading after it, an empty row as long as the
@@ -141,13 +141,22 @@ Free text is one tap away and remembered.
 - **Readable input:** a beat the player cannot read is mended when that makes it readable:
   sargam spelt out, alone or among letters (`sa re`, `sare`, `Sre`, any case, with octave
   marks), becomes letters (`S R`, `SR`), and `রে`, `নি` become `রা`, `না`.
-- **Moving and copying:** each heading and line is dragged by its number (⠿), with a mouse
-  or a finger; a brass line shows where it will go, and the boxes scroll near their edges. A
-  tap on the number focuses it, and then ↑ and ↓ move the row one place (Escape cancels a
-  drag). A notes line moves with its lyric lines (and any blank lines between them); a
-  heading moves on its own, so moving it changes which section the lines around it belong
-  to. Other lines stay where they are. **Copy** puts a copy of a line, words and all, just
-  below it. Each move or copy is one undo step.
+- **Moving:** each heading and line is dragged by its number (⠿), with a mouse or a finger;
+  a brass line shows where it will go, and the boxes scroll near their edges (Escape cancels
+  a drag). With the number focused, ↑ and ↓ move the row one place. A notes line moves with
+  its lyric lines (and any blank lines between them); a heading moves on its own, so moving
+  it changes which section the lines around it belong to. Other lines stay where they are.
+- **Copying:** **Copy** on a line puts a copy of it, words and all, at the end of the song.
+  To copy several, tap their numbers (a heading's #, too): each tap selects or unselects a
+  row (✓), and a bar at the top of the boxes copies the rows selected to the end, in the
+  song's order. Clear, Escape on a number, or any change to the song ends the selection. Each
+  move or copy is one undo step.
+- **Play** on a line plays just that line once, at its tempo, with no count-in, lighting
+  each box as it sounds; ■ Stop stops it. It is not logged as practice or kept as a take,
+  and leaves the practice pickers as they were.
+- **Words:** typed in the boxes under the notes, a space between beats (`আ মার সো নার` typed
+  in the first box fills four), `-` for a beat the vowel is held over. Enter in a word box
+  opens another row of words (a second verse) at the same beat.
 - **Bars:** new lines get bars at the vibhags when the song's lines have bars (or there are
   none yet), in the bar character the song uses most; a line keeps its own style. Words
   rewritten under a line get bars where it has them only if they were written with bars.

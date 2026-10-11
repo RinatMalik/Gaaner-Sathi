@@ -45,7 +45,8 @@ in only when Rinat asks for them.
 | 4 | **Each song's own sound:** a song keeps its Melody and Rhythm settings from its first change | 2026-10-11 | Rinat has set up a few songs' sounds and found them kept |
 | 5 | **Ten more taals:** Tagore's six (Jhampak, Shashthi, Rupakra, Nabatal, Ekadashi, Nabapanchatal), Khemta, Deepchandi, Dhamar, Jhumra | 2026-10-11 | The new thekas sound right to Rinat |
 | 6 | **Rinat's ten picks:** beat boxes for writing notation; a Voice tab (range finder, hold-a-note trainer); takes played back against the guide; MIDI keyboards of any brand (typing, the guide on the keyboard, the keys to press); sections with their own tempo; notes per song; print or save as PDF; day and night | 2026-10-11 | Rinat has written a song in the boxes, found a Sa, held a note, recorded and played back a take, connected the CT-X3000 (typing and the guide), jumped between sections, printed a sheet |
-| 7 | **Beat boxes, round two:** lines dragged to reorder (and moved with ↑ ↓), Copy a line just below it, adding a note to a beat | 2026-10-11 | Rinat finds writing a song in the boxes convenient |
+| 7 | **Beat boxes, round two:** lines dragged to reorder (and moved with ↑ ↓), copying lines, adding a note to a beat | 2026-10-11 | Rinat finds writing a song in the boxes convenient (Rinat, 2026-10-11: "all works") |
+| 8 | **Beat boxes, round three:** ▶ Play on each line; Copy to the end, and several lines selected and copied at once; × at the top of a line; Enter for a second row of words instead of "+ words"; smaller notes in the editor | 2026-10-11 | Rinat finds writing a song in the boxes convenient |
 
 ### Next, as Rinat chooses
 
@@ -88,6 +89,9 @@ Sizes are rough: S a few hours, M a day or two, L more.
   without looping) (S); memory mode that hides the notes, then the lyrics, line by line (S).
 - **Voice and ear:** free singing with the drone and the pitch meter, no song needed (S);
   sing-back ear training: the app plays a phrase, the singer repeats it, it scores (M).
+- **Writing the words:** paste a line of lyrics once and have it split into syllables under
+  the notes (one per sung note, `-` on held beats), to correct by hand (S); type Bengali
+  phonetically in the app (`amar` → আমার) without installing a keyboard (M).
 - **Moving and sharing:** one file that moves everything to another device (songs, practice
   log, rewaz routines, your settings) and brings it all back in (S); send a song to another
   singer as a link that opens it, no file needed (S); a teacher sets a routine and the student
