@@ -1,7 +1,8 @@
 // Beat boxes (src/core/notation/boxes.ts): the rows shown, and every change a box makes to
 // the song text.
 import { describe, expect, it } from 'vitest';
-import { addHeading, appendBeats, barChar, beatsTyped, boxRows, insertLines, insertText, newRowShape, nextSpot, placeBeats, readableBeat, removeBeat, removeHeading, removeLine, setBeat, setHeading, setLyrics, verseTokens } from '../../src/core/notation/boxes';
+import { addHeading, appendBeats, barChar, beatsTyped, boxRows, insertLines, insertText, newRowShape, nextSpot, placeBeats, readableBeat, duplicateLine, moveRow, removeBeat, removeHeading, removeLine, rowBlocks, setBeat, setHeading, setLyrics, verseTokens } from '../../src/core/notation/boxes';
+import { boxesHTML } from '../../src/app/boxes';
 import { parseSong } from '../../src/core/notation/parse';
 import { taalInfo } from '../../src/core/taal/taals';
 
@@ -17,6 +18,8 @@ describe('reading what was typed', () => {
       ['রে', 'রা'], ['নি', 'না'], ['সারে', 'সারা'], ['র্নি', 'র্না'],
       ['S', 'S'], ['r', 'r'], ['n', 'n'], ['সা', 'সা'], ['পধা', 'পধা'], ['-', '-'], ['x', 'x'],
       ['xyz', 'xyz'], ['hello', 'hello'], ['রেখা', 'রেখা'], ['sab', 'sab'],
+      // Spelt out among letters, as when a note is added to a beat that has one.
+      ['Sre', 'SR'], ['Sga', 'SG'], ['Spadha', 'SPD'], ["S'ni", "S'N"],
     ];
     for (const [typed, kept] of cases) expect([typed, readableBeat(typed)]).toEqual([typed, kept]);
   });
@@ -181,5 +184,45 @@ describe('changes to the text', () => {
     const P = parseSong(t);
     expect(insertText(t, P, { after: 0 }, '\n# অন্তরা\nপা ধা\n')).toBe('S R G\n> a b\n# অন্তরা\nপা ধা\n# x\nM P');
     expect(insertText(t + '\n\n', P, { end: true }, 'D N')).toBe('S R G\n> a b\n# x\nM P\nD N\n\n');
+  });
+
+  it('rows move whole: a notes line with its lyrics, a heading on its own; other lines stay put', () => {
+    const t = '# স্থায়ী\nসা রা গা\n> আ মার সো\n\n> তু মি\nমা পা ধা\n\n# অন্তরা\nনা সা রা\n';
+    const P = parseSong(t);
+    expect(rowBlocks(t, P)).toEqual([{ first: 0, last: 0 }, { first: 1, last: 4, notes: 0 }, { first: 5, last: 5, notes: 1 }, { first: 7, last: 7 }, { first: 8, last: 8, notes: 2 }]);
+    // Line 2 to the top, then the first line to the end.
+    expect(moveRow(t, P, 2, 0)).toBe('মা পা ধা\n# স্থায়ী\nসা রা গা\n> আ মার সো\n\n> তু মি\n\n# অন্তরা\nনা সা রা\n');
+    expect(moveRow(t, P, 1, 5)).toBe('# স্থায়ী\nমা পা ধা\n\n# অন্তরা\nনা সা রা\nসা রা গা\n> আ মার সো\n\n> তু মি\n');
+    // A heading moved up takes the line before it into its section.
+    expect(moveRow(t, P, 3, 2)).toBe('# স্থায়ী\nসা রা গা\n> আ মার সো\n\n> তু মি\n# অন্তরা\nমা পা ধা\n\nনা সা রা\n');
+    // Nowhere to go: the text as it was.
+    for (const [f, to] of [[1, 1], [1, 2], [9, 0], [0, 6], [0, -1]]) expect(moveRow(t, P, f!, to!)).toBe(t);
+    // No line break at the end of the text.
+    const u = 'S R G\nM P D';
+    expect(moveRow(u, parseSong(u), 1, 0)).toBe('M P D\nS R G');
+  });
+
+  it('a line copied goes just below it, with its lyrics', () => {
+    const t = '# স্থায়ী\nসা রা গা\n> আ মার সো\nমা পা ধা';
+    const P = parseSong(t);
+    expect(duplicateLine(t, P, 0)).toBe('# স্থায়ী\nসা রা গা\n> আ মার সো\nসা রা গা\n> আ মার সো\nমা পা ধা');
+    expect(duplicateLine(t, P, 1)).toBe('# স্থায়ী\nসা রা গা\n> আ মার সো\nমা পা ধা\nমা পা ধা');
+    expect(duplicateLine(t, P, 2)).toBe(t);
+  });
+});
+
+describe('the boxes as HTML', () => {
+  it('give each heading and line a handle numbered in row order, and each line a Copy button', () => {
+    const t = '# স্থায়ী\nসা রা গা | মা পা ধা\n# অন্তরা\nনা সা রা | গা মা পা';
+    const html = boxesHTML(boxRows(t, parseSong(t), DADRA, 0), DADRA, () => 1);
+    expect(Array.from(html.matchAll(/class="bxln bxgrip" data-r="(\d+)" aria-label="([^"]+)"/g), (m) => m[1] + ' ' + m[2])).toEqual([
+      '0 Heading: drag to move it, or press ↑ or ↓',
+      '1 Line 1: drag to move it, or press ↑ or ↓',
+      '2 Heading: drag to move it, or press ↑ or ↓',
+      '3 Line 2: drag to move it, or press ↑ or ↓',
+    ]);
+    expect(Array.from(html.matchAll(/data-act="copy" data-n="(\d+)"/g), (m) => +m[1]!)).toEqual([0, 1]);
+    // The empty row to start a new line has no handle.
+    expect(html).toContain('<div class="bxrow bxnew" data-at="end"><span class="bxln" aria-hidden="true">+</span>');
   });
 });

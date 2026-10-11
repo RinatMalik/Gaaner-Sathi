@@ -430,6 +430,18 @@ textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--
 .bxadd:hover,.bxdel:hover{border-color:var(--ink-2)}
 .bxnew .bxln{color:var(--brass)}
 @media (max-width:520px){.bx,.lx{width:2.8em;min-width:2.8em}.bxgrp{padding:0 5px}.bxacts{padding-top:14px}}
+/* Moving rows: the number is the handle; a brass line shows where the row will go. */
+.boxes{position:relative}
+.bxgrip{display:grid;justify-items:center;align-content:start;gap:3px;width:24px;padding:20px 0 4px;border:0;border-radius:6px;background:transparent;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.bxhead .bxgrip{padding:2px 0}
+.bxdots{font-size:15px;line-height:1;font-weight:400;opacity:.7}
+.bxgrip:hover .bxdots,.bxgrip:focus-visible .bxdots{opacity:1;color:var(--brass)}
+.bxgrip:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.bxrow.dragging{position:relative;z-index:3;background:var(--sheet);box-shadow:0 6px 18px var(--shadow);border-radius:8px}
+.bxrow.dragging,.bxrow.dragging .bxgrip{cursor:grabbing}
+.bxrow.moved{animation:bxmoved 1.2s ease-out}
+@keyframes bxmoved{from{background:color-mix(in srgb,var(--brass) 24%,transparent)}to{background:transparent}}
+.bxdrop{position:absolute;left:4px;right:4px;height:3px;border-radius:2px;background:var(--brass);pointer-events:none;z-index:4}
 
 /* The Voice view (new): the range finder and the hold-a-note trainer. */
 .vc{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}

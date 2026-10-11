@@ -142,16 +142,16 @@ const SYL_RE = /sa|re|ga|ma|pa|dha|ni/gi;
 const hasError = (tok: string) => parseNotesLine(tok).beats.some((b) => b.err);
 
 /**
- * A beat as typed, made readable where it was not: sargam spelt out ("sa", "Re", "dha'")
- * becomes its letter (S R D'), and রে and নি become রা and না. Anything the player already
- * reads, or that the change would not mend, is left as typed.
+ * A beat as typed, made readable where it was not: sargam spelt out ("sa", "Re", "dha'"),
+ * alone or among letters ("Sre"), becomes its letter (S R D'), and রে and নি become রা and
+ * না. Anything the player already reads, or that the change would not mend, is left as typed.
  */
 export function readableBeat(tok: string): string {
   if (!hasError(tok)) return tok;
-  let t = tok;
-  if (/^[.'’`^*\-–—~_×]*(?:(?:sa|re|ga|ma|pa|dha|ni)[.'’`^*\-–—~_×#]*)+$/i.test(t)) t = t.replace(SYL_RE, (m) => SYL[m.toLowerCase()]!);
-  else t = t.replace(/রে/g, 'রা').replace(/নি/g, 'না');
-  return hasError(t) ? tok : t;
+  const syl = tok.replace(SYL_RE, (m) => SYL[m.toLowerCase()]!);
+  if (syl !== tok && !hasError(syl)) return syl;
+  const bn = tok.replace(/রে/g, 'রা').replace(/নি/g, 'না');
+  return hasError(bn) ? tok : bn;
 }
 
 /** What was typed or pasted into a box, as beats: split where the player splits beats (spaces
@@ -361,6 +361,53 @@ export function removeLine(text: string, P: ParsedSong, n: number): string {
   const lines = linesOf(text);
   const drop = new Set([nl.srcLine - 1, ...verseLines(lines, nl)]);
   return lines.filter((_, i) => !drop.has(i)).join('\n');
+}
+
+// ── Moving and copying rows ──────────────────────────────────────────────────
+
+/** The rows that move as one, in the order shown: each heading (its line), and each notes
+ * line with its lyrics (0-based text lines `first` to `last`, the lines between included). */
+export function rowBlocks(text: string, P: ParsedSong): { first: number; last: number; notes?: number }[] {
+  const lines = linesOf(text);
+  const byLine = new Map(P.noteLines.map((nl) => [nl.srcLine - 1, nl] as const));
+  const out: { first: number; last: number; notes?: number }[] = [];
+  lines.forEach((l, i) => {
+    if (l.trim()[0] === '#') {
+      out.push({ first: i, last: i });
+      return;
+    }
+    const nl = byLine.get(i);
+    if (!nl) return;
+    const v = verseLines(lines, nl);
+    out.push({ first: i, last: v.length ? v[v.length - 1]! : i, notes: nl.n });
+  });
+  return out;
+}
+
+/** Move row `from` (an index into rowBlocks) so that it sits before row `to`; `to` equal to the
+ * number of rows puts it after the last. Lines outside the rows (blank lines, stray lyrics)
+ * stay where they are. */
+export function moveRow(text: string, P: ParsedSong, from: number, to: number): string {
+  const blocks = rowBlocks(text, P);
+  const b = blocks[from];
+  if (!b || to < 0 || to > blocks.length || to === from || to === from + 1) return text;
+  const lines = linesOf(text);
+  const moving = lines.slice(b.first, b.last + 1);
+  const size = moving.length;
+  let at = to < blocks.length ? blocks[to]!.first : blocks[blocks.length - 1]!.last + 1;
+  lines.splice(b.first, size);
+  if (at > b.first) at -= size;
+  lines.splice(at, 0, ...moving);
+  return lines.join('\n');
+}
+
+/** A copy of notes line n, lyrics and all, just below it. */
+export function duplicateLine(text: string, P: ParsedSong, n: number): string {
+  const b = rowBlocks(text, P).find((x) => x.notes === n);
+  if (!b) return text;
+  const lines = linesOf(text);
+  lines.splice(b.last + 1, 0, ...lines.slice(b.first, b.last + 1));
+  return lines.join('\n');
 }
 
 /** The 0-based text line of heading k (the k-th line starting with #). */

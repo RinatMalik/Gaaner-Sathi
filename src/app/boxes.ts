@@ -2,10 +2,11 @@
  * Beat boxes in the editor (docs/NOTATION.md → Beat boxes): one box per beat, grouped by the
  * taal's vibhags, a box for the words under each beat, and the headings as their own rows.
  * Typing a space (or a bar) moves to the next box; pasting "সা রা গা মা" fills a box each.
+ * A row is dragged by its number (or moved with ↑ ↓ on it); Copy puts a copy of a line below it.
  * Every change goes into the song text (src/core/notation/boxes.ts works it out), which the
  * Free text view shows as it is. The HTML builder is pure and tested in Node.
  */
-import { addHeading, appendBeats, beatsTyped, boxRows, insertLines, insertText, newRowShape, nextSpot, placeBeats, readableBeat, removeBeat, removeHeading, removeLine, setBeat, setHeading, setLyrics, type BoxRow, type BoxSpot, type NewAt } from '../core/notation/boxes';
+import { addHeading, appendBeats, beatsTyped, boxRows, duplicateLine, insertLines, insertText, moveRow, newRowShape, nextSpot, placeBeats, readableBeat, removeBeat, removeHeading, removeLine, setBeat, setHeading, setLyrics, type BoxRow, type BoxSpot, type NewAt } from '../core/notation/boxes';
 import { parseSong } from '../core/notation/parse';
 import { setHeadingTempo } from '../core/notation/sections';
 import type { ParsedSong } from '../core/notation/types';
@@ -16,12 +17,18 @@ const atKey = (at: NewAt) => ('end' in at ? 'end' : String(at.after));
 const input = (key: string, cls: string, value: string, label: string, extra = '') =>
   '<input class="' + cls + '" data-key="' + key + '" value="' + esc(value) + '" aria-label="' + esc(label) + '" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"' + extra + '>';
 
+/** The handle a row is dragged by (row r of rowBlocks): its line number, or # for a heading. */
+const grip = (r: number, num: string, what: string) =>
+  '<button type="button" class="bxln bxgrip" data-r="' + r + '" aria-label="' + esc(what) + ': drag to move it, or press ↑ or ↓" title="Drag to move">' +
+  '<span>' + esc(num) + '</span><span class="bxdots" aria-hidden="true">⠿</span></button>';
+
 /** The rows as HTML. `verses`: how many word rows each notes line shows (at least one). */
 export function boxesHTML(rows: readonly BoxRow[], T: TaalInfo, verses: (n: number, written: number) => number): string {
   let html = '';
+  let rk = 0;
   for (const r of rows) {
     if (r.kind === 'head') {
-      html += '<div class="bxrow bxhead"><span class="bxln" aria-hidden="true">#</span>' +
+      html += '<div class="bxrow bxhead">' + grip(rk++, '#', 'Heading') +
         input('h:' + r.k, 'bxh', r.label, 'Heading', ' placeholder="Heading, such as স্থায়ী or অন্তরা"') +
         '<label class="bxtl">tempo ' + input('t:' + r.k, 'bxt', r.tempo != null ? String(r.tempo) : '', 'Tempo of this section', ' type="number" min="30" max="240" inputmode="numeric" placeholder="song’s"') + '</label>' +
         '<button type="button" class="bxdel" data-act="delhead" data-k="' + r.k + '" aria-label="Remove this heading">×</button></div>';
@@ -48,8 +55,9 @@ export function boxesHTML(rows: readonly BoxRow[], T: TaalInfo, verses: (n: numb
     });
     if (cells.length) groups += '</span>';
     if (r.kind === 'notes') {
-      html += '<div class="bxrow bxnotes" data-n="' + r.n + '"><span class="bxln">' + (r.n + 1) + '</span><div class="bxbeats">' + groups + '</div>' +
+      html += '<div class="bxrow bxnotes" data-n="' + r.n + '">' + grip(rk++, String(r.n + 1), 'Line ' + (r.n + 1)) + '<div class="bxbeats">' + groups + '</div>' +
         '<span class="bxacts"><button type="button" class="bxadd" data-act="verse" data-n="' + r.n + '" title="Another row of words (a verse)">+ words</button>' +
+        '<button type="button" class="bxadd" data-act="copy" data-n="' + r.n + '" aria-label="Copy line ' + (r.n + 1) + ' just below it" title="A copy of this line just below it">Copy</button>' +
         '<button type="button" class="bxdel" data-act="delline" data-n="' + r.n + '" aria-label="Remove line ' + (r.n + 1) + '">×</button></span></div>';
     } else {
       html += '<div class="bxrow bxnew" data-at="' + atKey(r.at) + '"><span class="bxln" aria-hidden="true">+</span><div class="bxbeats">' + groups + '</div></div>';
@@ -233,7 +241,7 @@ export function initBoxes(host: BoxesHost): Boxes {
     row.dataset.n = String(n);
     delete row.dataset.at;
     const ln = row.querySelector('.bxln');
-    if (ln) ln.textContent = String(n + 1);
+    if (ln) ln.outerHTML = grip(Array.from(box.querySelectorAll('.bxhead, .bxnotes')).indexOf(row), String(n + 1), 'Line ' + (n + 1));
     Array.from(row.querySelectorAll<HTMLInputElement>('input.bx')).forEach((x, i) => {
       x.dataset.key = (i === 0 ? 'b:' : 'g:') + n + ':' + i;
       x.setAttribute('aria-label', 'Line ' + (n + 1) + ', beat ' + (i + 1));
@@ -430,8 +438,11 @@ export function initBoxes(host: BoxesHost): Boxes {
     }
     if (beatish && (ev.key === 'Tab' || ev.key === 'ArrowRight' || ev.key === 'ArrowLeft')) {
       const back = ev.key === 'ArrowLeft' || (ev.key === 'Tab' && ev.shiftKey);
-      if (ev.key === 'ArrowRight' && e.selectionEnd !== e.value.length) return;
-      if (ev.key === 'ArrowLeft' && e.selectionStart !== 0) return;
+      // An arrow first ends a selection (→ then typing adds a note to the beat), and moves to
+      // the next box from the edge.
+      const caret = e.selectionStart === e.selectionEnd;
+      if (ev.key === 'ArrowRight' && (!caret || e.selectionEnd !== e.value.length)) return;
+      if (ev.key === 'ArrowLeft' && (!caret || e.selectionStart !== 0)) return;
       const all = Array.from(box.querySelectorAll<HTMLInputElement>('input.bx:not([tabindex="-1"])'));
       const i = all.indexOf(e);
       const to = all[i + (back ? -1 : 1)];
@@ -458,13 +469,157 @@ export function initBoxes(host: BoxesHost): Boxes {
   function undo(): boolean {
     const top = undoStack.pop();
     if (!top) return false;
+    // Undone from a row's handle (after moving it): the focus stays on a handle there.
+    const a = document.activeElement as HTMLElement | null;
+    const onGrip = a && box.contains(a) && a.classList.contains('bxgrip') ? +a.dataset.r! : -1;
     host.setText(top.text, false);
     drawn = shapeOf();
     grow = null;
     pending = null;
     render({ key: top.key, select: false });
+    if (onGrip >= 0) {
+      const gs = grips();
+      gs[Math.min(onGrip, gs.length - 1)]?.focus({ preventScroll: true });
+    }
     return true;
   }
+
+  // ── Moving and copying lines ───────────────────────────────────────────────
+
+  /** Each move or copy is its own undo step. */
+  let moves = 0;
+  const grips = () => Array.from(box.querySelectorAll<HTMLElement>('.bxgrip'));
+
+  /** Move row r (rowBlocks order) to before row `to`, and show where it went. */
+  function moveTo(r: number, to: number, focus: boolean): void {
+    const t = moveRow(host.text(), parsed(), r, to);
+    if (t === host.text()) {
+      if (focus) grips()[r]?.focus({ preventScroll: true });
+      return;
+    }
+    write(t, 'x:move:' + ++moves, false);
+    afterRows(to > r ? to - 1 : to, focus);
+  }
+
+  /** After rows moved or a line was copied: draw again and mark row r (and focus its handle,
+   * so the arrow keys move it on). */
+  function afterRows(r: number, focus: boolean): void {
+    grow = null;
+    pending = null;
+    extraVerse.clear();
+    lastKey = '';
+    render();
+    const g = grips()[r];
+    const row = g?.closest<HTMLElement>('.bxrow');
+    if (!g || !row) return;
+    row.classList.add('moved');
+    window.setTimeout(() => row.classList.remove('moved'), 1200);
+    if (focus) g.focus({ preventScroll: true });
+    row.scrollIntoView({ block: 'nearest' });
+  }
+
+  /** A row being dragged by its handle. Positions are in the boxes' scrolled content. */
+  let drag: {
+    id: number; r: number; row: HTMLElement; grip: HTMLElement; mark: HTMLElement;
+    y0: number; tops: number[]; bottoms: number[]; to: number; y: number; moved: boolean; raf: number;
+  } | null = null;
+  const contentTop = () => box.getBoundingClientRect().top + box.clientTop - box.scrollTop;
+
+  function dragTo(clientY: number): void {
+    const d = drag;
+    if (!d) return;
+    d.y = clientY;
+    const y = clientY - contentTop();
+    if (!d.moved && Math.abs(y - d.y0) < 5) return;
+    if (!d.moved) d.row.classList.add('dragging');
+    d.moved = true;
+    d.row.style.transform = 'translateY(' + (y - d.y0) + 'px)';
+    let to = d.tops.length;
+    for (let i = 0; i < d.tops.length; i++) {
+      if (i !== d.r && y < (d.tops[i]! + d.bottoms[i]!) / 2) {
+        to = i;
+        break;
+      }
+    }
+    d.to = to;
+    d.mark.hidden = to === d.r || to === d.r + 1;
+    d.mark.style.top = (to < d.tops.length ? d.tops[to]! : d.bottoms[d.bottoms.length - 1]!) - 2 + 'px';
+  }
+
+  /** Near the top or bottom of the boxes (as far as they are on screen), they scroll while a
+   * row is dragged, faster nearer the edge; at their end, the page scrolls if they go past it. */
+  function edgeScroll(): void {
+    const d = drag;
+    if (!d) return;
+    const b = box.getBoundingClientRect();
+    const top = Math.max(b.top, 0);
+    const bottom = Math.min(b.bottom, window.innerHeight);
+    const edge = Math.min(48, (bottom - top) / 4);
+    const depth = d.y < top + edge ? d.y - top - edge : d.y > bottom - edge ? d.y - bottom + edge : 0;
+    if (depth && d.moved) {
+      const step = Math.sign(depth) * Math.min(20, 4 + Math.abs(depth) / 3);
+      const was = box.scrollTop;
+      box.scrollTop += step;
+      if (box.scrollTop === was && (step > 0 ? b.bottom > window.innerHeight : b.top < 0)) window.scrollBy(0, step);
+      dragTo(d.y);
+    }
+    d.raf = requestAnimationFrame(edgeScroll);
+  }
+
+  function endDrag(commit: boolean): void {
+    const d = drag;
+    if (!d) return;
+    drag = null;
+    cancelAnimationFrame(d.raf);
+    window.removeEventListener('keydown', dragKey, true);
+    d.mark.remove();
+    d.row.classList.remove('dragging');
+    d.row.style.transform = '';
+    if (!d.row.isConnected || !commit) return;
+    // The handle keeps the focus (a tap only focuses it), so ↑ ↓ and Ctrl+Z work on from there.
+    if (!d.moved) d.grip.focus();
+    else moveTo(d.r, d.to, true);
+  }
+  const dragKey = (ev: KeyboardEvent) => {
+    if (ev.key !== 'Escape' || !drag) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    endDrag(false);
+  };
+
+  box.addEventListener('pointerdown', (ev) => {
+    const g = (ev.target as Element).closest<HTMLElement>('.bxgrip');
+    const row = g?.closest<HTMLElement>('.bxrow');
+    if (!g || !row || drag || ev.button !== 0) return;
+    ev.preventDefault();
+    const top = contentTop();
+    const rows = grips().map((x) => x.closest('.bxrow')!.getBoundingClientRect());
+    const mark = document.createElement('div');
+    mark.className = 'bxdrop';
+    mark.hidden = true;
+    box.append(mark);
+    const r = +g.dataset.r!;
+    drag = {
+      id: ev.pointerId, r, row, grip: g, mark, y0: ev.clientY - top, y: ev.clientY, to: r, moved: false, raf: 0,
+      tops: rows.map((x) => x.top - top), bottoms: rows.map((x) => x.bottom - top),
+    };
+    try {
+      g.setPointerCapture(ev.pointerId);
+    } catch {
+      // a pointer already gone
+    }
+    window.addEventListener('keydown', dragKey, true);
+    drag.raf = requestAnimationFrame(edgeScroll);
+  });
+  box.addEventListener('pointermove', (ev) => {
+    if (drag && ev.pointerId === drag.id) dragTo(ev.clientY);
+  });
+  box.addEventListener('pointerup', (ev) => {
+    if (drag && ev.pointerId === drag.id) endDrag(true);
+  });
+  box.addEventListener('pointercancel', (ev) => {
+    if (drag && ev.pointerId === drag.id) endDrag(false);
+  });
 
   // ── Events ─────────────────────────────────────────────────────────────────
 
@@ -503,6 +658,17 @@ export function initBoxes(host: BoxesHost): Boxes {
   });
   box.addEventListener('keydown', (ev) => {
     const e = ev.target as HTMLInputElement;
+    if (e.classList.contains('bxgrip')) {
+      const r = +e.dataset.r!;
+      if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
+        ev.preventDefault();
+        moveTo(r, ev.key === 'ArrowUp' ? r - 1 : r + 2, true);
+      } else if ((ev.ctrlKey || ev.metaKey) && !ev.altKey && !ev.shiftKey && ev.key.toLowerCase() === 'z') {
+        ev.preventDefault();
+        undo();
+      }
+      return;
+    }
     if (e.dataset.key) onKey(ev, e, e.dataset.key);
   });
   box.addEventListener('focusin', (ev) => {
@@ -543,6 +709,10 @@ export function initBoxes(host: BoxesHost): Boxes {
         const rows = box.querySelectorAll<HTMLInputElement>('[data-key^="l:' + nl.n + ':"][data-key$=":0"]');
         rows[rows.length - 1]?.focus();
       }
+    } else if (b.dataset.act === 'copy') {
+      const r = +(b.closest('.bxrow')?.querySelector<HTMLElement>('.bxgrip')?.dataset.r ?? -2);
+      write(duplicateLine(host.text(), P, +b.dataset.n!), 'x:copy:' + ++moves, false);
+      afterRows(r + 1, false);
     } else if (b.dataset.act === 'delline') {
       write(removeLine(host.text(), P, +b.dataset.n!), 'x:delline', false);
       extraVerse.clear();
