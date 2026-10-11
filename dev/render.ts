@@ -166,7 +166,8 @@ async function newTaals(show: (r: unknown) => void) {
   }
 }
 
-// ── The end of a song (2026-10-11): the last note and the tail fade over a quarter second ──
+// ── The end of a song (2026-10-11): the last note and the tail fade over a quarter second, ──
+// ── and so does a note followed by silence ──
 
 /** RMS level (dB) of the 10 ms from time t. */
 function levelAt(buf: AudioBuffer, t: number): number {
@@ -190,15 +191,16 @@ function fallMs(buf: AudioBuffer, from: number, drop: number): number {
 
 /** "S R G M | P D N S" in Keherwa at 120, no count-in, played to its end as the app does
  * (stopping when the transport says the end has come): the guide alone, then with a
- * tanpura. The last note lets go at 4.095 s; the end comes 1.3 s after the song, at 5.42 s. */
-async function renderEnding(endFade: number, droneVol: number): Promise<AudioBuffer> {
+ * tanpura. The last note lets go at 4.095 s; the end comes 1.3 s after the song, at 5.42 s.
+ * With "S R G x | …", Ga lets go at 1.595 s into a beat of silence (Pa comes at 2.12 s). */
+async function renderEnding(endFade: number, droneVol: number, song = 'S R G M | P D N S\n'): Promise<AudioBuffer> {
   const secs = 6.2;
   const off = new OfflineAudioContext(2, SR * secs, SR);
   const { ctx, setNow } = timed(off);
   const T = new Transport(createEngine(ctx, seeded(9)), () => 0);
   T.endFade = endFade;
   const sound: SoundSettings = structuredClone({ ...DEFAULT_SOUND, beat: 'off', countIn: false, droneVol });
-  T.start({ parsed: parseSong('S R G M | P D N S\n'), taal: taalInfo('keherwa'), song: { tempo: 120, saKey: 0, saOct: 4, startOn: 1 }, sound }, { from: 0, to: 0, loop: false });
+  T.start({ parsed: parseSong(song), taal: taalInfo('keherwa'), song: { tempo: 120, saKey: 0, saOct: 4, startOn: 1 }, sound }, { from: 0, to: 0, loop: false });
   for (let i = 1; i * 0.025 <= secs; i++) {
     setNow(i * 0.025);
     if (T.endAt && i * 0.025 >= T.endAt) T.stop();
@@ -212,12 +214,14 @@ async function ending() {
   for (const endFade of [0.25, 0]) {
     const note = await renderEnding(endFade, 0);
     const tan = await renderEnding(endFade, 0.6);
+    const hush = await renderEnding(endFade, 0, 'S R G x | P D N S\n');
     rows.push({
       ending: endFade ? 'gentle (the app now)' : 'short (the prototype)',
       lastNoteFalls20dBInMs: fallMs(note, 4.095, 20),
       lastNoteFalls40dBInMs: fallMs(note, 4.095, 40),
       tanpuraFalls20dBInMs: endFade ? fallMs(tan, 5.42 - endFade, 20) : fallMs(tan, 5.42, 20),
       tanpuraFalls40dBInMs: endFade ? fallMs(tan, 5.42 - endFade, 40) : fallMs(tan, 5.42, 40),
+      noteBeforeSilenceFalls20dBInMs: fallMs(hush, 1.595, 20),
     });
   }
   return rows;

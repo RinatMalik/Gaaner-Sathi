@@ -55,6 +55,15 @@ export type DisplayEntry = BeatEntry | EndEntry;
 const mod = (a: number, n: number) => ((a % n) + n) % n;
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
+/** Whether silence (`x`) comes at song time t, where a note ends: the share of the beat there
+ * is a rest. A note always ends where a share of a beat starts. */
+export function silenceAt(P: ParsedSong, t: number): boolean {
+  const g = Math.floor(t + 1e-9);
+  const b = P.beatList[g];
+  if (!b) return false;
+  return b.units[Math.round((t - g) * (b.units.length || 1))]?.k === 'rest';
+}
+
 export class Transport {
   playing = false;
   sess: Session | null = null;
@@ -76,7 +85,8 @@ export class Transport {
   onNote: ((t: number, dur: number, note: number) => void) | null = null;
   localGuide = true;
   /** When the song (or its rounds) ends by itself, its last note and then whatever still sounds
-   * fade out over this many seconds, rather than stopping short. 0: the prototype's ending. */
+   * fade out over this many seconds, rather than stopping short; so does a note followed by
+   * silence (`x`). 0: the prototype's ending. */
   endFade = 0.25;
   private src!: PlaySource;
   private t = 0;
@@ -224,9 +234,11 @@ export class Transport {
         if (d <= 0) continue;
         const at = time + (e.start - s) * spb;
         // The song's last note fades out gently (where it reaches the end of the song, or of
-        // the last of a set number of rounds).
-        const last = this.endFade > 0 && e.start + d >= this.secEnd - 1e-9 && (!this.loop || (this.rounds > 0 && pass === this.rounds - 1));
-        if (this.localGuide) reed(this.E, sess, reedSet(this.src.sound.reeds), at, d * spb, noteFreq(this.src.song, e), 0.32, last ? this.endFade / 3 : undefined);
+        // the last of a set number of rounds), and so does a note followed by silence.
+        const end = e.start + d;
+        const last = this.endFade > 0 && end >= this.secEnd - 1e-9 && (!this.loop || (this.rounds > 0 && pass === this.rounds - 1));
+        const hush = this.endFade > 0 && end < this.secEnd - 1e-9 && silenceAt(this.src.parsed, end);
+        if (this.localGuide) reed(this.E, sess, reedSet(this.src.sound.reeds), at, d * spb, noteFreq(this.src.song, e), 0.32, last || hush ? this.endFade / 3 : undefined);
         this.onNote?.(at, d * spb, saMidi(this.src.song) + e.semi + 12 * e.oct);
       }
     }

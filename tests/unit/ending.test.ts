@@ -1,5 +1,6 @@
 // The end of a song or of its rounds (src/audio/transport.ts): the last note and then the
-// sound still ringing fade out over a quarter of a second, instead of stopping short.
+// sound still ringing fade out over a quarter of a second, instead of stopping short; so does a
+// note followed by silence (x).
 import { describe, expect, it } from 'vitest';
 import { createEngine } from '../../src/audio/engine';
 import { DEFAULT_SOUND } from '../../src/audio/sound';
@@ -11,12 +12,12 @@ import { seeded } from '../helpers';
 
 const SONG = 'S R G M | P D N S\nS N D P | M G R S\n';
 
-function play(opts: { from: number; to: number; loop: boolean; rounds?: number }, endFade?: number, secs = 12) {
+function play(opts: { from: number; to: number; loop: boolean; rounds?: number }, endFade?: number, secs = 12, song = SONG) {
   const rec = new RecordingContext();
   const T = new Transport(createEngine(rec as unknown as BaseAudioContext, seeded(7)), () => {});
   if (endFade != null) T.endFade = endFade;
   const sound = { ...structuredClone(DEFAULT_SOUND), countIn: false, droneVol: 0.5 };
-  T.start({ parsed: parseSong(SONG), taal: taalInfo('keherwa'), song: { saKey: 0, saOct: 4, tempo: 120, startOn: 1 }, sound }, opts);
+  T.start({ parsed: parseSong(song), taal: taalInfo('keherwa'), song: { saKey: 0, saOct: 4, tempo: 120, startOn: 1 }, sound }, opts);
   for (let i = 1; i * 0.025 <= secs && !T.endAt; i++) {
     rec.currentTime = i * 0.025;
     T.tick();
@@ -52,5 +53,20 @@ describe('the end of a song', () => {
     const short = play({ from: 0, to: 1, loop: false }, 0).fades;
     expect(short.some(soft)).toBe(false);
     expect(short.filter(([, c]) => c === 0.04)).toHaveLength(16);
+  });
+
+  it('fades a note followed by silence (x) the same way, even within a beat', () => {
+    // Sa; Re for half a beat, then silence; Ga held over two beats, then silence; Pa, Dha; Ni last.
+    const song = 'S Rx G - | x P D N\n';
+    const { fades } = play({ from: 0, to: 0, loop: false }, undefined, 8, song);
+    const soft = fades.filter(([, c]) => Math.abs(c - 0.25 / 3) < 1e-9).map(([t]) => +t.toFixed(3));
+    // Re lets go at 0.845 s, Ga at 2.095 s, Ni (the last) at 4.095 s; then the rest at 5.17 s.
+    expect(soft).toEqual([0.845, 2.095, 4.095, 5.17, 5.17]);
+    // Sa, Pa and Dha, each followed by a note, let go as before.
+    expect(fades.filter(([, c]) => c === 0.04).map(([t]) => +t.toFixed(3))).toEqual([0.595, 3.095, 3.595]);
+    // With the prototype's ending, none fades.
+    const short = play({ from: 0, to: 0, loop: false }, 0, 8, song).fades;
+    expect(short.filter(([, c]) => c === 0.04)).toHaveLength(6);
+    expect(short.some(([, c]) => Math.abs(c! - 0.25 / 3) < 1e-9)).toBe(false);
   });
 });
