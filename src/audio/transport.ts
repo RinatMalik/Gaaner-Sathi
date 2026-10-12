@@ -93,6 +93,9 @@ export class Transport {
   private nextTime = 0;
   private s0 = 0;
   private carry: NoteEvent[] = [];
+  /** Going on after a pause: the first beat's raw count, and the notes held across it. */
+  private resumeRaw = NaN;
+  private resumeCarry: NoteEvent[] = [];
   private afterFill = false;
   private tanNext = 0;
   private tanStep = 0;
@@ -114,10 +117,12 @@ export class Transport {
 
   /**
    * Start playing from note line `from` (and loop to line `to`, for `rounds` rounds if
-   * given). Count-in: one cycle plus any pickup, always starting at sam. Returns the lines
-   * used and the count-in length in beats, or null when there is nothing to play.
+   * given). Count-in: one cycle plus any pickup, always starting at sam. `at` goes on from
+   * song beat s in round `pass` instead (after a pause): at once, with no count-in, a note
+   * held across that beat sounding again from it. Returns the lines used and the count-in
+   * length in beats, or null when there is nothing to play.
    */
-  start(src: PlaySource, opts: { from: number; to: number; loop: boolean; rounds?: number }, now: number = this.E.ctx.currentTime): { from: number; to: number; pre: number } | null {
+  start(src: PlaySource, opts: { from: number; to: number; loop: boolean; rounds?: number; at?: { s: number; pass: number } }, now: number = this.E.ctx.currentTime): { from: number; to: number; pre: number } | null {
     const L = src.parsed.noteLines;
     if (!L.length) return null;
     if (this.playing) this.stop();
@@ -133,13 +138,25 @@ export class Transport {
     const at = this.taalOf(this.secStart);
     const cyc = at.T.cycle;
     const pos = mod(this.secStart + at.off, cyc);
-    const pre = pos + (src.sound.countIn ? cyc : 0);
+    let pre = pos + (src.sound.countIn ? cyc : 0);
     this.s0 = this.secStart - pre;
     this.t = 0;
     this.queue = [];
     this.endAt = 0;
     this.afterFill = false;
-    this.carry = src.parsed.events.filter((e) => e.start < this.secStart - 1e-9 && e.start + e.dur > this.secStart + 1e-9);
+    const across = (s: number) => src.parsed.events.filter((e) => e.start < s - 1e-9 && e.start + e.dur > s + 1e-9);
+    this.carry = across(this.secStart);
+    this.resumeRaw = NaN;
+    this.resumeCarry = [];
+    if (opts.at) {
+      const s = clamp(Math.floor(opts.at.s), this.secStart, this.secEnd - 1);
+      const pass = this.loop ? Math.max(0, Math.floor(opts.at.pass)) : 0;
+      pre = 0;
+      this.s0 = this.secStart + pass * this.secLen + (s - this.secStart);
+      this.resumeRaw = this.s0;
+      // At the section's start the loop's own carry already sounds them.
+      if (s > this.secStart) this.resumeCarry = across(s);
+    }
     const sess = makeSession(this.E, src.sound, saFreq(src.song));
     this.sess = sess;
     startDrone(this.E, sess, saFreq(src.song));
@@ -228,6 +245,7 @@ export class Transport {
     if (this.guideOn(pass)) {
       const evs: { start: number; dur: number; semi: number; oct: number }[] = (this.src.parsed.byBeat[s] || []).slice();
       if (s === this.secStart) for (const e of this.carry) evs.push({ start: this.secStart, dur: e.start + e.dur - this.secStart, semi: e.semi, oct: e.oct });
+      if (raw === this.resumeRaw) for (const e of this.resumeCarry) evs.push({ start: s, dur: e.start + e.dur - s, semi: e.semi, oct: e.oct });
       for (const e of evs) {
         let d = e.dur;
         if (this.loop) d = Math.min(d, this.secEnd - e.start);

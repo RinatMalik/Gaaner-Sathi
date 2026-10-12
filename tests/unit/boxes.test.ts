@@ -238,7 +238,7 @@ describe('changes to the text', () => {
 });
 
 describe('the boxes as HTML', () => {
-  it('give each heading and line a handle numbered in row order, each line ▶ under it, and each row its × last', () => {
+  it('give each heading and line a handle numbered in row order, and each line its buttons at the end', () => {
     const t = '# স্থায়ী\nসা রা গা | মা পা ধা\n# অন্তরা\nনা সা রা | গা মা পা';
     const html = boxesHTML(boxRows(t, parseSong(t), DADRA, 0), () => 1);
     const L = ': select it, or drag it (or press ↑ ↓) to move it';
@@ -252,16 +252,40 @@ describe('the boxes as HTML', () => {
     const picked = boxesHTML(boxRows(t, parseSong(t), DADRA, 0), () => 1, new Set([1, 2]));
     expect(Array.from(picked.matchAll(/<div class="bxrow (\w+)( sel)?"/g), (m) => m[1] + (m[2] ?? ''))).toEqual(['bxhead', 'bxnotes sel', 'bxhead sel', 'bxnotes', 'bxnew']);
     expect(Array.from(picked.matchAll(/data-r="(\d)" aria-pressed="true"/g), (m) => +m[1]!)).toEqual([1, 2]);
-    // A line: its number, ▶ just under it (icon only), the boxes, then × (no Copy of its own).
+    // A line: its number first, then the boxes, then play it, play from it, remove it (icons,
+    // labelled); no Copy of its own.
     expect(html).not.toContain('data-act="copy"');
     expect(html).not.toContain('data-act="verse"');
-    expect(html).toContain('<span class="bxlead"><button type="button" class="bxln bxgrip" data-r="1"');
-    expect(Array.from(html.matchAll(/class="bxplay" data-act="play" data-n="(\d)" aria-label="([^"]+)"[^>]*>([^<]*)</g), (m) => m[1] + ' ' + m[2] + ' ' + m[3])).toEqual(['0 Play line 1 ▶', '1 Play line 2 ▶']);
-    expect(Array.from(html.matchAll(/data-act="(delline|play)" data-n="0"/g), (m) => m[1])).toEqual(['play', 'delline']);
-    expect(html).toMatch(/<\/div><button type="button" class="bxdel" data-act="delline" data-n="0"[^>]*>×<\/button><\/div>/);
-    // A heading: its fields together, then × at the end of the row (its top right).
-    expect(html).toMatch(/<span class="bxhf"><input class="bxh"[\s\S]*?<\/select><\/label><\/span><button type="button" class="bxdel" data-act="delhead" data-k="0"/);
+    expect(html).toMatch(/<div class="bxrow bxnotes" data-n="0"><button type="button" class="bxln bxgrip" data-r="1"[^>]*><span>1<\/span><\/button><div class="bxbeats">/);
+    const at0 = html.indexOf('data-n="0">');
+    const line0 = html.slice(at0, html.indexOf('<div class="bxrow', at0));
+    expect(Array.from(line0.matchAll(/<span class="bxside">|class="bxbtn (\w+)" data-act="(\w+)" data-n="0" aria-label="([^"]+)" title="([^"]+)"><svg/g), (m) => m[0].startsWith('<span') ? 'side' : m.slice(1).join(' · '))).toEqual([
+      'side',
+      'bxplay · play · Play line 1 · Play this line',
+      'bxfrom · from · Play from line 1 to the end · Play from here',
+      'bxdel · delline · Remove line 1 · Remove this line',
+    ]);
+    expect(line0).toMatch(/<\/div><span class="bxside">.*<\/span><\/div>$/);
+    // A heading: its fields together, then × at the end of the row, as on a line.
+    expect(html).toMatch(/<span class="bxhf"><input class="bxh"[\s\S]*?<\/select><\/label><\/span><span class="bxside"><button type="button" class="bxbtn bxdel" data-act="delhead" data-k="0"/);
     // The empty row to start a new line has no handle.
     expect(html).toContain('<div class="bxrow bxnew" data-at="end"><span class="bxln" aria-hidden="true">+</span>');
+  });
+
+  it('colour the first beat of each vibhag by its kind, instead of marking it X, 0 or a number', () => {
+    const t = 'সা রা গা মা | পা ধা না র্সা | র্সা না ধা পা | মা গা রা সা';
+    const T = taalInfo('teentaal');
+    const html = boxesHTML(boxRows(t, parseSong(t), T, 0), () => 1);
+    const kinds = (h: string) => Array.from(h.matchAll(/<span class="bxcell( ghost)?( v-\w+)?"/g), (m) => (m[2] ?? '').trim() || '-');
+    const line = html.slice(0, html.indexOf('bxnew'));
+    expect(kinds(line)).toEqual(['v-sam', '-', '-', '-', 'v-tali', '-', '-', '-', 'v-khali', '-', '-', '-', 'v-tali', '-', '-', '-']);
+    expect(html).not.toContain('bxmark');
+    // Said in the boxes' labels, for screen readers.
+    expect(Array.from(line.matchAll(/class="bx" data-key="b:0:\d+" value="[^"]*" aria-label="([^"]+)"/g), (m) => m[1]).filter((l) => /sam|tali|khali/.test(l))).toEqual(['Line 1, beat 1, sam', 'Line 1, beat 5, tali 2', 'Line 1, beat 9, khali', 'Line 1, beat 13, tali 3']);
+    // The empty row for a new line is coloured the same way.
+    expect(kinds(html.slice(html.indexOf('bxnew')))).toEqual(['v-sam', '-', '-', '-', 'v-tali', '-', '-', '-', 'v-khali', '-', '-', '-', 'v-tali', '-', '-', '-']);
+    // Rupak starts on khali (0); Tagore's taals have no khali.
+    const R = boxesHTML(boxRows('সা রা গা | মা পা | ধা না', parseSong('সা রা গা | মা পা | ধা না'), taalInfo('rupak'), 0), () => 1);
+    expect(kinds(R.slice(0, R.indexOf('bxnew')))).toEqual(['v-khali', '-', '-', 'v-tali', '-', 'v-tali', '-']);
   });
 });

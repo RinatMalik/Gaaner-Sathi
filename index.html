@@ -31,10 +31,15 @@
   </header>
 
   <section class="deck" aria-label="Playback">
-    <button id="playBtn" class="play" type="button" aria-label="Play">
-      <svg class="ic-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/></svg>
-      <svg class="ic-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor"/></svg>
-    </button>
+    <div class="transport">
+      <button id="playBtn" class="play" type="button" aria-label="Play" title="Play">
+        <svg class="ic-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/></svg>
+        <svg class="ic-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4.2" height="14" rx="1.2" fill="currentColor"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.2" fill="currentColor"/></svg>
+      </button>
+      <button id="stopBtn" class="stopbtn" type="button" aria-label="Stop" title="Stop" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor"/></svg>
+      </button>
+    </div>
     <div class="ctl">
       <span class="lab">Tempo · matras / min</span>
       <div class="tempo">
@@ -178,7 +183,7 @@
           <div class="popts"><label class="chk2"><input type="checkbox" id="pOct"> The octave must match too</label><span class="phint">Headphones help: otherwise the microphone also hears the harmonium.</span><span class="phint" id="pLag"></span></div>
         </div>
       </section>
-      <div class="sheetHead"><h2 id="songTitle"></h2><span class="hint">Tap a section or a line number to play from there · Space bar plays and stops</span><button id="printBtn" class="ibtn" type="button">Print or save as PDF</button></div>
+      <div class="sheetHead"><h2 id="songTitle"></h2><span class="hint">Tap a section or a line number to play from there · Space bar plays and pauses</span><button id="printBtn" class="ibtn" type="button">Print or save as PDF</button></div>
       <div class="chips secs" id="secChips" role="group" aria-label="Sections: tap one to play from there" hidden></div>
       <details class="about" id="aboutBox" hidden><summary>About this song</summary><div class="abouttext" id="aboutText"></div></details>
       <div class="sheet" id="sheetP"></div>
@@ -296,6 +301,7 @@
             <button type="button" class="obtn" id="splitBtn" title="Give each note in the selected beat its own beat">Split</button>
             <span class="selinfo" id="selInfo" aria-live="polite">Choose a beat box</span>
           </div>
+          <div class="bxkey" id="bxKey"><span>The first beat of each part of the taal:</span><span class="kk v-sam"><i></i>sam (X)</span><span class="kk v-tali"><i></i>tali (2, 3 …)</span><span class="kk v-khali"><i></i>khali (0)</span></div>
           <div class="boxes" id="boxes" role="group" aria-label="Notation, a box for each beat"></div>
           <p class="phint bxnote" id="bxNote" aria-live="polite" hidden></p>
           <textarea id="notation" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Notation"></textarea>
@@ -303,7 +309,7 @@
           <details class="help" id="help">
             <summary>How to type your diary notation</summary>
             <table>
-              <tr><td>Beat boxes</td><td>Each box is one beat, laid out by the taal. Type the note and a space to go to the next box, or paste a line such as <code>সা রা গা মা</code> into a box to fill a box each. <code>sa re ga</code> works too. Enter starts a new line; Backspace in an empty box removes it. ▶ under a line's number plays just that line. Drag a line by its number to move it (or press ↑ ↓ on the number); tap the numbers of several lines first to move them together. To copy lines, tap their numbers and press <b>Copy</b>; then tap the number of the line they should go after and press <b>Paste</b>, as often as you like, in this song or another. Ctrl+C and Ctrl+V on a number do the same.</td></tr>
+              <tr><td>Beat boxes</td><td>Each box is one beat, laid out by the taal. Type the note and a space to go to the next box, or paste a line such as <code>সা রা গা মা</code> into a box to fill a box each. <code>sa re ga</code> works too. Enter starts a new line; Backspace in an empty box removes it. The first beat of each part of the taal is coloured: sam, tali or khali. At the end of each line, its buttons play just that line, play from that line to the end of the song, and remove it. Tap a line (anywhere but a box) or its number to select it; drag a line by its number to move it (or press ↑ ↓ on the number), and select several lines first to move them together. To copy lines, select them and press <b>Copy</b>; then select the line they should go after and press <b>Paste</b>, as often as you like, in this song or another. Ctrl+C and Ctrl+V on a number do the same.</td></tr>
               <tr><td>Words</td><td>Paste a line of the song's words into the word box under its first note: they are split into syllables, one under each note, with <code>-</code> where a note is held, on into the next lines. Or type them, a space between beats: <code>আ মার সো নার</code> typed in the first box fills four. Correct any syllable by typing over it. Enter in the words adds another row of them (a second verse).</td></tr>
               <tr><td>Two notes in one beat</td><td>Type them together, with no space: <code>সারা</code>, <code>SR</code> or <code>sare</code>. They share the beat equally. To add a note to a box that has one, tap at the end of it (or press →) and type.</td></tr>
               <tr><td>One beat (matra)</td><td>Each group between spaces is one beat: <code>সা রা গা</code> is three beats.</td></tr>

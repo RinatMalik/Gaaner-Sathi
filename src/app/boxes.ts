@@ -4,8 +4,10 @@
  * Typing a space (or a bar) moves to the next box; pasting "সা রা গা মা" fills a box each, and
  * a line of words pasted under the notes is split into syllables, one to each note.
  * A row is dragged by its number (or moved with ↑ ↓ on it), with the other rows selected if it is
- * one of them; a tap on the number selects it. The rows selected can be copied, to paste after
- * the row selected (in this song or another). ▶ under a line's number plays that line. A
+ * one of them; a tap on the number, or on any empty space in the row, selects it. The rows
+ * selected can be copied, to paste after the row selected (in this song or another). Each line
+ * ends with buttons to play it, play from it to the end, and remove it. The first beat of each
+ * vibhag is coloured for sam, khali or tali. A
  * heading can give its section a tempo and a taal of its own (taal pherta), which the rows
  * under it follow. Every change goes into the song text (src/core/notation/boxes.ts works it out), which the
  * Free text view shows as it is. The HTML builder is pure and tested in Node.
@@ -23,16 +25,34 @@ const atKey = (at: NewAt) => ('end' in at ? 'end' : String(at.after));
 const input = (key: string, cls: string, value: string, label: string, extra = '') =>
   '<input class="' + cls + '" data-key="' + key + '" value="' + esc(value) + '" aria-label="' + esc(label) + '" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"' + extra + '>';
 
-/** The handle of row r (of rowBlocks): its line number, or # for a heading. A tap selects the
- * row (to copy it, or to paste after it); dragging it, or ↑ ↓, moves it. */
+/** The handle of row r (of rowBlocks): its line number, or # for a heading, the full height of
+ * the row. A tap selects the row (as does a tap on any empty space in it); dragging it, or
+ * ↑ ↓, moves it. */
 const grip = (r: number, num: string, what: string, sel: boolean) =>
   '<button type="button" class="bxln bxgrip" data-r="' + r + '" aria-pressed="' + sel + '" aria-label="' + esc(what) + ': select it, or drag it (or press ↑ ↓) to move it" title="Tap to select · drag to move">' +
   '<span>' + esc(num) + '</span></button>';
 
-/** The front of notes line n (row r): its handle, and ▶ just under the number to play it. */
-const lead = (r: number, n: number, sel: boolean) =>
-  '<span class="bxlead">' + grip(r, String(n + 1), 'Line ' + (n + 1), sel) +
-  '<button type="button" class="bxplay" data-act="play" data-n="' + n + '" aria-label="Play line ' + (n + 1) + '" title="Play just this line">▶</button></span>';
+/** The icons on a row's buttons. */
+const svg = (body: string) => '<svg viewBox="0 0 24 24" aria-hidden="true">' + body + '</svg>';
+export const ICONS = {
+  play: svg('<path d="M8 5v14l11-7z" fill="currentColor"/>'),
+  from: svg('<path d="M3 6.5h11M3 11.5h11M3 16.5h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M13 13.5v8l7-4z" fill="currentColor"/>'),
+  stop: svg('<rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor"/>'),
+  del: svg('<path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>'),
+};
+
+/** The buttons at the end of notes line n, each the full height of the row: play this line,
+ * play from here to the end, remove the line. */
+const lineButtons = (n: number) =>
+  '<span class="bxside">' +
+  '<button type="button" class="bxbtn bxplay" data-act="play" data-n="' + n + '" aria-label="Play line ' + (n + 1) + '" title="Play this line">' + ICONS.play + '</button>' +
+  '<button type="button" class="bxbtn bxfrom" data-act="from" data-n="' + n + '" aria-label="Play from line ' + (n + 1) + ' to the end" title="Play from here">' + ICONS.from + '</button>' +
+  '<button type="button" class="bxbtn bxdel" data-act="delline" data-n="' + n + '" aria-label="Remove line ' + (n + 1) + '" title="Remove this line">' + ICONS.del + '</button></span>';
+
+/** The first beat of each vibhag is coloured by its kind instead of marked X, 0 or a number
+ * (Rinat, 2026-10-12): sam, khali, or another tali. */
+const vibhag = (m: string | undefined) => (m == null ? '' : m === 'X' ? ' v-sam' : m === '0' ? ' v-khali' : ' v-tali');
+const vibhagName = (m: string | undefined) => (m == null ? '' : m === 'X' ? ', sam' : m === '0' ? ', khali' : ', tali ' + m);
 
 /** A heading's taal picker: the song's, or one of the taals for this section alone. */
 const taalPicker = (k: number, id: string | undefined) =>
@@ -50,27 +70,27 @@ export function boxesHTML(rows: readonly BoxRow[], verses: (n: number, written: 
   const open = (cls: string, extra = '') => '<div class="bxrow ' + cls + (selected.has(rk) ? ' sel' : '') + '"' + extra + '>';
   for (const r of rows) {
     if (r.kind === 'head') {
-      // The fields wrap among themselves, so the × stays at the top right, as on a line.
+      // The fields wrap among themselves, so the × stays at the end of the row, as on a line.
       html += open('bxhead') + grip(rk, '#', 'Heading', selected.has(rk++)) + '<span class="bxhf">' +
         input('h:' + r.k, 'bxh', r.label, 'Heading', ' placeholder="Heading, such as স্থায়ী or অন্তরা"') +
         '<label class="bxtl">tempo ' + input('t:' + r.k, 'bxt', r.tempo != null ? String(r.tempo) : '', 'Tempo of this section', ' type="number" min="30" max="240" inputmode="numeric" placeholder="song’s"') + '</label>' +
         taalPicker(r.k, r.taal) + '</span>' +
-        '<button type="button" class="bxdel" data-act="delhead" data-k="' + r.k + '" aria-label="Remove this heading" title="Remove this heading">×</button></div>';
+        '<span class="bxside"><button type="button" class="bxbtn bxdel" data-act="delhead" data-k="' + r.k + '" aria-label="Remove this heading" title="Remove this heading">' + ICONS.del + '</button></span></div>';
       continue;
     }
     const T = r.T;
     const nv = r.kind === 'notes' ? verses(r.n, r.verses) : 0;
     const cells: { p: number; html: string }[] = [];
     if (r.kind === 'notes') {
-      const where = (j: number) => 'Line ' + (r.n + 1) + ', beat ' + (j + 1);
+      const where = (j: number, p: number) => 'Line ' + (r.n + 1) + ', beat ' + (j + 1) + vibhagName(T.markAt.get(p));
       for (const b of r.beats) {
         let ly = '';
-        for (let v = 0; v < nv; v++) ly += input('l:' + r.n + ':' + v + ':' + b.j, 'lx', b.lyrics[v] ?? '', where(b.j) + ', words' + (nv > 1 ? ' ' + (v + 1) : ''));
-        cells.push({ p: b.p, html: '<span class="bxcell' + (b.err ? ' bad' : '') + '"' + (b.err ? ' title="' + esc(b.err) + '"' : '') + '><span class="bxmark">' + (T.markAt.get(b.p) ?? '') + '</span>' + input('b:' + r.n + ':' + b.j, 'bx', b.src, where(b.j)) + ly + '</span>' });
+        for (let v = 0; v < nv; v++) ly += input('l:' + r.n + ':' + v + ':' + b.j, 'lx', b.lyrics[v] ?? '', 'Line ' + (r.n + 1) + ', beat ' + (b.j + 1) + ', words' + (nv > 1 ? ' ' + (v + 1) : ''));
+        cells.push({ p: b.p, html: '<span class="bxcell' + vibhag(T.markAt.get(b.p)) + (b.err ? ' bad' : '') + '"' + (b.err ? ' title="' + esc(b.err) + '"' : '') + '>' + input('b:' + r.n + ':' + b.j, 'bx', b.src, where(b.j, b.p)) + ly + '</span>' });
       }
-      r.ghosts.forEach((g, i) => cells.push({ p: g.p, html: ghostCell('g:' + r.n + ':' + g.j, T, g.p, i === 0, where(g.j), nv) }));
+      r.ghosts.forEach((g, i) => cells.push({ p: g.p, html: ghostCell('g:' + r.n + ':' + g.j, T, g.p, i === 0, where(g.j, g.p), nv) }));
     } else {
-      r.ghosts.forEach((g, i) => cells.push({ p: g.p, html: ghostCell('n:' + atKey(r.at) + ':' + g.j, T, g.p, i === 0, 'New line, beat ' + (g.j + 1), 0) }));
+      r.ghosts.forEach((g, i) => cells.push({ p: g.p, html: ghostCell('n:' + atKey(r.at) + ':' + g.j, T, g.p, i === 0, 'New line, beat ' + (g.j + 1) + vibhagName(T.markAt.get(g.p)), 0) }));
     }
     // Vibhags: a group starts at each vibhag line (and at the start of the row).
     let groups = '';
@@ -80,8 +100,7 @@ export function boxesHTML(rows: readonly BoxRow[], verses: (n: number, written: 
     });
     if (cells.length) groups += '</span>';
     if (r.kind === 'notes') {
-      html += open('bxnotes', ' data-n="' + r.n + '"') + lead(rk, r.n, selected.has(rk++)) + '<div class="bxbeats">' + groups + '</div>' +
-        '<button type="button" class="bxdel" data-act="delline" data-n="' + r.n + '" aria-label="Remove line ' + (r.n + 1) + '" title="Remove this line">×</button></div>';
+      html += open('bxnotes', ' data-n="' + r.n + '"') + grip(rk, String(r.n + 1), 'Line ' + (r.n + 1), selected.has(rk++)) + '<div class="bxbeats">' + groups + '</div>' + lineButtons(r.n) + '</div>';
     } else {
       html += '<div class="bxrow bxnew" data-at="' + atKey(r.at) + '"><span class="bxln" aria-hidden="true">+</span><div class="bxbeats">' + groups + '</div></div>';
     }
@@ -91,7 +110,7 @@ export function boxesHTML(rows: readonly BoxRow[], verses: (n: number, written: 
 
 /** An empty box; only the first of a row takes typing (the others lead there). */
 function ghostCell(key: string, T: BoxTaal, p: number, first: boolean, label: string, verses: number): string {
-  return '<span class="bxcell ghost"><span class="bxmark">' + (T.markAt.get(p) ?? '') + '</span>' +
+  return '<span class="bxcell ghost' + vibhag(T.markAt.get(p)) + '">' +
     input(key, 'bx', '', label, first ? '' : ' tabindex="-1"') + '<span class="lxgap" style="--v:' + verses + '"></span></span>';
 }
 
@@ -107,6 +126,8 @@ export interface BoxesHost {
   focusBeat(g: number): void;
   /** Play notes line n once (or stop it, if it is the line playing). */
   playLine(n: number): void;
+  /** Play from notes line n to the end of the song (or stop, if that is playing). */
+  playFrom(n: number): void;
 }
 
 export interface Boxes {
@@ -123,8 +144,9 @@ export interface Boxes {
   /** Go to the box of a beat (the preview, the checker). */
   showBeat(g: number): void;
   undo(): boolean;
-  /** The line playing on its own (−1: none), for its Play button. */
-  linePlaying(n: number): void;
+  /** The line playing on its own, or (`from`) the line playing started from (−1: none), for
+   * its button. */
+  linePlaying(n: number, from?: boolean): void;
   /** The beat sounding now (−1: none), lit in its box. */
   markBeat(g: number): void;
 }
@@ -146,6 +168,7 @@ export function initBoxes(host: BoxesHost): Boxes {
   let drawnP: ParsedSong | null = null;
   const sel = new Set<number>();
   let playingLine = -1;
+  let playingFrom = false;
   let beatNow = -1;
 
   const parsed = (): ParsedSong => parseSong(host.text());
@@ -285,7 +308,8 @@ export function initBoxes(host: BoxesHost): Boxes {
     row.dataset.n = String(n);
     delete row.dataset.at;
     const ln = row.querySelector('.bxln');
-    if (ln) ln.outerHTML = lead(Array.from(box.querySelectorAll('.bxhead, .bxnotes')).indexOf(row), n, false);
+    if (ln) ln.outerHTML = grip(Array.from(box.querySelectorAll('.bxhead, .bxnotes')).indexOf(row), String(n + 1), 'Line ' + (n + 1), false);
+    row.insertAdjacentHTML('beforeend', lineButtons(n));
     Array.from(row.querySelectorAll<HTMLInputElement>('input.bx')).forEach((x, i) => {
       x.dataset.key = (i === 0 ? 'b:' : 'g:') + n + ':' + i;
       x.setAttribute('aria-label', 'Line ' + (n + 1) + ', beat ' + (i + 1));
@@ -712,12 +736,14 @@ export function initBoxes(host: BoxesHost): Boxes {
   // ── Playing a line ─────────────────────────────────────────────────────────
 
   function showPlaying(): void {
-    for (const b of box.querySelectorAll<HTMLElement>('.bxplay')) {
-      const on = +b.dataset.n! === playingLine;
+    for (const b of box.querySelectorAll<HTMLElement>('.bxplay, .bxfrom')) {
+      const from = b.classList.contains('bxfrom');
+      const n = +b.dataset.n!;
+      const on = n === playingLine && from === playingFrom;
       b.classList.toggle('on', on);
-      b.textContent = on ? '■' : '▶';
-      b.setAttribute('aria-label', (on ? 'Stop line ' : 'Play line ') + (+b.dataset.n! + 1));
-      b.title = on ? 'Stop' : 'Play just this line';
+      b.innerHTML = on ? ICONS.stop : from ? ICONS.from : ICONS.play;
+      b.setAttribute('aria-label', on ? 'Stop' : from ? 'Play from line ' + (n + 1) + ' to the end' : 'Play line ' + (n + 1));
+      b.title = on ? 'Stop' : from ? 'Play from here' : 'Play this line';
     }
   }
   function lightBeat(): void {
@@ -938,18 +964,35 @@ export function initBoxes(host: BoxesHost): Boxes {
     const e = ev.target as HTMLInputElement;
     if (e.dataset.key) leave(e, e.dataset.key, (ev as FocusEvent).relatedTarget);
   });
+  /** Where the last press began: a click that began in a box or on a button (a text selection
+   * dragged out of a box, say) is not a tap on the row. */
+  let pressedOn: Element | null = null;
+  box.addEventListener('pointerdown', (ev) => (pressedOn = ev.target as Element), true);
   box.addEventListener('click', (ev) => {
-    const g = (ev.target as Element).closest<HTMLElement>('.bxgrip');
+    const t = ev.target as Element;
+    const g = t.closest<HTMLElement>('.bxgrip');
     if (g) {
       // A tap or a key (Enter, Space) on a handle; not the end of a drag.
       if (Date.now() > dragEnded + 400) toggleSel(+g.dataset.r!);
       return;
     }
-    const b = (ev.target as Element).closest<HTMLElement>('button[data-act]');
-    if (!b) return;
+    const b = t.closest<HTMLElement>('button[data-act]');
+    if (!b) {
+      // A tap on any empty space in a heading or line selects it, or unselects it.
+      const row = t.closest<HTMLElement>('.bxhead, .bxnotes');
+      const field = 'input, select, textarea, label, button, .bxselbar';
+      if (!row || t.closest(field) || pressedOn?.closest(field) || Date.now() <= dragEnded + 400) return;
+      const rg = row.querySelector<HTMLElement>('.bxgrip');
+      if (!rg) return;
+      toggleSel(+rg.dataset.r!);
+      rg.focus({ preventScroll: true });
+      return;
+    }
     const P = parsed();
     if (b.dataset.act === 'play') {
       host.playLine(+b.dataset.n!);
+    } else if (b.dataset.act === 'from') {
+      host.playFrom(+b.dataset.n!);
     } else if (b.dataset.act === 'copysel') {
       copy(sel);
     } else if (b.dataset.act === 'paste') {
@@ -1014,8 +1057,9 @@ export function initBoxes(host: BoxesHost): Boxes {
       el(key)?.scrollIntoView({ block: 'nearest' });
     },
     undo,
-    linePlaying(n: number) {
+    linePlaying(n: number, from = false) {
       playingLine = n;
+      playingFrom = from;
       showPlaying();
     },
     markBeat(g: number) {

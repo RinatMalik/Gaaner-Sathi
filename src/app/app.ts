@@ -99,7 +99,7 @@ const logStore = new LogStore(storage);
 let practised = lastPractised(logStore.load());
 /** The Songs view and pitch feedback, wired up by init. */
 let songsView: { render(): void } = { render() {} };
-let pitchUI: PitchUI = { on: false, startRun() {}, beat() {}, endRun: () => null };
+let pitchUI: PitchUI = { on: false, startRun() {}, pause() {}, resume() {}, beat() {}, endRun: () => null };
 /** Rewaz routines and the Progress view, wired up by init. */
 let rewaz: Rewaz = { render() {}, active: false, name: '', finished() {}, cancel() {}, beat() {} };
 let progressView: { render(): void } = { render() {} };
@@ -141,6 +141,25 @@ let lastLine = -1;
 let deckBeat = -1;
 let wakeLock: WakeLockSentinel | null = null;
 const playing = () => !!T && T.playing;
+
+/** What to play: lines `from` to `to`, looped (for `rounds` rounds, if given) or on to the
+ * end of the song; `check`: the editor's quick listen to one line. Nothing that plays changes
+ * the Lines to practise pickers; only the deck's Play plays them (Rinat, 2026-10-12). */
+interface PlayAsk {
+  from: number;
+  to: number;
+  loop: boolean;
+  rounds?: number;
+  check?: boolean;
+}
+/** What is playing, as asked (for Pause). */
+let asked: PlayAsk | null = null;
+/** Paused: what was playing, and the beat and round to go on from (null: from its start). */
+let paused: { ask: PlayAsk; at: { s: number; pass: number } | null } | null = null;
+/** Playing, or paused. */
+const active = () => playing() || !!paused;
+/** The beat showing, for Pause. */
+let shownQ: BeatEntry | null = null;
 
 /** The song as played: a rewaz item's tempo over the song's own. */
 const songSource = {
@@ -211,9 +230,16 @@ function ensureAudio(): Transport {
   return T;
 }
 
-/** Play from line `fromN` (or the picker's); `rounds` stops a loop after that many. `check`:
- * one line on its own (the editor's Play), which leaves the pickers, the log and takes alone. */
-function play(fromN?: number, rounds?: number, check = false): void {
+/** The Lines to practise, as the deck's pickers show them. */
+function pickedLines(): PlayAsk {
+  const last = Math.max(0, parsed.noteLines.length - 1);
+  const from = clamp(+select('#fromLine').value || 0, 0, last);
+  return { from, to: Math.max(from, clamp(+select('#toLine').value || 0, 0, last)), loop: input('#loopChk').checked };
+}
+
+/** Play what is asked (the Lines to practise unless told otherwise). `at` goes on from a
+ * paused beat. A check of one line leaves the log, takes and pitch scores alone. */
+function play(ask: PlayAsk = pickedLines(), at: { s: number; pass: number } | null = null): void {
   if (!parsed.noteLines.length) {
     setNowMessage('No notes to play yet', 'Open Edit notation and type a line from your diary.');
     return;
@@ -229,55 +255,65 @@ function play(fromN?: number, rounds?: number, check = false): void {
   if (ctx.state !== 'running') void ctx.resume();
   voiceUI.stop();
   if (takePlay?.how === 'me') stopTakeAlone();
-  if (tr.playing) stop(true);
+  // Something else playing, or paused, ends first (going on after a pause has cleared it).
+  stop(true);
   const L = parsed.noteLines;
-  const from = clamp(fromN != null ? fromN : +select('#fromLine').value || 0, 0, L.length - 1);
-  if (!check) select('#fromLine').value = String(from);
-  const loop = check || input('#loopChk').checked;
-  let to = check ? from : clamp(+select('#toLine').value || 0, 0, L.length - 1);
-  if (to < from) {
-    to = from;
-    select('#toLine').value = String(to);
-  }
+  const from = clamp(ask.from, 0, L.length - 1);
+  const to = Math.max(from, clamp(ask.to, 0, L.length - 1));
+  const loop = !!ask.check || ask.loop;
   lastLine = -1;
   deckBeat = -1;
+  shownQ = null;
   // Before start: starting schedules the first beat, and pitch feedback must hear of it.
-  pitchUI.startRun();
+  if (!ask.check) {
+    if (at) pitchUI.resume();
+    else pitchUI.startRun();
+  }
   keyboard.playStarting(tr);
   runFirst = -1;
-  const r = tr.start(source, { from, to, loop, rounds });
+  const r = tr.start(source, { from, to, loop, rounds: ask.rounds, at: at ?? undefined });
   if (!r) return;
-  if (!check) {
+  asked = { ...ask, from: r.from, to: r.to, loop };
+  if (!ask.check && !at) {
     startRun(r.from, r.to, loop);
     startTakeRun(r.from, loop);
   }
-  setPlayUI(true);
+  setPlayUI();
   // The strip shows the taal it starts in straightaway, not when the first beat sounds.
-  if (taals.line(r.from).T.id !== stripTaal?.id) renderTaal(taals.line(r.from).T);
+  const first = at ? taals.beat(at.s).T : taals.line(r.from).T;
+  if (first.id !== stripTaal?.id) renderTaal(first);
   if (r.pre > 0) setNowMessage('Count-in', '', String(r.pre));
   timer = window.setInterval(tick, 25);
   raf = requestAnimationFrame(frame);
   void wake();
 }
 
-/** Stop playing. `ended`: the song or its rounds came to their end by themselves. */
+/** Stop playing, or end a pause. `ended`: the song or its rounds came to their end by
+ * themselves. */
 function stop(silent?: boolean, ended = false): void {
-  if (!T || !T.playing) return;
-  endTakeRun(run?.end || T.E.ctx.currentTime, run);
+  if (!T || !active()) return;
+  const wasPlaying = T.playing;
+  paused = null;
+  asked = null;
+  shownQ = null;
+  if (wasPlaying) endTakeRun(run?.end || T.E.ctx.currentTime, run);
   endRun(T.E.ctx.currentTime, pitchUI.endRun());
-  T.stop();
-  keyboard.playStopped();
+  if (wasPlaying) {
+    T.stop();
+    keyboard.playStopped();
+  }
   clearInterval(timer);
   timer = 0;
   cancelAnimationFrame(raf);
   clearHighlight();
   boxes.markBeat(-1);
-  if (lineCheck >= 0) {
+  if (lineCheck >= 0 || fromHere >= 0) {
     lineCheck = -1;
+    fromHere = -1;
     boxes.linePlaying(-1);
   }
   markTaal(-1);
-  setPlayUI(false);
+  setPlayUI();
   unwake();
   deckBeat = -1;
   if (takePlay?.how === 'guide') {
@@ -298,23 +334,74 @@ function stop(silent?: boolean, ended = false): void {
   if (!rewaz.active) clearOverride();
 }
 
-/** The play button and the space bar. During a rewaz they stop it. */
-function userToggle(): void {
-  if (rewaz.active) {
-    if (playing()) stop();
-    rewaz.cancel();
-    clearOverride();
+/** Pause: the sound stops where it is and the beat stays marked; Play goes on from that beat
+ * (in the same round), Stop ends it. A take ends at the pause; the practice log counts the
+ * time played, without the pause. Paused in the count-in, Play starts again. */
+function pause(): void {
+  if (!T || !T.playing || !asked) return;
+  // In the moment after the song's end, there is nothing left to pause.
+  if (T.endAt) {
+    stop();
     return;
   }
-  if (playing()) stop();
-  else play();
+  const now = T.E.ctx.currentTime;
+  const q = shownQ;
+  paused = { ask: asked, at: q && q.pass >= 0 ? { s: q.s, pass: q.pass } : null };
+  asked = null;
+  endTakeRun(now, run);
+  if (run && run.seg) {
+    run.done += now - run.seg;
+    run.seg = 0;
+  }
+  pitchUI.pause(now);
+  T.stop();
+  keyboard.playStopped();
+  clearInterval(timer);
+  timer = 0;
+  cancelAnimationFrame(raf);
+  unwake();
+  setPlayUI();
+  $('#nowLab').textContent = 'Paused · ' + $('#nowLab').textContent;
 }
-/** The line the editor's Play is playing on its own, or −1. */
+
+/** Go on after a pause. */
+function resume(): void {
+  const p = paused;
+  if (!p) return;
+  paused = null;
+  const keep = { line: lineCheck, from: fromHere };
+  play(p.ask, p.at);
+  if (!playing()) return;
+  lineCheck = keep.line;
+  fromHere = keep.from;
+  if (keep.line >= 0) boxes.linePlaying(keep.line);
+  else if (keep.from >= 0) boxes.linePlaying(keep.from, true);
+}
+
+/** The deck's play button and the space bar: play, pause, go on. Between the items of a
+ * rewaz (nothing playing), it ends the rewaz. */
+function userToggle(): void {
+  if (playing()) pause();
+  else if (paused) resume();
+  else if (rewaz.active) {
+    rewaz.cancel();
+    clearOverride();
+  } else play();
+}
+/** The deck's Stop button: stops playing, a pause, or a rewaz. */
+function userStop(): void {
+  stop();
+  rewaz.cancel();
+  clearOverride();
+}
+/** The line the editor's Play is playing on its own, and the line a "play from here" started
+ * at, or −1. */
 let lineCheck = -1;
+let fromHere = -1;
 /** The editor's Play on a line: that line once, at its tempo, with no count-in (or Stop). */
 function playLine(n: number): void {
-  const again = lineCheck === n && playing();
-  if (playing()) stop(true);
+  const again = lineCheck === n && active();
+  stop(true);
   rewaz.cancel();
   clearOverride();
   if (again) {
@@ -325,7 +412,7 @@ function playLine(n: number): void {
   clearTimeout(parseTimer);
   reparse(true);
   itemOverride = { countIn: false };
-  play(n, 1, true);
+  play({ from: n, to: n, loop: true, rounds: 1, check: true });
   if (!playing()) {
     clearOverride();
     return;
@@ -334,12 +421,27 @@ function playLine(n: number): void {
   boxes.linePlaying(n);
 }
 
-/** A tap on a line number: play from there (ending any rewaz). */
+/** Play from line n to the end of the song, once (a line number on the sheet, or the
+ * editor's "play from here"), ending any rewaz; the Lines to practise stay as they are. The
+ * editor's button stops it again. */
 function userPlay(n: number): void {
-  if (playing()) stop(true);
+  const again = fromHere === n && active();
+  stop(true);
   rewaz.cancel();
   clearOverride();
-  play(n);
+  if (again) {
+    showIdle();
+    return;
+  }
+  // From the editor, the text may have changed a moment ago.
+  if (!$('#edit').hidden) {
+    clearTimeout(parseTimer);
+    reparse(true);
+  }
+  play({ from: n, to: parsed.noteLines.length - 1, loop: false });
+  if (!playing()) return;
+  fromHere = n;
+  boxes.linePlaying(n, true);
 }
 
 function showTempo(t: number): void {
@@ -365,13 +467,10 @@ function playItem(it: RoutineItem): boolean {
   switchTab('practice');
   if (!parsed.noteLines.length) return false;
   const [a, b] = itemLines(it, parsed.noteLines.length);
-  select('#fromLine').value = String(a);
-  select('#toLine').value = String(b);
-  input('#loopChk').checked = true;
   const g = it.guide;
   itemOverride = { tempo: it.tempo, guide: g === 'off' ? 'off' : g && sound.guide === 'off' ? 'full' : undefined, guideLoop: g && g !== 'off' ? g : undefined };
   showTempo(shownTempo());
-  play(a, it.rounds);
+  play({ from: a, to: b, loop: true, rounds: it.rounds });
   return playing();
 }
 
@@ -456,6 +555,10 @@ interface Run {
    * wall-clock time it matches. */
   first: number;
   wall: number;
+  /** When the stretch playing now began (0 until its first beat sounds, and while paused),
+   * and the seconds played in stretches before a pause. */
+  seg: number;
+  done: number;
   /** Furthest round and line reached; when the song ended, the time it did. */
   pass: number;
   line: number;
@@ -465,7 +568,7 @@ let run: Run | null = null;
 
 function startRun(from: number, to: number, loop: boolean): void {
   const t = baseTempoAt(parsed.noteLines[from]?.start ?? 0);
-  run = { song: current.id, title: current.title, from, to, loop, tempo: t, top: t, first: 0, wall: 0, pass: 0, line: from, end: 0 };
+  run = { song: current.id, title: current.title, from, to, loop, tempo: t, top: t, first: 0, wall: 0, seg: 0, done: 0, pass: 0, line: from, end: 0 };
 }
 
 /** A beat is showing: note how far the practice has got. */
@@ -475,6 +578,7 @@ function trackRun(q: BeatEntry, ctxNow: number): void {
     run.first = q.time;
     run.wall = Date.now() - (ctxNow - q.time) * 1000;
   }
+  if (!run.seg) run.seg = q.time;
   run.pass = Math.max(run.pass, q.pass);
   run.top = Math.max(run.top, q.tempo);
   run.line = Math.max(run.line, parsed.lineOfBeat[q.s] ?? 0);
@@ -486,7 +590,7 @@ function endRun(at: number, pitch: { score: number; lines: [number, number][] } 
   const r = run;
   run = null;
   if (!r || !r.first || takePlay) return;
-  const secs = (r.end || at) - r.first;
+  const secs = r.done + (r.seg ? (r.end || at) - r.seg : 0);
   if (secs < MIN_LOG_SECS) return;
   const e: LogEntry = {
     at: Math.round(r.wall), secs: Math.round(secs), song: r.song, title: r.title,
@@ -568,6 +672,7 @@ function setNowMessage(label: string, sub: string, big = ''): void {
   setNow(V.nowMessage(label, sub, big));
 }
 function showBeat(q: BeatEntry): void {
+  shownQ = q;
   // Where the taal changes, the strip changes with it (the count-in is in the first beat's).
   const tq = taals.beat(q.pass < 0 ? (T?.secStart ?? 0) : q.s).T;
   if (tq.id !== stripTaal?.id) renderTaal(tq);
@@ -638,10 +743,15 @@ function renderLibrary(): void {
   if (current) select('#songSel').value = current.id;
   songsView.render();
 }
-function setPlayUI(on: boolean): void {
+/** The deck's buttons: Play (Pause while playing; Play again goes on after a pause) and Stop. */
+function setPlayUI(): void {
   const b = $('#playBtn');
+  const on = playing();
   b.classList.toggle('on', on);
-  b.setAttribute('aria-label', on ? 'Stop' : 'Play');
+  b.classList.toggle('paused', !!paused);
+  b.setAttribute('aria-label', on ? 'Pause' : paused ? 'Go on' : 'Play');
+  b.title = on ? 'Pause' : paused ? 'Go on from here' : 'Play';
+  $<HTMLButtonElement>('#stopBtn').disabled = !active();
 }
 function renderLayerChips(): void {
   const r = V.layerChipsHTML(sound.beat, (sound.layers as Record<string, string[] | undefined>)[sound.beat] || []);
@@ -889,13 +999,10 @@ async function takeSamples(t: Take): Promise<AudioBuffer | null> {
 async function playTakeWithGuide(t: Take): Promise<void> {
   const buf = await takeSamples(t);
   if (!buf) return;
-  if (playing()) stop(true);
+  if (active()) stop(true);
   if (takePlay?.how === 'me') stopTakeAlone();
   rewaz.cancel();
   clearOverride();
-  select('#fromLine').value = String(t.from);
-  select('#toLine').value = String(t.to);
-  input('#loopChk').checked = t.loop;
   itemOverride = {
     baseTempo: t.tempo, countIn: t.countIn, ramp: t.ramp, rampStep: t.rampStep, rampMax: t.rampMax,
     guideLoop: 'all', guide: sound.guide === 'off' ? 'full' : undefined,
@@ -903,7 +1010,7 @@ async function playTakeWithGuide(t: Take): Promise<void> {
   if (t.flat) itemOverride.tempo = t.flat;
   takePlay = { take: t, how: 'guide', src: null };
   takeBuf = buf;
-  play(t.from, t.loop ? t.rounds : undefined);
+  play({ from: t.from, to: t.to, loop: t.loop, rounds: t.loop ? t.rounds : undefined });
   if (!playing()) {
     takePlay = null;
     clearOverride();
@@ -928,7 +1035,7 @@ function startTakeVoice(): void {
 async function playTakeAlone(t: Take): Promise<void> {
   const buf = await takeSamples(t);
   if (!buf) return;
-  if (playing()) stop(true);
+  if (active()) stop(true);
   if (takePlay?.how === 'me') stopTakeAlone();
   const E = ensureAudio().E;
   const ctx = E.ctx as AudioContext;
@@ -1065,7 +1172,7 @@ function reparse(keepLines: boolean): void {
 /** The beat boxes changed the text: as typing in the notation box does, it stops playing. */
 function setTextFromBoxes(text: string, soon: boolean): void {
   if (text === current.text) return;
-  if (playing()) stop(true);
+  if (active()) stop(true);
   rewaz.cancel();
   clearOverride();
   changed('text', text);
@@ -1089,11 +1196,12 @@ function applyEditMode(): void {
   notationBox().hidden = b;
   // The beat boxes show what the preview would, so they take the whole width (Rinat, 2026-10-11).
   $('#prevCol').hidden = b;
+  $('#bxKey').hidden = !b;
   $('.edgrid').classList.toggle('solo', b);
   for (const el of $$('#pal .tonly')) el.hidden = b;
   for (const el of $$('#pal .bonly')) el.hidden = !b;
   $('#modeHint').textContent = b
-    ? 'A box for each beat: type a note and a space to go on. Notes typed together share a beat (সারা). Paste a line of words under its first note to fill a syllable per note. Tap line numbers to select lines, then drag to move them, or Copy them and Paste after another line.'
+    ? 'A box for each beat: type a note and a space to go on. Notes typed together share a beat (সারা). Paste a line of words under its first note to fill a syllable per note. Tap a line to select it; drag lines by their numbers to move them, or Copy them and Paste after another line.'
     : 'Type as in your diary: a space between beats, a new line for each line.';
   refreshSelection();
   if (boxesShown()) boxes.render();
@@ -1610,7 +1718,7 @@ export function init(): void {
     },
     play: playItem,
     stop: () => stop(),
-    playing,
+    playing: active,
     showPractice: () => switchTab('practice'),
   });
   keyboard = initKeyboard({
@@ -1643,7 +1751,7 @@ export function init(): void {
       }
     },
     stopMain: () => {
-      if (playing()) stop();
+      if (active()) stop();
       rewaz.cancel();
       clearOverride();
     },
@@ -1701,6 +1809,7 @@ export function init(): void {
       refreshSelection();
     },
     playLine,
+    playFrom: userPlay,
   });
   applyEditMode();
   const printSong = initPrint({ song: () => current, parsed: () => parsed, taals: () => taals, script: () => prefs.script });
@@ -1712,6 +1821,7 @@ export function init(): void {
   switchTab(prefs.tab);
 
   $('#playBtn').addEventListener('click', userToggle);
+  $('#stopBtn').addEventListener('click', userStop);
   $('#tDown').addEventListener('click', () => setTempo(shownTempo() - 4));
   $('#tUp').addEventListener('click', () => setTempo(shownTempo() + 4));
   input('#tempoRange').addEventListener('input', (e) => setTempo((e.target as HTMLInputElement).value));
@@ -1731,20 +1841,22 @@ export function init(): void {
     if (!playing()) showIdle();
     T?.retune();
   });
+  // Changing the Lines to practise while they play plays the new ones; a pause ends.
+  const linesChanged = () => {
+    if (playing() && lineCheck < 0 && fromHere < 0 && !rewaz.active) play();
+    else if (paused) stop();
+    else if (!playing()) showIdle();
+  };
   select('#fromLine').addEventListener('change', () => {
     if (+select('#toLine').value < +select('#fromLine').value) select('#toLine').value = select('#fromLine').value;
-    if (playing()) play();
-    else showIdle();
+    linesChanged();
   });
   select('#toLine').addEventListener('change', () => {
     if (+select('#toLine').value < +select('#fromLine').value) select('#fromLine').value = select('#toLine').value;
     input('#loopChk').checked = true;
-    if (playing()) play();
-    else showIdle();
+    linesChanged();
   });
-  input('#loopChk').addEventListener('change', () => {
-    if (playing()) play();
-  });
+  input('#loopChk').addEventListener('change', linesChanged);
 
   $('#soundBtn').addEventListener('click', () => {
     const open = !!$('#mixer').hidden;
@@ -1951,7 +2063,7 @@ export function init(): void {
   });
 
   notationBox().addEventListener('input', (e) => {
-    if (playing()) stop(true);
+    if (active()) stop(true);
     rewaz.cancel();
     clearOverride();
     changed('text', (e.target as HTMLTextAreaElement).value);
@@ -2000,17 +2112,15 @@ export function init(): void {
     const b = (e.target as Element).closest<HTMLElement>('button[data-sec]');
     const sec = b && sections[+b.dataset.sec!];
     if (!sec) return;
-    select('#fromLine').value = String(sec.first);
-    select('#toLine').value = String(sec.last);
-    userPlay(sec.first);
+    stop(true);
+    rewaz.cancel();
+    clearOverride();
+    play({ from: sec.first, to: sec.last, loop: input('#loopChk').checked });
   });
   document.addEventListener('click', (e) => {
     const b = (e.target as Element).closest<HTMLElement>('.ln[data-n]');
     if (b) {
-      const n = +b.dataset.n!;
-      select('#fromLine').value = String(n);
-      if (+select('#toLine').value < n) select('#toLine').value = String(n);
-      userPlay(n);
+      userPlay(+b.dataset.n!);
     }
   });
   document.addEventListener('keydown', (e) => {

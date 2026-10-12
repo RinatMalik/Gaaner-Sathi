@@ -2,8 +2,9 @@
  * Pitch feedback on the Practice view (docs/ROADMAP.md → Pitch feedback): the microphone
  * button, a meter and a trace of the voice against the notes, a mark on each beat sung,
  * and a score for each line. Readings, expected notes and scores come from
- * src/core/pitch/track.ts; the microphone from src/audio/mic.ts. When nothing is playing,
- * the meter shows how close the voice is to the nearest note (a tuner).
+ * src/core/pitch/track.ts; the microphone from src/audio/mic.ts. "Check my pitch" switches
+ * it on; the microphone then listens only while a song plays (Rinat, 2026-10-12): it comes on
+ * when playing starts or goes on after a pause, and goes off when it stops or pauses.
  */
 import { Mic, MicError, micProblemText, type MicReading } from '../audio/mic';
 import type { BeatEntry } from '../audio/transport';
@@ -28,12 +29,19 @@ export interface PitchHost {
 }
 
 export interface PitchUI {
+  /** "Check my pitch" is on. */
   readonly on: boolean;
-  /** Playing started, or the microphone came on while playing: score from here. */
+  /** Playing started (or pitch checking was switched on while playing): the microphone
+   * comes on, and scoring starts from here. */
   startRun(): void;
+  /** Playing paused at AudioContext time t: the microphone goes off; the scores so far stay. */
+  pause(t: number): void;
+  /** Playing went on after a pause: the microphone comes on again. */
+  resume(): void;
   /** A beat has been scheduled. */
   beat(q: BeatEntry, spb: number): void;
-  /** Playing stopped: the scores, for the practice log (null without enough singing). */
+  /** Playing stopped (the microphone goes off): the scores, for the practice log (null
+   * without enough singing). */
   endRun(): { score: number; lines: [number, number][] } | null;
 }
 
@@ -54,13 +62,16 @@ export function initPitch(host: PitchHost): PitchUI {
   const octBox = $<HTMLInputElement>('#pOct');
   const lagEl = $('#pLag');
 
+  /** "Check my pitch" is on; the microphone is wanted now (playing); it is open; opening. */
+  let armed = false;
+  let wanted = false;
   let mic: Mic | null = null;
   let starting = false;
   let tracker: PitchTracker | null = null;
   let byBeat: number[][] = [];
   let parsedAt: ParsedSong | null = null;
   let raf = 0;
-  /** Recent readings, for the trace and the tuner. */
+  /** Recent readings, for the trace and the meter. */
   let recent: MicReading[] = [];
   /** The worst mark on each beat in the current round. */
   const marks = new Map<number, { pass: number; rank: number }>();
@@ -82,38 +93,70 @@ export function initPitch(host: PitchHost): PitchUI {
     noteEl.innerHTML = html;
   }
 
-  async function turnOn(): Promise<void> {
+  const WAITING = 'The microphone listens while the song plays. Press play and sing.';
+
+  /** "Check my pitch" switched on: ready for the next play (or listening now, if playing). */
+  function turnOn(): void {
+    armed = true;
+    box.hidden = false;
+    setButton(true, 'Pitch check on');
+    message(WAITING);
+    sungNote('');
+    needle.hidden = true;
+    if (host.section()) startRun();
+  }
+
+  function turnOff(): void {
+    quiet();
+    armed = false;
+    setButton(false, 'Check my pitch');
+    box.hidden = true;
+  }
+
+  /** Open the microphone (playing has started, or gone on). */
+  async function listen(): Promise<void> {
+    wanted = true;
     if (mic || starting) return;
     starting = true;
-    box.hidden = false;
     setButton(true, 'Starting…');
-    message('Starting the microphone…');
-    sungNote('');
     try {
       const ctx = host.audio();
       if (!ctx) throw new MicError('unsupported', 'no audio');
-      mic = await Mic.open(ctx, onReading);
+      const m = await Mic.open(ctx, onReading);
+      // Playing may have stopped while the microphone was starting.
+      if (!wanted || !armed) {
+        m.close();
+        return;
+      }
+      mic = m;
+      if (tracker && host.lag.get() == null) tracker.lag = m.latency();
       setButton(true, 'Listening');
-      message('Sing a note.');
-      if (host.section()) startRun();
+      message('Sing…');
       raf = requestAnimationFrame(draw);
     } catch (e) {
-      mic = null;
+      wanted = false;
+      armed = false;
       setButton(false, 'Check my pitch');
       message(micProblemText(e instanceof MicError ? e.problem : 'other'));
     } finally {
       starting = false;
+      if (!mic && armed) setButton(true, 'Pitch check on');
     }
   }
 
-  function turnOff(): void {
+  /** Close the microphone (playing stopped or paused); pitch checking stays on. */
+  function quiet(text = WAITING): void {
+    wanted = false;
     mic?.close();
     mic = null;
     cancelAnimationFrame(raf);
     raf = 0;
     recent = [];
-    setButton(false, 'Check my pitch');
-    box.hidden = true;
+    if (!armed) return;
+    setButton(true, 'Pitch check on');
+    needle.hidden = true;
+    sungNote('');
+    message(text);
   }
 
   function onReading(r: MicReading): void {
@@ -156,15 +199,18 @@ export function initPitch(host: PitchHost): PitchUI {
     r.lines.forEach(lineChip);
   }
 
+  /** Scoring starts with the first beat scheduled, while the microphone is still starting:
+   * notes it was not yet open for are left out of the scores. */
   function startRun(): void {
-    if (!mic) return;
+    if (!armed) return;
     if (tracker) settle(true);
     clearMarks();
     chips = [];
     scoresEl.innerHTML = '';
     parsedAt = host.parsed();
     byBeat = eventsByBeat(parsedAt);
-    tracker = new PitchTracker({ lag: host.lag.get() ?? mic.latency(), anyOctave: !host.octave.get(), saHz: host.saHz() });
+    tracker = new PitchTracker({ lag: host.lag.get() ?? mic?.latency() ?? 0.15, anyOctave: !host.octave.get(), saHz: host.saHz() });
+    void listen();
   }
 
   // ── Drawing ────────────────────────────────────────────────────────────────
@@ -326,8 +372,8 @@ export function initPitch(host: PitchHost): PitchUI {
   // ── Wiring ─────────────────────────────────────────────────────────────────
 
   btn.addEventListener('click', () => {
-    if (mic) turnOff();
-    else void turnOn();
+    if (armed) turnOff();
+    else turnOn();
   });
   octBox.checked = host.octave.get();
   octBox.addEventListener('change', () => {
@@ -337,15 +383,28 @@ export function initPitch(host: PitchHost): PitchUI {
 
   return {
     get on() {
-      return !!mic;
+      return armed;
     },
     startRun,
+    pause(t) {
+      if (tracker) {
+        tracker.cut(t);
+        settle(false);
+      }
+      quiet('Paused: the microphone is off. Press play to go on.');
+    },
+    resume() {
+      if (!armed) return;
+      if (tracker) void listen();
+      else startRun();
+    },
     beat(q, spb) {
       const sec = host.section();
       if (!tracker || !sec || q.pass < 0 || !parsedAt) return;
       tracker.addNotes(beatNotes(parsedAt, byBeat, { time: q.time, s: q.s, pass: q.pass, spb }, sec, !(sec.listen && q.guide)));
     },
     endRun() {
+      quiet();
       if (!tracker) return null;
       settle(true);
       const s = tracker.summary();

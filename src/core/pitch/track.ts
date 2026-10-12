@@ -202,6 +202,15 @@ export class PitchTracker {
     this.readings.push(r);
   }
 
+  /** Playing paused at time t: the notes expected from then on never sounded, and a note
+   * sounding then ended there. Notes added after (going on) are scored as usual. */
+  cut(t: number): void {
+    for (const n of [...this.recent, ...this.pending]) if (n.t0 < t && n.t1 > t) n.t1 = t;
+    const before = (n: ExpectedNote) => n.t0 < t - 1e-9;
+    this.pending = this.pending.filter(before);
+    this.recent = this.recent.filter(before);
+  }
+
   /** The expected notes overlapping a stretch of time (for drawing). */
   notesBetween(a: number, b: number): ExpectedNote[] {
     return this.recent.filter((n) => n.t1 > a && n.t0 < b);

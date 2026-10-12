@@ -26,6 +26,7 @@
   --chip:#e4e7e2;
   --focus:#2560c7;
   --shadow:rgba(20,10,5,.18);
+  --v-sam:#f6dc97; --v-sam-line:#b8892a; --v-tali:#d4e8ca; --v-tali-line:#6b9a5e; --v-khali:#ddd5f0; --v-khali-line:#8a76bd;
   --f-note:"Tiro Bangla","Noto Serif Bengali","Kohinoor Bangla",Georgia,serif;
   --f-ui:"Hind Siliguri","Noto Sans Bengali",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
@@ -35,6 +36,7 @@
     --red-ink:#ff8d7e; --wood:#22100a; --wood-2:#3a1c12; --on-wood:#f1e3cf; --on-wood-2:#bba68b;
     --brass:#d3a843; --brass-hi:#f2d176; --brass-ink:#22120a; --mark:#5b4614; --mark-ink:#fff6dc;
     --line:#2c2c35; --chip:#24242c; --focus:#86aaff; --shadow:rgba(0,0,0,.5);
+    --v-sam:#4b3a10; --v-sam-line:#d3a843; --v-tali:#1d3a22; --v-tali-line:#79b06c; --v-khali:#30284a; --v-khali-line:#a492dc;
     color-scheme:dark;
   }
 }
@@ -43,6 +45,7 @@
   --red-ink:#ff8d7e; --wood:#22100a; --wood-2:#3a1c12; --on-wood:#f1e3cf; --on-wood-2:#bba68b;
   --brass:#d3a843; --brass-hi:#f2d176; --brass-ink:#22120a; --mark:#5b4614; --mark-ink:#fff6dc;
   --line:#2c2c35; --chip:#24242c; --focus:#86aaff; --shadow:rgba(0,0,0,.5);
+    --v-sam:#4b3a10; --v-sam-line:#d3a843; --v-tali:#1d3a22; --v-tali-line:#79b06c; --v-khali:#30284a; --v-khali-line:#a492dc;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -83,9 +86,18 @@ button{cursor:pointer}
 }
 .play:active{transform:translateY(1px)}
 .play svg{width:26px;height:26px}
-.play .ic-stop{display:none}
+.play .ic-pause{display:none}
 .play.on .ic-play{display:none}
-.play.on .ic-stop{display:block}
+.play.on .ic-pause{display:block}
+.play.paused{animation:gs-paused 1.6s ease-in-out infinite}
+@keyframes gs-paused{50%{filter:brightness(.82)}}
+/* Play (Pause while playing) and, beside it, Stop. */
+.transport{display:flex;align-items:center;gap:12px;flex:none}
+.stopbtn{width:44px;height:44px;border-radius:50%;flex:none;display:grid;place-items:center;
+  border:1.5px solid var(--brass);background:var(--deck-field);color:var(--on-wood)}
+.stopbtn svg{width:18px;height:18px}
+.stopbtn:disabled{opacity:.4;cursor:default}
+.stopbtn:not(:disabled):hover{background:var(--brass);color:var(--brass-ink)}
 .ctl{display:flex;flex-direction:column;gap:5px;min-width:0}
 .ctl.grow{flex:1 1 280px}
 .lab{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--on-wood-2);font-weight:600}
@@ -402,25 +414,32 @@ textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--
   .prfoot{margin-top:6mm;font-size:8pt;color:#777}
 }
 
-/* Beat boxes (new): a box per beat, grouped by vibhag, words under each; headings as rows. */
+/* Beat boxes (new): a box per beat, grouped by vibhag, words under each; headings as rows.
+   Each row: its number down the left (the handle, behind the diary's red margin line), the
+   boxes, and full-height buttons at its end (Rinat, 2026-10-12). */
 .modebar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
-.boxes{display:grid;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:4px 10px;max-height:72vh;overflow:auto;overscroll-behavior:contain}
-.bxrow{display:flex;align-items:flex-start;gap:6px;padding:8px 0;border-bottom:1px solid var(--rule);min-width:0}
+.boxes{display:grid;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:0;max-height:72vh;overflow:auto;overscroll-behavior:contain}
+.bxrow{display:flex;align-items:stretch;gap:0 10px;border-bottom:1px solid var(--rule);min-width:0}
 .bxrow:last-child{border-bottom:0}
-.bxln{flex:none;width:26px;text-align:center;color:var(--ink-2);font-size:13px;font-weight:600;padding-top:20px;font-variant-numeric:tabular-nums}
-/* A heading's fields wrap among themselves; its × stays at the top right, as on a line. */
-.bxhf{flex:1 1 auto;display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0}
-.bxbeats{flex:1 1 auto;display:flex;flex-wrap:wrap;gap:8px 0;min-width:0}
+.bxnotes,.bxhead{cursor:pointer}
+.bxnotes:hover,.bxhead:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.bxln{flex:none;width:36px;text-align:center;color:var(--ink-2);font-size:13px;font-weight:600;padding-top:13px;font-variant-numeric:tabular-nums;border-right:1.5px solid var(--margin)}
+/* A heading's fields wrap among themselves; its × stays at the end of the row, as on a line. */
+.bxhf{flex:1 1 auto;display:flex;flex-wrap:wrap;align-items:center;align-content:center;gap:6px;min-width:0;padding:8px 0;cursor:auto}
+.bxbeats{flex:1 1 auto;display:flex;flex-wrap:wrap;align-content:flex-start;gap:8px 0;min-width:0;padding:8px 0}
 .bxgrp{display:flex;gap:3px;padding:0 7px;border-left:1.5px solid var(--ink-2)}
 .bxgrp:first-child{border-left:0;padding-left:0}
 .bxcell{display:grid;justify-items:center;align-content:start;gap:2px}
-.bxmark{font-size:11px;font-weight:700;color:var(--ink-2);height:14px;line-height:14px}
-.bx,.lx{width:2.6em;min-width:2.6em;max-width:9em;field-sizing:content;text-align:center;font-family:var(--f-note);border-radius:7px}
+.bx,.lx{width:2.6em;min-width:2.6em;max-width:9em;field-sizing:content;text-align:center;font-family:var(--f-note);border-radius:7px;cursor:text}
 .bx{padding:3px 4px;border:1px solid var(--line);background:var(--paper);font-size:16px;line-height:1.3}
-.bx.cur{border-color:var(--focus)}
-.bxcell.bad .bx{border-color:var(--red-ink);text-decoration:underline wavy var(--red-ink);text-underline-offset:.2em}
 .bxcell.ghost .bx{border-style:dashed;background:transparent}
 .bxcell.ghost .bx[tabindex="-1"]{opacity:.55}
+/* The first beat of each vibhag, by its kind (instead of X, 0 and numbers above the boxes). */
+.bxcell.v-sam .bx{background:var(--v-sam);border-color:var(--v-sam-line)}
+.bxcell.v-tali .bx{background:var(--v-tali);border-color:var(--v-tali-line)}
+.bxcell.v-khali .bx{background:var(--v-khali);border-color:var(--v-khali-line)}
+.bxcell .bx.cur{border-color:var(--focus);box-shadow:0 0 0 1px var(--focus)}
+.bxcell.bad .bx{border-color:var(--red-ink);text-decoration:underline wavy var(--red-ink);text-underline-offset:.2em}
 .lx{padding:1px 4px;border:1px solid transparent;border-bottom-color:var(--rule);background:transparent;color:var(--red-ink);font-size:15px;line-height:1.3}
 .lx:focus{border-color:var(--line)}
 .lxgap{display:block;height:calc(var(--v,1) * 24px)}
@@ -428,35 +447,48 @@ textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--
 .bxtl{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--ink-2)}
 .bxt{width:5em;padding:4px 6px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:14px}
 .bxtaal{max-width:11em;padding:4px 6px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:14px;color:var(--ink)}
-.bxplay,.bxdel{border:1px solid var(--line);background:var(--sheet);border-radius:7px;color:var(--ink-2)}
-.bxdel{flex:none;font-size:15px;line-height:1.2;padding:0 7px}
-.bxhead>.bxdel{margin-top:6px}
-.bxplay,.bxdel{cursor:pointer}
-.bxplay:hover,.bxdel:hover{border-color:var(--ink-2);color:var(--ink)}
 .bxnew .bxln{color:var(--brass)}
-/* The front of a line: its number (the handle), and ▶ just under it. */
-.bxlead{flex:none;display:grid;justify-items:center;align-content:start;gap:5px;width:26px}
-.bxplay{width:26px;height:22px;padding:0;font-size:11px;line-height:1}
-@media (max-width:520px){.bxgrp{padding:0 5px}.bxt{width:4em}.bxtaal{max-width:9em}.bxhf{gap:6px 5px}}
+/* The end of a row: play this line, play from here, remove; each the row's full height. */
+.bxside{flex:none;display:flex;align-self:stretch}
+.bxbtn{width:40px;display:grid;place-items:center;padding:0;border:0;border-left:1px solid var(--rule);background:transparent;color:var(--ink-2)}
+.bxbtn svg{width:17px;height:17px}
+.bxbtn:hover{background:var(--chip);color:var(--ink)}
+.bxbtn.bxdel:hover{color:var(--red-ink)}
+.bxbtn.on,.bxbtn.on:hover{background:var(--brass);color:var(--brass-ink)}
+.bxbtn:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+@media (max-width:520px){
+  .bxgrp{padding:0 5px}.bxt{width:4em}.bxtaal{max-width:9em}.bxhf{gap:6px 5px}
+  .bxln{width:28px}.bxrow{gap:0 7px}
+  /* On a phone the buttons stack, a third of the row's height each. */
+  .bxside{flex-direction:column}
+  .bxbtn{width:34px;flex:1 1 0;min-height:30px}
+  .bxbtn+.bxbtn{border-top:1px solid var(--rule)}
+}
 /* Moving rows: the number is the handle; a brass line shows where the row will go. */
 .boxes{position:relative}
-.bxgrip{display:grid;justify-items:center;align-content:start;width:26px;padding:20px 0 2px;border:0;border-radius:6px;background:transparent;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
-.bxgrip>span{min-width:20px;padding:1px 3px;border-radius:999px;line-height:16px}
-.bxhead .bxgrip{padding:8px 0 2px}
+.bxgrip{display:block;align-self:stretch;padding:4px 0;border-top:0;border-bottom:0;border-left:0;background:transparent;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.bxgrip>span{display:inline-block;min-width:22px;padding:1px 4px;border-radius:999px;line-height:16px}
+
 .bxgrip:hover>span{background:var(--chip);color:var(--ink)}
-.bxgrip:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.bxgrip:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .bxrow.dragging{position:relative;z-index:3;background:var(--sheet);box-shadow:0 6px 18px var(--shadow);border-radius:8px}
 .bxrow.dragging,.bxrow.dragging .bxgrip{cursor:grabbing}
 .bxrow.moved{animation:bxmoved 1.2s ease-out}
 @keyframes bxmoved{from{background:color-mix(in srgb,var(--brass) 24%,transparent)}to{background:transparent}}
 .bxdrop{position:absolute;left:4px;right:4px;height:3px;border-radius:2px;background:var(--brass);pointer-events:none;z-index:4}
 /* Selecting rows (to copy, move or paste after), playing one line, the beat sounding. */
-.bxrow.sel{background:color-mix(in srgb,var(--brass) 13%,transparent)}
+.bxrow.sel,.bxrow.sel:hover{background:color-mix(in srgb,var(--brass) 14%,transparent)}
 .bxgrip[aria-pressed="true"]>span{background:var(--brass);color:var(--brass-ink)}
-.bxselbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:8px 2px;background:var(--sheet);border-bottom:1px solid var(--rule)}
+.bxselbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:8px 10px;background:var(--sheet);border-bottom:1px solid var(--rule)}
 .bxselbar .bxselt{flex:1 1 auto;font-weight:600}
-.bxplay.on{background:var(--brass);border-color:var(--brass);color:var(--brass-ink)}
-.bx.playing{background:var(--mark);color:var(--mark-ink);border-color:var(--brass)}
+.bxcell .bx.playing{background:var(--mark);color:var(--mark-ink);border-color:var(--brass);box-shadow:0 0 0 2px var(--brass)}
+/* The colours' key, above the boxes. */
+.bxkey{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;font-size:13px;color:var(--ink-2)}
+.bxkey .kk{display:inline-flex;align-items:center;gap:5px}
+.bxkey .kk i{display:inline-block;width:18px;height:14px;border-radius:4px;border:1px solid}
+.bxkey .v-sam i{background:var(--v-sam);border-color:var(--v-sam-line)}
+.bxkey .v-tali i{background:var(--v-tali);border-color:var(--v-tali-line)}
+.bxkey .v-khali i{background:var(--v-khali);border-color:var(--v-khali-line)}
 
 /* The Voice view (new): the range finder and the hold-a-note trainer. */
 .vc{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
