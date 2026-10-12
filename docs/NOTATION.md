@@ -163,12 +163,16 @@ no preview beside them (they show the same; Rinat, 2026-10-11); Free text keeps 
 where a beat is tapped to choose it. The Octave and Join/Split row sits above the boxes (or
 the text) and works on the box chosen (or the beats chosen).
 
-- **Rows** are the text's lines: each heading (its name, a tempo field and a taal picker,
-  which wrap among themselves, and × at its top right), and each notes line (its number in
-  front with ▶ just under it, × at its top right) as one box per beat, grouped by
-  the vibhags of its section's taal (from where the line falls in the
-  cycle, start beat included), with the taal marks above and a box for the words of each
-  verse below. An unfinished line shows empty boxes to the end of its cycle. After the song,
+- **Rows** are the text's lines (round six, 2026-10-12): down the left, the row's number
+  (a heading's #) the row's full height, behind the diary's red margin line; at the right
+  end, buttons as tall as the row: on a line, play this line, play from here, and ×; on a
+  heading, ×. On a phone the three stack, a third of the row's height each. A heading holds
+  its name, a tempo field and a taal picker, which wrap among themselves; a notes line holds
+  one box per beat, grouped by the vibhags of its section's taal (from where the line falls
+  in the cycle, start beat included), with a box for the words of each verse below. The
+  first beat of each vibhag is coloured by its kind instead of being marked above: sam (X)
+  amber, khali (0) lavender, another tali (2, 3 …) green, with a key above the boxes and the
+  kind in each box's label for screen readers. A row is faintly lit under the pointer. An unfinished line shows empty boxes to the end of its cycle. After the song,
   once its last line is finished or under a heading after it, an empty row as long as the
   line before it (whole cycles) starts a new line; Enter opens one after any line.
 - **Typing:** a space or a bar moves to the next box. Several beats typed or pasted into a
@@ -191,9 +195,10 @@ the text) and works on the box chosen (or the beats chosen).
   A row that is selected (below) moves with all the rows selected, gathered in the song's
   order where it is dropped (or one place up or down with the arrows), and they stay
   selected, to be moved on (`moveRows`).
-- **Selecting:** tap a row's number (a heading's #, too): each tap selects or unselects it
-  (the number turns brass). Clear, Escape on a number, or any other change to the song ends
-  the selection.
+- **Selecting:** tap a row anywhere but in a box, field or button, or tap its number: each
+  tap selects or unselects it (the number turns brass). A press that began in a box (say,
+  selecting text) and lets go elsewhere selects nothing. Clear, Escape on a number, or any
+  other change to the song ends the selection.
 - **Copying and pasting:** with rows selected, **Copy** in the bar at the top of the boxes
   keeps them, words and all, in the song's order (`copyRows`). The song is not changed, and
   the lines also go on the device's clipboard as text. For six seconds the bar says what is
@@ -204,9 +209,11 @@ the text) and works on the box chosen (or the beats chosen).
   number focused, Ctrl+C copies (the rows selected, or that row) and Ctrl+V pastes after it.
   Each move or paste is one undo step. (Round three put copies at the end of the song; round
   four had a Copy on each line and a Done that forgot the copy.)
-- **▶**, just under a line's number, plays that line once, at its tempo, with no count-in,
-  lighting each box as it sounds; ■ stops it. It is not logged as practice or kept as a take,
-  and leaves the practice pickers as they were.
+- **Play this line** plays that line once, at its tempo, with no count-in, lighting each box
+  as it sounds; ■ stops it. It is not logged as practice, kept as a take or scored.
+  **Play from here** plays from that line to the end of the song, once, as a line number on
+  the Practice sheet does (with the count-in, logged, scored); ■ stops it. Neither changes
+  the Lines to practise.
 - **Words:** typed in the boxes under the notes, a space between beats (`আ মার সো নার` typed
   in the first box fills four), `-` for a beat the vowel is held over. Enter in a word box
   opens another row of words (a second verse) at the same beat.

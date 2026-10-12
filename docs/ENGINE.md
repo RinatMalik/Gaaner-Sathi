@@ -25,6 +25,19 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
 ## Transport
 
 - Play from any line; optional loop from line A to line B; rounds counted from 0.
+- **What plays** (Rinat, 2026-10-12): the deck's Play plays the Lines to practise; a line
+  number on the sheet and the editor's "play from here" play from that line to the end of the
+  song, once; a section button plays its section (looping it when "loop" is ticked); a rewaz
+  item and a take played with the guide play their own lines. None of them changes the Lines
+  to practise.
+- **Pause** (Rinat, 2026-10-12): the deck's Play button pauses while playing, and a Stop
+  button sits beside it. Paused, the sound stops (the session ends, as on Stop) and the beat
+  stays marked; Play goes on from that beat, in the same round (`start(…, { at: { s, pass }
+  })`): at once, with no count-in, a note held across that beat sounding again for the rest of
+  its length (`resumeCarry`), the tempo trainer and a set number of rounds carrying on where
+  they were. Paused in the count-in, Play starts again. A rewaz waits while paused; Stop (or
+  changing the Lines to practise) ends a pause. A take ends at the pause; the practice log
+  counts the time played, without the pause. The space bar plays and pauses.
 - **Count-in:** when on, one full cycle plus any pickup, always starting at sam. The display
   counts down the beats left.
 - `startOn` puts the song's first beat on any taal beat (pickups). The taal position of every
@@ -202,8 +215,14 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
 `src/audio/mic.ts`, `src/audio/dsp/mpm.ts`, `src/core/pitch/track.ts`, `src/app/pitch.ts`.
 
 - **Capture:** `getUserMedia` with echo cancellation, noise suppression and automatic gain
-  off (they distort pitch), into the same `AudioContext` as the guide, asked for only when
-  the singer turns feedback on. An AudioWorklet (loaded from a Blob URL) only copies samples
+  off (they distort pitch), into the same `AudioContext` as the guide. "Check my pitch" turns
+  feedback on; the microphone then listens only while a song plays (Rinat, 2026-10-12): it
+  opens when playing starts (or goes on after a pause) and closes when it stops, pauses or
+  ends. Scoring starts with the first beat scheduled; notes before the microphone was open
+  have no readings and are left out. A pause cuts the expected notes there (`cut`), so the
+  notes scheduled but never played are forgotten. The editor's quick listen to a line does not
+  listen. There is no longer a tuner while nothing plays (the Voice tab's hold trainer shows a
+  note's pitch). An AudioWorklet (loaded from a Blob URL) only copies samples
   into blocks of half a window, stamped with their frame; the detector runs on the page.
   *Why:* the audio thread also renders the instruments, so it never does the maths; an
   AnalyserNode polled from the page would time windows only roughly.

@@ -49,6 +49,67 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-11 17:53 BST — Claude (Opus 5.5) — PH1-11 beat boxes round four; a gentle ending
+
+- **Goal:** Rinat, "a few more snags before we move on": all the lines selected should drag,
+  not one; a smaller preview, "8 beats are breaking into two lines … I would like one line to
+  be shown in one line"; at the end "the sound stops abruptly … maybe quarter of a second of
+  fade out? … happy to skip it if complicated"; copies no longer pasted at the end: "a paste
+  button … paste after whichever line is selected".
+- **Inspected:** where an 8-beat line wraps (scenario `widths`, headless Edge, 900–1920 px
+  windows): the beat boxes wrapped Kaharwa's 8 boxes into two rows at every width (each box
+  53 px; the widest column 565 px is about a pixel short), the preview never did above 900
+  px. The end of playing: the last note's release (time constant 0.04 s) and, 1.3 s after
+  the song, the session cut with 0.025 s (`endSession`); the drone is off by default, so the
+  last note is what stops short.
+- **Changed:** `e7efd4e` (feat): `moveRows`, `copyRows`, `pasteRows` in
+  `src/core/notation/boxes.ts` (`copyRowsToEnd` gone; `moveRow` is `moveRows` of one); the
+  boxes: Copy keeps lines (and writes them to the clipboard as text), a bar offers Paste
+  after the last row selected (or under a heading) until Done, across songs; Ctrl+C and
+  Ctrl+V on a number; a selected row dragged, or moved with ↑ ↓, takes every selected row
+  and they stay selected; boxes 16 px at 2.6em (were 17 px at 3.1em), the editor preview
+  18/14 px (were 20/15); help and hint. `7585139` (feat): `Transport.endFade` (0.25 s): the
+  last note of a song, or of the last of a set number of rounds, lets go with a time
+  constant of `endFade / 3`, and the session's output and reverb send fade over the last
+  `endFade` before the end; `reed()` takes a release; the comparisons with the prototype run
+  with `endFade` 0; `/dev/render.html` measures both endings. This commit (docs): NOTATION
+  (Beat boxes), ENGINE (a gentle ending, its measurement), ROADMAP (row 11), this file.
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
+  DevTools protocol on `npm run dev`, real mouse and key events):
+  - `npm run typecheck` → 0; `npx vitest run` → 31 files, 312 passed (new: copying rows in
+    order, pasting after a line's words, under a heading and at the end, nothing to paste;
+    several rows moved together from anywhere, dropped on themselves, already in place; the
+    ending: the last note's release 0.083 s at 8.095 s, the output and send at 9.17 s, the
+    other 15 notes 0.04 s, the same after the last of 2 rounds, none in an endless loop, none
+    with `endFade` 0); the comparisons with the prototype still pass; `npm run build` → 195
+    kB JS (69.3 kB gzip), 33 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5
+    passed, 12 exercises valid.
+  - Scenario `widths`: after the change, both 8-beat lines (with two-note beats and words)
+    fit one row of boxes at 1024, 1100, 1180, 1366 and 1920 px windows, and one row of the
+    preview down to 900 px; a 16-beat Teentaal line takes two rows of boxes from 1100 px (it took four).
+  - Scenario `paste` (27 checks): Copy leaves the song alone and the bar says "1 line
+    copied. Tap the number of the line to paste after."; a number tapped offers "Paste after
+    line 4", which puts the line and its words there, marked, its handle focused, the copy
+    kept; one Undo takes it back; two lines copied and pasted under a heading go before its
+    lines, in order; the copy is still there in a new song and pastes under its heading;
+    Done forgets it; dragging one of two selected lines lifts both and drops them together
+    at the end, in order, still selected; ↑ moves both on; two Undos take both moves back; an
+    unselected line dragged moves alone; Ctrl+C on a number and Ctrl+V on another paste
+    after it; 360 px day and night without sideways scrolling; no console errors. `move`
+    (30) and `edit3` (30), with their copy checks rewritten for Copy and Paste and the font
+    sizes for round four, `boxes` (30), `words` (17), `sections` (15) and `pherta` (25) pass.
+  - Audio (`/dev/render.html`, OfflineAudioContext 48 kHz in headless Edge): the port still
+    matches the prototype (at most 2.4 × 10⁻⁶, as the prototype against itself); the last
+    note falls 20 dB in 175 ms (95 ms before), a tanpura at the end in 195 ms (65 ms).
+  - CI run `38157178276` (`7585139`): core, reference and deploy jobs green. Live: `paste` against https://rinatmalik.github.io/Gaaner-Sathi/ passed all 27 checks, `widths` the same rows at 1366 and 1024 px, no console errors; `/` 200, `/new/` 200.
+- **Decisions made:** see Decisions (beat boxes, round four; the gentle ending).
+- **Risks or disagreements:** below a 1024 px window (two columns until 860 px) an 8-beat line
+  still takes two rows of boxes, and on a phone always. Copy also overwrites the device's
+  clipboard. The selection bar stays while something is copied, until Done. Nobody has
+  heard the new ending.
+- **Next handoff:** Rinat tries pasting, dragging several lines and the ending; then Phase 2,
+  the design.
+
 ### 2026-10-11 14:10 BST — Claude (Opus 5.5) — PH1-10 taal pherta: a taal per section
 
 - **Goal:** Rinat: "do taal pherta now, then we'll start design" (Open question 6 answered:

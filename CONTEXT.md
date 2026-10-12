@@ -3,7 +3,7 @@
 > The project's shared state, for Rinat, Claude, Codex and any other LLM: what the app is
 > for, how we work, where things stand, the decisions in force and the newest work log.
 >
-> **Last updated:** 2026-10-11 (18:56 BST) by Claude (Opus 5.5)
+> **Last updated:** 2026-10-12 (16:43 BST) by Claude (Opus 5.5)
 
 ## How to use this file
 
@@ -38,12 +38,13 @@ wins, except a later explicit decision by Rinat, which always wins.
 ## Current state
 
 - **Milestone:** Phase 2, the design (ROADMAP.md → Phase 2), begun 2026-10-11 with Rinat's
-  comments on the screen as it is; round one (PH2-01: the beat boxes, a fade before silence)
-  is built and live. Phase 1, features, was closed by Rinat ("That's it for features",
+  comments on the screen as it is; rounds one (PH2-01: the beat boxes, a fade before silence)
+  and two (PH2-02: Pause and Stop, the Lines to practise left alone, the microphone only while
+  playing, the rows redesigned) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
-- **Next single action:** Rinat tries round one and sends more design comments; meanwhile
-  Rinat tries taal pherta and the gentle endings.
-- **Last known-good commit:** `51d2543` (CI run `38161509189`: core, reference and deploy jobs green; checked live).
+- **Next single action:** Rinat tries round two, answers its two questions (Record me's
+  microphone; colours on the Practice sheet) and sends more design comments.
+- **Last known-good commit:** `f7d6ec0` (CI run `38271975694`: core, reference and deploy jobs green; checked live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -63,6 +64,7 @@ wins, except a later explicit decision by Rinat, which always wins.
     a silence;
   - the beat boxes with a phone keyboard (Gboard, Avro), and dragging lines on a phone;
   - wake lock and Bluetooth latency on a phone;
+  - an iPhone opening the microphone at each play (asking again, or the earpiece);
   - iOS: the ringer switch, and the sound moving to the earpiece once the microphone is on.
 
 ## Product direction
@@ -273,7 +275,7 @@ decision.
 ### Commands
 
 - `npm install` once.
-- `npm test`: every Vitest suite (313 tests, about 10 s). Read the "Test Files" line: a
+- `npm test`: every Vitest suite (319 tests, about 10 s). Read the "Test Files" line: a
   file that fails to load is not counted as a failed test.
 - `npm run typecheck`: the whole project, then `src/core` and `src/audio/dsp` with no DOM
   library (a DOM call there fails).
@@ -346,6 +348,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH1-10 | Claude | Review | Taal pherta: a section's heading names a taal of its own (a taal picker beside each heading in the beat boxes); it plays, is checked, laid out and shown in it, from its sam | 16 unit tests (a Kaharwa section's Web Audio calls equal a Kaharwa song's); Edge scenario `pherta` (25 checks) locally and live (Work log 2026-10-11 14:10) | Waiting for Rinat's songs in taal pherta |
 | PH1-11 | Claude | Review | Beat boxes round four: Copy keeps lines and Paste puts them after the row selected (in any song); the rows selected are dragged and moved together; smaller boxes and preview (an 8-beat line in one row from a 1024 px window); a gentle ending (the last note and the tail fade over a quarter second) | 5 unit tests; Edge scenarios `paste` (27 checks) and `widths`, locally and live; offline renders of the ending (Work log 2026-10-11 17:53) | Waiting for Rinat's use and ears |
 | PH2-01 | Claude | Review | Design, round one: ▶ under each line's number (icons only), no Copy on a line and no Done (select, Copy, Paste as often as wanted), a heading's × at its top right, no preview beside the beat boxes (full width: 16 beats on a row), a note before silence fades out | 1 unit test and the boxes' HTML test; Edge scenario `round5` (32 checks); offline renders (Work log 2026-10-11 18:56) | Waiting for Rinat's use, ears and next comments |
+| PH2-02 | Claude | Review | Design, round two: Pause and a separate Stop; nothing that plays changes the Lines to practise (play from here, sheet line numbers, sections, rewaz, takes); "Check my pitch" listens only while playing; beat box rows with the number and buttons (play this line, play from here, ×) full height, vibhag starts coloured instead of X/0, a tap anywhere on a row selects it, hover | 5 unit tests and the boxes' HTML tests; Edge scenarios `round6` (42 checks) and `rewaz6` (5), with a WAV microphone (Work log 2026-10-12 16:43) | Waiting for Rinat's use and two answers |
 
 ## Decisions
 
@@ -397,6 +400,10 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-11 | Phase 2, the design, begun: Rinat's comments on the screen as it is come in rounds and are built as they come, as the features were. | Rinat, chat 2026-10-11 ("the comments I am gonna make are mostly design amends anyway so i guess you could call this moving to the design phase") | ROADMAP.md → Phase 2 lists each round. |
 | 2026-10-11 | Beat boxes, round five: ▶ in front of each line, just under its number, icons only (▶ / ■); no Copy on each line (select, then Copy in the bar) and no Done: what is copied stays, to paste as often as wanted, until something else is copied, and the bar shows only while rows are selected (and for six seconds after a Copy, to say how to paste); a heading's × at its top right; no preview beside the beat boxes, which take the editor's full width (Free text keeps it); the Octave and Join/Split row above the boxes; a selected row's number shows as a brass chip. | Rinat, chat 2026-10-11 ("no need for the copy button at the end of each line", "Bring the play button to the front of the line … just have the icons", "get rid of the done button. just copy and paste", "bring it to top right", "get rid of the preview pane from the editing window"); keeping the preview in Free text, the six-second hint and the brass chip are Claude's choices | Replaces round four's Copy on each line and its Done. NOTATION.md → Beat boxes. |
 | 2026-10-11 | A note followed by silence (`x`) fades out as the song's last note does (over about a quarter second). | Rinat, chat 2026-10-11 ("make the faded ending on any note that is followed by a 'Silence x' beat") | ENGINE.md → Transport. |
+| 2026-10-12 | Pause: the deck's Play button pauses while playing (Play again goes on from the beat paused on, in the same round, at once, with no count-in), and a Stop button sits beside it; the space bar plays and pauses. A pause ends a take (kept), keeps a rewaz waiting, and is not counted in the practice log's seconds. | Rinat, chat 2026-10-12 ("there should be pause button when playing and a separate stop button"); going on at once from the beat, the take and log rules are Claude's | ENGINE.md → Transport. |
+| 2026-10-12 | What plays: the deck's Play plays the Lines to practise; a line number on the sheet and the editor's "play from here" play from that line to the end, once; a section button plays its section (looping it with "loop" ticked); rewaz items and takes play their own lines. Nothing but the user changes the Lines to practise. | Rinat, chat 2026-10-12 ("when selecting a line to play from - don't auto update the 'Lines to Practice' selection. this to be applied app-wide"); "to the end, once" is Claude's | Replaces "a tap on a line number: play from there" setting the pickers. ENGINE.md → Transport. |
+| 2026-10-12 | "Check my pitch" switches pitch feedback on; the microphone listens only while a song plays (opening at Play or going on, closing at Pause, Stop or the end), not for the editor's quick listen to a line. No tuner while nothing plays. Record me is unchanged for now (asked). | Rinat, chat 2026-10-12 ("mic should only be listening when play button is pressed and stop when the song is finished or the stop button is pressed") | ENGINE.md → Pitch feedback. |
+| 2026-10-12 | Beat box rows, round six: the number (a heading's #) down the left the row's full height, behind the red margin line; at the right end, full-height buttons: play this line, play from here, × (a heading: ×), icons only, stacked on a phone; the first beat of each vibhag coloured (sam amber, tali green, khali lavender, with a key) instead of X/0 above the boxes; a tap on any empty space in a row selects it; rows lit faintly under the pointer. X/0 stay on the Practice and printed sheets (asked). | Rinat, chat 2026-10-12, with a sketch ("full line height buttons", "Colour code the first beat of the sections of the line so we can get rid of X and the O", "selected when click on any empty space … subtly highlighted when hovered"); the colours, the key and the number centred in its column are Claude's | Replaces round five's ▶ under the number. NOTATION.md → Beat boxes. |
 
 ## Open questions
 
@@ -432,6 +439,82 @@ Template:
     - **Decisions made:** rows added above.
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
+
+### 2026-10-12 16:43 BST — Claude (Opus 5.5) — PH2-02 design, round two: Pause and Stop, the Lines to practise left alone, the mic only while playing, beat box rows redesigned
+
+- **Goal:** Rinat (with a sketch of a line: the number down the left, "Play this line", "Play
+  From here" and "X" at the right, all full height): "mic should only be listening when play
+  button is pressed and stop when the song is finished or the stop button is pressed"; "there
+  should be pause button when playing and a separate stop button"; a line "selected when click
+  on any empty space on the whole line … subtly highlighted when hovered"; "full line height
+  buttons"; "Colour code the first beat of the sections of the line so we can get rid of X and
+  the O"; "when selecting a line to play from - don't auto update the 'Lines to Practice'
+  selection … app-wide"; "let me know if any of these things conflicts with something else".
+- **Inspected:** `src/app/pitch.ts` (the button opened the microphone and kept it open, a
+  tuner while idle); `play()`/`stop()`/`userToggle` and every caller in `src/app/app.ts` (the
+  pickers were written by `play()`, the sheet's line numbers, the section buttons, rewaz items
+  and takes with the guide); the transport's start (count-in, carry); the practice log's
+  seconds; takes (`Recorder` kept open while Record me is on); `PitchTracker`.
+- **Changed:** `f7d6ec0` (feat): `Transport.start(…, { at: { s, pass } })` goes on from a
+  beat and round at once, a note held across it sounding again; `PitchTracker.cut(t)`; the
+  app: `PlayAsk` (what plays is passed in, the pickers only read by the deck's Play),
+  `pause()`/`resume()`/`userStop()`, `#stopBtn`, a pause icon in `#playBtn` (aria "Pause",
+  "Go on"), the log's `seg`/`done` (time played without pauses), a take ending at a pause,
+  rewaz seeing a pause as playing; `userPlay` plays from a line to the end once (sheet line
+  numbers, the editor's "play from here"), section buttons play their section, rewaz items and
+  takes their own lines, none touching the pickers; pitch: "Check my pitch" arms, the
+  microphone opens on play or going on and closes on pause, stop or the end, scoring from the
+  first beat scheduled, not for the editor's quick listen; beat boxes: the number (a
+  heading's #) full height behind the red margin line, full-height buttons at the row's end
+  (play this line, play from here, ×; stacked on a phone), `v-sam`/`v-tali`/`v-khali` on the
+  first beat of each vibhag (theme tokens `--v-*`, a key `#bxKey`, the kind in each box's
+  label) instead of the X/0 row, a tap on a row's empty space selects it (not a press begun in
+  a box), rows lit on hover; help and hint; `tests/unit/pause.test.ts`, the boxes' HTML tests.
+  This commit (docs): NOTATION (Beat boxes), ENGINE (What plays, Pause, Capture), DATA (`secs`),
+  ROADMAP (Phase 2 row 2), this file (the 2026-10-11 17:53 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
+  DevTools protocol on `npm run dev`, real mouse and key events; the microphone a WAV through
+  Edge's fake device, with `getUserMedia` counted):
+  - `npm run typecheck` → 0; `npx vitest run` → 32 files, 319 passed (new: going on at beat
+    5 plays Dha, Ni, Sa at once with no count-in; a held Sa sounds again for its last two
+    beats; round 2 of 3 resumed ends after round 3; no `at` counts in as before; `cut` ends
+    the note sounding and forgets the later ones; the rows' order, buttons and labels; the
+    vibhag colours in Teentaal and Rupak, in the empty row too, none of `bxmark`); the
+    comparisons with the prototype still pass; `npm run build` → 198 kB JS (70.7 kB gzip),
+    35 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid.
+  - Scenario `round6` (42 checks, twice): a line's number, then boxes, then play, play from
+    here, × each the row's full height at its right end, icons only, a heading's × in line;
+    no X or 0, sam and khali boxes coloured differently, the key (not in Free text); a row lit
+    under the pointer; a tap on its empty space selects it and another unselects; a tap in a
+    box types; a press in a box let go over empty space selects nothing; a heading selects
+    too; play this line shows ■ and stops; play from here on line 3 plays from line 3, ■
+    stops it, the pickers unchanged; the deck: Stop greyed out when idle, Play then "Pause",
+    Pause keeps the beat marked with "Paused · …", Play goes on from that beat at once, Stop
+    clears; the space bar plays and pauses; played 5 s, paused 4 s, played 7 s: one log
+    entry of 12 s; a sheet line number and a section button play there with the pickers
+    unchanged; the microphone: off when switched on, on with Play (1 open), off on Pause, on
+    again going on (2), off on Stop, on and then off when the song ends by itself (3), the
+    scores kept, the quick listen leaves it off; 360 px: the buttons stacked down the row's
+    end, at least 30 px each, no sideways scrolling day and night; no console errors.
+    `rewaz6` (5): Pause holds a rewaz item with its bar, Play goes on from the same beat,
+    the item never touched the pickers (0/7, loop off), Stop while paused ends the rewaz.
+    Updated for this round and passing: `round5` (30), `move` (30), `edit3` (30), `sections`
+    (15), `pherta` (25, the marks read from the colours), `takes` (20, stopped with Stop);
+    passing unchanged: `paste` (27), `boxes`, `words`, `midi` (19), `theme_notes` (20),
+    `print` (7). A 16-beat line (two notes in each of 8 beats) needs 754 px of boxes: one
+    row from a 980 px window (900 before this round).
+  - CI run `38271975694` (`f7d6ec0`): core, reference and deploy jobs green. Live: `round6` (42 checks, with the WAV microphone) and `rewaz6` (5) against https://rinatmalik.github.io/Gaaner-Sathi/ passed, no console errors; `/` 200, `/new/` 200.
+- **Decisions made:** see Decisions (Pause and Stop; what plays; the microphone only while
+  playing; beat box rows, round six).
+- **Risks or disagreements:** a take ends at a pause (a recording cannot go on mid-line);
+  Record me still keeps the microphone open while on (asked); no tuner while nothing plays;
+  a line number on the Practice sheet no longer starts a loop of the Lines to practise; a rewaz
+  item loops while the deck's "loop" may show unticked; X/0 stay on the Practice and printed
+  sheets (asked); the sketch's colours read as zone markers. On an iPhone, opening the
+  microphone at each play may ask again or move the sound to the earpiece: not tried. With
+  the count-in off, the first notes before the microphone opens go unscored. Nobody has used
+  Pause with a real voice.
+- **Next handoff:** Rinat tries round two and answers the two questions; more design comments.
 
 ### 2026-10-11 18:56 BST — Claude (Opus 5.5) — PH2-01 design, round one: beat boxes round five; a fade before silence
 
@@ -500,66 +583,5 @@ Template:
   its pointer and the hint text. After Copy the hint shows for six seconds only. Nobody has
   heard a note fade into silence.
 - **Next handoff:** Rinat tries round five and sends more design comments (Phase 2).
-
-### 2026-10-11 17:53 BST — Claude (Opus 5.5) — PH1-11 beat boxes round four; a gentle ending
-
-- **Goal:** Rinat, "a few more snags before we move on": all the lines selected should drag,
-  not one; a smaller preview, "8 beats are breaking into two lines … I would like one line to
-  be shown in one line"; at the end "the sound stops abruptly … maybe quarter of a second of
-  fade out? … happy to skip it if complicated"; copies no longer pasted at the end: "a paste
-  button … paste after whichever line is selected".
-- **Inspected:** where an 8-beat line wraps (scenario `widths`, headless Edge, 900–1920 px
-  windows): the beat boxes wrapped Kaharwa's 8 boxes into two rows at every width (each box
-  53 px; the widest column 565 px is about a pixel short), the preview never did above 900
-  px. The end of playing: the last note's release (time constant 0.04 s) and, 1.3 s after
-  the song, the session cut with 0.025 s (`endSession`); the drone is off by default, so the
-  last note is what stops short.
-- **Changed:** `e7efd4e` (feat): `moveRows`, `copyRows`, `pasteRows` in
-  `src/core/notation/boxes.ts` (`copyRowsToEnd` gone; `moveRow` is `moveRows` of one); the
-  boxes: Copy keeps lines (and writes them to the clipboard as text), a bar offers Paste
-  after the last row selected (or under a heading) until Done, across songs; Ctrl+C and
-  Ctrl+V on a number; a selected row dragged, or moved with ↑ ↓, takes every selected row
-  and they stay selected; boxes 16 px at 2.6em (were 17 px at 3.1em), the editor preview
-  18/14 px (were 20/15); help and hint. `7585139` (feat): `Transport.endFade` (0.25 s): the
-  last note of a song, or of the last of a set number of rounds, lets go with a time
-  constant of `endFade / 3`, and the session's output and reverb send fade over the last
-  `endFade` before the end; `reed()` takes a release; the comparisons with the prototype run
-  with `endFade` 0; `/dev/render.html` measures both endings. This commit (docs): NOTATION
-  (Beat boxes), ENGINE (a gentle ending, its measurement), ROADMAP (row 11), this file.
-- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
-  DevTools protocol on `npm run dev`, real mouse and key events):
-  - `npm run typecheck` → 0; `npx vitest run` → 31 files, 312 passed (new: copying rows in
-    order, pasting after a line's words, under a heading and at the end, nothing to paste;
-    several rows moved together from anywhere, dropped on themselves, already in place; the
-    ending: the last note's release 0.083 s at 8.095 s, the output and send at 9.17 s, the
-    other 15 notes 0.04 s, the same after the last of 2 rounds, none in an endless loop, none
-    with `endFade` 0); the comparisons with the prototype still pass; `npm run build` → 195
-    kB JS (69.3 kB gzip), 33 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5
-    passed, 12 exercises valid.
-  - Scenario `widths`: after the change, both 8-beat lines (with two-note beats and words)
-    fit one row of boxes at 1024, 1100, 1180, 1366 and 1920 px windows, and one row of the
-    preview down to 900 px; a 16-beat Teentaal line takes two rows of boxes from 1100 px (it took four).
-  - Scenario `paste` (27 checks): Copy leaves the song alone and the bar says "1 line
-    copied. Tap the number of the line to paste after."; a number tapped offers "Paste after
-    line 4", which puts the line and its words there, marked, its handle focused, the copy
-    kept; one Undo takes it back; two lines copied and pasted under a heading go before its
-    lines, in order; the copy is still there in a new song and pastes under its heading;
-    Done forgets it; dragging one of two selected lines lifts both and drops them together
-    at the end, in order, still selected; ↑ moves both on; two Undos take both moves back; an
-    unselected line dragged moves alone; Ctrl+C on a number and Ctrl+V on another paste
-    after it; 360 px day and night without sideways scrolling; no console errors. `move`
-    (30) and `edit3` (30), with their copy checks rewritten for Copy and Paste and the font
-    sizes for round four, `boxes` (30), `words` (17), `sections` (15) and `pherta` (25) pass.
-  - Audio (`/dev/render.html`, OfflineAudioContext 48 kHz in headless Edge): the port still
-    matches the prototype (at most 2.4 × 10⁻⁶, as the prototype against itself); the last
-    note falls 20 dB in 175 ms (95 ms before), a tanpura at the end in 195 ms (65 ms).
-  - CI run `38157178276` (`7585139`): core, reference and deploy jobs green. Live: `paste` against https://rinatmalik.github.io/Gaaner-Sathi/ passed all 27 checks, `widths` the same rows at 1366 and 1024 px, no console errors; `/` 200, `/new/` 200.
-- **Decisions made:** see Decisions (beat boxes, round four; the gentle ending).
-- **Risks or disagreements:** below a 1024 px window (two columns until 860 px) an 8-beat line
-  still takes two rows of boxes, and on a phone always. Copy also overwrites the device's
-  clipboard. The selection bar stays while something is copied, until Done. Nobody has
-  heard the new ending.
-- **Next handoff:** Rinat tries pasting, dragging several lines and the ending; then Phase 2,
-  the design.
 
 Older entries: `docs/HISTORY.md`.

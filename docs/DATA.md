@@ -177,7 +177,7 @@ not logged.
 | Field | Meaning |
 |---|---|
 | `at` | When the first beat sounded, ms epoch |
-| `secs` | Seconds practised, from the first beat to the stop |
+| `secs` | Seconds practised, from the first beat to the stop, without any pause (2026-10-12) |
 | `song`, `title` | The song or exercise id, and its title at the time (songs get renamed or deleted) |
 | `from`, `to`, `loop` | Lines practised (0-based, inclusive; without a loop, `to` is the last line reached) |
 | `rounds` | Rounds begun; 1 without a loop |

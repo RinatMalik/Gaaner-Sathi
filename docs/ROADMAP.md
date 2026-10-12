@@ -72,6 +72,7 @@ Begun 2026-10-11 with Rinat's comments on the screen as it is ("mostly design am
 | # | Change | Made | Rinat's check (done when) |
 |---|---|---|---|
 | 1 | **Beat boxes, round five:** ▶ in front of each line, just under its number (icons only); no Copy on each line and no Done (select, Copy, then Paste as often as wanted); a heading's × at its top right; no preview beside the beat boxes, so they take the full width (a 16-beat line on one row from a 900 px window); a note followed by silence fades out gently | 2026-10-11 | Rinat finds the editor easier to manage |
+| 2 | **Playing and the beat boxes, round six:** Pause, with a separate Stop; nothing that plays changes the Lines to practise; "Check my pitch" listens only while playing; each line's number and buttons (play this line, play from here, ×) the row's full height; the first beat of each vibhag coloured (sam, tali, khali) instead of X and 0; a tap anywhere on a row selects it, and rows light up under the pointer | 2026-10-12 | Rinat finds pausing, playing from a line and the new rows easy |
 
 ## Phase 3: native mobile app
 
