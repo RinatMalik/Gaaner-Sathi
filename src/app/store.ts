@@ -67,10 +67,14 @@ export interface Prefs extends SoundSettings {
   /** The song open last time. */
   lastSong: string;
   tab: Tab;
-  /** Whether the Sound settings are unfolded; unset until the user folds or unfolds them. */
+  /** Whether the Practice settings are unfolded; unset until the user folds or unfolds them. */
   soundOpen?: boolean;
-  /** How the Songs view sorts. */
+  /** Whether a song's sound is unfolded in Edit notation; unset: folded. */
+  songSoundOpen?: true;
+  /** How the Music library sorts. */
   libSort: LibrarySort;
+  /** The Music library's sections the user has folded away. */
+  libFold?: { mine?: true; ex?: true };
   /** Pitch feedback: the octave must match too (unset: any octave counts). */
   pitchOctave?: boolean;
   /** Pitch feedback: the delay from the beat to the voice found last time, seconds. */
@@ -97,9 +101,9 @@ export interface Prefs extends SoundSettings {
 /** The notes the hold trainer offers, in cents from Sa (src/app/voice.ts names them). */
 export const HOLD_CENTS: readonly number[] = [-500, -300, -100, 0, 200, 400, 500, 700, 900, 1100, 1200];
 
-/** The views under the deck. */
+/** The views under the deck, in their order (`songs` is the Music library). */
 export type Tab = 'practice' | 'edit' | 'songs' | 'rewaz' | 'voice' | 'progress';
-export const TABS: readonly Tab[] = ['practice', 'edit', 'songs', 'rewaz', 'voice', 'progress'];
+export const TABS: readonly Tab[] = ['practice', 'songs', 'edit', 'rewaz', 'voice', 'progress'];
 
 /** The prototype's defaults; it opened on exercise 3 the first time. */
 export const DEFAULT_PREFS: Prefs = { ...structuredClone(DEFAULT_SOUND), script: 'bn', lastSong: 'ex-alankar-bn', tab: 'practice', libSort: 'practised' };
@@ -148,6 +152,13 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
     libSort: oneOf(r.libSort, ['practised', 'changed', 'title'] as const, d.libSort),
   };
   if (typeof r.soundOpen === 'boolean') p.soundOpen = r.soundOpen;
+  if (r.songSoundOpen === true) p.songSoundOpen = true;
+  const lf = r.libFold as Record<string, unknown> | undefined;
+  if (lf && typeof lf === 'object' && (lf.mine === true || lf.ex === true)) {
+    p.libFold = {};
+    if (lf.mine === true) p.libFold.mine = true;
+    if (lf.ex === true) p.libFold.ex = true;
+  }
   if (r.pitchOctave === true) p.pitchOctave = true;
   if (typeof r.pitchLag === 'number' && r.pitchLag >= 0 && r.pitchLag <= 0.6) p.pitchLag = r.pitchLag;
   if (typeof r.rewazId === 'string' && r.rewazId) p.rewazId = r.rewazId;

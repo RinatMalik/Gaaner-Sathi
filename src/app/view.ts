@@ -315,19 +315,30 @@ export function issuesHTML(P: ParsedSong, taals: TaalInfo | Taals, off: number, 
   return { html, list };
 }
 
-// ── Sound bar (new: the prototype's settings, folded away) ─────────────────────
+// ── Settings bars (new: the prototype's settings, folded away) ─────────────────
 
 const STYLE_NAMES: Record<string, string> = { tabla: 'Tabla', dholak: 'Dholak', kit: 'Drums', click: 'Click' };
+const FIRST_STRING: Record<string, string> = { P: 'Pa', M: 'Ma', N: 'Ni' };
 
-/** What the folded Sound settings are set to, in a line: "Tabla · Guide full · No drone".
- * Practice options are named only when they differ from the defaults. */
-export function soundSummary(s: SoundSettings): string {
-  const parts = [
-    s.beat === 'off' ? 'No rhythm' : (STYLE_NAMES[s.beat] ?? s.beat) + (s.speed === 'half' ? ', half speed' : s.speed === 'double' ? ', double speed' : ''),
-    'Guide ' + s.guide + (s.guide === 'off' ? '' : s.guideLoop === 'first' ? ', first round only' : s.guideLoop === 'alt' ? ', every other round' : ''),
-    s.droneVol > 0 ? (s.droneType === 'harmonium' ? 'Harmonium drone' : 'Tanpura') : 'No drone',
-  ];
+/** What the folded Practice settings are set to, in a line: "Guide full · No count-in".
+ * The count-in and the tempo trainer are named only when they differ from the defaults. */
+export function practiceSummary(s: SoundSettings): string {
+  const parts = ['Guide ' + s.guide + (s.guide === 'off' ? '' : s.guideLoop === 'first' ? ', first round only when looping' : s.guideLoop === 'alt' ? ', every other round when looping' : '')];
   if (!s.countIn) parts.push('No count-in');
   if (s.ramp) parts.push('Speeds up by ' + s.rampStep + ' to ' + s.rampMax);
   return parts.join(' · ');
+}
+
+/** A song's own sound, folded, in a line: "3 reeds · Tanpura, 1st string Pa · Drums, double
+ * speed, with shaker, claps". */
+export function songSoundSummary(s: SoundSettings): string {
+  const layers = s.beat === 'off' || s.beat === 'click' ? [] : ((s.layers as Record<string, readonly string[] | undefined>)[s.beat] || []);
+  const names = layers.map((id) => (Object.hasOwn(LAYERS, id) ? LAYERS[id as LayerId].name.toLowerCase() : id));
+  return [
+    s.reeds + (s.reeds === 1 ? ' reed' : ' reeds'),
+    s.droneVol > 0 ? (s.droneType === 'harmonium' ? 'Harmonium drone' : 'Tanpura, 1st string ' + (FIRST_STRING[s.tanTune] ?? 'Pa')) : 'No drone',
+    s.beat === 'off'
+      ? 'No rhythm'
+      : (STYLE_NAMES[s.beat] ?? s.beat) + (s.speed === 'half' ? ', half speed' : s.speed === 'double' ? ', double speed' : '') + (names.length ? ', with ' + names.join(', ') : ''),
+  ].join(' · ');
 }

@@ -1,16 +1,17 @@
 /**
  * Sound settings (docs/DATA.md → Settings): the device's settings, which a song's own sound
- * (its Melody and Rhythm groups, src/core/song/sound.ts) lies over. Field names match the
+ * (its harmonium, drone and rhythm, src/core/song/sound.ts) lies over. Field names match the
  * prototype's `swaralipi.prefs.v1`.
  */
-import type { SongSound } from '../core/song/sound';
+import type { GuideLevel, SongSound } from '../core/song/sound';
 
 export type { BeatStyle, DroneType, GuideLevel, TanTune } from '../core/song/sound';
 /** When looping: guide every round, the first round only, or every other round. */
 export type GuideLoop = 'all' | 'first' | 'alt';
 
-/** Melody and Rhythm (SongSound), then the Practice group, which every song shares. */
+/** A song's own sound (SongSound), then the practice settings, which every song shares. */
 export interface SoundSettings extends SongSound {
+  guide: GuideLevel;
   countIn: boolean;
   guideLoop: GuideLoop;
   /** Tempo trainer: faster each round of a loop, up to rampMax. */
@@ -26,7 +27,7 @@ export const DEFAULT_SOUND: SoundSettings = {
   countIn: true, guideLoop: 'all', ramp: false, rampStep: 4, rampMax: 160,
 };
 
-const GUIDE_LEVELS: Record<SongSound['guide'], number> = { full: 0.9, soft: 0.3, off: 0 };
+const GUIDE_LEVELS: Record<GuideLevel, number> = { full: 0.9, soft: 0.3, off: 0 };
 export const guideLevel = (s: SoundSettings): number => GUIDE_LEVELS[s.guide] ?? 0.9;
 export const beatLevel = (s: SoundSettings): number => (s.beat === 'off' ? 0 : s.tablaVol);
 export function droneLevels(s: SoundSettings): { harm: number; tan: number } {

@@ -1,8 +1,10 @@
 /**
- * A song's own sound (docs/DATA.md → Song → sound): the Sound settings' Melody and Rhythm
- * groups, saved with the song since 2026-10-10. The Practice group (count-in, the guide on
- * repeats, the tempo trainer) stays the same for every song. Field names match the device
- * settings, the prototype's `swaralipi.prefs.v1`, so a song's sound lies over them.
+ * A song's own sound (docs/DATA.md → Song → sound): its harmonium, drone and rhythm, saved
+ * with the song since 2026-10-10 and set in Edit notation since 2026-10-13. How loud the
+ * guide is, the count-in, the guide on repeats and the tempo trainer are practice settings,
+ * the same for every song (a guide level saved with a song before 2026-10-13 is ignored).
+ * Field names match the device settings, the prototype's `swaralipi.prefs.v1`, so a song's
+ * sound lies over them.
  */
 import { LAYERS, type LayerId, type SpeedName } from '../taal/rhythm';
 
@@ -15,7 +17,6 @@ export type TanTune = 'P' | 'M' | 'N';
 export type LayerStyle = 'tabla' | 'dholak' | 'kit';
 
 export interface SongSound {
-  guide: GuideLevel;
   reeds: 1 | 2 | 3;
   droneType: DroneType;
   /** 0 means no drone. */
@@ -30,11 +31,10 @@ export interface SongSound {
   layers: Record<LayerStyle, string[]>;
 }
 
-export const SONG_SOUND_KEYS = ['guide', 'reeds', 'droneType', 'droneVol', 'tanTune', 'beat', 'tablaVol', 'speed', 'fills', 'layers'] as const satisfies readonly (keyof SongSound)[];
+export const SONG_SOUND_KEYS = ['reeds', 'droneType', 'droneVol', 'tanTune', 'beat', 'tablaVol', 'speed', 'fills', 'layers'] as const satisfies readonly (keyof SongSound)[];
 
 /** What each control can be set to. */
 export const SOUND_CHOICES = {
-  guide: ['full', 'soft', 'off'],
   reeds: [1, 2, 3],
   droneType: ['tanpura', 'harmonium'],
   tanTune: ['P', 'M', 'N'],
@@ -69,7 +69,6 @@ export function cleanSound(v: unknown): Partial<SongSound> | undefined {
   if (!v || typeof v !== 'object' || Array.isArray(v)) return undefined;
   const r = v as Record<string, unknown>;
   const s: Partial<SongSound> = {
-    guide: oneOf(r.guide, SOUND_CHOICES.guide),
     reeds: oneOf(r.reeds, SOUND_CHOICES.reeds),
     droneType: oneOf(r.droneType, SOUND_CHOICES.droneType),
     droneVol: level(r.droneVol),
@@ -84,10 +83,10 @@ export function cleanSound(v: unknown): Partial<SongSound> | undefined {
   return Object.keys(s).length ? s : undefined;
 }
 
-/** The Melody and Rhythm settings out of a full set, to keep with a song (layers copied). */
+/** A song's own settings out of a full set, to keep with it (layers copied). */
 export function soundOf(s: SongSound): SongSound {
   return {
-    guide: s.guide, reeds: s.reeds, droneType: s.droneType, droneVol: s.droneVol, tanTune: s.tanTune,
+    reeds: s.reeds, droneType: s.droneType, droneVol: s.droneVol, tanTune: s.tanTune,
     beat: s.beat, tablaVol: s.tablaVol, speed: s.speed, fills: s.fills,
     layers: { tabla: [...(s.layers.tabla || [])], dholak: [...(s.layers.dholak || [])], kit: [...(s.layers.kit || [])] },
   };

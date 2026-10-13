@@ -12,9 +12,9 @@
 <script type="module" src="./src/app/main.ts"></script>
 </head>
 <body>
-<!-- The prototype's page (reference/gaaner-sathi.html), with the Sound settings in a bar that folds them away,
-     and the features added since (docs/ROADMAP.md → Phase 1): the Songs view, pitch feedback, rewaz routines
-     and the Progress view. -->
+<!-- The prototype's page (reference/gaaner-sathi.html), with its settings in bars that fold them away (the
+     practice settings under the deck, each song's sound in Edit notation), and the features added since
+     (docs/ROADMAP.md → Phase 1): the Music library, pitch feedback, rewaz routines and the Progress view. -->
 <div class="wrap">
   <header class="top">
     <div class="brand">
@@ -76,37 +76,21 @@
 
   <div class="sound">
     <button id="soundBtn" class="soundbar" type="button" aria-expanded="true" aria-controls="mixer">
-      <span class="soundtext"><span class="mhead">Sound</span><span class="soundsum" id="soundSum"></span></span>
+      <span class="soundtext"><span class="mhead">Practice settings</span><span class="soundsum" id="soundSum"></span></span>
       <span class="soundact" aria-hidden="true"><span id="soundAct">Done</span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </button>
-  <section class="mixer" id="mixer" aria-label="Sound">
-    <p class="snote" id="soundNote"><span id="soundNoteText" aria-live="polite"></span><button id="soundForget" class="ibtn" type="button" hidden>Use my usual sound</button></p>
+  <section class="mixer" id="mixer" aria-label="Practice settings">
+    <p class="snote"><span>The harmonium, drone and rhythm are set with each song, in Edit notation.</span><button id="toSongSound" class="ibtn" type="button">Change this song’s sound</button></p>
     <div class="mgroup">
-      <span class="mhead">Melody</span><div class="mitems">
-      <div class="mx"><span class="lab2" id="guideLab">Guide</span>
+      <span class="mhead">Guide</span><div class="mitems">
+      <div class="mx"><span class="sr-only" id="guideLab">Guide</span>
         <div class="seg" id="guideSeg" role="group" aria-labelledby="guideLab"><button type="button" data-v="full">Full</button><button type="button" data-v="soft">Soft</button><button type="button" data-v="off">Off</button></div></div>
-      <div class="mx"><span class="lab2" id="reedLab">Harmonium</span>
-        <div class="seg" id="reedSeg" role="group" aria-labelledby="reedLab"><button type="button" data-v="1" title="Male reed only">1 reed</button><button type="button" data-v="2" title="Bass and male reeds">2 reeds</button><button type="button" data-v="3" title="Bass, male and female reeds">3 reeds</button></div></div>
-      <div class="mx"><span class="lab2" id="droneLab">Drone</span>
-        <div class="seg" id="droneSeg" role="group" aria-labelledby="droneLab"><button type="button" data-v="tanpura">Tanpura</button><button type="button" data-v="harmonium">Harmonium</button></div>
-        <input type="range" id="droneVol" min="0" max="1" step="0.01" aria-label="Drone volume">
-        <select id="tanTune" class="msel" aria-label="Tanpura first string"><option value="P">1st string Pa</option><option value="M">1st string Ma</option><option value="N">1st string Ni</option></select></div>
-    </div></div>
-    <div class="mgroup">
-      <span class="mhead">Rhythm</span><div class="mitems">
-      <div class="mx"><span class="sr-only" id="beatLab">Rhythm instrument</span>
-        <div class="seg" id="beatSeg" role="group" aria-labelledby="beatLab"><button type="button" data-v="tabla">Tabla</button><button type="button" data-v="dholak">Dholak</button><button type="button" data-v="kit">Drums</button><button type="button" data-v="click">Click</button><button type="button" data-v="off">Off</button></div>
-        <input type="range" id="tablaVol" min="0" max="1" step="0.01" aria-label="Rhythm volume"></div>
-      <div class="mx"><span class="lab2" id="speedLab">Speed</span>
-        <div class="seg" id="speedSeg" role="group" aria-labelledby="speedLab"><button type="button" data-v="half">Half</button><button type="button" data-v="normal">Normal</button><button type="button" data-v="double">Double</button></div></div>
-      <label class="chk2"><input type="checkbox" id="fillsChk"> Fill every 4th cycle</label>
-      <div class="mx" id="layerRow"><span class="lab2" id="layerLab">Add</span><div class="chips" id="layerChips" role="group" aria-labelledby="layerLab"></div></div>
-    </div></div>
-    <div class="mgroup">
-      <span class="mhead">Practice</span><div class="mitems">
-      <label class="chk2"><input type="checkbox" id="countIn"> Count in one cycle</label>
       <div class="mx"><span class="lab2" id="glLab">When looping, the guide plays</span>
         <div class="seg" id="guideLoopSeg" role="group" aria-labelledby="glLab"><button type="button" data-v="all">Every round</button><button type="button" data-v="first">First round only</button><button type="button" data-v="alt" title="Listen to the line, then sing it alone">Every other round</button></div></div>
+    </div></div>
+    <div class="mgroup">
+      <span class="mhead">Rounds</span><div class="mitems">
+      <label class="chk2"><input type="checkbox" id="countIn"> Count in one cycle</label>
       <div class="mx"><label class="chk2"><input type="checkbox" id="rampChk"> Speed up each round by</label>
         <select id="rampStep" class="msel" aria-label="Tempo increase per round"><option value="2">2</option><option value="4">4</option><option value="6">6</option><option value="8">8</option><option value="10">10</option></select>
         <label class="lab2" for="rampMax">up to</label><input type="number" id="rampMax" class="mnum" min="30" max="240" step="1" inputmode="numeric"></div>
@@ -127,8 +111,8 @@
 
   <div class="tabs">
     <div class="tabbtns" role="tablist" aria-label="View">
-      <button type="button" role="tab" id="tabSongs" aria-controls="songs">Songs</button>
       <button type="button" role="tab" id="tabPractice" aria-controls="practice">Practice</button>
+      <button type="button" role="tab" id="tabSongs" aria-controls="songs">Music library</button>
       <button type="button" role="tab" id="tabEdit" aria-controls="edit">Edit notation</button>
       <button type="button" role="tab" id="tabRewaz" aria-controls="rewaz">Rewaz</button>
       <button type="button" role="tab" id="tabVoice" aria-controls="voice">Voice</button>
@@ -140,7 +124,7 @@
   <main id="songs" role="tabpanel" aria-labelledby="tabSongs" hidden>
     <div class="lib">
       <div class="libtop">
-        <input id="libQ" class="libq" type="search" placeholder="Search titles, lyrics and tags" aria-label="Search songs" autocomplete="off" spellcheck="false">
+        <input id="libQ" class="libq" type="search" placeholder="Search titles, lyrics and tags" aria-label="Search the music library" autocomplete="off" spellcheck="false">
         <label class="lab2" for="libSort">Sort by</label>
         <select id="libSort" class="msel"><option value="practised">Recently practised</option><option value="changed">Recently changed</option><option value="title">Title</option></select>
         <span class="spacer"></span>
@@ -262,6 +246,34 @@
         <div class="f grow" id="tagsF"><label for="tagsIn">Tags, separated by commas</label><input id="tagsIn" type="text" autocomplete="off" placeholder="Rabindrasangeet, Learning"></div>
       </div>
       <div class="f" id="notesF"><label for="notesIn">About this song: its meaning, where it comes from, a teacher's comments</label><textarea id="notesIn" rows="3" autocomplete="off" placeholder="Shown on the Practice view, above the notation"></textarea></div>
+      <div class="sound songsound">
+        <button id="songSoundBtn" class="soundbar" type="button" aria-expanded="false" aria-controls="songMixer">
+          <span class="soundtext"><span class="mhead" id="songSoundHead">Sound of this song</span><span class="soundsum" id="songSoundSum"></span></span>
+          <span class="soundact" aria-hidden="true"><span id="songSoundAct">Change</span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </button>
+        <section class="mixer" id="songMixer" aria-labelledby="songSoundHead" hidden>
+          <p class="snote" id="soundNote"><span id="soundNoteText" aria-live="polite"></span><button id="soundForget" class="ibtn" type="button" hidden>Use my usual sound</button></p>
+          <div class="mgroup">
+            <span class="mhead">Melody</span><div class="mitems">
+            <div class="mx"><span class="lab2" id="reedLab">Harmonium</span>
+              <div class="seg" id="reedSeg" role="group" aria-labelledby="reedLab"><button type="button" data-v="1" title="Male reed only">1 reed</button><button type="button" data-v="2" title="Bass and male reeds">2 reeds</button><button type="button" data-v="3" title="Bass, male and female reeds">3 reeds</button></div></div>
+            <div class="mx"><span class="lab2" id="droneLab">Drone</span>
+              <div class="seg" id="droneSeg" role="group" aria-labelledby="droneLab"><button type="button" data-v="tanpura">Tanpura</button><button type="button" data-v="harmonium">Harmonium</button></div>
+              <input type="range" id="droneVol" min="0" max="1" step="0.01" aria-label="Drone volume">
+              <select id="tanTune" class="msel" aria-label="Tanpura first string"><option value="P">1st string Pa</option><option value="M">1st string Ma</option><option value="N">1st string Ni</option></select></div>
+          </div></div>
+          <div class="mgroup">
+            <span class="mhead">Rhythm</span><div class="mitems">
+            <div class="mx"><span class="sr-only" id="beatLab">Rhythm instrument</span>
+              <div class="seg" id="beatSeg" role="group" aria-labelledby="beatLab"><button type="button" data-v="tabla">Tabla</button><button type="button" data-v="dholak">Dholak</button><button type="button" data-v="kit">Drums</button><button type="button" data-v="click">Click</button><button type="button" data-v="off">Off</button></div>
+              <input type="range" id="tablaVol" min="0" max="1" step="0.01" aria-label="Rhythm volume"></div>
+            <div class="mx"><span class="lab2" id="speedLab">Speed</span>
+              <div class="seg" id="speedSeg" role="group" aria-labelledby="speedLab"><button type="button" data-v="half">Half</button><button type="button" data-v="normal">Normal</button><button type="button" data-v="double">Double</button></div></div>
+            <label class="chk2"><input type="checkbox" id="fillsChk"> Fill every 4th cycle</label>
+            <div class="mx" id="layerRow"><span class="lab2" id="layerLab">Add</span><div class="chips" id="layerChips" role="group" aria-labelledby="layerLab"></div></div>
+          </div></div>
+        </section>
+      </div>
       <div class="toolbar">
         <button id="copyBtn" class="btn" type="button">Make a copy</button>
         <button id="expBtn" class="btn" type="button">Export this song</button>

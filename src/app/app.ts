@@ -4,19 +4,20 @@
  * the end). Names follow the prototype's, so the two read side by side.
  *
  * Changes from the prototype:
- * - The Sound settings fold away behind a bar that says what is on: folded at first on
- *   narrow screens and open on wide ones, then as the user leaves them (Rinat kept this
- *   layout change, 2026-10-10).
+ * - The settings fold away behind bars that say what is on: the practice settings under the
+ *   deck, folded at first on narrow screens and open on wide ones, then as the user leaves
+ *   them (Rinat kept this layout change, 2026-10-10); each song's sound in Edit notation
+ *   (Rinat, 2026-10-13).
  * - Songs and settings stay in this browser, with no claude.ai storage or downloads;
  *   store.ts explains how the prototype's saved songs are read. Changes saved in another
  *   tab show up here, as the claude.ai version's live sync did.
  * - Batch imports are saved in one write.
  *
- * Added since (docs/ROADMAP.md → Phase 1): the Songs view (songs.ts), tags and favourites,
+ * Added since (docs/ROADMAP.md → Phase 1): the Music library (songs.ts), tags and favourites,
  * the practice log, written each time a song has been practised for a while, pitch
  * feedback from the microphone (pitch.ts), whose scores go into the log, rewaz routines
  * that play items one after another (rewaz.ts), the Progress view (progress.ts), and each
- * song's own sound: its Melody and Rhythm settings, over the device's usual ones; day and
+ * song's own sound: its harmonium, drone and rhythm, over the device's usual ones; day and
  * night colours; notes about each song; sections to jump between, each with its own tempo
  * if its heading gives one; and printing (print.ts).
  */
@@ -41,7 +42,7 @@ import { itemLines, type RoutineItem } from '../core/practice/routine';
 import { clockText, MIN_TAKE_SECS, newTakeId, textSig, type Take } from '../core/practice/take';
 import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefix, type ImportedSong } from '../core/song/file';
 import { cleanNotes, newId, normalize, parseTags, type Song } from '../core/song/model';
-import { soundOf, type SongSound } from '../core/song/sound';
+import { SONG_SOUND_KEYS, soundOf, type SongSound } from '../core/song/sound';
 import { beatLabel, SPEEDS } from '../core/taal/rhythm';
 import { isTaalId, taalInfo, TAALS, type TaalInfo } from '../core/taal/taals';
 import { initPitch, type PitchUI } from './pitch';
@@ -176,12 +177,13 @@ const songSource = {
     return itemOverride?.tempo ?? current.tempo;
   },
 };
-/** The sound settings for the open song: its own Melody and Rhythm, else the device's usual
- * ones; the Practice settings are always the device's. */
+/** The sound settings for the open song: its own harmonium, drone and rhythm, else the
+ * device's usual ones; the practice settings (the guide's level among them) are always the
+ * device's. */
 const sound = new Proxy<SoundSettings>(prefs, {
   get(t, k) {
     const own = current?.sound;
-    return own && Object.hasOwn(own, k) ? own[k as keyof SongSound] : Reflect.get(t, k);
+    return own && SONG_SOUND_KEYS.includes(k as keyof SongSound) && Object.hasOwn(own, k) ? own[k as keyof SongSound] : Reflect.get(t, k);
   },
 });
 /** The sound settings as played: a rewaz item's guide over the open song's. */
@@ -762,16 +764,17 @@ function setSeg(id: string, v: string | number): void {
   for (const b of $$('#' + id + ' button')) b.setAttribute('aria-pressed', String(b.dataset.v === String(v)));
 }
 
-/** The Sound bar: what the folded settings are set to, and whether they are showing. */
+/** The settings bars: what the folded settings are set to (the practice settings under the
+ * deck, the open song's sound in Edit notation). */
 function renderSoundSummary(): void {
-  $('#soundSum').textContent = V.soundSummary(sound);
+  $('#soundSum').textContent = V.practiceSummary(sound);
+  if (current) $('#songSoundSum').textContent = V.songSoundSummary(sound);
 }
 
 // ── Each song's own sound ────────────────────────────────────────────────────
 
-/** The Melody and Rhythm controls, showing the open song's sound. */
+/** The song's sound controls (in Edit notation), showing the open song's sound. */
 function renderSoundControls(): void {
-  setSeg('guideSeg', sound.guide);
   setSeg('reedSeg', sound.reeds);
   setSeg('droneSeg', sound.droneType);
   input('#droneVol').value = String(sound.droneVol);
@@ -790,18 +793,21 @@ function renderSoundControls(): void {
 function renderSoundNote(): void {
   if (!current) return;
   const own = !current.example && !!current.sound;
+  $('#songSoundHead').textContent = current.example ? 'Your usual sound' : 'Sound of this song';
+  $('#toSongSound').textContent = current.example ? 'Change your usual sound' : 'Change this song’s sound';
   $('#soundNoteText').textContent = current.example
-    ? "Exercises use your usual sound, and so does any song you haven't changed it for."
+    ? "Exercises play with your usual sound, and so does every song you haven't given a sound of its own. Changes here change your usual sound."
     : own
-      ? 'Melody and rhythm are saved with this song.'
-      : 'This song uses your usual sound until you change something here.';
+      ? 'Saved with this song: it keeps this sound whatever your usual sound is.'
+      : 'This song plays with your usual sound until you change something here.';
   $('#soundForget').hidden = !own;
 }
 
 /**
- * Change Melody or Rhythm settings. One of the user's songs keeps them: the first change
- * saves its whole sound with it, so it sounds the same however the usual sound changes
- * later. On an exercise they change the usual sound, which every song without its own uses.
+ * Change the song's harmonium, drone or rhythm. One of the user's songs keeps them: the
+ * first change saves its whole sound with it, so it sounds the same however the usual sound
+ * changes later. On an exercise they change the usual sound, which every song without its
+ * own uses.
  */
 function setSound(patch: Partial<SongSound>): void {
   if (current.example) {
@@ -820,7 +826,6 @@ function forgetSound(): void {
   changed('sound', undefined);
   renderSoundControls();
   renderTaal();
-  T?.applyGuide();
   T?.applyReeds();
   T?.applyBeatLevel();
   T?.applyDrone();
@@ -1148,6 +1153,22 @@ function setSoundOpen(open: boolean): void {
   $('#soundBtn').setAttribute('aria-expanded', String(open));
   $('#mixer').hidden = !open;
   $('#soundAct').textContent = open ? 'Done' : 'Change';
+}
+/** The song's sound in Edit notation, unfolded or not (remembered on the device). */
+function setSongSoundOpen(open: boolean): void {
+  $('#songSoundBtn').setAttribute('aria-expanded', String(open));
+  $('#songMixer').hidden = !open;
+  $('#songSoundAct').textContent = open ? 'Done' : 'Change';
+  if (open) prefs.songSoundOpen = true;
+  else delete prefs.songSoundOpen;
+}
+/** "Change this song's sound" under the deck: Edit notation, with the song's sound open. */
+function showSongSound(): void {
+  switchTab('edit');
+  setSongSoundOpen(true);
+  savePrefs();
+  $('.songsound').scrollIntoView({ block: 'nearest' });
+  $('#songSoundBtn').focus({ preventScroll: true });
 }
 
 // ── Song loading and editing ─────────────────────────────────────────────────
@@ -1640,10 +1661,11 @@ export function init(): void {
   select('#saKey').innerHTML = V.keyOptionsHTML();
   select('#saOct').innerHTML = V.octOptionsHTML();
   select('#taalSel').innerHTML = V.taalOptionsHTML();
-  // The Melody and Rhythm controls show each song's sound as it opens (loadSong).
+  // The song's sound controls show each song's sound as it opens (loadSong).
   setSeg('scriptSeg', prefs.script);
   applyTheme();
   setSeg('octSeg', insOct);
+  setSeg('guideSeg', prefs.guide);
   input('#countIn').checked = !!prefs.countIn;
   setSeg('guideLoopSeg', prefs.guideLoop);
   input('#rampChk').checked = !!prefs.ramp;
@@ -1651,6 +1673,7 @@ export function init(): void {
   input('#rampMax').value = String(prefs.rampMax);
   renderNoteButtons();
   setSoundOpen(prefs.soundOpen ?? matchMedia('(min-width: 861px)').matches);
+  setSongSoundOpen(!!prefs.songSoundOpen);
   songsView = initSongs({
     ownSongs,
     exercises: EXERCISES,
@@ -1669,6 +1692,15 @@ export function init(): void {
       switchTab(tab);
     },
     setFav,
+    folded: () => prefs.libFold ?? {},
+    setFolded: (id, fold) => {
+      const f = { ...prefs.libFold };
+      if (fold) f[id] = true;
+      else delete f[id];
+      if (f.mine || f.ex) prefs.libFold = f;
+      else delete prefs.libFold;
+      savePrefs();
+    },
   });
   pitchUI = initPitch({
     audio: () => {
@@ -1864,12 +1896,18 @@ export function init(): void {
     savePrefs();
     setSoundOpen(open);
   });
+  $('#songSoundBtn').addEventListener('click', () => {
+    setSongSoundOpen(!!$('#songMixer').hidden);
+    savePrefs();
+  });
+  $('#toSongSound').addEventListener('click', showSongSound);
   $('#soundForget').addEventListener('click', forgetSound);
   $('#guideSeg').addEventListener('click', (e) => {
     const b = segButton(e);
     if (!b) return;
-    setSound({ guide: b.dataset.v as GuideLevel });
-    setSeg('guideSeg', sound.guide);
+    prefs.guide = b.dataset.v as GuideLevel;
+    savePrefs();
+    setSeg('guideSeg', prefs.guide);
     T?.applyGuide();
   });
   $('#beatSeg').addEventListener('click', (e) => {

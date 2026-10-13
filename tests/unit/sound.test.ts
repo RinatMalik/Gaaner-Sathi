@@ -1,15 +1,15 @@
-// Each song's own sound (src/core/song/sound.ts): its Melody and Rhythm settings, kept in
+// Each song's own sound (src/core/song/sound.ts): its harmonium, drone and rhythm, kept in
 // storage and song files as an optional field, read back carefully, laid over the device's.
 import { describe, expect, it } from 'vitest';
 import { bodyOf, DEFAULT_PREFS, SongStore, type KeyValueStore } from '../../src/app/store';
-import { soundSummary } from '../../src/app/view';
+import { songSoundSummary } from '../../src/app/view';
 import { DEFAULT_SOUND } from '../../src/audio/sound';
 import { songFileText, songForFile, songsFromFile } from '../../src/core/song/file';
 import { normalize } from '../../src/core/song/model';
 import { cleanSound, SONG_SOUND_KEYS, SOUND_CHOICES, soundOf, type SongSound } from '../../src/core/song/sound';
 
 const OWN: SongSound = {
-  guide: 'soft', reeds: 2, droneType: 'harmonium', droneVol: 0.4, tanTune: 'M',
+  reeds: 2, droneType: 'harmonium', droneVol: 0.4, tanTune: 'M',
   beat: 'dholak', tablaVol: 0.55, speed: 'double', fills: false, layers: { tabla: [], dholak: ['manjira', 'tambourine'], kit: [] },
 };
 
@@ -45,6 +45,12 @@ describe('a song’s own sound', () => {
     expect(cleanSound({ countIn: false, ramp: true, guideLoop: 'alt' })).toBeUndefined();
   });
 
+  it('leaves out a guide level saved with it before 2026-10-13: the guide is a practice setting now', () => {
+    expect(cleanSound({ guide: 'off' })).toBeUndefined();
+    expect(cleanSound({ guide: 'soft', beat: 'kit' })).toEqual({ beat: 'kit' });
+    expect(normalize({ id: 'old', title: 'old', sound: { ...OWN, guide: 'off' } }).sound).toEqual(OWN);
+  });
+
   it('keeps only known layers that fit each style, each once', () => {
     expect(cleanSound({ layers: { tabla: ['manjira', 'manjira', 'claps', 'nonsense', 7], kit: ['claps', 'ride'], dholak: 'shaker', extra: ['x'] } })).toEqual({
       layers: { tabla: ['manjira'], dholak: [], kit: ['claps', 'ride'] },
@@ -53,8 +59,8 @@ describe('a song’s own sound', () => {
     expect(cleanSound({ layers: { tabla: ['constructor', '__proto__', 'toString'] } })).toEqual({ layers: { tabla: [], dholak: [], kit: [] } });
   });
 
-  it('takes a copy of the Melody and Rhythm settings out of all of them', () => {
-    const all = { ...structuredClone(DEFAULT_SOUND), ...structuredClone(OWN), countIn: false, ramp: true };
+  it('takes a copy of the song’s own settings out of all of them', () => {
+    const all = { ...structuredClone(DEFAULT_SOUND), ...structuredClone(OWN), guide: 'off' as const, countIn: false, ramp: true };
     const s = soundOf(all);
     expect(s).toEqual(OWN);
     expect(Object.keys(s).sort()).toEqual([...SONG_SOUND_KEYS].sort());
@@ -64,7 +70,7 @@ describe('a song’s own sound', () => {
 
   it('lies over the device’s settings, field by field', () => {
     const shown = { ...DEFAULT_PREFS, ...cleanSound({ beat: 'kit', speed: 'half', droneVol: 0.5 }) };
-    expect(soundSummary(shown)).toBe('Drums, half speed · Guide full · Tanpura');
+    expect(songSoundSummary(shown)).toBe('3 reeds · Tanpura, 1st string Pa · Drums, half speed');
   });
 });
 

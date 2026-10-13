@@ -1,9 +1,9 @@
 // What the app keeps in the browser: preferences, and songs read from the prototype's key
-// with this app's changes kept under its own (src/app/store.ts). Also the Sound bar's
-// summary line, which is new.
+// with this app's changes kept under its own (src/app/store.ts). Also the settings bars'
+// summary lines, which are new.
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_PREFS, loadPrefs, savePrefs, SongStore, STORE_KEYS, type KeyValueStore } from '../../src/app/store';
-import { soundSummary } from '../../src/app/view';
+import { practiceSummary, songSoundSummary } from '../../src/app/view';
 import { normalize, type Song } from '../../src/core/song/model';
 
 /** localStorage in memory; it can be made full or blocked. */
@@ -72,6 +72,23 @@ describe('preferences', () => {
       S.setItem(STORE_KEYS.prefs, JSON.stringify({ theme: t }));
       expect(loadPrefs(S)).not.toHaveProperty('theme');
     }
+  });
+
+  it('keep the Music library’s folded sections and the song’s sound unfolded, when set', () => {
+    const S = new Memory();
+    expect(loadPrefs(S)).not.toHaveProperty('libFold');
+    expect(loadPrefs(S)).not.toHaveProperty('songSoundOpen');
+    S.setItem(STORE_KEYS.prefs, JSON.stringify({ libFold: { ex: true, mine: 'yes', other: true }, songSoundOpen: true }));
+    expect(loadPrefs(S).libFold).toEqual({ ex: true });
+    expect(loadPrefs(S).songSoundOpen).toBe(true);
+    for (const f of [{ mine: false }, [], 'ex', null]) {
+      S.setItem(STORE_KEYS.prefs, JSON.stringify({ libFold: f, songSoundOpen: 1 }));
+      expect(loadPrefs(S)).not.toHaveProperty('libFold');
+      expect(loadPrefs(S)).not.toHaveProperty('songSoundOpen');
+    }
+    // The Music library is still stored as `songs`.
+    S.setItem(STORE_KEYS.prefs, JSON.stringify({ tab: 'songs' }));
+    expect(loadPrefs(S).tab).toBe('songs');
   });
 });
 
@@ -176,17 +193,25 @@ describe('songs', () => {
   });
 });
 
-describe('the Sound bar’s summary', () => {
-  it('names the rhythm, the guide and the drone', () => {
-    expect(soundSummary(DEFAULT_PREFS)).toBe('Tabla · Guide full · No drone');
-    expect(soundSummary({ ...DEFAULT_PREFS, beat: 'off', guide: 'off', droneVol: 0.5 })).toBe('No rhythm · Guide off · Tanpura');
-    expect(soundSummary({ ...DEFAULT_PREFS, beat: 'click', speed: 'half', guide: 'soft', droneType: 'harmonium', droneVol: 0.2 })).toBe('Click, half speed · Guide soft · Harmonium drone');
+describe('the settings bars’ summaries', () => {
+  it('Practice settings: the guide, then the count-in and tempo trainer only when they differ from the defaults', () => {
+    expect(practiceSummary(DEFAULT_PREFS)).toBe('Guide full');
+    expect(practiceSummary({ ...DEFAULT_PREFS, guide: 'soft', guideLoop: 'alt', countIn: false, ramp: true, rampStep: 6, rampMax: 140 }))
+      .toBe('Guide soft, every other round when looping · No count-in · Speeds up by 6 to 140');
+    expect(practiceSummary({ ...DEFAULT_PREFS, guideLoop: 'first' })).toBe('Guide full, first round only when looping');
+    expect(practiceSummary({ ...DEFAULT_PREFS, guide: 'off', guideLoop: 'first' })).toBe('Guide off');
+    // A song's sound is not in it.
+    expect(practiceSummary({ ...DEFAULT_PREFS, beat: 'kit', droneVol: 0.5 })).toBe('Guide full');
   });
 
-  it('adds practice options only when they differ from the defaults', () => {
-    expect(soundSummary({ ...DEFAULT_PREFS, beat: 'kit', speed: 'double', guideLoop: 'alt', countIn: false, ramp: true, rampStep: 6, rampMax: 140 }))
-      .toBe('Drums, double speed · Guide full, every other round · No drone · No count-in · Speeds up by 6 to 140');
-    expect(soundSummary({ ...DEFAULT_PREFS, beat: 'dholak', guideLoop: 'first' })).toBe('Dholak · Guide full, first round only · No drone');
-    expect(soundSummary({ ...DEFAULT_PREFS, guide: 'off', guideLoop: 'first' })).toBe('Tabla · Guide off · No drone');
+  it('a song’s sound: the harmonium, the drone, then the rhythm with its speed and added layers', () => {
+    expect(songSoundSummary(DEFAULT_PREFS)).toBe('3 reeds · No drone · Tabla');
+    expect(songSoundSummary({ ...DEFAULT_PREFS, reeds: 1, beat: 'off', droneVol: 0.5, tanTune: 'M' })).toBe('1 reed · Tanpura, 1st string Ma · No rhythm');
+    expect(songSoundSummary({ ...DEFAULT_PREFS, beat: 'click', speed: 'half', droneType: 'harmonium', droneVol: 0.2, layers: { tabla: [], dholak: [], kit: ['claps'] } }))
+      .toBe('3 reeds · Harmonium drone · Click, half speed');
+    expect(songSoundSummary({ ...DEFAULT_PREFS, reeds: 2, beat: 'kit', speed: 'double', layers: { tabla: ['manjira'], dholak: [], kit: ['shaker', 'claps'] } }))
+      .toBe('2 reeds · No drone · Drums, double speed, with shaker, claps');
+    // The guide is not part of it.
+    expect(songSoundSummary({ ...DEFAULT_PREFS, guide: 'off' })).toBe(songSoundSummary(DEFAULT_PREFS));
   });
 });

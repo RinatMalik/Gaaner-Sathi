@@ -112,7 +112,7 @@ describe('library search', () => {
   });
 });
 
-describe('the Songs view', () => {
+describe('the Music library', () => {
   const now = new Date(2026, 9, 10, 9, 0).getTime();
   const own = [
     song('s1', 'Amar Sonar Bangla', { text: SONAR, tags: ['Rabindrasangeet'], fav: true, updatedAt: 5 }),
@@ -124,9 +124,38 @@ describe('the Songs view', () => {
   it('lists my songs, then the exercises in their own order', () => {
     const r = songsListHTML(own, EXERCISES, opts());
     expect(r.shown).toBe(2 + EXERCISES.length);
-    const ids = Array.from(r.html.matchAll(/data-open="([^"]+)"/g), (m) => m[1]);
+    const ids = Array.from(r.html.matchAll(/data-edit="([^"]+)"/g), (m) => m[1]);
     expect(ids).toEqual(['s1', 's2', ...EXERCISES.map((e) => e.id)]);
     expect(r.html.indexOf('My songs')).toBeLessThan(r.html.indexOf('Exercises'));
+  });
+
+  it('ends each row with two buttons: practise it and edit it, named for a song or an exercise', () => {
+    const row = songRowHTML(entryFor(own[0]!), opts());
+    expect(row).toMatch(/<div class="lacts"><button type="button" class="lact lplay" data-open="s1"><svg[^]*?<span>Practise this song<\/span><\/button><button type="button" class="lact ledit" data-edit="s1"><svg[^]*?<span>Edit this song<\/span><\/button><\/div><\/li>$/);
+    // The star, the title and the tags come first, together.
+    expect(row.indexOf('class="lmain"')).toBeLessThan(row.indexOf('data-fav'));
+    expect(row.indexOf('class="ltags"')).toBeLessThan(row.indexOf('class="lacts"'));
+    const ex = songRowHTML(entryFor(EXERCISES[0]!), opts());
+    expect(ex).toContain('<span>Practise this exercise</span>');
+    expect(ex).toContain('<span>Edit this exercise</span>');
+  });
+
+  it('folds each section away by its heading, and shows every section while searching', () => {
+    const open = songsListHTML(own, EXERCISES, opts()).html;
+    expect(open).toContain('<button type="button" class="lfold" data-fold="mine" aria-expanded="true" aria-controls="lsec-mine">');
+    expect(open).toContain('data-fold="ex" aria-expanded="true"');
+    expect(open).toContain('My songs <span class="n">2</span>');
+    expect(open).not.toMatch(/id="lsec-(mine|ex)" hidden/);
+    const folded = songsListHTML(own, EXERCISES, opts({ folded: { ex: true } }));
+    expect(folded.html).toContain('data-fold="ex" aria-expanded="false"');
+    expect(folded.html).toContain('<div id="lsec-ex" hidden>');
+    expect(folded.html).toContain('<div id="lsec-mine">');
+    expect(folded.shown).toBe(2 + EXERCISES.length);
+    // A search shows what matches in every section, with plain headings.
+    const found = songsListHTML(own, EXERCISES, opts({ query: 'সা', folded: { mine: true, ex: true } })).html;
+    expect(found).not.toContain('data-fold');
+    expect(found).not.toContain(' hidden');
+    expect(found).toContain('<h3 class="lhead">Exercises <span class="n">');
   });
 
   it('shows each song’s details, star, tags and whether it is open, escaped', () => {
@@ -159,6 +188,7 @@ describe('the Songs view', () => {
   it('invites a first song when there are none', () => {
     const r = songsListHTML([], EXERCISES, opts());
     expect(r.html).toContain('No songs of your own yet');
+    expect(r.html).toContain('My songs <span class="n">0</span>');
     expect(r.shown).toBe(EXERCISES.length);
   });
 

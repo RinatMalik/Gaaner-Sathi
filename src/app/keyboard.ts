@@ -1,6 +1,6 @@
 /**
  * The keyboard (docs/ENGINE.md → MIDI keyboards): which key to press for
- * each note, drawn on the Practice view; and a MIDI keyboard, connected in the Sound settings,
+ * each note, drawn on the Practice view; and a MIDI keyboard, connected in the Practice settings,
  * whose keys type notes into the editor and which can play the guide in its own sound. The
  * HTML builders are pure and tested in Node.
  */

@@ -19,7 +19,7 @@ export interface Choice {
 export type ItemSong = SongShape & { labels: readonly string[]; title: string };
 
 const GUIDES: readonly [ItemGuide | '', string][] = [
-  ['', 'As in Sound settings'],
+  ['', 'As in Practice settings'],
   ['all', 'Every round'],
   ['first', 'First round only'],
   ['alt', 'Every other round'],
