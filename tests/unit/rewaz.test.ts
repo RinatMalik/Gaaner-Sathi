@@ -1,7 +1,7 @@
 // Rewaz routines: the model, rounds in the transport, the views' HTML, storage.
 import { describe, expect, it } from 'vitest';
 import { entryDetail, progressHTML } from '../../src/app/progress';
-import { itemRowHTML, routineOptionsHTML, type ItemSong } from '../../src/app/rewaz';
+import { itemRowHTML, routineHTML, type ItemSong } from '../../src/app/rewaz';
 import { RoutineStore, STORE_KEYS, type KeyValueStore } from '../../src/app/store';
 import { createEngine } from '../../src/audio/engine';
 import { DEFAULT_SOUND } from '../../src/audio/sound';
@@ -110,8 +110,16 @@ describe('the Rewaz view', () => {
     expect(html).toContain('value="3" data-i="0" data-k="rounds"');
     expect(html).toContain('placeholder="110" value="90"');
     expect(html).toContain('<option value="alt" selected>Every other round</option>');
-    expect(html).toContain('data-act="up" aria-label="Move up" disabled');
-    expect(html).not.toContain('data-act="down" aria-label="Move down" disabled');
+    expect(html).toContain('data-act="up" aria-label="Move up" title="Move up" disabled');
+    expect(html).not.toContain('data-act="down" aria-label="Move down" title="Move down" disabled');
+  });
+
+  it('lays an item out like a line in the beat boxes: number, fields, then full-height icon buttons', () => {
+    const html = itemRowHTML({ song: 'ex-scale', rounds: 1 }, 1, 3, shape('ex-scale'), own, ex);
+    expect(html).toMatch(/^<li class="rwitem"><span class="rwn">2<\/span><div class="rwfields">/);
+    expect(html).toMatch(/<\/div><span class="rwside"><button type="button" class="rwbtn" data-i="1" data-act="up"[^>]*><svg[^]*?<\/button><button type="button" class="rwbtn" data-i="1" data-act="down"[^>]*><svg[^]*?<\/button><button type="button" class="rwbtn rwdel" data-i="1" data-act="remove" aria-label="Remove from this routine"[^>]*><svg[^]*?<\/button><\/span><\/li>$/);
+    // Icons only: no words on the buttons.
+    expect(html).not.toMatch(/<\/svg>[^<]+<\/button>/);
   });
 
   it('plays the whole song unless lines are chosen, and says when a song is gone', () => {
@@ -120,7 +128,38 @@ describe('the Rewaz view', () => {
     expect(whole).not.toContain('data-k="to"');
     expect(whole).toContain('placeholder="96" value=""');
     expect(itemRowHTML({ song: 'gone', rounds: 1 }, 0, 1, null, own, ex)).toContain('This song has been deleted');
-    expect(routineOptionsHTML([STARTER], STARTER.id)).toBe('<option value="routine-starter" selected>Daily warm-up</option>');
+  });
+
+  it('shows each routine as a row that folds away, with Start the row’s full height at its end', () => {
+    const row = { saved: true, open: false, secs: 400, confirming: false, openTitle: 'আমার <গান>' };
+    const r: Routine = { id: 'routine-a', name: 'Morning <rewaz>', items: [{ song: 'ex-scale', rounds: 2 }, { song: 'ex-akar', rounds: 1 }], updatedAt: 1 };
+    const folded = routineHTML(r, 3, row, shape, own, ex);
+    expect(folded).toContain('<section class="rwr" data-r="routine-a">');
+    expect(folded).toContain('<button type="button" class="rwfold" data-act="fold" aria-expanded="false" aria-controls="rwb-3">');
+    expect(folded).toContain('<span class="rwname">Morning &lt;rewaz&gt;</span><span class="rwmeta">2 items · about 7 min</span>');
+    expect(folded).toMatch(/<\/h3><button type="button" class="rwgo" data-act="start"><svg[^]*?<span>Start rewaz<\/span><\/button><\/div>/);
+    expect(folded).toContain('<div class="rwbody" id="rwb-3" hidden>');
+    // Unfolded: its name to change, its items, add the open song, delete.
+    const open = routineHTML(r, 3, { ...row, open: true }, shape, own, ex);
+    expect(open).toContain('aria-expanded="true"');
+    expect(open).toContain('<div class="rwbody" id="rwb-3">');
+    expect(open).toContain('data-act="name" value="Morning &lt;rewaz&gt;"');
+    expect(open.match(/class="rwitem"/g)).toHaveLength(2);
+    expect(open).toContain('+ Add the open song: <b>আমার &lt;গান&gt;</b>');
+    expect(open).toContain('data-act="del">Delete routine</button>');
+    const asking = routineHTML(r, 3, { ...row, open: true, confirming: true }, shape, own, ex);
+    expect(asking).toContain('Delete this routine? <button type="button" class="btn danger" data-act="delyes">Delete</button><button type="button" class="btn" data-act="delno">Keep</button>');
+  });
+
+  it('offers the ready-made warm-up unsaved, and a routine with no items cannot start', () => {
+    const row = { saved: false, open: true, secs: 0, confirming: false, openTitle: 'x' };
+    const starter = routineHTML(STARTER, 0, row, shape, own, ex);
+    expect(starter).toContain('<span class="rwmeta">4 items · about 1 min · ready-made</span>');
+    expect(starter).not.toContain('Delete routine');
+    const empty = routineHTML({ id: 'e', name: 'Empty', items: [], updatedAt: 1 }, 1, { ...row, saved: true }, shape, own, ex);
+    expect(empty).toContain('<span class="rwmeta">No items yet</span>');
+    expect(empty).toContain('data-act="start" disabled');
+    expect(empty).toContain('<li class="rwempty">No items yet.');
   });
 });
 

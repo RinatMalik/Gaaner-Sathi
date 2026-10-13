@@ -9,6 +9,8 @@ import { foldText, type Song } from './model';
 export type LibrarySong = Pick<Song, 'id' | 'title' | 'text' | 'tempo' | 'saKey'> & {
   taal: TaalId;
   example?: boolean;
+  /** One of the user's songs listed under Exercises. */
+  exercise?: boolean;
   tags?: readonly string[];
   fav?: boolean;
   updatedAt?: number;
@@ -27,8 +29,12 @@ export interface LibraryEntry {
   tight: string;
 }
 
-/** Which songs to show. */
-export type LibraryFilter = { kind: 'all' } | { kind: 'fav' } | { kind: 'ex' } | { kind: 'tag'; tag: string };
+/** Which songs to show: all, the user's songs (`mine`), favourites, the exercises (built-in
+ * and the user's own) or one tag. */
+export type LibraryFilter = { kind: 'all' } | { kind: 'mine' } | { kind: 'fav' } | { kind: 'ex' } | { kind: 'tag'; tag: string };
+
+/** An exercise, built-in or the user's own. */
+export const isExercise = (s: { example?: boolean; exercise?: boolean }): boolean => !!(s.example || s.exercise);
 export type LibrarySort = 'practised' | 'changed' | 'title';
 
 const GROUP_SPLIT = /[\s|।॥‖]+/;
@@ -82,10 +88,12 @@ export function matchesFilter(e: LibraryEntry, f: LibraryFilter): boolean {
   switch (f.kind) {
     case 'all':
       return true;
+    case 'mine':
+      return !isExercise(e.song);
     case 'fav':
       return !!e.song.fav;
     case 'ex':
-      return !!e.song.example;
+      return isExercise(e.song);
     case 'tag': {
       const t = foldText(f.tag);
       return (e.song.tags || []).some((x) => foldText(x) === t);

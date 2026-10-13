@@ -13,7 +13,7 @@
 </head>
 <body>
 <!-- The prototype's page (reference/gaaner-sathi.html), with its settings in bars that fold them away (the
-     practice settings under the deck, each song's sound in Edit notation), and the features added since
+     practice settings on the Practice view, each song's sound in Edit notation), and the features added since
      (docs/ROADMAP.md → Phase 1): the Music library, pitch feedback, rewaz routines and the Progress view. -->
 <div class="wrap">
   <header class="top">
@@ -74,41 +74,6 @@
     </div>
   </section>
 
-  <div class="sound">
-    <button id="soundBtn" class="soundbar" type="button" aria-expanded="true" aria-controls="mixer">
-      <span class="soundtext"><span class="mhead">Practice settings</span><span class="soundsum" id="soundSum"></span></span>
-      <span class="soundact" aria-hidden="true"><span id="soundAct">Done</span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    </button>
-  <section class="mixer" id="mixer" aria-label="Practice settings">
-    <p class="snote"><span>The harmonium, drone and rhythm are set with each song, in Edit notation.</span><button id="toSongSound" class="ibtn" type="button">Change this song’s sound</button></p>
-    <div class="mgroup">
-      <span class="mhead">Guide</span><div class="mitems">
-      <div class="mx"><span class="sr-only" id="guideLab">Guide</span>
-        <div class="seg" id="guideSeg" role="group" aria-labelledby="guideLab"><button type="button" data-v="full">Full</button><button type="button" data-v="soft">Soft</button><button type="button" data-v="off">Off</button></div></div>
-      <div class="mx"><span class="lab2" id="glLab">When looping, the guide plays</span>
-        <div class="seg" id="guideLoopSeg" role="group" aria-labelledby="glLab"><button type="button" data-v="all">Every round</button><button type="button" data-v="first">First round only</button><button type="button" data-v="alt" title="Listen to the line, then sing it alone">Every other round</button></div></div>
-    </div></div>
-    <div class="mgroup">
-      <span class="mhead">Rounds</span><div class="mitems">
-      <label class="chk2"><input type="checkbox" id="countIn"> Count in one cycle</label>
-      <div class="mx"><label class="chk2"><input type="checkbox" id="rampChk"> Speed up each round by</label>
-        <select id="rampStep" class="msel" aria-label="Tempo increase per round"><option value="2">2</option><option value="4">4</option><option value="6">6</option><option value="8">8</option><option value="10">10</option></select>
-        <label class="lab2" for="rampMax">up to</label><input type="number" id="rampMax" class="mnum" min="30" max="240" step="1" inputmode="numeric"></div>
-    </div></div>
-    <div class="mgroup">
-      <span class="mhead">Keyboard</span><div class="mitems">
-      <button id="midiBtn" class="btn" type="button">Connect a keyboard (MIDI)</button>
-      <span class="lab2" id="midiStatus" aria-live="polite"></span>
-      <div class="mx" id="midiOpts" hidden>
-        <span class="lab2" id="midiRouteLab">Guide plays on</span>
-        <div class="seg" id="midiRoute" role="group" aria-labelledby="midiRouteLab"><button type="button" data-v="app">This device</button><button type="button" data-v="kb">The keyboard</button><button type="button" data-v="both">Both</button></div>
-        <select id="midiSound" class="msel" aria-label="The keyboard's sound for the guide"><option value="keep">In the keyboard's own sound</option><option value="organ">Reed organ (General MIDI)</option><option value="accordion">Accordion (General MIDI)</option></select>
-        <select id="midiOut" class="msel" aria-label="Which keyboard plays the guide" hidden></select>
-      </div>
-    </div></div>
-  </section>
-  </div>
-
   <div class="tabs">
     <div class="tabbtns" role="tablist" aria-label="View">
       <button type="button" role="tab" id="tabPractice" aria-controls="practice">Practice</button>
@@ -126,9 +91,8 @@
       <div class="libtop">
         <input id="libQ" class="libq" type="search" placeholder="Search titles, lyrics and tags" aria-label="Search the music library" autocomplete="off" spellcheck="false">
         <label class="lab2" for="libSort">Sort by</label>
-        <select id="libSort" class="msel"><option value="practised">Recently practised</option><option value="changed">Recently changed</option><option value="title">Title</option></select>
+        <select id="libSort" class="msel"><option value="practised">Recently practised</option><option value="changed">Recently added or changed</option><option value="title">Title</option></select>
         <span class="spacer"></span>
-        <button id="libNew" class="btn" type="button">+ New song</button>
         <button id="impBtn" class="btn" type="button">Import from file</button>
         <button id="expAllBtn" class="btn" type="button">Back up all my songs</button>
         <input id="impFile" type="file" accept=".json,.txt,application/json,text/plain" multiple hidden>
@@ -142,6 +106,40 @@
   <main id="practice" role="tabpanel" aria-labelledby="tabPractice">
     <div style="display:grid;gap:14px">
       <div class="rbar" id="rwBar" hidden aria-live="polite"><span class="rbtext" id="rwBarText"></span><span class="spacer"></span><button id="rwSkip" class="btn" type="button">Skip</button><button id="rwStop" class="btn" type="button">Stop rewaz</button></div>
+      <div class="sound">
+        <button id="soundBtn" class="soundbar" type="button" aria-expanded="true" aria-controls="mixer">
+          <span class="soundtext"><span class="mhead">Practice settings</span><span class="soundsum" id="soundSum"></span></span>
+          <span class="soundact" aria-hidden="true"><span id="soundAct">Done</span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </button>
+      <section class="mixer" id="mixer" aria-label="Practice settings">
+        <p class="snote"><span>The harmonium, drone and rhythm are set with each song, in Edit notation.</span><button id="toSongSound" class="ibtn" type="button">Change this song’s sound</button></p>
+        <div class="mgroup">
+          <span class="mhead">Guide</span><div class="mitems">
+          <div class="mx"><span class="sr-only" id="guideLab">Guide</span>
+            <div class="seg" id="guideSeg" role="group" aria-labelledby="guideLab"><button type="button" data-v="full">Full</button><button type="button" data-v="soft">Soft</button><button type="button" data-v="off">Off</button></div></div>
+          <div class="mx"><span class="lab2" id="glLab">When looping, the guide plays</span>
+            <div class="seg" id="guideLoopSeg" role="group" aria-labelledby="glLab"><button type="button" data-v="all">Every round</button><button type="button" data-v="first">First round only</button><button type="button" data-v="alt" title="Listen to the line, then sing it alone">Every other round</button></div></div>
+        </div></div>
+        <div class="mgroup">
+          <span class="mhead">Rounds</span><div class="mitems">
+          <label class="chk2"><input type="checkbox" id="countIn"> Count in one cycle</label>
+          <div class="mx"><label class="chk2"><input type="checkbox" id="rampChk"> Speed up each round by</label>
+            <select id="rampStep" class="msel" aria-label="Tempo increase per round"><option value="2">2</option><option value="4">4</option><option value="6">6</option><option value="8">8</option><option value="10">10</option></select>
+            <label class="lab2" for="rampMax">up to</label><input type="number" id="rampMax" class="mnum" min="30" max="240" step="1" inputmode="numeric"></div>
+        </div></div>
+        <div class="mgroup">
+          <span class="mhead">Keyboard</span><div class="mitems">
+          <button id="midiBtn" class="btn" type="button">Connect a keyboard (MIDI)</button>
+          <span class="lab2" id="midiStatus" aria-live="polite"></span>
+          <div class="mx" id="midiOpts" hidden>
+            <span class="lab2" id="midiRouteLab">Guide plays on</span>
+            <div class="seg" id="midiRoute" role="group" aria-labelledby="midiRouteLab"><button type="button" data-v="app">This device</button><button type="button" data-v="kb">The keyboard</button><button type="button" data-v="both">Both</button></div>
+            <select id="midiSound" class="msel" aria-label="The keyboard's sound for the guide"><option value="keep">In the keyboard's own sound</option><option value="organ">Reed organ (General MIDI)</option><option value="accordion">Accordion (General MIDI)</option></select>
+            <select id="midiOut" class="msel" aria-label="Which keyboard plays the guide" hidden></select>
+          </div>
+        </div></div>
+      </section>
+      </div>
       <section class="nowpanel" aria-label="Now singing">
         <div>
           <div class="nowLab" id="nowLab">Ready</div>
@@ -184,22 +182,12 @@
     <div class="rw">
       <p class="rwintro">A rewaz runs exercises and songs one after another, each with its own lines, rounds, tempo and guide, so you can sing without touching the screen. Each one goes into your practice log.</p>
       <div class="rwtop">
-        <label class="lab2" for="rwSel">Routine</label>
-        <select id="rwSel" class="msel"></select>
-        <button id="rwNew" class="btn" type="button">+ New routine</button>
-        <span class="spacer"></span>
-        <span id="rwTime" class="lab2"></span>
-        <button id="rwStart" class="btn primary" type="button">▶ Start rewaz</button>
-      </div>
-      <div class="meta"><div class="f grow"><label for="rwName">Name</label><input id="rwName" type="text" autocomplete="off" maxlength="80"></div></div>
-      <ol class="rwlist" id="rwList"></ol>
-      <div class="toolbar">
-        <button id="rwAdd" class="btn" type="button">+ Add the open song</button>
+        <h3 class="rwtitle">My routines</h3>
         <span id="rwStatus" class="fstatus" aria-live="polite"></span>
         <span class="spacer"></span>
-        <button id="rwDel" class="btn danger" type="button">Delete routine</button>
-        <span id="rwDelConfirm" class="confirm" hidden>Delete this routine? <button id="rwDelYes" class="btn danger" type="button">Delete</button><button id="rwDelNo" class="btn" type="button">Keep</button></span>
+        <button id="rwNew" class="btn" type="button">+ New routine</button>
       </div>
+      <div class="rwroutines" id="rwRoutines"></div>
     </div>
   </main>
 
@@ -244,6 +232,7 @@
         <div class="f"><label for="taalSel">Taal</label><select id="taalSel"></select></div>
         <div class="f"><label for="startOn">Song starts on taal beat</label><select id="startOn"></select></div>
         <div class="f grow" id="tagsF"><label for="tagsIn">Tags, separated by commas</label><input id="tagsIn" type="text" autocomplete="off" placeholder="Rabindrasangeet, Learning"></div>
+        <div class="f" id="listF"><span class="flab" id="listLab">List under</span><div class="seg" id="listSeg" role="group" aria-labelledby="listLab"><button type="button" data-v="song">My songs</button><button type="button" data-v="exercise">Exercises</button></div></div>
       </div>
       <div class="f" id="notesF"><label for="notesIn">About this song: its meaning, where it comes from, a teacher's comments</label><textarea id="notesIn" rows="3" autocomplete="off" placeholder="Shown on the Practice view, above the notation"></textarea></div>
       <div class="sound songsound">
@@ -281,7 +270,7 @@
         <span id="fileStatus" class="fstatus" aria-live="polite"></span>
         <span class="spacer"></span>
         <button id="delBtn" class="btn danger" type="button">Delete song</button>
-        <span id="delConfirm" class="confirm" hidden>Delete this song? <button id="delYes" class="btn danger" type="button">Delete</button><button id="delNo" class="btn" type="button">Keep</button></span>
+        <span id="delConfirm" class="confirm" hidden><span id="delConfirmText">Delete this song?</span> <button id="delYes" class="btn danger" type="button">Delete</button><button id="delNo" class="btn" type="button">Keep</button></span>
       </div>
       <div class="exNote" id="exNote" hidden>This is a built-in exercise, so edits here are not kept. Press <b>Make a copy</b> to save your own version, or <b>+ New song</b> to start from your diary.</div>
       <div class="edgrid">

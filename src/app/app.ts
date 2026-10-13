@@ -4,10 +4,10 @@
  * the end). Names follow the prototype's, so the two read side by side.
  *
  * Changes from the prototype:
- * - The settings fold away behind bars that say what is on: the practice settings under the
- *   deck, folded at first on narrow screens and open on wide ones, then as the user leaves
- *   them (Rinat kept this layout change, 2026-10-10); each song's sound in Edit notation
- *   (Rinat, 2026-10-13).
+ * - The settings fold away behind bars that say what is on (Rinat kept this layout change,
+ *   2026-10-10): the practice settings at the top of the Practice view, folded until the
+ *   user unfolds them, then as they leave them; each song's sound in Edit notation (Rinat,
+ *   2026-10-13).
  * - Songs and settings stay in this browser, with no claude.ai storage or downloads;
  *   store.ts explains how the prototype's saved songs are read. Changes saved in another
  *   tab show up here, as the claude.ai version's live sync did.
@@ -738,10 +738,19 @@ function renderStartOn(): void {
   current.startOn = clamp(current.startOn, 1, taal.cycle);
   select('#startOn').value = String(current.startOn);
 }
+/** All the user's songs, their own exercises among them, by title. */
 const ownSongs = () => Array.from(songs.values()).sort((a, b) => a.title.localeCompare(b.title));
-/** The song picker, and the Songs view when it is showing. */
+/** The pickers' two groups: the user's songs, then the exercises (their own first). */
+function pickerGroups(): { own: Song[]; exercises: readonly (Song | Exercise)[] } {
+  const all = ownSongs();
+  return { own: all.filter((s) => !s.exercise), exercises: [...all.filter((s) => s.exercise), ...EXERCISES] };
+}
+/** "song" or "exercise", for the open one's buttons and notes. */
+const what = () => (current.example || current.exercise ? 'exercise' : 'song');
+/** The song picker, and the Music library when it is showing. */
 function renderLibrary(): void {
-  select('#songSel').innerHTML = V.libraryHTML(ownSongs(), EXERCISES);
+  const g = pickerGroups();
+  select('#songSel').innerHTML = V.libraryHTML(g.own, g.exercises);
   if (current) select('#songSel').value = current.id;
   songsView.render();
 }
@@ -793,13 +802,13 @@ function renderSoundControls(): void {
 function renderSoundNote(): void {
   if (!current) return;
   const own = !current.example && !!current.sound;
-  $('#songSoundHead').textContent = current.example ? 'Your usual sound' : 'Sound of this song';
-  $('#toSongSound').textContent = current.example ? 'Change your usual sound' : 'Change this song’s sound';
+  $('#songSoundHead').textContent = current.example ? 'Your usual sound' : 'Sound of this ' + what();
+  $('#toSongSound').textContent = current.example ? 'Change your usual sound' : 'Change this ' + what() + '’s sound';
   $('#soundNoteText').textContent = current.example
-    ? "Exercises play with your usual sound, and so does every song you haven't given a sound of its own. Changes here change your usual sound."
+    ? "Built-in exercises play with your usual sound, and so does every song you haven't given a sound of its own. Changes here change your usual sound."
     : own
-      ? 'Saved with this song: it keeps this sound whatever your usual sound is.'
-      : 'This song plays with your usual sound until you change something here.';
+      ? 'Saved with this ' + what() + ': it keeps this sound whatever your usual sound is.'
+      : 'This ' + what() + ' plays with your usual sound until you change something here.';
   $('#soundForget').hidden = !own;
 }
 
@@ -1162,7 +1171,7 @@ function setSongSoundOpen(open: boolean): void {
   if (open) prefs.songSoundOpen = true;
   else delete prefs.songSoundOpen;
 }
-/** "Change this song's sound" under the deck: Edit notation, with the song's sound open. */
+/** "Change this song's sound" in the Practice settings: Edit notation, with the song's sound open. */
 function showSongSound(): void {
   switchTab('edit');
   setSongSoundOpen(true);
@@ -1273,7 +1282,7 @@ function loadSong(song: Song | Exercise): void {
   prefs.lastSong = current.id;
   savePrefs();
   renderSoundControls();
-  $('#songTitle').innerHTML = V.esc(current.title) + (current.example ? '<span class="tag">Exercise</span>' : '');
+  loadSongLabels();
   input('#titleIn').value = current.title;
   input('#tagsIn').value = (current.tags || []).join(', ');
   $('#tagsF').hidden = current.example;
@@ -1352,8 +1361,7 @@ function removeSong(id: string): void {
   }
 }
 function createSong(base: Partial<Song>): Song {
-  const s = normalize({ ...base, id: newId(), updatedAt: Date.now() });
-  s.example = false;
+  const s = normalize({ ...base, example: false, id: newId(), updatedAt: Date.now() });
   songs.set(s.id, s);
   writeSongs([s]);
   userPicked = true;
@@ -1379,9 +1387,24 @@ function setFav(id: string, fav: boolean): void {
   renderLibrary();
 }
 
-function newSong(): void {
+/** What says whether the open one is a song or an exercise: the sheet's title tag, "List
+ * under" (one of the user's songs goes under My songs or Exercises; built-in exercises have
+ * no choice), the delete button, the sound section. */
+function loadSongLabels(): void {
+  $('#songTitle').innerHTML = V.esc(current.title) + (what() === 'exercise' ? '<span class="tag">Exercise</span>' : '');
+  $('#listF').hidden = current.example;
+  setSeg('listSeg', current.exercise ? 'exercise' : 'song');
+  $('#delBtn').textContent = 'Delete ' + what();
+  $('#expBtn').textContent = 'Export this ' + what();
+  $('#delConfirmText').textContent = 'Delete this ' + what() + '?';
+  renderSoundNote();
+}
+
+function newSong(kind: 'song' | 'exercise' = 'song'): void {
   const sa = prefs.mySa ?? { saKey: current.saKey, saOct: current.saOct };
-  createSong({ title: 'Untitled song', taal: 'dadra', tempo: 100, saKey: sa.saKey, saOct: sa.saOct, startOn: 1, text: '# স্থায়ী\n' });
+  const base: Partial<Song> = { title: kind === 'exercise' ? 'Untitled exercise' : 'Untitled song', taal: 'dadra', tempo: 100, saKey: sa.saKey, saOct: sa.saOct, startOn: 1, text: '# স্থায়ী\n' };
+  if (kind === 'exercise') base.exercise = true;
+  createSong(base);
   switchTab('edit');
   const t = input('#titleIn');
   t.focus();
@@ -1583,8 +1606,7 @@ async function importFiles(files: File[]): Promise<void> {
   }
   const list = found.slice(0, IMPORT_LIMITS.songs);
   const made = list.map((s) => {
-    const n = normalize({ ...s, id: newId(), updatedAt: Date.now() });
-    n.example = false;
+    const n = normalize({ ...s, example: false, id: newId(), updatedAt: Date.now() });
     return n;
   });
   for (const n of made) songs.set(n.id, n);
@@ -1672,7 +1694,7 @@ export function init(): void {
   select('#rampStep').value = String(prefs.rampStep);
   input('#rampMax').value = String(prefs.rampMax);
   renderNoteButtons();
-  setSoundOpen(prefs.soundOpen ?? matchMedia('(min-width: 861px)').matches);
+  setSoundOpen(prefs.soundOpen ?? false);
   setSongSoundOpen(!!prefs.songSoundOpen);
   songsView = initSongs({
     ownSongs,
@@ -1701,6 +1723,7 @@ export function init(): void {
       else delete prefs.libFold;
       savePrefs();
     },
+    create: newSong,
   });
   pitchUI = initPitch({
     audio: () => {
@@ -1734,17 +1757,20 @@ export function init(): void {
     },
   });
   rewaz = initRewaz({
-    choices: () => ({ own: ownSongs(), exercises: EXERCISES }),
+    choices: pickerGroups,
     song: itemSong,
     countIn: () => !!prefs.countIn,
     currentSongId: () => current.id,
     routines: () => routineStore.load(),
     save: (r) => routineStore.save(r),
     remove: (id) => routineStore.remove(id),
-    selected: {
-      get: () => prefs.rewazId,
-      set: (id) => {
-        prefs.rewazId = id;
+    unfolded: {
+      has: (id) => !!prefs.rewazOpen?.includes(id),
+      set: (id, open) => {
+        const ids = (prefs.rewazOpen ?? []).filter((x) => x !== id);
+        if (open) ids.push(id);
+        if (ids.length) prefs.rewazOpen = ids;
+        else delete prefs.rewazOpen;
         savePrefs();
       },
     },
@@ -2045,12 +2071,19 @@ export function init(): void {
       loadSong(s);
     }
   });
-  $('#newBtn').addEventListener('click', newSong);
-  $('#libNew').addEventListener('click', newSong);
+  $('#newBtn').addEventListener('click', () => newSong());
   $('#copyBtn').addEventListener('click', () => {
     const title = current.example ? stripExamplePrefix(current.title) : current.title + ' (copy)';
-    createSong({ ...current, title });
+    // A copy of a built-in exercise stays among the exercises, as the user's own.
+    createSong(current.example ? { ...current, title, exercise: true } : { ...current, title });
     switchTab('edit');
+  });
+  $('#listSeg').addEventListener('click', (e) => {
+    const b = segButton(e);
+    if (!b || current.example) return;
+    changed('exercise', b.dataset.v === 'exercise' ? true : undefined);
+    loadSongLabels();
+    renderLibrary();
   });
   $('#delBtn').addEventListener('click', () => {
     $('#delConfirm').hidden = false;
@@ -2075,8 +2108,8 @@ export function init(): void {
 
   input('#titleIn').addEventListener('input', (e) => {
     const v = (e.target as HTMLInputElement).value;
-    changed('title', v.trim() ? v : 'Untitled song');
-    $('#songTitle').innerHTML = V.esc(current.title) + (current.example ? '<span class="tag">Exercise</span>' : '');
+    changed('title', v.trim() ? v : 'Untitled ' + what());
+    $('#songTitle').innerHTML = V.esc(current.title) + (what() === 'exercise' ? '<span class="tag">Exercise</span>' : '');
     if (!current.example) renderLibrary();
   });
   $('#notesIn').addEventListener('input', (e) => {

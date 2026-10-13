@@ -90,6 +90,30 @@ describe('preferences', () => {
     S.setItem(STORE_KEYS.prefs, JSON.stringify({ tab: 'songs' }));
     expect(loadPrefs(S).tab).toBe('songs');
   });
+
+  it('keep the rewaz routines unfolded, by id; the old "routine last chosen" is dropped', () => {
+    const S = new Memory();
+    S.setItem(STORE_KEYS.prefs, JSON.stringify({ rewazOpen: ['routine-a', 7, '', 'routine-starter'], rewazId: 'routine-a' }));
+    const p = loadPrefs(S);
+    expect(p.rewazOpen).toEqual(['routine-a', 'routine-starter']);
+    expect(p).not.toHaveProperty('rewazId');
+    for (const v of [[], 'routine-a', null, [3]]) {
+      S.setItem(STORE_KEYS.prefs, JSON.stringify({ rewazOpen: v }));
+      expect(loadPrefs(S)).not.toHaveProperty('rewazOpen');
+    }
+  });
+});
+
+describe('your own exercises in storage', () => {
+  it('keep their mark through a save and a load', () => {
+    const S = new Memory();
+    const store = new SongStore(S);
+    const ex = normalize({ id: 'song-x', title: 'My sargam', text: 'সা রা গা', updatedAt: 3, exercise: true });
+    expect(store.save([ex, song('song-y', 'plain', 4)])).toBe('ok');
+    const back = store.load();
+    expect(back.get('song-x')!.exercise).toBe(true);
+    expect(back.get('song-y')).not.toHaveProperty('exercise');
+  });
 });
 
 describe('a song’s notes in storage', () => {

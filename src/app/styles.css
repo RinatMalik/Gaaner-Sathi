@@ -208,7 +208,9 @@ button{cursor:pointer}
 .meta{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end}
 .f{display:flex;flex-direction:column;gap:4px;min-width:0}
 .f.grow{flex:1 1 240px}
-.f label{font-size:12px;color:var(--ink-2);font-weight:600;letter-spacing:.02em}
+.f label,.f .flab{font-size:12px;color:var(--ink-2);font-weight:600;letter-spacing:.02em}
+#listSeg{align-self:flex-start}
+#listSeg button{padding:6px 12px}
 .f input,.f select{padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--sheet);min-width:0}
 #titleIn{font-family:var(--f-note);font-size:17px}
 .acts{flex-direction:row;align-items:center;gap:8px;flex-wrap:wrap}
@@ -290,14 +292,17 @@ textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--
 .libq{flex:1 1 260px;min-width:0;padding:8px 12px;border:1px solid var(--line);border-radius:9px;background:var(--sheet);font-size:16px}
 .libstat{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;font-size:13px;color:var(--ink-2)}
 .chip .n{opacity:.75;font-variant-numeric:tabular-nums}
-/* "My songs" and "Exercises": each folds away by its heading (Rinat, 2026-10-13). */
+/* "My songs" and "Exercises": each folds away by its heading, a row tapped anywhere, with
+   its + New button at the end (Rinat, 2026-10-13). */
 .lsec{display:grid;gap:8px;min-width:0}
-.lhead{margin:6px 0 0;font-family:var(--f-note);font-size:22px;font-weight:400;line-height:1.3;color:var(--ink)}
+.lheadrow{display:flex;align-items:center;gap:8px;margin-top:6px;min-width:0}
+.lhead{flex:1 1 auto;min-width:0;margin:0;font-family:var(--f-note);font-size:22px;font-weight:400;line-height:1.3;color:var(--ink)}
+.lnew{flex:none}
 .lhead .n{margin-left:4px;padding:0 8px;border:1px solid var(--line);border-radius:999px;font-family:var(--f-ui);font-size:13px;font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums;vertical-align:.2em}
-.lfold{display:inline-flex;align-items:center;gap:6px;padding:2px 12px 2px 4px;border:0;border-radius:9px;background:none;font:inherit;color:inherit}
+.lfold{display:flex;width:100%;align-items:center;gap:6px;padding:6px 12px 6px 4px;border:0;border-radius:10px;background:none;font:inherit;color:inherit;text-align:left}
 .lfold svg{flex:none;width:20px;height:20px;color:var(--ink-2);transition:transform .15s}
 .lfold[aria-expanded="false"] svg{transform:rotate(-90deg)}
-.lfold:hover{background:var(--chip)}
+button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .llist{list-style:none;margin:0;padding:0;background:var(--sheet);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 /* A song's row, like a line in the beat boxes: lit faintly under the pointer, with two
    buttons the row's full height at its end (under it on a phone). */
@@ -365,16 +370,59 @@ textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--
 .rwintro{margin:0;color:var(--ink-2);font-size:14px;max-width:70ch}
 .rwtop{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
 .rwtop .spacer{flex:1 1 auto}
-.rwlist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-.rwitem{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 12px;padding:10px 12px;background:var(--sheet);border:1px solid var(--line);border-radius:12px}
-.rwn{align-self:center;min-width:1.6em;font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums}
+/* Each routine a row that folds away, as in the Music library: its heading lit under the
+   pointer and tapped anywhere, a full-height Start button at its end (Rinat, 2026-10-13). */
+.rwtitle{margin:0;font-family:var(--f-note);font-size:22px;font-weight:400;line-height:1.3;color:var(--ink)}
+.rwroutines{display:grid;gap:12px;min-width:0}
+.rwr{background:var(--sheet);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:0}
+.rwhead{display:flex;align-items:stretch;min-width:0}
+.rwh{flex:1 1 auto;min-width:0;margin:0;font:inherit}
+.rwfold{display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px;width:100%;height:100%;min-height:58px;padding:10px 14px 10px 10px;border:0;background:none;text-align:left;color:var(--ink)}
+.rwfold:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.rwfold svg{flex:none;width:20px;height:20px;color:var(--ink-2);transition:transform .15s}
+.rwfold[aria-expanded="false"] svg{transform:rotate(-90deg)}
+.rwname{font-family:var(--f-note);font-size:20px;line-height:1.3;overflow-wrap:anywhere}
+.rwmeta{font-size:13px;color:var(--ink-2)}
+.rwgo{flex:none;width:13.5em;display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 12px;border:0;border-left:1px solid var(--rule);background:transparent;color:var(--ink);font-size:14px;font-weight:600}
+.rwgo svg{flex:none;width:16px;height:16px;color:var(--brass)}
+.rwgo:hover:not(:disabled){background:var(--chip)}
+.rwgo:disabled{color:var(--ink-2);opacity:.6;cursor:default}
+.rwfold:focus-visible,.rwgo:focus-visible,.rwbtn:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.rwbody{display:grid;gap:12px;padding:12px 14px 14px;border-top:1px solid var(--rule);min-width:0}
+.rwnamef{max-width:420px}
+.rwnamef input{font-family:var(--f-note);font-size:16px}
+/* Its items: each a row like a line in the beat boxes, the number down the left and the
+   buttons (move up, move down, remove) the row's full height at its end. */
+.rwlist{list-style:none;margin:0;padding:0;background:var(--sheet);border:1px solid var(--line);border-radius:12px;overflow:hidden;min-width:0}
+.rwitem{display:flex;align-items:stretch;min-width:0;border-top:1px solid var(--rule)}
+.rwitem:first-child{border-top:0}
+.rwitem:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.rwn{flex:none;width:36px;display:flex;justify-content:center;padding-top:14px;border-right:1.5px solid var(--margin);color:var(--ink-2);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.rwfields{flex:1 1 auto;display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 12px;min-width:0;padding:10px 12px}
+.rwside{flex:none;display:flex;align-self:stretch}
+.rwbtn{width:44px;display:grid;place-items:center;padding:0;border:0;border-left:1px solid var(--rule);background:transparent;color:var(--ink-2)}
+.rwbtn svg{width:18px;height:18px}
+.rwbtn:hover:not(:disabled){background:var(--chip);color:var(--ink)}
+.rwbtn.rwdel:hover{color:var(--red-ink)}
+.rwbtn:disabled{opacity:.35;cursor:default}
+.rwempty{padding:14px;color:var(--ink-2);font-size:14px}
+.rwfoot{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+.rwfoot .spacer{flex:1 1 auto}
+.rwfoot b{font-family:var(--f-note);font-weight:400}
+@media (max-width:720px){
+  .rwgo{width:auto;padding:8px 14px}
+  .rwn{width:28px}
+  /* On a phone the item's buttons stack, a third of the row's height each. */
+  .rwside{flex-direction:column}
+  .rwbtn{width:40px;flex:1 1 0;min-height:34px}
+  .rwbtn+.rwbtn{border-top:1px solid var(--rule)}
+}
 .rwf{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:12px;color:var(--ink-2);font-weight:600}
 .rwf select,.rwf input{padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--sheet);font-size:14px;font-weight:400;color:var(--ink);min-width:0;max-width:100%}
 .rwsong{flex:1 1 220px}
 .rwsong select{font-family:var(--f-note);font-size:15px}
 .rwf select[data-k="from"],.rwf select[data-k="to"]{font-family:var(--f-note);max-width:220px}
 .rwnum input{width:72px;font-variant-numeric:tabular-nums}
-.rwacts{display:flex;gap:4px;margin-left:auto}
 .rwgone{flex:1 1 200px;color:var(--ink-2);font-size:14px}
 .rbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:9px 12px;border:1px solid var(--brass);border-left:4px solid var(--brass);border-radius:10px;background:var(--sheet)}
 .rbar .spacer{flex:1 1 auto}

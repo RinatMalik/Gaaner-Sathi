@@ -140,6 +140,12 @@ describe('the Music library', () => {
     expect(ex).toContain('<span>Edit this exercise</span>');
   });
 
+  it('gives each heading a + New button after its fold button: a song, or an exercise', () => {
+    const html = songsListHTML(own, EXERCISES, opts()).html;
+    expect(html).toMatch(/<div class="lheadrow"><h3 class="lhead"><button type="button" class="lfold" data-fold="mine"[^]*?<\/button><\/h3><button type="button" class="btn lnew" data-new="song">\+ New song<\/button><\/div>/);
+    expect(html).toMatch(/<h3 class="lhead"><button type="button" class="lfold" data-fold="ex"[^]*?<\/button><\/h3><button type="button" class="btn lnew" data-new="exercise">\+ New exercise<\/button>/);
+  });
+
   it('folds each section away by its heading, and shows every section while searching', () => {
     const open = songsListHTML(own, EXERCISES, opts()).html;
     expect(open).toContain('<button type="button" class="lfold" data-fold="mine" aria-expanded="true" aria-controls="lsec-mine">');
@@ -155,7 +161,7 @@ describe('the Music library', () => {
     const found = songsListHTML(own, EXERCISES, opts({ query: 'সা', folded: { mine: true, ex: true } })).html;
     expect(found).not.toContain('data-fold');
     expect(found).not.toContain(' hidden');
-    expect(found).toContain('<h3 class="lhead">Exercises <span class="n">');
+    expect(found).toContain('<h3 class="lhead"><span class="lfold">Exercises <span class="n">');
   });
 
   it('shows each song’s details, star, tags and whether it is open, escaped', () => {
@@ -200,5 +206,69 @@ describe('the Music library', () => {
     expect(filterChipsHTML([own[1]!], 13, { kind: 'all' })).not.toContain('Favourites');
     expect(countText(2, 13, 15)).toBe('2 songs and 13 exercises');
     expect(countText(1, 13, 3)).toBe('Showing 3 of 14');
+  });
+});
+
+describe('your own exercises', () => {
+  const now = new Date(2026, 9, 13, 9, 0).getTime();
+  const own = [
+    song('s1', 'Amar Sonar Bangla', { updatedAt: 5, tags: ['Learning'] }),
+    song('x1', 'My sargam', { exercise: true, updatedAt: 9, fav: true, tags: ['Learning'] }),
+    song('x2', 'Alankar in Rupak', { exercise: true, updatedAt: 7 }),
+  ];
+  const opts = (o: Partial<ListOptions> = {}): ListOptions =>
+    ({ query: '', filter: { kind: 'all' }, sort: 'changed', currentId: '', practisedAt: () => 0, now, ...o });
+  const ids = (html: string) => Array.from(html.matchAll(/data-edit="([^"]+)"/g), (m) => m[1]);
+
+  it('are kept with the song, in storage and in song files, and only on the user’s own', () => {
+    const s = normalize({ id: 'x', title: 'x', exercise: true });
+    expect(s.exercise).toBe(true);
+    expect(normalize({ id: 'x', title: 'x' })).not.toHaveProperty('exercise');
+    expect(normalize({ id: 'x', title: 'x', exercise: 'yes' })).not.toHaveProperty('exercise');
+    expect(normalize({ id: 'x', title: 'x', example: true, exercise: true })).not.toHaveProperty('exercise');
+    const [back] = songsFromFile(songFileText([s, normalize({ id: 'y', title: 'y' })], '2026-10-13'), 'b.json');
+    expect(normalize({ ...back!, id: 'new' }).exercise).toBe(true);
+    // A built-in exercise exported and imported comes back as an exercise of your own.
+    const [ex] = songsFromFile(songFileText([normalize({ ...EXERCISES[0]!, updatedAt: 1 })], '2026-10-13'), 'e.json');
+    expect(ex!.exercise).toBe(true);
+  });
+
+  it('are listed under Exercises, newest first, before the built-in ones in their order', () => {
+    const r = songsListHTML(own, EXERCISES, opts());
+    expect(ids(r.html)).toEqual(['s1', 'x1', 'x2', ...EXERCISES.map((e) => e.id)]);
+    expect(r.html.indexOf('data-edit="s1"')).toBeLessThan(r.html.indexOf('data-fold="ex"'));
+    expect(r.html).toContain('My songs <span class="n">1</span>');
+    expect(r.html).toContain('Exercises <span class="n">' + (EXERCISES.length + 2) + '</span>');
+    // By title, the user's own by title, then the built-in ones in their own order.
+    expect(ids(songsListHTML(own, EXERCISES, opts({ sort: 'title' })).html).slice(0, 3)).toEqual(['s1', 'x2', 'x1']);
+  });
+
+  it('have a star, tags and the exercise wording, like any of your songs', () => {
+    const row = songRowHTML(entryFor(own[1]!), opts());
+    expect(row).toContain('data-fav="x1" aria-pressed="true"');
+    expect(row).toContain('data-tag="Learning"');
+    expect(row).toContain('<span>Practise this exercise</span>');
+    expect(row).toContain('<span>Edit this exercise</span>');
+  });
+
+  it('count among the exercises; Songs shows only songs; favourites and tags reach them too', () => {
+    const chips = filterChipsHTML(own, EXERCISES.length, { kind: 'mine' });
+    expect(chips).toContain('All <span class="n">' + (3 + EXERCISES.length) + '</span>');
+    expect(chips).toContain('data-filter="mine" aria-pressed="true">Songs <span class="n">1</span>');
+    expect(chips).toContain('data-filter="ex" aria-pressed="false">Exercises <span class="n">' + (2 + EXERCISES.length) + '</span>');
+    expect(chips.indexOf('data-filter="mine"')).toBeLessThan(chips.indexOf('data-filter="ex"'));
+    expect(chips.indexOf('data-filter="ex"')).toBeLessThan(chips.indexOf('data-filter="fav"'));
+    expect(ids(songsListHTML(own, EXERCISES, opts({ filter: { kind: 'mine' } })).html)).toEqual(['s1']);
+    expect(ids(songsListHTML(own, EXERCISES, opts({ filter: { kind: 'ex' } })).html)).toEqual(['x1', 'x2', ...EXERCISES.map((e) => e.id)]);
+    expect(ids(songsListHTML(own, EXERCISES, opts({ filter: { kind: 'fav' } })).html)).toEqual(['x1']);
+    expect(ids(songsListHTML(own, EXERCISES, opts({ filter: { kind: 'tag', tag: 'learning' } })).html)).toEqual(['s1', 'x1']);
+    expect(matchesFilter(entryFor(own[2]!), { kind: 'ex' })).toBe(true);
+    expect(matchesFilter(entryFor(own[2]!), { kind: 'mine' })).toBe(false);
+  });
+
+  it('leave "My songs" inviting a first song when all your own are exercises', () => {
+    const r = songsListHTML(own.slice(1), EXERCISES, opts());
+    expect(r.html).toContain('No songs of your own yet');
+    expect(r.html).toContain('My songs <span class="n">0</span>');
   });
 });

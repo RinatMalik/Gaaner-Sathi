@@ -18,8 +18,8 @@ export const IMPORT_LIMITS = {
 } as const;
 
 /** What a file holds for each song: no id, no timestamps. Tags, the favourite mark, the
- * song's own sound and its notes are optional additions (still version 1: older readers
- * skip them). */
+ * exercise mark, the song's own sound and its notes are optional additions (still version
+ * 1: older readers skip them). */
 export interface SongFileEntry {
   title: string;
   taal: string;
@@ -30,6 +30,8 @@ export interface SongFileEntry {
   text: string;
   tags?: string[];
   fav?: boolean;
+  /** Listed under Exercises when imported. */
+  exercise?: true;
   sound?: Partial<SongSound>;
   notes?: string;
 }
@@ -42,6 +44,8 @@ export function songForFile(s: Song): SongFileEntry {
   const e: SongFileEntry = { title: s.title, taal: s.taal, tempo: s.tempo, saKey: s.saKey, saOct: s.saOct, startOn: s.startOn, text: s.text };
   if (s.tags && s.tags.length) e.tags = s.tags;
   if (s.fav) e.fav = true;
+  // An exercise, the user's own or a built-in one, comes back as an exercise.
+  if (s.exercise || s.example) e.exercise = true;
   if (s.sound) e.sound = s.sound;
   if (s.notes) e.notes = s.notes;
   return e;

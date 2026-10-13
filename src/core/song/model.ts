@@ -23,6 +23,9 @@ export interface Song {
   tags?: string[];
   /** A favourite; absent when not. */
   fav?: boolean;
+  /** One of the user's songs listed under Exercises (their own exercise); absent: under My
+   * songs. Built-in exercises are `example` instead. */
+  exercise?: true;
   /** Its own Melody and Rhythm settings (src/core/song/sound.ts), over the device's; absent
    * while it uses the device's. */
   sound?: Partial<SongSound>;
@@ -67,8 +70,8 @@ export const parseTags = (input: string): string[] => cleanTags(input.split(',')
 /**
  * Clamp every field into range, as the prototype does for every song it loads or
  * imports, so a damaged or hand-edited file can never break the app. Tags, the
- * favourite mark, the song's own sound and its notes are this app's additions: present
- * only when set.
+ * favourite mark, the exercise mark, the song's own sound and its notes are this app's
+ * additions: present only when set.
  */
 export function normalize(s: { id: string } & Partial<Record<keyof Song, unknown>>): Song {
   const oct = Number(s.saOct);
@@ -87,6 +90,7 @@ export function normalize(s: { id: string } & Partial<Record<keyof Song, unknown
   const tags = cleanTags(s.tags);
   if (tags.length) song.tags = tags;
   if (s.fav === true) song.fav = true;
+  if (s.exercise === true && !song.example) song.exercise = true;
   const sound = cleanSound(s.sound);
   if (sound) song.sound = sound;
   const notes = cleanNotes(s.notes);
