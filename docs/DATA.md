@@ -13,7 +13,7 @@ Clearing a browser's site data ("cookies and site data") deletes it all.
 
 | What | Kept in | Moves to another device or person |
 |---|---|---|
-| Your songs: notation, title, taal, tempo, Sa, start beat, section tempos and taals, tags, star, notes, the song's own sound | `localStorage` | Yes: **Export this song** (one) or **Back up all my songs** (all), then **Import** there |
+| Your songs: notation, title, taal, tempo, Sa, start beat, section tempos and taals, tags, star, notes, the song's own sound, whether it is listed under Exercises | `localStorage` | Yes: **Export this song** (one) or **Back up all my songs** (all), then **Import** there |
 | The built-in exercises and the starter rewaz | The app itself | Everyone has them |
 | Your settings: your usual sound, your Sa, the practice settings, script, theme, the editor view, the MIDI choice | `localStorage` | No |
 | Practice log (Progress) | `localStorage` | Downloadable as a file from Progress, but not importable |
@@ -58,11 +58,12 @@ as it was set up (its sound and notes included), without the sender's log, takes
 | `updatedAt` | ms epoch; the newer copy wins when two places have the same song. |
 | `tags` | Library tags, free text: trimmed, single-spaced, no commas, at most 40 characters each and 20 per song, no two the same apart from case. Absent when there are none. |
 | `fav` | `true` for a favourite; absent otherwise. |
+| `exercise` | `true` for one of your songs listed under Exercises (your own exercise: "List under" in Edit notation, "+ New exercise", or a copy of a built-in one); absent: under My songs. Never on a built-in exercise, which is `example` in the app and never stored. |
 | `notes` | Notes about the song (its meaning, source, a teacher's comments): free text, at most 20 000 characters, shown above the sheet, printed and searched. Absent when empty. |
 | `sound` | The song's own harmonium, drone and rhythm (set in Edit notation → Sound of this song), with the same names and values as the device settings below. Absent while the song uses the usual sound. The app writes the whole set; reading checks each field and leaves out any it cannot read, so the device's setting shows through for that one. A `guide` written before 2026-10-13 is left out: the guide's level is a practice setting now. |
 
 `normalize()` runs on every song read or imported and clamps every field, as the prototype's
-does. `tags`, `fav`, `notes` and `sound` are left out when unset, so a prototype song reads
+does. `tags`, `fav`, `exercise`, `notes` and `sound` are left out when unset, so a prototype song reads
 exactly as before.
 
 ## Song files (export, backup, import)
@@ -70,12 +71,13 @@ exactly as before.
 ```json
 { "format": "gaaner-sathi", "version": 1, "exported": "2026-10-09",
   "songs": [ { "title": "...", "taal": "...", "tempo": 100, "saKey": 0, "saOct": 4, "startOn": 1, "text": "...",
-               "tags": ["..."], "fav": true, "notes": "...", "sound": { } } ] }
+               "tags": ["..."], "fav": true, "exercise": true, "notes": "...", "sound": { } } ] }
 ```
 
 - **Export this song** (the editor) writes one song; **Back up all my songs** (Music
-  library) writes them all, exercises excluded. `tags`, `fav`, `notes` and `sound` appear
-  only when set. They are optional, so files stay version 1: the prototype and older readers
+  library) writes them all, built-in exercises excluded. `tags`, `fav`, `exercise`, `notes`
+  and `sound` appear only when set; an exercise exported, built-in or your own, carries
+  `exercise`, so it imports as an exercise of your own. They are optional, so files stay version 1: the prototype and older readers
   skip them.
 - **Import** (Music library) accepts that envelope, a bare array of songs, a single song object, or
   a plain `.txt`, which becomes one song titled from the file name. Limits: 2 MB per file,
@@ -109,13 +111,13 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `ramp`, `rampStep`, `rampMax` | The tempo trainer: on or off, the step and the top |
 | `lastSong` | The song open last |
 | `tab` | The view open last: `practice`, `songs` (the Music library), `edit`, `rewaz`, `voice` or `progress` |
-| `soundOpen` | Whether the Practice settings under the deck are unfolded (unset until first folded or unfolded) |
+| `soundOpen` | Whether the Practice settings, at the top of the Practice view, are unfolded; unset: folded |
 | `songSoundOpen` | `true` while the song's sound in Edit notation is unfolded; absent: folded |
 | `libSort` | How the Music library sorts: `practised`, `changed` or `title` |
 | `libFold` | The Music library's sections folded away, `{ mine?: true, ex?: true }`; absent: both open. A search shows every section |
 | `pitchOctave` | `true` when pitch feedback counts the octave too |
 | `pitchLag` | The delay from a beat to the voice, found last time, seconds (0–0.6) |
-| `rewazId` | The rewaz routine last chosen |
+| `rewazOpen` | The ids of the rewaz routines unfolded on the Rewaz view; absent: all folded. (`rewazId`, the routine last chosen, is no longer read) |
 | `theme` | `light` (Day) or `dark` (Night); absent: Auto, as the device says. Read by a line in the page's head before the app runs, so a reload never flashes the other colours |
 | `editMode` | `text` when the editor shows free text; absent: beat boxes |
 | `mySa` | Your Sa, `{ saKey, saOct }`: from the range finder's "Use as my Sa", or a Sa changed on an exercise. Exercises open in it and new songs start in it |

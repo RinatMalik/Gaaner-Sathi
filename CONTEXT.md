@@ -3,7 +3,7 @@
 > The project's shared state, for Rinat, Claude, Codex and any other LLM: what the app is
 > for, how we work, where things stand, the decisions in force and the newest work log.
 >
-> **Last updated:** 2026-10-13 (01:30 BST) by Claude (Opus 5.5)
+> **Last updated:** 2026-10-13 (02:40 BST) by Claude (Opus 5.5)
 
 ## How to use this file
 
@@ -40,13 +40,13 @@ wins, except a later explicit decision by Rinat, which always wins.
 - **Milestone:** Phase 2, the design (ROADMAP.md → Phase 2), begun 2026-10-11 with Rinat's
   comments on the screen as it is; rounds one (PH2-01: the beat boxes, a fade before silence),
   two (PH2-02: Pause and Stop, the Lines to practise left alone, the microphone only while
-  playing, the rows redesigned) and three (PH2-03: a song's sound in Edit notation, Practice
-  settings, the Music library) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
+  playing, the rows redesigned), three (PH2-03: a song's sound in Edit notation, Practice
+  settings, the Music library) and four (PH2-04: your own exercises, Practice settings in
+  the Practice view, Rewaz routines as folding rows) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
-- **Next single action:** Rinat tries round three; answers whether to build own exercises
-  (Open question 6) and round two's two questions (Record me's microphone; colours on the
-  Practice sheet); sends more design comments.
-- **Last known-good commit:** `4269b81` (CI run `38326026128`: core, reference and deploy jobs green; checked live).
+- **Next single action:** Rinat tries round four; answers round two's two questions
+  (Record me's microphone; colours on the Practice sheet); sends more design comments.
+- **Last known-good commit:** `da17be0` (CI run `38329377823`: core, reference and deploy jobs green; checked live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -353,7 +353,8 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH1-11 | Claude | Review | Beat boxes round four: Copy keeps lines and Paste puts them after the row selected (in any song); the rows selected are dragged and moved together; smaller boxes and preview (an 8-beat line in one row from a 1024 px window); a gentle ending (the last note and the tail fade over a quarter second) | 5 unit tests; Edge scenarios `paste` (27 checks) and `widths`, locally and live; offline renders of the ending (Work log 2026-10-11 17:53) | Waiting for Rinat's use and ears |
 | PH2-01 | Claude | Review | Design, round one: ▶ under each line's number (icons only), no Copy on a line and no Done (select, Copy, Paste as often as wanted), a heading's × at its top right, no preview beside the beat boxes (full width: 16 beats on a row), a note before silence fades out | 1 unit test and the boxes' HTML test; Edge scenario `round5` (32 checks); offline renders (Work log 2026-10-11 18:56) | Waiting for Rinat's use, ears and next comments |
 | PH2-02 | Claude | Review | Design, round two: Pause and a separate Stop; nothing that plays changes the Lines to practise (play from here, sheet line numbers, sections, rewaz, takes); "Check my pitch" listens only while playing; beat box rows with the number and buttons (play this line, play from here, ×) full height, vibhag starts coloured instead of X/0, a tap anywhere on a row selects it, hover | 5 unit tests and the boxes' HTML tests; Edge scenarios `round6` (42 checks) and `rewaz6` (5), with a WAV microphone (Work log 2026-10-12 16:43) | Waiting for Rinat's use and two answers |
-| PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use and Open question 6 |
+| PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
+| PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
 
 ## Decisions
 
@@ -414,6 +415,10 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-13 | The Songs tab is the **Music library**, and the tabs run Practice, Music library, Edit notation, Rewaz, Voice, Progress: Practice first, as the view the app opens on and the one used every day; the library's two buttons per song lead to practising or editing. | Rinat, chat 2026-10-13 ("Rename Songs Tab to 'Music Library'"; asked whether Edit notation or Practice should come first); sentence case and the order are Claude's recommendation | Settles part of the 2026-10-10 "five views" row's navigation. Stored as `songs` still. |
 | 2026-10-13 | Music library rows like a line in the beat boxes: lit faintly under the pointer; at their end two full-height, wide buttons, **Practise this song** and **Edit this song** ("this exercise" on exercises), under the row below 720 px; the title still opens it to practise. "My songs" and "Exercises" have bigger headings and fold away by them, remembered on the device; a search shows every section's matches. | Rinat, chat 2026-10-13 ("faint highlight when hovered", "two full height buttons … quite wide", "Make both sections Exercise and My Songs collapsible", "headings … bigger"; the numbers on the left withdrawn: "forget about the numbers"); "Practise" (the UK verb), the search rule and the phone layout are Claude's | songs.ts; the `libFold` and `songSoundOpen` settings. |
 | 2026-10-13 | Open question 6 (own exercises) asked; not built until Rinat says. The roadmap's phase table marks Phase 2 as now. | Claude | |
+| 2026-10-13 | **Your own exercises**, as Claude recommended: an optional `exercise` mark on one of the user's songs (storage and song files, still version 1), set by "List under: My songs / Exercises" in Edit notation (hidden on built-in exercises, which stay read-only); "+ New exercise" in the Exercises heading, and "+ New song" moved from the library's top bar into the My songs heading; a copy of a built-in exercise, or one exported and imported, is an exercise of the user's own. They list under Exercises (newest first, before the built-in ones), with a star and tags, and the pickers group them there. | Rinat, chat 2026-10-13 ("yes build the exercises option as you recommended"), answering Open question 6; moving "+ New song" and the exported mark are Claude's | Open question 6 removed. DATA.md → Song, Settings. |
+| 2026-10-13 | The Practice settings sit at the top of the Practice view, not above every view; folded until unfolded (it was open at first on wide screens). | Rinat, chat 2026-10-13 ("I am thinking the practice settings should be under practice tab?"); folded at first is Claude's | Connecting a MIDI keyboard for typing in the editor is done there once; a keyboard allowed before reconnects by itself. |
+| 2026-10-13 | Music library: each heading is a full-width row, lit under the pointer, that folds its section wherever it is tapped (its + New button apart); a "Songs" chip (the user's songs, not exercises) after All; the sort "Recently changed" reads "Recently added or changed". | Rinat, chat 2026-10-13 ("collapsible by clicking anywhere along the full width of those rows", "change the wording … to Recently Added or changed", "also add a button for 'songs'") | songs.ts. |
+| 2026-10-13 | Rewaz: every routine (the ready-made warm-up first while unsaved, then the user's by name) is a row that folds away, remembered on the device (`rewazOpen`), with its length and a full-height Start rewaz button; unfolded, its name, its items as rows like the beat boxes' (the number down the left behind the margin line, the fields, full-height icon buttons to move up, move down and remove), "+ Add the open song: (its title)" and Delete routine with a confirmation. The routine picker and "routine last chosen" (`rewazId`) are gone. | Rinat, chat 2026-10-13 ("show all the created routines in collapsible rows, similar to how the things are shown in music library … highlight on hover, big, square buttons"); the layout details are Claude's | rewaz.ts; DATA.md → Settings. |
 
 ## Open questions
 
@@ -433,11 +438,6 @@ records were folded into on 2026-10-11 (the last rows say where).*
 5. **Two taal forms.** Khemta is the 12-matra form of the Bengali tabla books, not Tagore's
    6-matra Kashmiri Khemta; Dhamar is divided as in Rabindrasangeet (3+2+2+3+4), not the
    classical 5+2+3+4 (the checker accepts bars written either way). Default: as built.
-6. **Adding your own exercises** (Rinat asked how, 2026-10-13). Claude's recommendation: an
-   exercise is a song kept in a different list, so one choice in Edit notation, "List under:
-   My songs / Exercises", which also moves songs already typed; a copy of a built-in exercise
-   stays among the exercises; and "+ New exercise" in the Exercises heading as a shortcut that
-   makes one already listed there. Built-in exercises stay read-only. Default: not built.
 
 ## Work log
 
@@ -454,6 +454,78 @@ Template:
     - **Decisions made:** rows added above.
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
+
+### 2026-10-13 02:40 BST — Claude (Opus 5.5) — PH2-04 design, round four: your own exercises, Practice settings in Practice, Rewaz as folding rows
+
+- **Goal:** Rinat: "yes build the exercises option as you recommended"; "I am thinking the
+  practice settings should be under practice tab?"; the headings "collapsible by clicking
+  anywhere along the full width of those rows"; "Recently Changed" → "Recently Added or
+  changed"; "also add a button for 'songs'"; in Rewaz "collapse each routine and show all the
+  created routines in collapsible rows, similar to how the things are shown in music library
+  … highlight on hover, big, square buttons etc".
+- **Inspected:** `src/core/song/library.ts`, `model.ts`, `file.ts` and `store.ts`'s `bodyOf`
+  (it writes only the fields it names: the mark had to be added there too); `createSong` and
+  the import (both set `example = false` after `normalize`); `src/app/rewaz.ts` (one routine at
+  a time behind a picker) and its tests.
+- **Changed:** `da17be0` (feat): `Song.exercise?: true` (`normalize`, `bodyOf`,
+  `songForFile`, which also marks an exported built-in exercise); `LibraryFilter` `mine` and
+  `isExercise`; songs.ts: own exercises under Exercises (newest first, or by title, before the
+  built-in ones), `.lheadrow` (an `h3` with a full-width `.lfold`, then `+ New song` / `+ New
+  exercise`), the Songs chip; app.ts: `newSong(kind)`, `pickerGroups()`, `what()`,
+  `loadSongLabels()` ("List under", the title tag, Delete / Export / sound wording), `#listSeg`,
+  a copy of a built-in exercise marked `exercise`, `normalize({ … example: false … })` for new
+  and imported songs, Practice settings folded at first; index.html: the Practice settings
+  block moved into `#practice`, `#libNew` and the routine picker gone, `#rwRoutines`; rewaz.ts:
+  `routineHTML`, `metaText`, items with `.rwfields` and `.rwside` buttons, the host's
+  `unfolded` (prefs `rewazOpen`, `rewazId` dropped), per-routine Start, add, delete with a
+  confirmation, a name or a rounds, tempo, guide or last-line change updating in place, a
+  song or first-line change redrawing with the focus put back; styles; tests. This commit
+  (docs): DATA (`exercise`, `rewazOpen`, `soundOpen`), ROADMAP (Phase 2 row 4), this file (the
+  2026-10-12 16:43 entry moved to HISTORY; Open question 6 removed).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; the browser pane on `npm run
+  dev`, at 1200 × 800 and 360 × 780, night and day):
+  - `npm run typecheck` → 0; `npx vitest run` → 32 files, 334 passed (new: the mark through
+    `normalize`, a song file and storage, never on a built-in one, an exported built-in coming
+    back marked; own exercises' order, star, tags and wording; the Songs chip, `mine`, `fav`
+    and tag filters reaching them; "My songs 0" when all one's own are exercises; the heading
+    rows' + buttons; `rewazOpen` read back and `rewazId` dropped; item rows' layout and icon
+    buttons; a routine folded and unfolded, its Start, name, items, add and delete; the
+    ready-made one unsaved, an empty one unable to start); `npm run build` → 205 kB JS
+    (72.9 kB gzip), 39 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12
+    exercises valid.
+  - In the pane: chips "All 13 | Songs 0 | Exercises 13"; the sort says "Recently added or
+    changed"; a click on empty space at the far end of the Exercises heading folds it (the
+    fold button 1013 of 1148 px, the + button the rest), lit under the pointer (5 % ink);
+    "+ New exercise" opens Edit notation with "Untitled exercise" selected, stored with
+    `exercise: true`, in the picker's Exercises, "Sound of this exercise", "Delete exercise";
+    "List under: My songs" moves it (the stored mark gone, the picker's My songs, the library's
+    My songs) and back; "Make a copy" of exercise 2 at first went to My songs (the bug above:
+    `normalize` saw the copy while it was still `example`), fixed and checked again: an
+    exercise. Practice settings in `#practice`, above Now singing, folded, absent from the
+    other views. Rewaz: the warm-up "4 items · about 3 min · ready-made", folded; "+ New
+    routine" opens a routine with its name selected; renamed by typing and Tab, then Tab, Tab
+    to Rounds (focus never lost), 6 typed and Tab to Tempo, "about 2 min", stored; another song
+    chosen keeps the focus on its picker (groups My songs 1, Exercises 15); add, up (Move up
+    disabled on the first), remove; a click on its heading's empty space folds it and keeps
+    focus; Start shows Practice, "Evening rewaz · 1 of 2 · ১২ · আকার সাধনা · round 1 of 6" and
+    Pause; Stop rewaz ends it; Delete asks, Keep keeps; a change to the warm-up saves it as
+    the user's (Delete appears, "ready-made" goes). 360 px: no sideways scrolling on the
+    library, Edit notation, Rewaz and Practice, night and day; an item's three buttons stacked
+    (40 × 84 px); Start 124 px wide. No console errors. Test songs and routines deleted through
+    the app afterwards, colours back to Auto.
+  - CI run `38329377823` (`da17be0`): core, reference and deploy jobs green. Live: the chips,
+    the heading buttons, the sort wording, Practice settings in Practice, "List under" and the
+    Rewaz rows checked on https://rinatmalik.github.io/Gaaner-Sathi/, no console errors.
+- **Decisions made:** see Decisions (your own exercises; Practice settings in the Practice
+  view; the library's headings, Songs chip and sort wording; Rewaz as folding rows).
+- **Risks or disagreements:** connecting a MIDI keyboard for the editor's typing now means
+  visiting Practice once (it reconnects by itself after). The Practice settings start folded
+  for anyone who never unfolded them. The ready-made warm-up's first change redraws it and
+  puts the focus back on the field changed (so a Tab out of its Rounds stays there once).
+  Removing or moving an item leaves the focus on the page. No Edge scenario script this
+  round (the browser pane was visible); nothing about sound changed.
+- **Next handoff:** Rinat tries round four, answers round two's two questions, and sends more
+  design comments.
 
 ### 2026-10-13 01:30 BST — Claude (Opus 5.5) — PH2-03 design, round three: a song's sound in Edit notation, Practice settings, the Music library
 
@@ -516,81 +588,5 @@ Template:
   was visible); nothing about sound changed, so no offline render.
 - **Next handoff:** Rinat tries round three, answers Open question 6 and round two's two
   questions, and sends more design comments.
-
-### 2026-10-12 16:43 BST — Claude (Opus 5.5) — PH2-02 design, round two: Pause and Stop, the Lines to practise left alone, the mic only while playing, beat box rows redesigned
-
-- **Goal:** Rinat (with a sketch of a line: the number down the left, "Play this line", "Play
-  From here" and "X" at the right, all full height): "mic should only be listening when play
-  button is pressed and stop when the song is finished or the stop button is pressed"; "there
-  should be pause button when playing and a separate stop button"; a line "selected when click
-  on any empty space on the whole line … subtly highlighted when hovered"; "full line height
-  buttons"; "Colour code the first beat of the sections of the line so we can get rid of X and
-  the O"; "when selecting a line to play from - don't auto update the 'Lines to Practice'
-  selection … app-wide"; "let me know if any of these things conflicts with something else".
-- **Inspected:** `src/app/pitch.ts` (the button opened the microphone and kept it open, a
-  tuner while idle); `play()`/`stop()`/`userToggle` and every caller in `src/app/app.ts` (the
-  pickers were written by `play()`, the sheet's line numbers, the section buttons, rewaz items
-  and takes with the guide); the transport's start (count-in, carry); the practice log's
-  seconds; takes (`Recorder` kept open while Record me is on); `PitchTracker`.
-- **Changed:** `f7d6ec0` (feat): `Transport.start(…, { at: { s, pass } })` goes on from a
-  beat and round at once, a note held across it sounding again; `PitchTracker.cut(t)`; the
-  app: `PlayAsk` (what plays is passed in, the pickers only read by the deck's Play),
-  `pause()`/`resume()`/`userStop()`, `#stopBtn`, a pause icon in `#playBtn` (aria "Pause",
-  "Go on"), the log's `seg`/`done` (time played without pauses), a take ending at a pause,
-  rewaz seeing a pause as playing; `userPlay` plays from a line to the end once (sheet line
-  numbers, the editor's "play from here"), section buttons play their section, rewaz items and
-  takes their own lines, none touching the pickers; pitch: "Check my pitch" arms, the
-  microphone opens on play or going on and closes on pause, stop or the end, scoring from the
-  first beat scheduled, not for the editor's quick listen; beat boxes: the number (a
-  heading's #) full height behind the red margin line, full-height buttons at the row's end
-  (play this line, play from here, ×; stacked on a phone), `v-sam`/`v-tali`/`v-khali` on the
-  first beat of each vibhag (theme tokens `--v-*`, a key `#bxKey`, the kind in each box's
-  label) instead of the X/0 row, a tap on a row's empty space selects it (not a press begun in
-  a box), rows lit on hover; help and hint; `tests/unit/pause.test.ts`, the boxes' HTML tests.
-  This commit (docs): NOTATION (Beat boxes), ENGINE (What plays, Pause, Capture), DATA (`secs`),
-  ROADMAP (Phase 2 row 2), this file (the 2026-10-11 17:53 entry moved to HISTORY).
-- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
-  DevTools protocol on `npm run dev`, real mouse and key events; the microphone a WAV through
-  Edge's fake device, with `getUserMedia` counted):
-  - `npm run typecheck` → 0; `npx vitest run` → 32 files, 319 passed (new: going on at beat
-    5 plays Dha, Ni, Sa at once with no count-in; a held Sa sounds again for its last two
-    beats; round 2 of 3 resumed ends after round 3; no `at` counts in as before; `cut` ends
-    the note sounding and forgets the later ones; the rows' order, buttons and labels; the
-    vibhag colours in Teentaal and Rupak, in the empty row too, none of `bxmark`); the
-    comparisons with the prototype still pass; `npm run build` → 198 kB JS (70.7 kB gzip),
-    35 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid.
-  - Scenario `round6` (42 checks, twice): a line's number, then boxes, then play, play from
-    here, × each the row's full height at its right end, icons only, a heading's × in line;
-    no X or 0, sam and khali boxes coloured differently, the key (not in Free text); a row lit
-    under the pointer; a tap on its empty space selects it and another unselects; a tap in a
-    box types; a press in a box let go over empty space selects nothing; a heading selects
-    too; play this line shows ■ and stops; play from here on line 3 plays from line 3, ■
-    stops it, the pickers unchanged; the deck: Stop greyed out when idle, Play then "Pause",
-    Pause keeps the beat marked with "Paused · …", Play goes on from that beat at once, Stop
-    clears; the space bar plays and pauses; played 5 s, paused 4 s, played 7 s: one log
-    entry of 12 s; a sheet line number and a section button play there with the pickers
-    unchanged; the microphone: off when switched on, on with Play (1 open), off on Pause, on
-    again going on (2), off on Stop, on and then off when the song ends by itself (3), the
-    scores kept, the quick listen leaves it off; 360 px: the buttons stacked down the row's
-    end, at least 30 px each, no sideways scrolling day and night; no console errors.
-    `rewaz6` (5): Pause holds a rewaz item with its bar, Play goes on from the same beat,
-    the item never touched the pickers (0/7, loop off), Stop while paused ends the rewaz.
-    Updated for this round and passing: `round5` (30), `move` (30), `edit3` (30), `sections`
-    (15), `pherta` (25, the marks read from the colours), `takes` (20, stopped with Stop);
-    passing unchanged: `paste` (27), `boxes`, `words`, `midi` (19), `theme_notes` (20),
-    `print` (7). A 16-beat line (two notes in each of 8 beats) needs 754 px of boxes: one
-    row from a 980 px window (900 before this round).
-  - CI run `38271975694` (`f7d6ec0`): core, reference and deploy jobs green. Live: `round6` (42 checks, with the WAV microphone) and `rewaz6` (5) against https://rinatmalik.github.io/Gaaner-Sathi/ passed, no console errors; `/` 200, `/new/` 200.
-- **Decisions made:** see Decisions (Pause and Stop; what plays; the microphone only while
-  playing; beat box rows, round six).
-- **Risks or disagreements:** a take ends at a pause (a recording cannot go on mid-line);
-  Record me still keeps the microphone open while on (asked); no tuner while nothing plays;
-  a line number on the Practice sheet no longer starts a loop of the Lines to practise; a rewaz
-  item loops while the deck's "loop" may show unticked; X/0 stay on the Practice and printed
-  sheets (asked); the sketch's colours read as zone markers. On an iPhone, opening the
-  microphone at each play may ask again or move the sound to the earpiece: not tried. With
-  the count-in off, the first notes before the microphone opens go unscored. Nobody has used
-  Pause with a real voice.
-- **Next handoff:** Rinat tries round two and answers the two questions; more design comments.
 
 Older entries: `docs/HISTORY.md`.

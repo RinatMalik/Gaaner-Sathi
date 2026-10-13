@@ -49,6 +49,82 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-12 16:43 BST — Claude (Opus 5.5) — PH2-02 design, round two: Pause and Stop, the Lines to practise left alone, the mic only while playing, beat box rows redesigned
+
+- **Goal:** Rinat (with a sketch of a line: the number down the left, "Play this line", "Play
+  From here" and "X" at the right, all full height): "mic should only be listening when play
+  button is pressed and stop when the song is finished or the stop button is pressed"; "there
+  should be pause button when playing and a separate stop button"; a line "selected when click
+  on any empty space on the whole line … subtly highlighted when hovered"; "full line height
+  buttons"; "Colour code the first beat of the sections of the line so we can get rid of X and
+  the O"; "when selecting a line to play from - don't auto update the 'Lines to Practice'
+  selection … app-wide"; "let me know if any of these things conflicts with something else".
+- **Inspected:** `src/app/pitch.ts` (the button opened the microphone and kept it open, a
+  tuner while idle); `play()`/`stop()`/`userToggle` and every caller in `src/app/app.ts` (the
+  pickers were written by `play()`, the sheet's line numbers, the section buttons, rewaz items
+  and takes with the guide); the transport's start (count-in, carry); the practice log's
+  seconds; takes (`Recorder` kept open while Record me is on); `PitchTracker`.
+- **Changed:** `f7d6ec0` (feat): `Transport.start(…, { at: { s, pass } })` goes on from a
+  beat and round at once, a note held across it sounding again; `PitchTracker.cut(t)`; the
+  app: `PlayAsk` (what plays is passed in, the pickers only read by the deck's Play),
+  `pause()`/`resume()`/`userStop()`, `#stopBtn`, a pause icon in `#playBtn` (aria "Pause",
+  "Go on"), the log's `seg`/`done` (time played without pauses), a take ending at a pause,
+  rewaz seeing a pause as playing; `userPlay` plays from a line to the end once (sheet line
+  numbers, the editor's "play from here"), section buttons play their section, rewaz items and
+  takes their own lines, none touching the pickers; pitch: "Check my pitch" arms, the
+  microphone opens on play or going on and closes on pause, stop or the end, scoring from the
+  first beat scheduled, not for the editor's quick listen; beat boxes: the number (a
+  heading's #) full height behind the red margin line, full-height buttons at the row's end
+  (play this line, play from here, ×; stacked on a phone), `v-sam`/`v-tali`/`v-khali` on the
+  first beat of each vibhag (theme tokens `--v-*`, a key `#bxKey`, the kind in each box's
+  label) instead of the X/0 row, a tap on a row's empty space selects it (not a press begun in
+  a box), rows lit on hover; help and hint; `tests/unit/pause.test.ts`, the boxes' HTML tests.
+  This commit (docs): NOTATION (Beat boxes), ENGINE (What plays, Pause, Capture), DATA (`secs`),
+  ROADMAP (Phase 2 row 2), this file (the 2026-10-11 17:53 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
+  DevTools protocol on `npm run dev`, real mouse and key events; the microphone a WAV through
+  Edge's fake device, with `getUserMedia` counted):
+  - `npm run typecheck` → 0; `npx vitest run` → 32 files, 319 passed (new: going on at beat
+    5 plays Dha, Ni, Sa at once with no count-in; a held Sa sounds again for its last two
+    beats; round 2 of 3 resumed ends after round 3; no `at` counts in as before; `cut` ends
+    the note sounding and forgets the later ones; the rows' order, buttons and labels; the
+    vibhag colours in Teentaal and Rupak, in the empty row too, none of `bxmark`); the
+    comparisons with the prototype still pass; `npm run build` → 198 kB JS (70.7 kB gzip),
+    35 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid.
+  - Scenario `round6` (42 checks, twice): a line's number, then boxes, then play, play from
+    here, × each the row's full height at its right end, icons only, a heading's × in line;
+    no X or 0, sam and khali boxes coloured differently, the key (not in Free text); a row lit
+    under the pointer; a tap on its empty space selects it and another unselects; a tap in a
+    box types; a press in a box let go over empty space selects nothing; a heading selects
+    too; play this line shows ■ and stops; play from here on line 3 plays from line 3, ■
+    stops it, the pickers unchanged; the deck: Stop greyed out when idle, Play then "Pause",
+    Pause keeps the beat marked with "Paused · …", Play goes on from that beat at once, Stop
+    clears; the space bar plays and pauses; played 5 s, paused 4 s, played 7 s: one log
+    entry of 12 s; a sheet line number and a section button play there with the pickers
+    unchanged; the microphone: off when switched on, on with Play (1 open), off on Pause, on
+    again going on (2), off on Stop, on and then off when the song ends by itself (3), the
+    scores kept, the quick listen leaves it off; 360 px: the buttons stacked down the row's
+    end, at least 30 px each, no sideways scrolling day and night; no console errors.
+    `rewaz6` (5): Pause holds a rewaz item with its bar, Play goes on from the same beat,
+    the item never touched the pickers (0/7, loop off), Stop while paused ends the rewaz.
+    Updated for this round and passing: `round5` (30), `move` (30), `edit3` (30), `sections`
+    (15), `pherta` (25, the marks read from the colours), `takes` (20, stopped with Stop);
+    passing unchanged: `paste` (27), `boxes`, `words`, `midi` (19), `theme_notes` (20),
+    `print` (7). A 16-beat line (two notes in each of 8 beats) needs 754 px of boxes: one
+    row from a 980 px window (900 before this round).
+  - CI run `38271975694` (`f7d6ec0`): core, reference and deploy jobs green. Live: `round6` (42 checks, with the WAV microphone) and `rewaz6` (5) against https://rinatmalik.github.io/Gaaner-Sathi/ passed, no console errors; `/` 200, `/new/` 200.
+- **Decisions made:** see Decisions (Pause and Stop; what plays; the microphone only while
+  playing; beat box rows, round six).
+- **Risks or disagreements:** a take ends at a pause (a recording cannot go on mid-line);
+  Record me still keeps the microphone open while on (asked); no tuner while nothing plays;
+  a line number on the Practice sheet no longer starts a loop of the Lines to practise; a rewaz
+  item loops while the deck's "loop" may show unticked; X/0 stay on the Practice and printed
+  sheets (asked); the sketch's colours read as zone markers. On an iPhone, opening the
+  microphone at each play may ask again or move the sound to the earpiece: not tried. With
+  the count-in off, the first notes before the microphone opens go unscored. Nobody has used
+  Pause with a real voice.
+- **Next handoff:** Rinat tries round two and answers the two questions; more design comments.
+
 ### 2026-10-11 18:56 BST — Claude (Opus 5.5) — PH2-01 design, round one: beat boxes round five; a fade before silence
 
 - **Goal:** Rinat, starting the design phase ("mostly design amends … you could call this
