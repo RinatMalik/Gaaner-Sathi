@@ -314,7 +314,7 @@ path as pitch feedback.
   device (USB "to host", or a MIDI interface) works the same; nothing is brand-specific, and
   there is no library. Chrome and Edge on a computer and Chrome on Android have Web MIDI;
   Firefox needs a site-permission add-on; Safari and iPhones have none (the Connect button
-  says so). Connecting is one button in the Sound settings; a keyboard allowed before
+  says so). Connecting is one button in the Practice settings; a keyboard allowed before
   reconnects by itself.
 - **Typing:** while the editor is showing, each key pressed is a beat, written from the
   song's Sa (two octaves either side), into the beat boxes or at the caret. Keys pressed

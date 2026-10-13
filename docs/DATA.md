@@ -41,7 +41,7 @@ as it was set up (its sound and notes included), without the sender's log, takes
   "tags": ["Rabindrasangeet", "Learning"],
   "fav": true,
   "notes": "From Gitabitan. Teacher: slower in the antara.",
-  "sound": { "guide": "soft", "reeds": 3, "droneType": "tanpura", "droneVol": 0.5, "tanTune": "M",
+  "sound": { "reeds": 3, "droneType": "tanpura", "droneVol": 0.5, "tanTune": "M",
              "beat": "dholak", "tablaVol": 0.7, "speed": "normal", "fills": true,
              "layers": { "tabla": [], "dholak": ["manjira"], "kit": [] } }
 }
@@ -59,7 +59,7 @@ as it was set up (its sound and notes included), without the sender's log, takes
 | `tags` | Library tags, free text: trimmed, single-spaced, no commas, at most 40 characters each and 20 per song, no two the same apart from case. Absent when there are none. |
 | `fav` | `true` for a favourite; absent otherwise. |
 | `notes` | Notes about the song (its meaning, source, a teacher's comments): free text, at most 20 000 characters, shown above the sheet, printed and searched. Absent when empty. |
-| `sound` | The song's own Melody and Rhythm settings, with the same names and values as the device settings below. Absent while the song uses the usual sound. The app writes the whole set; reading checks each field and leaves out any it cannot read, so the device's setting shows through for that one. |
+| `sound` | The song's own harmonium, drone and rhythm (set in Edit notation → Sound of this song), with the same names and values as the device settings below. Absent while the song uses the usual sound. The app writes the whole set; reading checks each field and leaves out any it cannot read, so the device's setting shows through for that one. A `guide` written before 2026-10-13 is left out: the guide's level is a practice setting now. |
 
 `normalize()` runs on every song read or imported and clamps every field, as the prototype's
 does. `tags`, `fav`, `notes` and `sound` are left out when unset, so a prototype song reads
@@ -73,10 +73,11 @@ exactly as before.
                "tags": ["..."], "fav": true, "notes": "...", "sound": { } } ] }
 ```
 
-- **Export this song** (the editor) writes one song; **Back up all my songs** (Songs) writes
-  them all, exercises excluded. `tags`, `fav`, `notes` and `sound` appear only when set.
-  They are optional, so files stay version 1: the prototype and older readers skip them.
-- **Import** (Songs) accepts that envelope, a bare array of songs, a single song object, or
+- **Export this song** (the editor) writes one song; **Back up all my songs** (Music
+  library) writes them all, exercises excluded. `tags`, `fav`, `notes` and `sound` appear
+  only when set. They are optional, so files stay version 1: the prototype and older readers
+  skip them.
+- **Import** (Music library) accepts that envelope, a bare array of songs, a single song object, or
   a plain `.txt`, which becomes one song titled from the file name. Limits: 2 MB per file,
   200 songs per import, 200 000 characters per song. Imports always get new ids, so they
   never overwrite; importing the same backup twice gives two copies.
@@ -107,9 +108,11 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `guideLoop` | `all`, `first` or `alt` |
 | `ramp`, `rampStep`, `rampMax` | The tempo trainer: on or off, the step and the top |
 | `lastSong` | The song open last |
-| `tab` | The view open last: `songs`, `practice`, `edit`, `rewaz`, `voice` or `progress` |
-| `soundOpen` | Whether the Sound settings are unfolded (unset until first folded or unfolded) |
-| `libSort` | How the Songs view sorts: `practised`, `changed` or `title` |
+| `tab` | The view open last: `practice`, `songs` (the Music library), `edit`, `rewaz`, `voice` or `progress` |
+| `soundOpen` | Whether the Practice settings under the deck are unfolded (unset until first folded or unfolded) |
+| `songSoundOpen` | `true` while the song's sound in Edit notation is unfolded; absent: folded |
+| `libSort` | How the Music library sorts: `practised`, `changed` or `title` |
+| `libFold` | The Music library's sections folded away, `{ mine?: true, ex?: true }`; absent: both open. A search shows every section |
 | `pitchOctave` | `true` when pitch feedback counts the octave too |
 | `pitchLag` | The delay from a beat to the voice, found last time, seconds (0–0.6) |
 | `rewazId` | The rewaz routine last chosen |
@@ -121,14 +124,17 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `showKeys` | `true` to show the keys to press on the Practice view |
 | `midi` | A MIDI keyboard: `{ route: 'app' \| 'kb' \| 'both', sound: 'keep' \| 'organ' \| 'accordion', out?: id }`: where the guide plays, in what sound, on which keyboard |
 
-**Each song's own sound.** The Melody and Rhythm settings (`guide`, `reeds`, `droneType`,
+**Each song's own sound.** The harmonium, drone and rhythm settings (`reeds`, `droneType`,
 `droneVol`, `tanTune`, `beat`, `tablaVol`, `speed`, `fills`, `layers`) kept here are *your
 usual sound*. Exercises use it, and so does every song without a `sound` of its own (new
-songs, and songs from before this existed). Changing one of them while one of your songs is
+songs, and songs from before this existed). They are set in Edit notation (Sound of this
+song, or Your usual sound on an exercise). Changing one of them while one of your songs is
 open saves the whole set with that song, and the usual sound is left alone; while an
 exercise is open, it changes the usual sound. "Use my usual sound" removes a song's own. The
-Practice settings (`countIn`, `guideLoop`, `ramp`, `rampStep`, `rampMax`) are always the
-device's. A rewaz item's tempo and guide lie over all of these while it plays.
+practice settings under the deck (`guide`, `countIn`, `guideLoop`, `ramp`, `rampStep`,
+`rampMax`) are always the device's: the guide's level is how much help the singer wants that
+day, not part of how a song is arranged (2026-10-13). A rewaz item's tempo and guide lie over
+all of these while it plays.
 
 ## Storage
 
@@ -203,7 +209,7 @@ so years fit. Progress downloads the log as
 | `from`, `to` | Lines to practise, 0-based and inclusive; absent: the whole song |
 | `rounds` | Times through, 1–20 |
 | `tempo` | Matras per minute, 30–240; absent: the song's own. It never changes the song |
-| `guide` | `all` (every round), `first` (first round only), `alt` (every other round: call and response) or `off`; absent: as the Sound settings say |
+| `guide` | `all` (every round), `first` (first round only), `alt` (every other round: call and response) or `off`; absent: as the Practice settings say |
 
 A routine has at most 40 items. Until one is saved, a starter "Daily warm-up" (exercises 1, 2,
 3 and 12) is on offer; it stays on offer like the exercises, and changing it saves it as the

@@ -14,8 +14,8 @@ one intuitive design across all of them, in the web app; then a fresh native mob
 | Phase | What | Done when |
 |---|---|---|
 | 0 | Port the single-file prototype to a clean, light web app (done 2026-10-10) | done |
-| **1 ◀ now** | Features and functionality, in the web app | Rinat has used every feature on real songs and is happy with what the app can do |
-| 2 | Design: one intuitive design across every feature, in the web app | Rinat signs off the design |
+| 1 | Features and functionality, in the web app | Rinat has used every feature on real songs and is happy with what the app can do |
+| **2 ◀ now** | Design: one intuitive design across every feature, in the web app | Rinat signs off the design |
 | 3 | Native mobile app: a fresh build, Android first | The app on Rinat's phone does everything the web app does |
 
 ## Phase 0: the port (done 2026-10-10)
@@ -60,7 +60,7 @@ Anything from Feature ideas below.
 
 One intuitive design across every feature, worked out in the web app once all the pieces
 exist, so it is designed once: navigation between songs, practice, rewaz, voice and progress
-(the deck and Sound settings now sit above every view); layout on a phone and a laptop; the
+(the deck and the Practice settings sit above every view); layout on a phone and a laptop; the
 look in both themes; wording, and whether the interface should also be in Bengali. Includes
 a short privacy note (nothing leaves the device) and an accessibility check (keyboard,
 contrast, screen reader).
@@ -73,6 +73,7 @@ Begun 2026-10-11 with Rinat's comments on the screen as it is ("mostly design am
 |---|---|---|---|
 | 1 | **Beat boxes, round five:** ▶ in front of each line, just under its number (icons only); no Copy on each line and no Done (select, Copy, then Paste as often as wanted); a heading's × at its top right; no preview beside the beat boxes, so they take the full width (a 16-beat line on one row from a 900 px window); a note followed by silence fades out gently | 2026-10-11 | Rinat finds the editor easier to manage |
 | 2 | **Playing and the beat boxes, round six:** Pause, with a separate Stop; nothing that plays changes the Lines to practise; "Check my pitch" listens only while playing; each line's number and buttons (play this line, play from here, ×) the row's full height; the first beat of each vibhag coloured (sam, tali, khali) instead of X and 0; a tap anywhere on a row selects it, and rows light up under the pointer | 2026-10-12 | Rinat finds pausing, playing from a line and the new rows easy |
+| 3 | **A song's sound and the Music library:** the harmonium, drone and rhythm move into Edit notation (Sound of this song, folded with a summary); the bar under the deck becomes Practice settings (the guide, now the same for every song, the count-in, the tempo trainer, the keyboard) with a link to the song's sound; Songs becomes the Music library, second after Practice; its rows light up under the pointer and end in two full-height buttons, Practise this song and Edit this song; My songs and Exercises have bigger headings and fold away | 2026-10-13 | Rinat finds setting up a song's sound, and finding and opening songs, easy |
 
 ## Phase 3: native mobile app
 

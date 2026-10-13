@@ -49,6 +49,74 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-11 18:56 BST — Claude (Opus 5.5) — PH2-01 design, round one: beat boxes round five; a fade before silence
+
+- **Goal:** Rinat, starting the design phase ("mostly design amends … you could call this
+  moving to the design phase"): no Copy at the end of each line, and "Bring the play button to
+  the front of the line … just below the line number … just have the icons"; no Done ("just
+  copy and paste"); the heading's ×, "at the bottom left corner", to the top right like the
+  others; "the faded ending on any note that is followed by a 'Silence x' beat"; no preview
+  pane in the editor, so "the beat boxes can have the full width and can fit 16 boxes in one
+  line".
+- **Inspected:** `src/app/boxes.ts` (row HTML, the selection bar, Done clearing the copy);
+  the heading row (one flex row with `flex-wrap`, so its × wrapped to the start of a new line
+  whenever the fields did); the editor grid in `index.html` (the Octave and Join/Split row
+  lived in the preview column; in the boxes it works on the box chosen through `focusBeat`);
+  the transport's note scheduling and how the parser makes events (a rest ends a note; a hold
+  lengthens it).
+- **Changed:** `8d02aed` (feat): `silenceAt(P, t)` in `src/audio/transport.ts`; a note whose
+  next share of a beat is a rest lets go with `endFade / 3` (off with `endFade` 0); a test;
+  `/dev/render.html` measures it. `51d2543` (feat): a line's number with ▶ just under it in
+  front (▶ / ■, labelled), × alone at its top right, no Copy on the line; the number of a
+  selected row shows as a brass chip (the ⠿ / ✓ under it made way); a heading's fields in
+  their own wrapping group, its × at the top right; the selection bar only while rows are
+  selected (Copy, Paste after line N, Clear), and for six seconds after Copy a hint with no
+  button; no Done (the copy stays until something else is copied); the preview column hidden
+  in the beat boxes (`#prevCol`, `.edgrid.solo`), kept in Free text; the Octave and Join/Split
+  row moved above the boxes and its messages say "Choose a beat box"; help and hint. This
+  commit (docs): NOTATION (Beat boxes), ENGINE (the fade before silence, its measurement),
+  ROADMAP (Phase 1 closed, Phase 2 now, its first row), this file (the 14:10 entry moved to
+  HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
+  DevTools protocol on `npm run dev`, real mouse and key events; the browser pane was hidden):
+  - `npm run typecheck` → 0; `npx vitest run` → 31 files, 313 passed (new: Re for half a beat
+    then `x`, and Ga held into `x`, let go with 0.083 s at 0.845 s and 2.095 s, Ni (last) too;
+    Sa, Pa, Dha before notes with 0.04 s; none with `endFade` 0; the boxes' HTML: ▶ under the
+    number, icon only, × last, no Copy, a heading's fields then its ×); `npm run build` → 195
+    kB JS (69.4 kB gzip), 33 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed,
+    12 exercises valid.
+  - Scenario `round5` (32 checks): in the beat boxes no preview, one column, the boxes as wide
+    as the editor (1148 px at 1280), the Octave row just above them; Free text shows the
+    preview beside the text; ▶ just under line 1's number, centred on it, level with the
+    words, in front of the boxes, "▶" labelled "Play line 1", no Copy; it plays the line
+    showing ■ and ■ stops it; a line's × and a heading's × at the top right, the heading's
+    level with its name, at 1280 and 360 px (where its fields wrap onto three lines); a number
+    tapped: "1 line selected Copy Clear"; Copy: "1 line copied. Tap the number of the line to
+    paste after." with no button, the song unchanged; Paste after line 4, then again after
+    line 2 with no second Copy; two Undos; the hint gone by itself after six seconds and the
+    copy still pasting under a heading; no Done anywhere; ↑ Higher on a chosen box raises its
+    note (the row says "র্সা · line 1") and ↓ Lower restores it; a Teentaal song's two 16-beat
+    lines (one with two notes in each of 8 beats) on one row each at 1366, 1280, 1024 and 900
+    px windows (two rows at 860, 800 and 768); 360 px day and night without sideways
+    scrolling; no console errors. `paste` (27), `move` (30) and `edit3` (30), their Copy, Done
+    and "▶ Play" checks rewritten for round five, and `boxes`, `words`, `sections`, `pherta`
+    pass.
+  - Audio (`/dev/render.html`, OfflineAudioContext 48 kHz in headless Edge): the port still
+    matches the prototype within its own run-to-run variation (three runs: at most 6.8 × 10⁻⁶
+    against the prototype, which differed from itself by up to 6.4 × 10⁻⁶); Ga before a beat
+    of silence falls 20 dB in 195 ms (95 ms with the old release); the last note 175 ms and a
+    tanpura at the end 195 ms, as before.
+  - CI run `38161509189` (`51d2543`): core, reference and deploy jobs green. Live: `round5` (32 checks) and `paste` (27) against https://rinatmalik.github.io/Gaaner-Sathi/ passed, no console errors; `/` 200, `/new/` 200.
+- **Decisions made:** see Decisions (Phase 2 begun; beat boxes, round five; a fade before
+  silence).
+- **Risks or disagreements:** the preview stays in Free text (Rinat's reason, that the boxes
+  show the same, does not hold there); say if it should go there too. Below a 900 px window a
+  16-beat line with two-note beats takes two rows, and on a phone always. The drag dots (⠿)
+  under each number are gone, so a number no longer hints that it can be dragged except by
+  its pointer and the hint text. After Copy the hint shows for six seconds only. Nobody has
+  heard a note fade into silence.
+- **Next handoff:** Rinat tries round five and sends more design comments (Phase 2).
+
 ### 2026-10-11 17:53 BST — Claude (Opus 5.5) — PH1-11 beat boxes round four; a gentle ending
 
 - **Goal:** Rinat, "a few more snags before we move on": all the lines selected should drag,

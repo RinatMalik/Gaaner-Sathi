@@ -3,7 +3,7 @@
 > The project's shared state, for Rinat, Claude, Codex and any other LLM: what the app is
 > for, how we work, where things stand, the decisions in force and the newest work log.
 >
-> **Last updated:** 2026-10-12 (16:43 BST) by Claude (Opus 5.5)
+> **Last updated:** 2026-10-13 (01:30 BST) by Claude (Opus 5.5)
 
 ## How to use this file
 
@@ -38,13 +38,15 @@ wins, except a later explicit decision by Rinat, which always wins.
 ## Current state
 
 - **Milestone:** Phase 2, the design (ROADMAP.md → Phase 2), begun 2026-10-11 with Rinat's
-  comments on the screen as it is; rounds one (PH2-01: the beat boxes, a fade before silence)
-  and two (PH2-02: Pause and Stop, the Lines to practise left alone, the microphone only while
-  playing, the rows redesigned) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
+  comments on the screen as it is; rounds one (PH2-01: the beat boxes, a fade before silence),
+  two (PH2-02: Pause and Stop, the Lines to practise left alone, the microphone only while
+  playing, the rows redesigned) and three (PH2-03: a song's sound in Edit notation, Practice
+  settings, the Music library) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
-- **Next single action:** Rinat tries round two, answers its two questions (Record me's
-  microphone; colours on the Practice sheet) and sends more design comments.
-- **Last known-good commit:** `f7d6ec0` (CI run `38271975694`: core, reference and deploy jobs green; checked live).
+- **Next single action:** Rinat tries round three; answers whether to build own exercises
+  (Open question 6) and round two's two questions (Record me's microphone; colours on the
+  Practice sheet); sends more design comments.
+- **Last known-good commit:** `4269b81` (CI run `38326026128`: core, reference and deploy jobs green; checked live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -58,6 +60,8 @@ wins, except a later explicit decision by Rinat, which always wins.
   - the CT-X3000 over MIDI: typing, which tone the guide plays in, the GM reed organ;
   - the thirteen new taals' thekas, and the dholak and drum patterns made for them;
   - pasting Rinat's own lyrics: how often the syllable split needs correcting;
+  - a song whose own sound had the guide Soft or Off now plays the guide as the Practice
+    settings say (Rinat's own songs in Rinat's browser: not seen here);
   - a song in taal pherta: whether each change of taal lands where Rinat sings it, starting
     on sam;
   - the gentle ending: whether a quarter second's fade sounds natural, at the end and before
@@ -349,6 +353,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH1-11 | Claude | Review | Beat boxes round four: Copy keeps lines and Paste puts them after the row selected (in any song); the rows selected are dragged and moved together; smaller boxes and preview (an 8-beat line in one row from a 1024 px window); a gentle ending (the last note and the tail fade over a quarter second) | 5 unit tests; Edge scenarios `paste` (27 checks) and `widths`, locally and live; offline renders of the ending (Work log 2026-10-11 17:53) | Waiting for Rinat's use and ears |
 | PH2-01 | Claude | Review | Design, round one: ▶ under each line's number (icons only), no Copy on a line and no Done (select, Copy, Paste as often as wanted), a heading's × at its top right, no preview beside the beat boxes (full width: 16 beats on a row), a note before silence fades out | 1 unit test and the boxes' HTML test; Edge scenario `round5` (32 checks); offline renders (Work log 2026-10-11 18:56) | Waiting for Rinat's use, ears and next comments |
 | PH2-02 | Claude | Review | Design, round two: Pause and a separate Stop; nothing that plays changes the Lines to practise (play from here, sheet line numbers, sections, rewaz, takes); "Check my pitch" listens only while playing; beat box rows with the number and buttons (play this line, play from here, ×) full height, vibhag starts coloured instead of X/0, a tap anywhere on a row selects it, hover | 5 unit tests and the boxes' HTML tests; Edge scenarios `round6` (42 checks) and `rewaz6` (5), with a WAV microphone (Work log 2026-10-12 16:43) | Waiting for Rinat's use and two answers |
+| PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use and Open question 6 |
 
 ## Decisions
 
@@ -405,6 +410,11 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-12 | "Check my pitch" switches pitch feedback on; the microphone listens only while a song plays (opening at Play or going on, closing at Pause, Stop or the end), not for the editor's quick listen to a line. No tuner while nothing plays. Record me is unchanged for now (asked). | Rinat, chat 2026-10-12 ("mic should only be listening when play button is pressed and stop when the song is finished or the stop button is pressed") | ENGINE.md → Pitch feedback. |
 | 2026-10-12 | Beat box rows, round six: the number (a heading's #) down the left the row's full height, behind the red margin line; at the right end, full-height buttons: play this line, play from here, × (a heading: ×), icons only, stacked on a phone; the first beat of each vibhag coloured (sam amber, tali green, khali lavender, with a key) instead of X/0 above the boxes; a tap on any empty space in a row selects it; rows lit faintly under the pointer. X/0 stay on the Practice and printed sheets (asked). | Rinat, chat 2026-10-12, with a sketch ("full line height buttons", "Colour code the first beat of the sections of the line so we can get rid of X and the O", "selected when click on any empty space … subtly highlighted when hovered"); the colours, the key and the number centred in its column are Claude's | Replaces round five's ▶ under the number. NOTATION.md → Beat boxes. |
 
+| 2026-10-13 | A song's own sound (harmonium, drone, rhythm) is set in Edit notation, in "Sound of this song" (on an exercise, "Your usual sound"), folded behind a bar with a summary, its state remembered. The bar under the deck becomes **Practice settings**: the guide, the guide when looping, the count-in, the tempo trainer and the keyboard, with a button to the song's sound. The guide's level leaves the song's sound and is the device's, the same for every song (a guide saved with a song is ignored). Tempo and Sa, also the song's, stay on the deck. | Rinat, chat 2026-10-13 ("The ones that are specific to the song should go into a separate section inside the Edit Notation Tab … let me know if you don't agree"); keeping the guide with practice (how much help the singer wants that day, changed while singing) is Claude's disagreement, told to Rinat to overrule | Narrows the 2026-10-11 "each song remembers its own sound" row: the guide is no longer part of it. DATA.md → Settings. |
+| 2026-10-13 | The Songs tab is the **Music library**, and the tabs run Practice, Music library, Edit notation, Rewaz, Voice, Progress: Practice first, as the view the app opens on and the one used every day; the library's two buttons per song lead to practising or editing. | Rinat, chat 2026-10-13 ("Rename Songs Tab to 'Music Library'"; asked whether Edit notation or Practice should come first); sentence case and the order are Claude's recommendation | Settles part of the 2026-10-10 "five views" row's navigation. Stored as `songs` still. |
+| 2026-10-13 | Music library rows like a line in the beat boxes: lit faintly under the pointer; at their end two full-height, wide buttons, **Practise this song** and **Edit this song** ("this exercise" on exercises), under the row below 720 px; the title still opens it to practise. "My songs" and "Exercises" have bigger headings and fold away by them, remembered on the device; a search shows every section's matches. | Rinat, chat 2026-10-13 ("faint highlight when hovered", "two full height buttons … quite wide", "Make both sections Exercise and My Songs collapsible", "headings … bigger"; the numbers on the left withdrawn: "forget about the numbers"); "Practise" (the UK verb), the search rule and the phone layout are Claude's | songs.ts; the `libFold` and `songSoundOpen` settings. |
+| 2026-10-13 | Open question 6 (own exercises) asked; not built until Rinat says. The roadmap's phase table marks Phase 2 as now. | Claude | |
+
 ## Open questions
 
 *Decisions that need Rinat eventually but block nothing; the default applies until answered.*
@@ -423,6 +433,11 @@ records were folded into on 2026-10-11 (the last rows say where).*
 5. **Two taal forms.** Khemta is the 12-matra form of the Bengali tabla books, not Tagore's
    6-matra Kashmiri Khemta; Dhamar is divided as in Rabindrasangeet (3+2+2+3+4), not the
    classical 5+2+3+4 (the checker accepts bars written either way). Default: as built.
+6. **Adding your own exercises** (Rinat asked how, 2026-10-13). Claude's recommendation: an
+   exercise is a song kept in a different list, so one choice in Edit notation, "List under:
+   My songs / Exercises", which also moves songs already typed; a copy of a built-in exercise
+   stays among the exercises; and "+ New exercise" in the Exercises heading as a shortcut that
+   makes one already listed there. Built-in exercises stay read-only. Default: not built.
 
 ## Work log
 
@@ -439,6 +454,68 @@ Template:
     - **Decisions made:** rows added above.
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
+
+### 2026-10-13 01:30 BST — Claude (Opus 5.5) — PH2-03 design, round three: a song's sound in Edit notation, Practice settings, the Music library
+
+- **Goal:** Rinat, with a screenshot of the Sound settings: "are all of these settings song
+  specific? or generic to the app? The ones that are specific to the song should go into a
+  separate section inside the Edit Notation Tab … let me know if you don't agree"; "Rename
+  Songs Tab to 'Music Library'"; song rows like the lines in the beat boxes ("faint highlight
+  when hovered", "two full height buttons on the right … 'Practice this Song' and … 'Edit
+  this song' … quite wide"); "Make both sections Exercise and My Songs collapsible"; the
+  headings bigger; asked how to add exercises, and whether Edit notation or Practice should
+  come first in the tabs. The numbers on the left were withdrawn ("forget about the numbers").
+- **Inspected:** `src/core/song/sound.ts` and the `sound` proxy in `src/app/app.ts` (Melody
+  and Rhythm saved with a song, the guide among them; Practice and Keyboard the device's);
+  `src/app/songs.ts` (rows, sections); `index.html` (the mixer); `store.ts` (prefs, tabs); the
+  Songs view in the browser pane (exercise titles carry their own number, "১ · …").
+- **Changed:** `4269b81` (feat): `SongSound` without `guide` (`cleanSound` leaves an old one
+  out; `SoundSettings` keeps it as a practice setting); `practiceSummary` and
+  `songSoundSummary` instead of `soundSummary`; the mixer split: `#mixer` (Practice settings:
+  Guide, Rounds, Keyboard, and `#toSongSound`) and `#songMixer` in Edit notation after "About
+  this song" (`#songSoundBtn`, folded, `songSoundOpen`), the proxy taking only
+  `SONG_SOUND_KEYS` from a song; the tabs reordered and renamed; library rows (`.lmain`,
+  `.lacts` with `.lplay` / `.ledit`, hover, under the row below 720 px), sections
+  (`.lsec`, `.lfold`, `libFold`; plain headings while searching), "My songs 0" with the
+  invitation when empty; "As in Practice settings" for a rewaz item's guide; tests. This
+  commit (docs): DATA (song `sound`, settings), ENGINE (one label), ROADMAP (Phase 2 row 3;
+  the phase table's "now" moved to Phase 2), this file (the 2026-10-11 18:56 entry moved to
+  HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; the browser pane on `npm run
+  dev`, at 1200 × 800 and 360 × 780, night and day):
+  - `npm run typecheck` → 0; `npx vitest run` → 32 files, 323 passed (new: a guide saved with
+    a song is left out, also through `normalize`; both summaries; `libFold` and
+    `songSoundOpen` read back, junk ignored; each row's two buttons, named for a song or an
+    exercise; sections folding, and all shown under plain headings while searching);
+    `npm run build` → 201 kB JS (71.6 kB gzip), 36 kB CSS; `bash reference/tests/run-all.sh`
+    → 31/11/10/12/5 passed, 12 exercises valid.
+  - In the pane: tabs "Practice | Music library | Edit notation | Rewaz | Voice | Progress";
+    a row lit under the pointer (4 % ink), its two buttons the row's full height (87 of 88
+    px), "Practise this exercise" on one line (labels measured: 129 px at most); a click on
+    "Exercises" folds it, keeps focus, saves `{ex: true}`, still folded after a reload; a
+    search while folded shows 4 matches under a plain "Exercises 4"; Enter on the heading
+    unfolds it; "Edit this exercise" opens exercise 2 in Edit notation with "Your usual sound
+    · 3 reeds · No drone · Tabla" folded; a new song: "Sound of this song", Drums and Double
+    saved with the song (no `guide`), "Use my usual sound" shown; Guide Soft in Practice
+    settings saved to the device and the song's sound unchanged; "Change this song's sound"
+    on Practice opens Edit notation with the section unfolded, in view and focused; "Use my
+    usual sound" removes it; "Practise this exercise" opens exercise 3 on Practice; 360 px:
+    no sideways scrolling on the library, Edit notation and Practice, the buttons under each
+    row (42 px), night and day; no console errors after a clean load. The test song deleted
+    and the guide and colours put back afterwards.
+  - CI run `38326026128` (`4269b81`): core, reference and deploy jobs green. Live: the tabs,
+    "Practice settings", the folding headings, the row buttons and "Change this song's
+    sound" checked on https://rinatmalik.github.io/Gaaner-Sathi/, no console errors.
+- **Decisions made:** see Decisions (a song's sound in Edit notation and Practice settings;
+  the Music library and the tab order; its rows and folding sections; Open question 6).
+- **Risks or disagreements:** the guide is no longer saved with a song (my disagreement with
+  "all song-specific settings in Edit notation": say if it should go back); a song set to
+  guide Soft or Off before now plays the guide as the Practice settings say. Changing a
+  song's drums while practising is now two taps away (Change this song's sound). The song's
+  sound starts folded in Edit notation. No Edge scenario script this round (the browser pane
+  was visible); nothing about sound changed, so no offline render.
+- **Next handoff:** Rinat tries round three, answers Open question 6 and round two's two
+  questions, and sends more design comments.
 
 ### 2026-10-12 16:43 BST — Claude (Opus 5.5) — PH2-02 design, round two: Pause and Stop, the Lines to practise left alone, the mic only while playing, beat box rows redesigned
 
@@ -515,73 +592,5 @@ Template:
   the count-in off, the first notes before the microphone opens go unscored. Nobody has used
   Pause with a real voice.
 - **Next handoff:** Rinat tries round two and answers the two questions; more design comments.
-
-### 2026-10-11 18:56 BST — Claude (Opus 5.5) — PH2-01 design, round one: beat boxes round five; a fade before silence
-
-- **Goal:** Rinat, starting the design phase ("mostly design amends … you could call this
-  moving to the design phase"): no Copy at the end of each line, and "Bring the play button to
-  the front of the line … just below the line number … just have the icons"; no Done ("just
-  copy and paste"); the heading's ×, "at the bottom left corner", to the top right like the
-  others; "the faded ending on any note that is followed by a 'Silence x' beat"; no preview
-  pane in the editor, so "the beat boxes can have the full width and can fit 16 boxes in one
-  line".
-- **Inspected:** `src/app/boxes.ts` (row HTML, the selection bar, Done clearing the copy);
-  the heading row (one flex row with `flex-wrap`, so its × wrapped to the start of a new line
-  whenever the fields did); the editor grid in `index.html` (the Octave and Join/Split row
-  lived in the preview column; in the boxes it works on the box chosen through `focusBeat`);
-  the transport's note scheduling and how the parser makes events (a rest ends a note; a hold
-  lengthens it).
-- **Changed:** `8d02aed` (feat): `silenceAt(P, t)` in `src/audio/transport.ts`; a note whose
-  next share of a beat is a rest lets go with `endFade / 3` (off with `endFade` 0); a test;
-  `/dev/render.html` measures it. `51d2543` (feat): a line's number with ▶ just under it in
-  front (▶ / ■, labelled), × alone at its top right, no Copy on the line; the number of a
-  selected row shows as a brass chip (the ⠿ / ✓ under it made way); a heading's fields in
-  their own wrapping group, its × at the top right; the selection bar only while rows are
-  selected (Copy, Paste after line N, Clear), and for six seconds after Copy a hint with no
-  button; no Done (the copy stays until something else is copied); the preview column hidden
-  in the beat boxes (`#prevCol`, `.edgrid.solo`), kept in Free text; the Octave and Join/Split
-  row moved above the boxes and its messages say "Choose a beat box"; help and hint. This
-  commit (docs): NOTATION (Beat boxes), ENGINE (the fade before silence, its measurement),
-  ROADMAP (Phase 1 closed, Phase 2 now, its first row), this file (the 14:10 entry moved to
-  HISTORY).
-- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge 155 through the
-  DevTools protocol on `npm run dev`, real mouse and key events; the browser pane was hidden):
-  - `npm run typecheck` → 0; `npx vitest run` → 31 files, 313 passed (new: Re for half a beat
-    then `x`, and Ga held into `x`, let go with 0.083 s at 0.845 s and 2.095 s, Ni (last) too;
-    Sa, Pa, Dha before notes with 0.04 s; none with `endFade` 0; the boxes' HTML: ▶ under the
-    number, icon only, × last, no Copy, a heading's fields then its ×); `npm run build` → 195
-    kB JS (69.4 kB gzip), 33 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed,
-    12 exercises valid.
-  - Scenario `round5` (32 checks): in the beat boxes no preview, one column, the boxes as wide
-    as the editor (1148 px at 1280), the Octave row just above them; Free text shows the
-    preview beside the text; ▶ just under line 1's number, centred on it, level with the
-    words, in front of the boxes, "▶" labelled "Play line 1", no Copy; it plays the line
-    showing ■ and ■ stops it; a line's × and a heading's × at the top right, the heading's
-    level with its name, at 1280 and 360 px (where its fields wrap onto three lines); a number
-    tapped: "1 line selected Copy Clear"; Copy: "1 line copied. Tap the number of the line to
-    paste after." with no button, the song unchanged; Paste after line 4, then again after
-    line 2 with no second Copy; two Undos; the hint gone by itself after six seconds and the
-    copy still pasting under a heading; no Done anywhere; ↑ Higher on a chosen box raises its
-    note (the row says "র্সা · line 1") and ↓ Lower restores it; a Teentaal song's two 16-beat
-    lines (one with two notes in each of 8 beats) on one row each at 1366, 1280, 1024 and 900
-    px windows (two rows at 860, 800 and 768); 360 px day and night without sideways
-    scrolling; no console errors. `paste` (27), `move` (30) and `edit3` (30), their Copy, Done
-    and "▶ Play" checks rewritten for round five, and `boxes`, `words`, `sections`, `pherta`
-    pass.
-  - Audio (`/dev/render.html`, OfflineAudioContext 48 kHz in headless Edge): the port still
-    matches the prototype within its own run-to-run variation (three runs: at most 6.8 × 10⁻⁶
-    against the prototype, which differed from itself by up to 6.4 × 10⁻⁶); Ga before a beat
-    of silence falls 20 dB in 195 ms (95 ms with the old release); the last note 175 ms and a
-    tanpura at the end 195 ms, as before.
-  - CI run `38161509189` (`51d2543`): core, reference and deploy jobs green. Live: `round5` (32 checks) and `paste` (27) against https://rinatmalik.github.io/Gaaner-Sathi/ passed, no console errors; `/` 200, `/new/` 200.
-- **Decisions made:** see Decisions (Phase 2 begun; beat boxes, round five; a fade before
-  silence).
-- **Risks or disagreements:** the preview stays in Free text (Rinat's reason, that the boxes
-  show the same, does not hold there); say if it should go there too. Below a 900 px window a
-  16-beat line with two-note beats takes two rows, and on a phone always. The drag dots (⠿)
-  under each number are gone, so a number no longer hints that it can be dragged except by
-  its pointer and the hint text. After Copy the hint shows for six seconds only. Nobody has
-  heard a note fade into silence.
-- **Next handoff:** Rinat tries round five and sends more design comments (Phase 2).
 
 Older entries: `docs/HISTORY.md`.
