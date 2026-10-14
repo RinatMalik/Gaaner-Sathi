@@ -4,7 +4,7 @@
 // the now-singing panel, chips, the song picker, layer chips and the editor palette.
 import { describe, expect, it } from 'vitest';
 import * as V from '../../src/app/view';
-import { EXERCISES } from '../../src/core/exercises';
+import { REFERENCE_EXERCISES as EXERCISES } from '../reference-exercises';
 import { parseSong } from '../../src/core/notation/parse';
 import type { ParsedSong } from '../../src/core/notation/types';
 import { normalize, type Song } from '../../src/core/song/model';

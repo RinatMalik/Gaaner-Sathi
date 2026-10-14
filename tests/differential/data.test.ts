@@ -3,7 +3,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { loadPrefs } from '../../src/app/store';
 import { ksPluck } from '../../src/audio/dsp/ksPluck';
-import { EXERCISES } from '../../src/core/exercises';
+import { REFERENCE_EXERCISES as EXERCISES } from '../reference-exercises';
 import { fileName, songFileText, songForFile, songsFromFile, stripExamplePrefix } from '../../src/core/song/file';
 import { normalize } from '../../src/core/song/model';
 import { canon, seeded } from '../helpers';

@@ -10,7 +10,7 @@
 import { createEngine } from '../src/audio/engine';
 import { DEFAULT_SOUND, type SoundSettings } from '../src/audio/sound';
 import { Transport } from '../src/audio/transport';
-import { EXERCISES } from '../src/core/exercises';
+import { REFERENCE_EXERCISES as EXERCISES } from '../tests/reference-exercises';
 import { parseSong } from '../src/core/notation/parse';
 import { TAAL_GROUPS, taalInfo } from '../src/core/taal/taals';
 import { proto, protoAudioWorld, protoRhythm } from '../tests/differential/prototype';

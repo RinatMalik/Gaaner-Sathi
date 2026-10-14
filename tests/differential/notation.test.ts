@@ -1,7 +1,7 @@
 // The port against the prototype's own parser, checker and edit operations, on hand-picked
 // edge cases, every built-in exercise and 2,000 generated songs (seeded, so repeatable).
 import { describe, expect, it } from 'vitest';
-import { EXERCISES } from '../../src/core/exercises';
+import { REFERENCE_EXERCISES as EXERCISES } from '../reference-exercises';
 import { checkNotation } from '../../src/core/notation/check';
 import { joinBeats, notesInRange, shiftOctaves, splitBeats } from '../../src/core/notation/edit';
 import { parseNotesLine, parseSong } from '../../src/core/notation/parse';

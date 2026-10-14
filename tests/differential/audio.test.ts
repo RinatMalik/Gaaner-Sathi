@@ -11,7 +11,7 @@ import { finalHit, playHit, stroke } from '../../src/audio/instruments/percussio
 import { makeSession } from '../../src/audio/session';
 import { DEFAULT_SOUND, type SoundSettings } from '../../src/audio/sound';
 import { Transport, type PlaySource } from '../../src/audio/transport';
-import { EXERCISES } from '../../src/core/exercises';
+import { REFERENCE_EXERCISES as EXERCISES } from '../reference-exercises';
 import { parseSong } from '../../src/core/notation/parse';
 import type { Hit, Lane } from '../../src/core/taal/rhythm';
 import { taalInfo } from '../../src/core/taal/taals';

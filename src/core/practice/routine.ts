@@ -4,7 +4,7 @@
  * screen. Pure, so it is tested in Node.
  */
 
-/** How the guide plays in an item: as the Sound settings say, or one of these. */
+/** How the guide plays in an item: as the Practice settings say, or one of these. */
 export type ItemGuide = 'all' | 'first' | 'alt' | 'off';
 
 export interface RoutineItem {
@@ -17,7 +17,7 @@ export interface RoutineItem {
   rounds: number;
   /** Matras per minute; absent: the song's own tempo. */
   tempo?: number;
-  /** Absent: as the Sound settings say. */
+  /** Absent: as the Practice settings say. */
   guide?: ItemGuide;
 }
 
@@ -31,7 +31,8 @@ export interface Routine {
 
 export const ROUTINE_LIMITS = { items: 40, rounds: 20, name: 80 } as const;
 
-/** Ready the first time: a warm-up of four exercises, from long notes to akar. */
+/** Ready the first time: a warm-up of four exercises, from long notes to the range from
+ * mandra to taar (it ended on akar until that exercise was removed, 2026-10-14). */
 export const STARTER: Routine = {
   id: 'routine-starter',
   name: 'Daily warm-up',
@@ -40,7 +41,7 @@ export const STARTER: Routine = {
     { song: 'ex-long-notes', rounds: 1 },
     { song: 'ex-scale', rounds: 2 },
     { song: 'ex-alankar-bn', rounds: 2 },
-    { song: 'ex-akar', rounds: 1 },
+    { song: 'ex-range', rounds: 1 },
   ],
 };
 

@@ -57,10 +57,10 @@ describe('routines', () => {
 
   it('estimate their length from beats, rounds, tempo, count-in and the gaps', () => {
     const r: Routine = { id: 'r', name: 'R', updatedAt: 0, items: [{ song: 'ex-alankar-bn', rounds: 2, tempo: 60 }, { song: 'gone', rounds: 3 }, { song: 'ex-alankar-bn', rounds: 1, from: 0, to: 0 }] };
-    // Exercise 3 has 7 lines of 6 beats, in Dadra (6): 84 beats at 1 s, then 6 at 110 a minute.
+    // Exercise 3 has 8 lines of 6 beats, in Dadra (6): 96 beats at 1 s, then 6 at 110 a minute.
     const secs = routineSeconds(r, shape, false);
     // The gone item adds nothing, not even a gap.
-    expect(secs).toBeCloseTo(84 + 4 + (6 * 60) / 110, 6);
+    expect(secs).toBeCloseTo(96 + 4 + (6 * 60) / 110, 6);
     expect(routineSeconds(r, shape, true) - secs).toBeCloseTo(6 + (6 * 60) / 110, 6);
   });
 });
