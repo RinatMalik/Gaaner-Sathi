@@ -3,7 +3,7 @@
 > The project's shared state, for Rinat, Claude, Codex and any other LLM: what the app is
 > for, how we work, where things stand, the decisions in force and the newest work log.
 >
-> **Last updated:** 2026-10-13 (02:40 BST) by Claude (Opus 5.5)
+> **Last updated:** 2026-10-14 (BST) by Claude (Opus 5.5)
 
 ## How to use this file
 
@@ -41,12 +41,14 @@ wins, except a later explicit decision by Rinat, which always wins.
   comments on the screen as it is; rounds one (PH2-01: the beat boxes, a fade before silence),
   two (PH2-02: Pause and Stop, the Lines to practise left alone, the microphone only while
   playing, the rows redesigned), three (PH2-03: a song's sound in Edit notation, Practice
-  settings, the Music library) and four (PH2-04: your own exercises, Practice settings in
-  the Practice view, Rewaz routines as folding rows) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
+  settings, the Music library), four (PH2-04: your own exercises, Practice settings in
+  the Practice view, Rewaz routines as folding rows) and five (PH2-05: Rinat's 12 exercises,
+  dismissing warnings, sections dragged, many songs added to a routine at once) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
-- **Next single action:** Rinat tries round four; answers round two's two questions
-  (Record me's microphone; colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `da17be0` (CI run `38329377823`: core, reference and deploy jobs green; checked live).
+- **Next single action:** Rinat tries round five and listens to the new exercises; answers
+  round two's two questions (Record me's microphone; colours on the Practice sheet); sends
+  more design comments.
+- **Last known-good commit:** `bb7b51f` (CI run `38593941487`: core, reference and deploy jobs green; checked live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -355,6 +357,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-02 | Claude | Review | Design, round two: Pause and a separate Stop; nothing that plays changes the Lines to practise (play from here, sheet line numbers, sections, rewaz, takes); "Check my pitch" listens only while playing; beat box rows with the number and buttons (play this line, play from here, ×) full height, vibhag starts coloured instead of X/0, a tap anywhere on a row selects it, hover | 5 unit tests and the boxes' HTML tests; Edge scenarios `round6` (42 checks) and `rewaz6` (5), with a WAV microphone (Work log 2026-10-12 16:43) | Waiting for Rinat's use and two answers |
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
+| PH2-05 | Claude | Review | Design, round five: Rinat's 12 built-in exercises, unnumbered (the prototype's kept as the tests' fixture); Dismiss on each checker warning, kept with the song while its line's notes stay the same; Exercises first in the Music library, sections dragged by a handle or moved with the arrow keys; "+ Add songs and exercises" ticks several at once | 15 new unit tests and 8 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-14) | Waiting for Rinat's use and ears |
 
 ## Decisions
 
@@ -419,6 +422,10 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-13 | The Practice settings sit at the top of the Practice view, not above every view; folded until unfolded (it was open at first on wide screens). | Rinat, chat 2026-10-13 ("I am thinking the practice settings should be under practice tab?"); folded at first is Claude's | Connecting a MIDI keyboard for typing in the editor is done there once; a keyboard allowed before reconnects by itself. |
 | 2026-10-13 | Music library: each heading is a full-width row, lit under the pointer, that folds its section wherever it is tapped (its + New button apart); a "Songs" chip (the user's songs, not exercises) after All; the sort "Recently changed" reads "Recently added or changed". | Rinat, chat 2026-10-13 ("collapsible by clicking anywhere along the full width of those rows", "change the wording … to Recently Added or changed", "also add a button for 'songs'") | songs.ts. |
 | 2026-10-13 | Rewaz: every routine (the ready-made warm-up first while unsaved, then the user's by name) is a row that folds away, remembered on the device (`rewazOpen`), with its length and a full-height Start rewaz button; unfolded, its name, its items as rows like the beat boxes' (the number down the left behind the margin line, the fields, full-height icon buttons to move up, move down and remove), "+ Add the open song: (its title)" and Delete routine with a confirmation. The routine picker and "routine last chosen" (`rewazId`) are gone. | Rinat, chat 2026-10-13 ("show all the created routines in collapsible rows, similar to how the things are shown in music library … highlight on hover, big, square buttons"); the layout details are Claude's | rewaz.ts; DATA.md → Settings. |
+| 2026-10-14 | **The built-in exercises are Rinat's 12**, unnumbered, in Rinat's order: লম্বা স্বর (each note two Dadra cycles), আরোহ-অবরোহ (no line of Sa alone), অলংকার · তিন স্বরের দল / চার স্বরের দল / এক স্বর বাদ দিয়ে (up to upper Sa Re Ga, Sa Re Ga Ma and Sa Ga, and back from there), একগুণ, দ্বিগুণ, চৌগুণ, সা থেকে স্বর-লাফ (every line full: `S X S X \| S X S -`), মন্দ্র থেকে তার সপ্তক, কোমল ঋ ও ধ, তীব্র মা (the Bhairav and Kalyan scales one after the other), and three new alankars (সা রে গা সা রে গা সা রে and সা রে সা রে গা গা রে সা in Keherwa, সা রে গা মা গা রে সা in Rupak), each from Sa until it starts on upper Sa, then back. Removed: রূপক তালে অলংকার, আকার সাধনা, the Sa Re Ga typing example. The warm-up's last item is মন্দ্র থেকে তার সপ্তক. Titles keep "অলংকার ·"; the new ones are named by their pattern. | Rinat, chat 2026-10-14 (the list, "Don't number them", "can these be combined? or is that not how it's done?"); combining komal and tivra as two thaats one after the other, the leap pattern, Rupak for the seven-note pattern and the titles are Claude's | The prototype's exercises move to tests/reference-exercises.ts, still the comparison tests' fixture. A routine, take or log entry naming a removed exercise finds it gone (the rewaz skips it). |
+| 2026-10-14 | **Dismissing the checker's warnings:** on one of the user's songs each warning (not a reading error) has Dismiss; it stays hidden while its line's notes stay the same (a fingerprint kept with the song, in storage and song files) and comes back when they change; dismissed ones are counted, listed on request and can be brought back. Not reset at export. | Rinat, chat 2026-10-14 ("have a way to dismiss the error … I don't know if/when they should re-appear. maybe after the song has been exported"); tying it to the line, not to export, is Claude's (NOTATION.md → Checker → Dismissing says why) | Song field `dismissed` (DATA.md). |
+| 2026-10-14 | **Music library order:** Exercises first by default; each section's heading has a handle to drag it (mouse or touch; only the headings show while dragging) or move it with ↑ ↓; the order is kept on the device and the song pickers follow it. | Rinat, chat 2026-10-14 ("have the Exercises first, then My songs. Or make these sections draggable is probably better"): both | Setting `libOrder`. |
+| 2026-10-14 | **Adding to a routine:** "+ Add songs and exercises" (replacing "+ Add the open song") opens a checklist of every song and exercise, grouped as in the library, numbered in the order ticked, the open one marked, with a find box; Add puts them in that order (2 rounds each). | Rinat, chat 2026-10-14 ("There should be a way to choose all the items I want to add in a routine") | rewaz.ts. |
 
 ## Open questions
 
@@ -454,6 +461,80 @@ Template:
     - **Decisions made:** rows added above.
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
+
+### 2026-10-14 BST — Claude (Opus 5.5) — PH2-05 design, round five: the exercises redone, warnings dismissed, sections dragged, routines filled at once
+
+- **Goal:** Rinat: a way "to dismiss the error it found as some of these are not applicable
+  … maybe after the song has been exported, the dismissed list should be refreshed?";
+  "have the Exercises first, then My songs. Or make these sections draggable is probably
+  better"; "Redo the whole Exercise section. There will be 12 built in exercises … Don't
+  number them" (the list, with changes to each, two deletions, komal and tivra "can these be
+  combined?", three new patterns); in Rewaz "There should be a way to choose all the items I
+  want to add in a routine".
+- **Inspected:** `src/core/exercises/` (the specs carried over byte for byte from the
+  prototype, held to `reference/exercises.json` by `tests/ported/exercises.test.ts`, and the
+  fixture of four comparison suites and `dev/render.ts`); the checker (`check.ts`), its panel
+  (`issuesHTML`, also compared with the prototype) and its wiring; songs.ts; rewaz.ts.
+- **Changed:** `26f8550` (feat(exercises)): the new `specs.ts` (an `alankar()` helper builds
+  the climbing patterns: up from Sa until a shape starts on upper Sa, down from where the top
+  one ended), `index.ts` without the typing example, the warm-up's last item, the prototype's
+  specs and typing example moved to `tests/reference-exercises.ts`, which the ported test, the
+  `data`, `audio`, `notation` and `view` comparison suites and `dev/render.ts` now use; the
+  ported test checks the app's 12 by the same rules plus the shapes asked for. `bb7b51f`
+  (feat): `issueKey` (FNV-1a of kind, bar or notes, and the line's notes and bars);
+  `Song.dismissed` (`cleanDismissed`, storage, files); `issuesHTML(…, dis?)` with Dismiss,
+  "N dismissed · Show them" and Bring back; app.ts's `showDismissed`; songs.ts: `LIB_ORDER`
+  (exercises first), `order` in ListOptions, `.lgrip` handles, dragging (headings only while
+  moving, the list keeping its height, a brass drop line) and ↑ ↓; prefs `libOrder`;
+  `libraryHTML(…, exFirst)` and the rewaz pickers in the same order; rewaz.ts: `pickerHTML`,
+  `pickedButton`, the `picking` state, ticking updating in place, the find box; styles;
+  tests (`dismiss.test.ts` new). This commit (docs): NOTATION (Checker → Dismissing, and why
+  not at export), DATA (`dismissed`, `libOrder`), ROADMAP (Phase 2 row 5), this file (the
+  2026-10-13 01:30 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; the browser pane on `npm run
+  dev`, at 1200 × 800 and 360 × 780, night and day):
+  - `npm run typecheck` → 0; `npx vitest run` → 33 files, 356 passed (new: each of the 12
+    plays the same in Sa Re Ga and Bengali and checks clean, their ids and order, no numbers,
+    the shapes asked for (lines of the long notes, the tops and turns of each alankar, no lone
+    Sa line, full leap lines); the fingerprint the same across spacing, script and a line put
+    before, changed by the line's notes only; the panel's Dismiss, count, list, Bring back,
+    and nothing without the option; `dismissed` cleaned, kept, stored, exported; the section
+    order and handles; the picker's groups, numbers, open mark and button). A first leap
+    pattern (`S X S - | S X S -`) failed the checker (a Sa twice between two big leaps reads
+    as a slip), so the exercise sings `S X S X | S X S -`. `npm run build` → 212 kB JS
+    (74.9 kB gzip), 41 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed,
+    12 exercises valid.
+  - In the pane: the library lists the 12 unnumbered, Exercises first, the picker's groups
+    the same; a real drag of My songs' handle 45 px up put it first (saved, the picker
+    following, focus on the handle); ↑ on Exercises' handle put it back (no stored order);
+    with Exercises open (12 rows), a 60 px drag of its handle moved it below My songs, but
+    only after a fix: at first the page, shortened by hiding the bodies, scrolled from under
+    the pointer, so the list now keeps its height while dragging. Edit notation, a new song
+    with a short bar and an octave slip: "2 things to check", each with Dismiss (Fix too on
+    the slip); a real click on the first: "1 thing to check · 1 dismissed · Show them", saved,
+    focus on the next Dismiss; a line added above: still dismissed (now "Line 2"); its notes
+    changed: back ("2 things to check"); changed back and the other dismissed: "Nothing to
+    check apart from what you dismissed · 2 dismissed", the same after a reload; Show them,
+    Bring back; a built-in exercise has no Dismiss. Rewaz: "+ Add songs and exercises" opens
+    the checklist (Exercises then My songs, 13 rows, the open one marked, focus in Find);
+    ticking চার স্বরের দল, লম্বা স্বর, then the song numbers them 1, 2, 3; unticking the
+    middle renumbers; Find "অলংকার" shows the 6 alankars and hides My songs; Add puts the 3
+    after the warm-up's 4 in that order ("Added 3.", the warm-up saved as the user's); Cancel
+    adds nothing. 360 px: no sideways scrolling on the library, Edit notation, Rewaz (picker
+    open) and Practice, night and day. No console errors. Test song and routine deleted
+    through the app, colours back to Auto.
+  - CI run `38593941487` (`bb7b51f`): core, reference and deploy jobs green. Live: 12
+    exercises, Exercises first with two handles, the routine checklist, no console errors.
+- **Decisions made:** see Decisions (the 12 exercises; dismissing; the library's order;
+  adding to a routine).
+- **Risks or disagreements:** dismissals are not reset at export (Rinat suggested it; the
+  reason is in NOTATION.md); say if export should clear them too. Komal and tivra are one
+  exercise of two scales, not one scale with all three (that would be Purvi thaat). The new
+  seven-note pattern is in Rupak; the leap exercise sings each leap back and forth. A routine,
+  take or practice-log entry that named a removed exercise finds it gone. The checklist adds
+  2 rounds of each. Nobody has heard the new exercises; no Edge scenario script this round.
+- **Next handoff:** Rinat tries round five, sings the new exercises, and sends more design
+  comments.
 
 ### 2026-10-13 02:40 BST — Claude (Opus 5.5) — PH2-04 design, round four: your own exercises, Practice settings in Practice, Rewaz as folding rows
 
@@ -526,67 +607,5 @@ Template:
   round (the browser pane was visible); nothing about sound changed.
 - **Next handoff:** Rinat tries round four, answers round two's two questions, and sends more
   design comments.
-
-### 2026-10-13 01:30 BST — Claude (Opus 5.5) — PH2-03 design, round three: a song's sound in Edit notation, Practice settings, the Music library
-
-- **Goal:** Rinat, with a screenshot of the Sound settings: "are all of these settings song
-  specific? or generic to the app? The ones that are specific to the song should go into a
-  separate section inside the Edit Notation Tab … let me know if you don't agree"; "Rename
-  Songs Tab to 'Music Library'"; song rows like the lines in the beat boxes ("faint highlight
-  when hovered", "two full height buttons on the right … 'Practice this Song' and … 'Edit
-  this song' … quite wide"); "Make both sections Exercise and My Songs collapsible"; the
-  headings bigger; asked how to add exercises, and whether Edit notation or Practice should
-  come first in the tabs. The numbers on the left were withdrawn ("forget about the numbers").
-- **Inspected:** `src/core/song/sound.ts` and the `sound` proxy in `src/app/app.ts` (Melody
-  and Rhythm saved with a song, the guide among them; Practice and Keyboard the device's);
-  `src/app/songs.ts` (rows, sections); `index.html` (the mixer); `store.ts` (prefs, tabs); the
-  Songs view in the browser pane (exercise titles carry their own number, "১ · …").
-- **Changed:** `4269b81` (feat): `SongSound` without `guide` (`cleanSound` leaves an old one
-  out; `SoundSettings` keeps it as a practice setting); `practiceSummary` and
-  `songSoundSummary` instead of `soundSummary`; the mixer split: `#mixer` (Practice settings:
-  Guide, Rounds, Keyboard, and `#toSongSound`) and `#songMixer` in Edit notation after "About
-  this song" (`#songSoundBtn`, folded, `songSoundOpen`), the proxy taking only
-  `SONG_SOUND_KEYS` from a song; the tabs reordered and renamed; library rows (`.lmain`,
-  `.lacts` with `.lplay` / `.ledit`, hover, under the row below 720 px), sections
-  (`.lsec`, `.lfold`, `libFold`; plain headings while searching), "My songs 0" with the
-  invitation when empty; "As in Practice settings" for a rewaz item's guide; tests. This
-  commit (docs): DATA (song `sound`, settings), ENGINE (one label), ROADMAP (Phase 2 row 3;
-  the phase table's "now" moved to Phase 2), this file (the 2026-10-11 18:56 entry moved to
-  HISTORY).
-- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; the browser pane on `npm run
-  dev`, at 1200 × 800 and 360 × 780, night and day):
-  - `npm run typecheck` → 0; `npx vitest run` → 32 files, 323 passed (new: a guide saved with
-    a song is left out, also through `normalize`; both summaries; `libFold` and
-    `songSoundOpen` read back, junk ignored; each row's two buttons, named for a song or an
-    exercise; sections folding, and all shown under plain headings while searching);
-    `npm run build` → 201 kB JS (71.6 kB gzip), 36 kB CSS; `bash reference/tests/run-all.sh`
-    → 31/11/10/12/5 passed, 12 exercises valid.
-  - In the pane: tabs "Practice | Music library | Edit notation | Rewaz | Voice | Progress";
-    a row lit under the pointer (4 % ink), its two buttons the row's full height (87 of 88
-    px), "Practise this exercise" on one line (labels measured: 129 px at most); a click on
-    "Exercises" folds it, keeps focus, saves `{ex: true}`, still folded after a reload; a
-    search while folded shows 4 matches under a plain "Exercises 4"; Enter on the heading
-    unfolds it; "Edit this exercise" opens exercise 2 in Edit notation with "Your usual sound
-    · 3 reeds · No drone · Tabla" folded; a new song: "Sound of this song", Drums and Double
-    saved with the song (no `guide`), "Use my usual sound" shown; Guide Soft in Practice
-    settings saved to the device and the song's sound unchanged; "Change this song's sound"
-    on Practice opens Edit notation with the section unfolded, in view and focused; "Use my
-    usual sound" removes it; "Practise this exercise" opens exercise 3 on Practice; 360 px:
-    no sideways scrolling on the library, Edit notation and Practice, the buttons under each
-    row (42 px), night and day; no console errors after a clean load. The test song deleted
-    and the guide and colours put back afterwards.
-  - CI run `38326026128` (`4269b81`): core, reference and deploy jobs green. Live: the tabs,
-    "Practice settings", the folding headings, the row buttons and "Change this song's
-    sound" checked on https://rinatmalik.github.io/Gaaner-Sathi/, no console errors.
-- **Decisions made:** see Decisions (a song's sound in Edit notation and Practice settings;
-  the Music library and the tab order; its rows and folding sections; Open question 6).
-- **Risks or disagreements:** the guide is no longer saved with a song (my disagreement with
-  "all song-specific settings in Edit notation": say if it should go back); a song set to
-  guide Soft or Off before now plays the guide as the Practice settings say. Changing a
-  song's drums while practising is now two taps away (Change this song's sound). The song's
-  sound starts folded in Edit notation. No Edge scenario script this round (the browser pane
-  was visible); nothing about sound changed, so no offline render.
-- **Next handoff:** Rinat tries round three, answers Open question 6 and round two's two
-  questions, and sends more design comments.
 
 Older entries: `docs/HISTORY.md`.

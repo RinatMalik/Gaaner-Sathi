@@ -49,6 +49,68 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-13 01:30 BST — Claude (Opus 5.5) — PH2-03 design, round three: a song's sound in Edit notation, Practice settings, the Music library
+
+- **Goal:** Rinat, with a screenshot of the Sound settings: "are all of these settings song
+  specific? or generic to the app? The ones that are specific to the song should go into a
+  separate section inside the Edit Notation Tab … let me know if you don't agree"; "Rename
+  Songs Tab to 'Music Library'"; song rows like the lines in the beat boxes ("faint highlight
+  when hovered", "two full height buttons on the right … 'Practice this Song' and … 'Edit
+  this song' … quite wide"); "Make both sections Exercise and My Songs collapsible"; the
+  headings bigger; asked how to add exercises, and whether Edit notation or Practice should
+  come first in the tabs. The numbers on the left were withdrawn ("forget about the numbers").
+- **Inspected:** `src/core/song/sound.ts` and the `sound` proxy in `src/app/app.ts` (Melody
+  and Rhythm saved with a song, the guide among them; Practice and Keyboard the device's);
+  `src/app/songs.ts` (rows, sections); `index.html` (the mixer); `store.ts` (prefs, tabs); the
+  Songs view in the browser pane (exercise titles carry their own number, "১ · …").
+- **Changed:** `4269b81` (feat): `SongSound` without `guide` (`cleanSound` leaves an old one
+  out; `SoundSettings` keeps it as a practice setting); `practiceSummary` and
+  `songSoundSummary` instead of `soundSummary`; the mixer split: `#mixer` (Practice settings:
+  Guide, Rounds, Keyboard, and `#toSongSound`) and `#songMixer` in Edit notation after "About
+  this song" (`#songSoundBtn`, folded, `songSoundOpen`), the proxy taking only
+  `SONG_SOUND_KEYS` from a song; the tabs reordered and renamed; library rows (`.lmain`,
+  `.lacts` with `.lplay` / `.ledit`, hover, under the row below 720 px), sections
+  (`.lsec`, `.lfold`, `libFold`; plain headings while searching), "My songs 0" with the
+  invitation when empty; "As in Practice settings" for a rewaz item's guide; tests. This
+  commit (docs): DATA (song `sound`, settings), ENGINE (one label), ROADMAP (Phase 2 row 3;
+  the phase table's "now" moved to Phase 2), this file (the 2026-10-11 18:56 entry moved to
+  HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; the browser pane on `npm run
+  dev`, at 1200 × 800 and 360 × 780, night and day):
+  - `npm run typecheck` → 0; `npx vitest run` → 32 files, 323 passed (new: a guide saved with
+    a song is left out, also through `normalize`; both summaries; `libFold` and
+    `songSoundOpen` read back, junk ignored; each row's two buttons, named for a song or an
+    exercise; sections folding, and all shown under plain headings while searching);
+    `npm run build` → 201 kB JS (71.6 kB gzip), 36 kB CSS; `bash reference/tests/run-all.sh`
+    → 31/11/10/12/5 passed, 12 exercises valid.
+  - In the pane: tabs "Practice | Music library | Edit notation | Rewaz | Voice | Progress";
+    a row lit under the pointer (4 % ink), its two buttons the row's full height (87 of 88
+    px), "Practise this exercise" on one line (labels measured: 129 px at most); a click on
+    "Exercises" folds it, keeps focus, saves `{ex: true}`, still folded after a reload; a
+    search while folded shows 4 matches under a plain "Exercises 4"; Enter on the heading
+    unfolds it; "Edit this exercise" opens exercise 2 in Edit notation with "Your usual sound
+    · 3 reeds · No drone · Tabla" folded; a new song: "Sound of this song", Drums and Double
+    saved with the song (no `guide`), "Use my usual sound" shown; Guide Soft in Practice
+    settings saved to the device and the song's sound unchanged; "Change this song's sound"
+    on Practice opens Edit notation with the section unfolded, in view and focused; "Use my
+    usual sound" removes it; "Practise this exercise" opens exercise 3 on Practice; 360 px:
+    no sideways scrolling on the library, Edit notation and Practice, the buttons under each
+    row (42 px), night and day; no console errors after a clean load. The test song deleted
+    and the guide and colours put back afterwards.
+  - CI run `38326026128` (`4269b81`): core, reference and deploy jobs green. Live: the tabs,
+    "Practice settings", the folding headings, the row buttons and "Change this song's
+    sound" checked on https://rinatmalik.github.io/Gaaner-Sathi/, no console errors.
+- **Decisions made:** see Decisions (a song's sound in Edit notation and Practice settings;
+  the Music library and the tab order; its rows and folding sections; Open question 6).
+- **Risks or disagreements:** the guide is no longer saved with a song (my disagreement with
+  "all song-specific settings in Edit notation": say if it should go back); a song set to
+  guide Soft or Off before now plays the guide as the Practice settings say. Changing a
+  song's drums while practising is now two taps away (Change this song's sound). The song's
+  sound starts folded in Edit notation. No Edge scenario script this round (the browser pane
+  was visible); nothing about sound changed, so no offline render.
+- **Next handoff:** Rinat tries round three, answers Open question 6 and round two's two
+  questions, and sends more design comments.
+
 ### 2026-10-12 16:43 BST — Claude (Opus 5.5) — PH2-02 design, round two: Pause and Stop, the Lines to practise left alone, the mic only while playing, beat box rows redesigned
 
 - **Goal:** Rinat (with a sketch of a line: the number down the left, "Play this line", "Play

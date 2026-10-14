@@ -251,4 +251,18 @@ the text) and works on the box chosen (or the beats chosen).
 3. Parse errors and lyric warnings are listed alongside.
 
 The checker is advisory. Its false-negative and false-positive trade-offs are deliberate;
-the built-in exercises must stay free of warnings, as a regression test.
+the built-in exercises must stay free of warnings, as a regression test. (One cost of that:
+a Sa sung twice between two big leaps, `ধা সা সা ধা`, reads as a slip, so সা থেকে
+স্বর-লাফ sings `সা ধা সা ধা | সা ধা সা -` rather than `সা ধা সা - | সা ধা সা -`.)
+
+**Dismissing** (new, 2026-10-14). On one of the user's songs each warning (not a reading
+error, which is always real) has Dismiss. A dismissed warning is remembered by a short
+fingerprint (`issueKey`): its kind, which bar or which notes, and the notes and bars of its
+whole line, not their spacing or script. So it stays dismissed while that line's notes stay
+the same, wherever the line moves, and comes back as soon as they change, when it may apply
+again. *Why not clear them at export, as first suggested:* exporting is also how a song is
+backed up and shared, which says nothing about whether a warning applies; tying it to the
+line keeps the judgement exactly as long as it holds. The fingerprints are kept with the
+song (`dismissed`, DATA.md), the newest 200. "N dismissed · Show them" lists them, each with
+Bring back. With no dismissing asked for (the comparison with the prototype), the panel is
+exactly as before.

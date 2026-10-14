@@ -60,10 +60,11 @@ as it was set up (its sound and notes included), without the sender's log, takes
 | `fav` | `true` for a favourite; absent otherwise. |
 | `exercise` | `true` for one of your songs listed under Exercises (your own exercise: "List under" in Edit notation, "+ New exercise", or a copy of a built-in one); absent: under My songs. Never on a built-in exercise, which is `example` in the app and never stored. |
 | `notes` | Notes about the song (its meaning, source, a teacher's comments): free text, at most 20 000 characters, shown above the sheet, printed and searched. Absent when empty. |
+| `dismissed` | The checker's warnings dismissed on this song, as short fingerprints (base-36, NOTATION.md → Checker → Dismissing), the newest 200; absent when none. Never on a built-in exercise. |
 | `sound` | The song's own harmonium, drone and rhythm (set in Edit notation → Sound of this song), with the same names and values as the device settings below. Absent while the song uses the usual sound. The app writes the whole set; reading checks each field and leaves out any it cannot read, so the device's setting shows through for that one. A `guide` written before 2026-10-13 is left out: the guide's level is a practice setting now. |
 
 `normalize()` runs on every song read or imported and clamps every field, as the prototype's
-does. `tags`, `fav`, `exercise`, `notes` and `sound` are left out when unset, so a prototype song reads
+does. `tags`, `fav`, `exercise`, `notes`, `dismissed` and `sound` are left out when unset, so a prototype song reads
 exactly as before.
 
 ## Song files (export, backup, import)
@@ -75,8 +76,8 @@ exactly as before.
 ```
 
 - **Export this song** (the editor) writes one song; **Back up all my songs** (Music
-  library) writes them all, built-in exercises excluded. `tags`, `fav`, `exercise`, `notes`
-  and `sound` appear only when set; an exercise exported, built-in or your own, carries
+  library) writes them all, built-in exercises excluded. `tags`, `fav`, `exercise`, `notes`,
+  `dismissed` and `sound` appear only when set; an exercise exported, built-in or your own, carries
   `exercise`, so it imports as an exercise of your own. They are optional, so files stay version 1: the prototype and older readers
   skip them.
 - **Import** (Music library) accepts that envelope, a bare array of songs, a single song object, or
@@ -115,6 +116,7 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `songSoundOpen` | `true` while the song's sound in Edit notation is unfolded; absent: folded |
 | `libSort` | How the Music library sorts: `practised`, `changed` or `title` |
 | `libFold` | The Music library's sections folded away, `{ mine?: true, ex?: true }`; absent: both open. A search shows every section |
+| `libOrder` | The Music library's sections in the order dragged, `["mine", "ex"]`; absent: the exercises first. The song pickers follow it |
 | `pitchOctave` | `true` when pitch feedback counts the octave too |
 | `pitchLag` | The delay from a beat to the voice, found last time, seconds (0–0.6) |
 | `rewazOpen` | The ids of the rewaz routines unfolded on the Rewaz view; absent: all folded. (`rewazId`, the routine last chosen, is no longer read) |
