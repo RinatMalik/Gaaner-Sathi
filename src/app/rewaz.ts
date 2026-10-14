@@ -8,6 +8,7 @@
 import { durationText } from '../core/practice/log';
 import { ITEM_GAP, itemLines, newRoutineId, ROUTINE_LIMITS, routineSeconds, STARTER, type ItemGuide, type Routine, type RoutineItem, type SongShape } from '../core/practice/routine';
 import type { WriteResult } from './store';
+import { foldText } from '../core/song/model';
 import { esc } from './view';
 
 const svg = (body: string) => '<svg viewBox="0 0 24 24" aria-hidden="true">' + body + '</svg>';
@@ -36,15 +37,40 @@ const GUIDES: readonly [ItemGuide | '', string][] = [
   ['off', 'Off: sing alone'],
 ];
 
-function songOptions(own: readonly Choice[], exercises: readonly Choice[], selected: string): string {
+function songOptions(own: readonly Choice[], exercises: readonly Choice[], selected: string, exFirst = false): string {
   const opt = (c: Choice) => '<option value="' + esc(c.id) + '"' + (c.id === selected ? ' selected' : '') + '>' + esc(c.title) + '</option>';
-  return (own.length ? '<optgroup label="My songs">' + own.map(opt).join('') + '</optgroup>' : '') + '<optgroup label="Exercises">' + exercises.map(opt).join('') + '</optgroup>';
+  const mine = own.length ? '<optgroup label="My songs">' + own.map(opt).join('') + '</optgroup>' : '';
+  const ex = '<optgroup label="Exercises">' + exercises.map(opt).join('') + '</optgroup>';
+  return exFirst ? ex + mine : mine + ex;
 }
+
+/**
+ * Choosing several songs and exercises to add to a routine at once (Rinat, 2026-10-14):
+ * each a row ticked anywhere along it, numbered in the order ticked (the order they will
+ * play), the open one marked; grouped as in the Music library, with a box to find one.
+ */
+export function pickerHTML(own: readonly Choice[], exercises: readonly Choice[], exFirst: boolean, picked: readonly string[], openId: string): string {
+  const row = (c: Choice) => {
+    const n = picked.indexOf(c.id) + 1;
+    return '<li><label class="rwpickrow"><input type="checkbox" data-pick="' + esc(c.id) + '"' + (n ? ' checked' : '') + '>' +
+      '<span class="rwpicktitle">' + esc(c.title) + '</span>' + (c.id === openId ? '<span class="rwpickopen">open now</span>' : '') +
+      '<span class="rwpickn"' + (n ? '' : ' hidden') + '>' + (n || '') + '</span></label></li>';
+  };
+  const group = (title: string, list: readonly Choice[]) => (list.length ? '<div class="rwpickgrp"><h4>' + title + '</h4><ul class="rwpicklist">' + list.map(row).join('') + '</ul></div>' : '');
+  const groups = exFirst ? group('Exercises', exercises) + group('My songs', own) : group('My songs', own) + group('Exercises', exercises);
+  return '<div class="rwpick"><div class="rwpickhead"><span>Tick what to add, in the order it should play.</span>' +
+    '<input type="search" class="rwpickq" data-act="pickq" placeholder="Find a song or exercise" aria-label="Find a song or exercise" autocomplete="off" spellcheck="false"></div>' +
+    groups + '<div class="rwfoot">' + pickedButton(picked.length) + '<button type="button" class="btn" data-act="pickcancel">Cancel</button></div></div>';
+}
+
+/** The picker's Add button, for `n` ticked. */
+export const pickedButton = (n: number): string =>
+  '<button type="button" class="btn primary" data-act="addpicked"' + (n ? '' : ' disabled') + '>' + (n ? 'Add ' + n + ' to this routine' : 'Add to this routine') + '</button>';
 
 /** One item, as a row like a line in the beat boxes: its number down the left; its song,
  * lines, rounds, tempo and guide; and at its end full-height buttons to move it up or down
  * or remove it (icons only). */
-export function itemRowHTML(it: RoutineItem, i: number, count: number, song: ItemSong | null, own: readonly Choice[], exercises: readonly Choice[]): string {
+export function itemRowHTML(it: RoutineItem, i: number, count: number, song: ItemSong | null, own: readonly Choice[], exercises: readonly Choice[], exFirst = false): string {
   const k = (name: string) => 'data-i="' + i + '" data-k="' + name + '"';
   let html = '<li class="rwitem"><span class="rwn">' + (i + 1) + '</span><div class="rwfields">';
   if (!song) {
@@ -53,7 +79,7 @@ export function itemRowHTML(it: RoutineItem, i: number, count: number, song: Ite
     const [a, b] = itemLines(it, song.labels.length);
     const whole = it.from == null;
     const lineOpt = (n: number, sel: boolean) => '<option value="' + n + '"' + (sel ? ' selected' : '') + '>' + esc(song.labels[n]!) + '</option>';
-    html += '<label class="rwf rwsong"><span>Song</span><select ' + k('song') + '>' + songOptions(own, exercises, it.song) + '</select></label>' +
+    html += '<label class="rwf rwsong"><span>Song</span><select ' + k('song') + '>' + songOptions(own, exercises, it.song, exFirst) + '</select></label>' +
       '<label class="rwf"><span>Lines</span><select ' + k('from') + '><option value=""' + (whole ? ' selected' : '') + '>The whole song</option>' + song.labels.map((_, n) => lineOpt(n, !whole && n === a)).join('') + '</select></label>' +
       (whole ? '' : '<label class="rwf"><span>to</span><select ' + k('to') + '>' + song.labels.map((_, n) => (n >= a ? lineOpt(n, n === b) : '')).join('') + '</select></label>') +
       '<label class="rwf rwnum"><span>Rounds</span><input type="number" min="1" max="20" step="1" inputmode="numeric" value="' + it.rounds + '" ' + k('rounds') + '></label>' +
@@ -76,15 +102,15 @@ export interface RoutineRow {
   secs: number;
   /** "Delete routine" was pressed: ask first. */
   confirming: boolean;
-  /** The open song's title, for "+ Add". */
-  openTitle: string;
+  /** The songs and exercises ticked so far while choosing what to add, in order; null
+   * when not choosing. */
+  picking: readonly string[] | null;
+  /** The open song, marked in the picker. */
+  openId: string;
+  /** The exercises listed first, as in the Music library. */
+  exFirst: boolean;
 }
 
-/**
- * One routine: a heading row (its name and length; tapped anywhere it folds the routine
- * away) with a full-height Start button at its end; unfolded, its name, its items and a
- * row to add the open song or delete the routine. `n` numbers its parts on the page.
- */
 /** A routine's length beside its name: "4 items · about 6 min", and "ready-made" while the
  * warm-up is not saved. */
 export function metaText(r: Routine, saved: boolean, secs: number): string {
@@ -92,11 +118,17 @@ export function metaText(r: Routine, saved: boolean, secs: number): string {
   return (count ? count + ' item' + (count === 1 ? '' : 's') + ' · about ' + durationText(Math.max(60, secs)) : 'No items yet') + (saved ? '' : ' · ready-made');
 }
 
+/**
+ * One routine: a heading row (its name and length; tapped anywhere it folds the routine
+ * away) with a full-height Start button at its end; unfolded, its name, its items, and a
+ * row to add songs and exercises (choosing several at once) or delete the routine. `n`
+ * numbers its parts on the page.
+ */
 export function routineHTML(r: Routine, n: number, o: RoutineRow, song: (id: string) => ItemSong | null, own: readonly Choice[], exercises: readonly Choice[]): string {
   const count = r.items.length;
   const meta = metaText(r, o.saved, o.secs);
-  const items = r.items.map((it, i) => itemRowHTML(it, i, count, song(it.song), own, exercises)).join('') ||
-    '<li class="rwempty">No items yet. Add the song that is open, then choose its lines, rounds and tempo.</li>';
+  const items = r.items.map((it, i) => itemRowHTML(it, i, count, song(it.song), own, exercises, o.exFirst)).join('') ||
+    '<li class="rwempty">No items yet. Add songs and exercises, then choose their lines, rounds and tempo.</li>';
   const del = !o.saved
     ? ''
     : o.confirming
@@ -109,14 +141,16 @@ export function routineHTML(r: Routine, n: number, o: RoutineRow, song: (id: str
     '<div class="rwbody" id="rwb-' + n + '"' + (o.open ? '' : ' hidden') + '>' +
     '<label class="rwf rwnamef"><span>Name</span><input type="text" data-act="name" value="' + esc(r.name) + '" maxlength="' + ROUTINE_LIMITS.name + '" autocomplete="off"></label>' +
     '<ol class="rwlist">' + items + '</ol>' +
-    '<div class="rwfoot"><button type="button" class="btn" data-act="add"' + (count >= ROUTINE_LIMITS.items ? ' disabled' : '') + '>+ Add the open song: <b>' + esc(o.openTitle) + '</b></button>' +
+    (o.picking ? pickerHTML(own, exercises, o.exFirst, o.picking, o.openId) : '') +
+    '<div class="rwfoot">' + (o.picking ? '' : '<button type="button" class="btn" data-act="pick"' + (count >= ROUTINE_LIMITS.items ? ' disabled' : '') + '>+ Add songs and exercises</button>') +
     '<span class="spacer"></span>' + del + '</div></div></section>';
 }
 
 // ── Wiring ───────────────────────────────────────────────────────────────────
 
 export interface RewazHost {
-  choices(): { own: readonly Choice[]; exercises: readonly Choice[] };
+  /** The songs and the exercises to choose from, and whether the exercises come first. */
+  choices(): { own: readonly Choice[]; exercises: readonly Choice[]; exFirst?: boolean };
   /** An item's song, or null when it is gone. */
   song(id: string): ItemSong | null;
   countIn(): boolean;
@@ -158,6 +192,8 @@ export function initRewaz(host: RewazHost): Rewaz {
   let run: { r: Routine; i: number; started: number; timer: number; skipping: boolean } | null = null;
   /** The routine whose "Delete routine" was pressed, asking to confirm. */
   let confirming = '';
+  /** Choosing what to add to a routine: which, and what is ticked so far, in order. */
+  let picking: { id: string; picked: string[] } | null = null;
 
   const byName = (a: Routine, b: Routine) => a.name.localeCompare(b.name);
 
@@ -185,13 +221,14 @@ export function initRewaz(host: RewazHost): Rewaz {
 
   function render(): void {
     if (view.hidden) return;
-    const { own, exercises } = host.choices();
-    const openTitle = host.song(host.currentSongId())?.title ?? '';
+    const { own, exercises, exFirst = false } = host.choices();
+    const openId = host.currentSongId();
     // Keep what is being typed in a routine's name while the list is redrawn.
     const typing = document.activeElement instanceof HTMLInputElement && document.activeElement.dataset.act === 'name' ? document.activeElement : null;
     const typingIn = typing?.closest<HTMLElement>('.rwr')?.dataset.r;
     list.innerHTML = routines().map(({ r, saved }, n) => routineHTML(r, n, {
-      saved, open: host.unfolded.has(r.id), secs: routineSeconds(r, host.song, host.countIn()), confirming: confirming === r.id, openTitle,
+      saved, open: host.unfolded.has(r.id), secs: routineSeconds(r, host.song, host.countIn()), confirming: confirming === r.id,
+      picking: picking && picking.id === r.id ? picking.picked : null, openId, exFirst,
     }, host.song, own, exercises)).join('');
     if (typing && typingIn) {
       const again = Array.from(list.querySelectorAll<HTMLElement>('.rwr')).find((s) => s.dataset.r === typingIn)?.querySelector<HTMLInputElement>('input[data-act="name"]');
@@ -303,11 +340,28 @@ export function initRewaz(host: RewazHost): Rewaz {
       render();
       refocus(id, 'fold');
     } else if (act === 'start') start(id);
-    else if (act === 'add') {
+    else if (act === 'pick') {
+      picking = { id, picked: [] };
+      render();
+      refocus(id, 'pickq');
+    } else if (act === 'pickcancel') {
+      picking = null;
+      render();
+      refocus(id, 'pick');
+    } else if (act === 'addpicked' && picking && picking.id === id) {
+      const want = picking.picked;
+      let added = 0;
       change(id, (r) => {
-        if (r.items.length < ROUTINE_LIMITS.items) r.items.push({ song: host.currentSongId(), rounds: 2 });
+        for (const song of want) {
+          if (r.items.length >= ROUTINE_LIMITS.items) break;
+          r.items.push({ song, rounds: 2 });
+          added++;
+        }
       });
-      refocus(id, 'add');
+      picking = null;
+      render();
+      status('Added ' + added + (added < want.length ? ' of ' + want.length + ': a routine holds ' + ROUTINE_LIMITS.items + ' items' : '') + '.');
+      refocus(id, 'pick');
     } else if (act === 'del' || act === 'delno') {
       confirming = act === 'del' ? id : '';
       render();
@@ -335,8 +389,39 @@ export function initRewaz(host: RewazHost): Rewaz {
       });
     }
   });
+  /** Ticking and unticking in the picker: the order numbers and the Add button change in
+   * place, so the keyboard stays on the row. */
+  function picked(box: HTMLInputElement): void {
+    if (!picking) return;
+    const songId = box.dataset.pick!;
+    picking.picked = picking.picked.filter((x) => x !== songId);
+    if (box.checked) picking.picked.push(songId);
+    const panel = box.closest<HTMLElement>('.rwpick');
+    if (!panel) return;
+    for (const b of Array.from(panel.querySelectorAll<HTMLInputElement>('input[data-pick]'))) {
+      const n = picking.picked.indexOf(b.dataset.pick!) + 1;
+      const badge = b.parentElement!.querySelector<HTMLElement>('.rwpickn')!;
+      badge.hidden = !n;
+      badge.textContent = n ? String(n) : '';
+    }
+    panel.querySelector('[data-act="addpicked"]')!.outerHTML = pickedButton(picking.picked.length);
+  }
+  list.addEventListener('input', (e) => {
+    const q = e.target as HTMLInputElement;
+    if (q.dataset.act !== 'pickq') return;
+    const want = foldText(q.value.trim());
+    const panel = q.closest<HTMLElement>('.rwpick')!;
+    for (const li of Array.from(panel.querySelectorAll<HTMLElement>('.rwpicklist > li'))) {
+      li.hidden = !!want && !foldText(li.querySelector('.rwpicktitle')!.textContent || '').includes(want);
+    }
+    for (const g of Array.from(panel.querySelectorAll<HTMLElement>('.rwpickgrp'))) g.hidden = !g.querySelector('.rwpicklist > li:not([hidden])');
+  });
   list.addEventListener('change', (e) => {
     const el = e.target as HTMLInputElement | HTMLSelectElement;
+    if (el instanceof HTMLInputElement && el.dataset.pick) {
+      picked(el);
+      return;
+    }
     const id = routineOf(el);
     if (el.dataset.act === 'name') {
       const got = routine(id);

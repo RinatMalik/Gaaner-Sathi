@@ -1,7 +1,7 @@
 // Rewaz routines: the model, rounds in the transport, the views' HTML, storage.
 import { describe, expect, it } from 'vitest';
 import { entryDetail, progressHTML } from '../../src/app/progress';
-import { itemRowHTML, routineHTML, type ItemSong } from '../../src/app/rewaz';
+import { itemRowHTML, pickedButton, pickerHTML, routineHTML, type ItemSong } from '../../src/app/rewaz';
 import { RoutineStore, STORE_KEYS, type KeyValueStore } from '../../src/app/store';
 import { createEngine } from '../../src/audio/engine';
 import { DEFAULT_SOUND } from '../../src/audio/sound';
@@ -131,7 +131,7 @@ describe('the Rewaz view', () => {
   });
 
   it('shows each routine as a row that folds away, with Start the row’s full height at its end', () => {
-    const row = { saved: true, open: false, secs: 400, confirming: false, openTitle: 'আমার <গান>' };
+    const row = { saved: true, open: false, secs: 400, confirming: false, picking: null, openId: '', exFirst: false };
     const r: Routine = { id: 'routine-a', name: 'Morning <rewaz>', items: [{ song: 'ex-scale', rounds: 2 }, { song: 'ex-akar', rounds: 1 }], updatedAt: 1 };
     const folded = routineHTML(r, 3, row, shape, own, ex);
     expect(folded).toContain('<section class="rwr" data-r="routine-a">');
@@ -145,14 +145,14 @@ describe('the Rewaz view', () => {
     expect(open).toContain('<div class="rwbody" id="rwb-3">');
     expect(open).toContain('data-act="name" value="Morning &lt;rewaz&gt;"');
     expect(open.match(/class="rwitem"/g)).toHaveLength(2);
-    expect(open).toContain('+ Add the open song: <b>আমার &lt;গান&gt;</b>');
+    expect(open).toContain('data-act="pick">+ Add songs and exercises</button>');
     expect(open).toContain('data-act="del">Delete routine</button>');
     const asking = routineHTML(r, 3, { ...row, open: true, confirming: true }, shape, own, ex);
     expect(asking).toContain('Delete this routine? <button type="button" class="btn danger" data-act="delyes">Delete</button><button type="button" class="btn" data-act="delno">Keep</button>');
   });
 
   it('offers the ready-made warm-up unsaved, and a routine with no items cannot start', () => {
-    const row = { saved: false, open: true, secs: 0, confirming: false, openTitle: 'x' };
+    const row = { saved: false, open: true, secs: 0, confirming: false, picking: null, openId: '', exFirst: false };
     const starter = routineHTML(STARTER, 0, row, shape, own, ex);
     expect(starter).toContain('<span class="rwmeta">4 items · about 1 min · ready-made</span>');
     expect(starter).not.toContain('Delete routine');
@@ -160,6 +160,33 @@ describe('the Rewaz view', () => {
     expect(empty).toContain('<span class="rwmeta">No items yet</span>');
     expect(empty).toContain('data-act="start" disabled');
     expect(empty).toContain('<li class="rwempty">No items yet.');
+  });
+
+  it('chooses several songs and exercises at once, numbered in the order ticked', () => {
+    const html = pickerHTML(own, ex, true, ['ex-scale', 's1'], 's1');
+    // Exercises first, as in the Music library; then My songs.
+    expect(html.indexOf('<h4>Exercises</h4>')).toBeLessThan(html.indexOf('<h4>My songs</h4>'));
+    expect(pickerHTML(own, ex, false, [], '').indexOf('<h4>My songs</h4>')).toBeLessThan(pickerHTML(own, ex, false, [], '').indexOf('<h4>Exercises</h4>'));
+    expect(html.match(/data-pick="/g)).toHaveLength(own.length + ex.length);
+    expect(html).toContain('<input type="checkbox" data-pick="ex-scale" checked><span class="rwpicktitle">আরোহ-অবরোহ</span><span class="rwpickn">1</span>');
+    expect(html).toContain('data-pick="s1" checked><span class="rwpicktitle">আমার &lt;গান&gt;</span><span class="rwpickopen">open now</span><span class="rwpickn">2</span>');
+    expect(html).toContain('data-pick="ex-range"><span class="rwpicktitle">মন্দ্র থেকে তার সপ্তক</span><span class="rwpickn" hidden></span>');
+    expect(html).toContain('data-act="addpicked">Add 2 to this routine</button>');
+    expect(html).toContain('data-act="pickcancel">Cancel</button>');
+    expect(html).toContain('data-act="pickq"');
+    expect(pickedButton(0)).toBe('<button type="button" class="btn primary" data-act="addpicked" disabled>Add to this routine</button>');
+    // No group without anything in it.
+    expect(pickerHTML([], ex, true, [], '')).not.toContain('My songs');
+  });
+
+  it('shows the picker in place of “+ Add songs and exercises” while choosing', () => {
+    const r: Routine = { id: 'routine-a', name: 'A', items: [{ song: 'ex-scale', rounds: 2 }], updatedAt: 1 };
+    const row = { saved: true, open: true, secs: 100, confirming: false, picking: ['ex-range'], openId: 'ex-scale', exFirst: true };
+    const html = routineHTML(r, 0, row, shape, own, ex);
+    expect(html).toContain('<div class="rwpick">');
+    expect(html).not.toContain('data-act="pick"');
+    expect(html).toContain('Add 1 to this routine');
+    expect(routineHTML(r, 0, { ...row, picking: null }, shape, own, ex)).not.toContain('<div class="rwpick">');
   });
 });
 

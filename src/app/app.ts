@@ -41,7 +41,7 @@ import { songSpan } from '../core/pitch/voice';
 import { itemLines, type RoutineItem } from '../core/practice/routine';
 import { clockText, MIN_TAKE_SECS, newTakeId, textSig, type Take } from '../core/practice/take';
 import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefix, type ImportedSong } from '../core/song/file';
-import { cleanNotes, newId, normalize, parseTags, type Song } from '../core/song/model';
+import { cleanDismissed, cleanNotes, newId, normalize, parseTags, type Song } from '../core/song/model';
 import { SONG_SOUND_KEYS, soundOf, type SongSound } from '../core/song/sound';
 import { beatLabel, SPEEDS } from '../core/taal/rhythm';
 import { isTaalId, taalInfo, TAALS, type TaalInfo } from '../core/taal/taals';
@@ -53,7 +53,7 @@ import { initProgress } from './progress';
 import { initRewaz, type ItemSong, type Rewaz } from './rewaz';
 import { takeBuffer, takeFileName, takesHTML, TakeStore } from './takes';
 import { initVoice, type SaChoice, type VoiceUI } from './voice';
-import { initSongs } from './songs';
+import { initSongs, LIB_ORDER } from './songs';
 import { loadPrefs, LogStore, RoutineStore, savePrefs as writePrefs, SongStore, TABS, type KeyValueStore, type Tab, type WriteResult } from './store';
 import * as V from './view';
 
@@ -718,8 +718,13 @@ function renderLineSelects(keep: boolean): void {
 }
 
 let issueList: V.IssueTarget[] = [];
+/** The checker's dismissed warnings listed, to bring one back. */
+let showDismissed = false;
+/** The checker panel. On one of the user's songs a warning can be dismissed; it stays hidden
+ * while its line's notes stay the same (the dismissal is kept with the song). */
 function renderIssues(): void {
-  const r = V.issuesHTML(parsed, taals, 0, prefs.script);
+  const dis = current && !current.example ? { dismissed: new Set(current.dismissed || []), showDismissed } : undefined;
+  const r = V.issuesHTML(parsed, taals, 0, prefs.script, dis);
   issueList = r.list;
   $('#issues').innerHTML = r.html;
 }
@@ -740,17 +745,18 @@ function renderStartOn(): void {
 }
 /** All the user's songs, their own exercises among them, by title. */
 const ownSongs = () => Array.from(songs.values()).sort((a, b) => a.title.localeCompare(b.title));
-/** The pickers' two groups: the user's songs, then the exercises (their own first). */
-function pickerGroups(): { own: Song[]; exercises: readonly (Song | Exercise)[] } {
+/** The pickers' two groups: the user's songs, then the exercises (their own first); the
+ * exercises listed first when the Music library shows them first. */
+function pickerGroups(): { own: Song[]; exercises: readonly (Song | Exercise)[]; exFirst: boolean } {
   const all = ownSongs();
-  return { own: all.filter((s) => !s.exercise), exercises: [...all.filter((s) => s.exercise), ...EXERCISES] };
+  return { own: all.filter((s) => !s.exercise), exercises: [...all.filter((s) => s.exercise), ...EXERCISES], exFirst: (prefs.libOrder ?? LIB_ORDER)[0] === 'ex' };
 }
 /** "song" or "exercise", for the open one's buttons and notes. */
 const what = () => (current.example || current.exercise ? 'exercise' : 'song');
 /** The song picker, and the Music library when it is showing. */
 function renderLibrary(): void {
   const g = pickerGroups();
-  select('#songSel').innerHTML = V.libraryHTML(g.own, g.exercises);
+  select('#songSel').innerHTML = V.libraryHTML(g.own, g.exercises, g.exFirst);
   if (current) select('#songSel').value = current.id;
   songsView.render();
 }
@@ -1269,6 +1275,7 @@ function markSection(): void {
 function loadSong(song: Song | Exercise): void {
   flushNow();
   stop(true);
+  showDismissed = false;
   if (!runnerLoading) {
     rewaz.cancel();
     clearOverride();
@@ -1724,6 +1731,13 @@ export function init(): void {
       savePrefs();
     },
     create: newSong,
+    order: () => prefs.libOrder ?? LIB_ORDER,
+    setOrder: (o) => {
+      if (o.join() === LIB_ORDER.join()) delete prefs.libOrder;
+      else prefs.libOrder = o;
+      savePrefs();
+      renderLibrary();
+    },
   });
   pitchUI = initPitch({
     audio: () => {
@@ -2254,6 +2268,21 @@ export function init(): void {
   $('#issues').addEventListener('click', (e) => {
     const btn = (e.target as Element).closest<HTMLElement>('button[data-act]');
     if (!btn) return;
+    const act = btn.dataset.act;
+    if (act === 'dismiss' || act === 'undismiss' || act === 'showdis') {
+      if (act === 'showdis') showDismissed = !showDismissed;
+      else if (!current.example && btn.dataset.k) {
+        const k = btn.dataset.k;
+        const rest = (current.dismissed || []).filter((x) => x !== k);
+        const next = act === 'dismiss' ? cleanDismissed([...rest, k]) : rest;
+        changed('dismissed', next.length ? next : undefined);
+      }
+      renderIssues();
+      // Keep the keyboard where it was: the next warning's Dismiss, or the list's toggle.
+      const again = $<HTMLElement>('#issues button[data-act="' + (act === 'showdis' ? 'showdis' : 'dismiss') + '"]') || $<HTMLElement>('#issues button[data-act="showdis"]');
+      again?.focus();
+      return;
+    }
     const it = issueList[+btn.dataset.i!];
     const r = it && issueRange(it);
     if (!it || !r) return;

@@ -10,6 +10,8 @@ import { esc, KEYS } from './view';
 
 /** The library's two sections. */
 export type LibSection = 'mine' | 'ex';
+/** Their order until the user drags one: the exercises first (Rinat, 2026-10-14). */
+export const LIB_ORDER: readonly LibSection[] = ['ex', 'mine'];
 
 export interface ListOptions {
   query: string;
@@ -21,7 +23,11 @@ export interface ListOptions {
   now: number;
   /** The sections folded away (a search shows them all). */
   folded?: Partial<Record<LibSection, boolean>>;
+  /** The sections' order; absent: LIB_ORDER. */
+  order?: readonly LibSection[];
 }
+
+const GRIP_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></g></svg>';
 
 const tight = (s: string) => foldText(s).replace(/[\s|।॥‖০\-–—~]+/g, '');
 
@@ -76,15 +82,17 @@ export function songsListHTML(own: readonly LibrarySong[], exercises: readonly L
       ? '<h3 class="lhead"><span class="lfold">' + label + '</span></h3>'
       : '<h3 class="lhead"><button type="button" class="lfold" data-fold="' + id + '" aria-expanded="' + !folded + '" aria-controls="lsec-' + id + '">' + FOLD_ICON + label + '</button></h3>';
     const make = id === 'mine' ? '<button type="button" class="btn lnew" data-new="song">+ New song</button>' : '<button type="button" class="btn lnew" data-new="exercise">+ New exercise</button>';
-    return '<section class="lsec"><div class="lheadrow">' + head + make + '</div><div id="lsec-' + id + '"' + (folded ? ' hidden' : '') + '>' + body + '</div></section>';
+    const grip = '<button type="button" class="lgrip" data-grip="' + id + '" aria-label="Move ' + title + ': drag, or press the up or down arrow" title="Drag to move this section">' + GRIP_ICON + '</button>';
+    return '<section class="lsec" data-sec="' + id + '"><div class="lheadrow">' + grip + head + make + '</div><div id="lsec-' + id + '"' + (folded ? ' hidden' : '') + '>' + body + '</div></section>';
   };
   const rows = (list: LibraryEntry[]) => '<ul class="llist">' + list.map((e) => songRowHTML(e, o)).join('') + '</ul>';
-  let html = '';
+  const parts: Partial<Record<LibSection, string>> = {};
   if (k !== 'ex') {
-    if (mine.length) html += section('mine', 'My songs', mine.length, rows(mine));
-    else if (!songsOnly.length && !o.query) html += section('mine', 'My songs', 0, '<p class="lempty">No songs of your own yet. Press <b>+ New song</b> to type one in from your diary, or <b>Import from file</b>.</p>');
+    if (mine.length) parts.mine = section('mine', 'My songs', mine.length, rows(mine));
+    else if (!songsOnly.length && !o.query) parts.mine = section('mine', 'My songs', 0, '<p class="lempty">No songs of your own yet. Press <b>+ New song</b> to type one in from your diary, or <b>Import from file</b>.</p>');
   }
-  if (ex.length) html += section('ex', 'Exercises', ex.length, rows(ex));
+  if (ex.length) parts.ex = section('ex', 'Exercises', ex.length, rows(ex));
+  let html = (o.order ?? LIB_ORDER).map((id) => parts[id] ?? '').join('');
   if (!mine.length && !ex.length && (songsOnly.length || k !== 'all' || o.query)) {
     html += '<p class="lempty">' + (o.query ? 'Nothing matches “' + esc(o.query.trim()) + '”' + (k === 'all' ? '' : ' here') + '.' : 'Nothing here yet.') + '</p>';
   }
@@ -129,6 +137,9 @@ export interface SongsHost {
   setFolded(id: LibSection, folded: boolean): void;
   /** Start a new song, or a new exercise of the user's own, in the editor. */
   create(kind: 'song' | 'exercise'): void;
+  /** The sections' order, kept on the device. */
+  order(): readonly LibSection[];
+  setOrder(o: LibSection[]): void;
 }
 
 export function initSongs(host: SongsHost): { render(): void } {
@@ -146,7 +157,7 @@ export function initSongs(host: SongsHost): { render(): void } {
       if (!own.some((s) => (s.tags || []).some((x) => foldText(x) === t))) filter = { kind: 'all' };
     }
     if (filter.kind === 'fav' && !own.some((s) => s.fav)) filter = { kind: 'all' };
-    const o: ListOptions = { query: query.value, filter, sort: host.sort(), currentId: host.currentId(), practisedAt: host.practisedAt, now: Date.now(), folded: host.folded() };
+    const o: ListOptions = { query: query.value, filter, sort: host.sort(), currentId: host.currentId(), practisedAt: host.practisedAt, now: Date.now(), folded: host.folded(), order: host.order() };
     const r = songsListHTML(own, host.exercises, o);
     $('#libChips').innerHTML = filterChipsHTML(own, host.exercises.length, filter);
     $('#libList').innerHTML = r.html;
@@ -185,5 +196,88 @@ export function initSongs(host: SongsHost): { render(): void } {
       render();
     }
   });
+  // ── Moving a section: drag its handle (mouse or touch), or ↑ ↓ on it ──────────
+  const list = $('#libList');
+  const sectionsShown = () => Array.from(list.querySelectorAll<HTMLElement>('.lsec'));
+  /** Put `id` at `at` among the sections shown; the stored order keeps any not shown. */
+  function moveTo(id: LibSection, at: number): void {
+    const shown = sectionsShown().map((s) => s.dataset.sec as LibSection).filter((s) => s !== id);
+    shown.splice(Math.max(0, Math.min(shown.length, at)), 0, id);
+    const rest = host.order().filter((s) => !shown.includes(s));
+    const next = [...shown, ...rest];
+    if (next.join() !== host.order().join()) host.setOrder(next);
+    render();
+    list.querySelector<HTMLElement>('[data-grip="' + id + '"]')?.focus();
+  }
+  let drag: { id: LibSection; pointer: number; y0: number; grab: number; on: boolean; at: number } | null = null;
+  let dropLine: HTMLElement | null = null;
+  function endDrag(): void {
+    list.classList.remove('sorting');
+    list.style.minHeight = '';
+    for (const s of sectionsShown()) {
+      s.classList.remove('dragging');
+      s.style.transform = '';
+    }
+    dropLine?.remove();
+    dropLine = null;
+    drag = null;
+  }
+  list.addEventListener('pointerdown', (e) => {
+    const g = (e.target as Element).closest<HTMLElement>('[data-grip]');
+    if (!g || e.button !== 0) return;
+    e.preventDefault();
+    g.setPointerCapture(e.pointerId);
+    const head = g.closest<HTMLElement>('.lheadrow')!;
+    drag = { id: g.dataset.grip as LibSection, pointer: e.pointerId, y0: e.clientY, grab: e.clientY - head.getBoundingClientRect().top, on: false, at: -1 };
+  });
+  list.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.pointer) return;
+    if (!drag.on) {
+      if (Math.abs(e.clientY - drag.y0) < 5) return;
+      // While moving, the sections show only their headings, so a long one is easy to move;
+      // the list keeps its height, so the page does not scroll from under the pointer.
+      drag.on = true;
+      list.style.minHeight = list.offsetHeight + 'px';
+      list.classList.add('sorting');
+      sectionsShown().find((s) => s.dataset.sec === drag!.id)?.classList.add('dragging');
+      dropLine = document.createElement('div');
+      dropLine.className = 'ldrop';
+      list.appendChild(dropLine);
+    }
+    const secs = sectionsShown();
+    const me = secs.find((s) => s.dataset.sec === drag!.id);
+    if (!me) return;
+    me.style.transform = '';
+    const top = me.getBoundingClientRect().top;
+    me.style.transform = 'translateY(' + (e.clientY - drag.grab - top) + 'px)';
+    // Where it would go: before the first other section whose middle is below the pointer.
+    const others = secs.filter((s) => s !== me);
+    let at = others.findIndex((s) => {
+      const r = s.getBoundingClientRect();
+      return e.clientY < r.top + r.height / 2;
+    });
+    if (at < 0) at = others.length;
+    drag.at = at;
+    const box = list.getBoundingClientRect();
+    const ref = others[at];
+    const y = ref ? ref.getBoundingClientRect().top - 6 : (others.at(-1)?.getBoundingClientRect().bottom ?? box.top) + 6;
+    dropLine!.style.top = y - box.top + 'px';
+  });
+  list.addEventListener('pointerup', (e) => {
+    if (!drag || e.pointerId !== drag.pointer) return;
+    const { id, on, at } = drag;
+    endDrag();
+    if (on && at >= 0) moveTo(id, at);
+  });
+  list.addEventListener('pointercancel', endDrag);
+  list.addEventListener('keydown', (e) => {
+    const g = (e.target as Element).closest<HTMLElement>('[data-grip]');
+    if (!g || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+    e.preventDefault();
+    const id = g.dataset.grip as LibSection;
+    const i = sectionsShown().findIndex((s) => s.dataset.sec === id);
+    moveTo(id, i + (e.key === 'ArrowUp' ? -1 : 1));
+  });
+
   return { render };
 }

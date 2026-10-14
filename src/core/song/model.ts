@@ -32,6 +32,9 @@ export interface Song {
   /** Notes about the song: its meaning, where it comes from, a teacher's comments. Absent
    * when there are none. */
   notes?: string;
+  /** The checker's warnings the user dismissed, by fingerprint (src/core/notation/check.ts →
+   * issueKey); absent when none. */
+  dismissed?: string[];
 }
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
@@ -39,6 +42,16 @@ const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 export const TAG_LIMITS = { tags: 20, chars: 40 } as const;
 /** The longest notes kept with a song. */
 export const NOTES_CHARS = 20_000;
+
+/** The most dismissed warnings kept with a song (the newest). */
+export const DISMISSED_MAX = 200;
+
+/** Dismissed warnings as kept: fingerprints only, each once, the newest 200. */
+export function cleanDismissed(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  const out = Array.from(new Set(v.filter((x): x is string => typeof x === 'string' && /^[0-9a-z]{1,8}$/.test(x))));
+  return out.slice(-DISMISSED_MAX);
+}
 
 /** Notes as kept: cut to the limit; absent (undefined) when there is nothing but space. */
 export const cleanNotes = (v: unknown): string | undefined => (typeof v === 'string' && /\S/.test(v) ? v.slice(0, NOTES_CHARS) : undefined);
@@ -95,6 +108,8 @@ export function normalize(s: { id: string } & Partial<Record<keyof Song, unknown
   if (sound) song.sound = sound;
   const notes = cleanNotes(s.notes);
   if (notes) song.notes = notes;
+  const dismissed = cleanDismissed(s.dismissed);
+  if (dismissed.length && !song.example) song.dismissed = dismissed;
   return song;
 }
 

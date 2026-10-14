@@ -138,3 +138,23 @@ export function checkNotation(P: ParsedSong, taals: TaalShape | Taals<TaalShape>
   }
   return out;
 }
+
+/**
+ * A short fingerprint of an issue, for dismissing it (docs/NOTATION.md → Checker): its kind,
+ * which bar or which notes, and the notes of its whole line (not their spacing or script),
+ * so it stays the same while that line's notes do, wherever the line moves, and changes
+ * when they change, bringing a dismissed issue back.
+ */
+export function issueKey(P: ParsedSong, it: CheckIssue): string {
+  const nl = P.noteLines.find((l) => l.n === it.line);
+  const unit = (u: { k: string; semi?: number; oct?: number }) => (u.k === 'note' ? u.semi + '.' + u.oct : u.k === 'hold' ? '-' : 'x');
+  const line = nl ? nl.beats.map((b) => b.units.map(unit).join(',')).join(' ') + '|' + [...nl.bars].sort((a, b) => a - b).join(',') : '';
+  const what = it.kind === 'octave' ? it.notes.map(unit).join(',') + '>' + it.delta : it.bar + ':' + it.len + ':' + it.exp;
+  // FNV-1a, 32 bits, written in base 36: a few characters per dismissed issue.
+  let h = 0x811c9dc5;
+  for (const ch of it.kind + '|' + what + '|' + line) {
+    h ^= ch.codePointAt(0)!;
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(36);
+}

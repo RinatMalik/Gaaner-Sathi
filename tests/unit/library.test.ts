@@ -121,12 +121,21 @@ describe('the Music library', () => {
   const opts = (o: Partial<ListOptions> = {}): ListOptions =>
     ({ query: '', filter: { kind: 'all' }, sort: 'practised', currentId: 's2', practisedAt: (id) => (id === 's1' ? now - 3_600_000 : 0), now, ...o });
 
-  it('lists my songs, then the exercises in their own order', () => {
+  it('lists the exercises in their own order, then my songs; or in the order dragged', () => {
     const r = songsListHTML(own, EXERCISES, opts());
     expect(r.shown).toBe(2 + EXERCISES.length);
-    const ids = Array.from(r.html.matchAll(/data-edit="([^"]+)"/g), (m) => m[1]);
-    expect(ids).toEqual(['s1', 's2', ...EXERCISES.map((e) => e.id)]);
-    expect(r.html.indexOf('My songs')).toBeLessThan(r.html.indexOf('Exercises'));
+    const ids = (html: string) => Array.from(html.matchAll(/data-edit="([^"]+)"/g), (m) => m[1]);
+    expect(ids(r.html)).toEqual([...EXERCISES.map((e) => e.id), 's1', 's2']);
+    expect(r.html.indexOf('Exercises')).toBeLessThan(r.html.indexOf('My songs'));
+    const mineFirst = songsListHTML(own, EXERCISES, opts({ order: ['mine', 'ex'] })).html;
+    expect(ids(mineFirst)).toEqual(['s1', 's2', ...EXERCISES.map((e) => e.id)]);
+    expect(mineFirst).toMatch(/^<section class="lsec" data-sec="mine">/);
+  });
+
+  it('gives each heading a handle to drag it by, or move it with the arrow keys', () => {
+    const html = songsListHTML(own, EXERCISES, opts()).html;
+    expect(html).toMatch(/^<section class="lsec" data-sec="ex"><div class="lheadrow"><button type="button" class="lgrip" data-grip="ex" aria-label="Move Exercises: drag, or press the up or down arrow" title="Drag to move this section"><svg/);
+    expect(html).toContain('data-grip="mine" aria-label="Move My songs: drag, or press the up or down arrow"');
   });
 
   it('ends each row with two buttons: practise it and edit it, named for a song or an exercise', () => {
@@ -142,7 +151,7 @@ describe('the Music library', () => {
 
   it('gives each heading a + New button after its fold button: a song, or an exercise', () => {
     const html = songsListHTML(own, EXERCISES, opts()).html;
-    expect(html).toMatch(/<div class="lheadrow"><h3 class="lhead"><button type="button" class="lfold" data-fold="mine"[^]*?<\/button><\/h3><button type="button" class="btn lnew" data-new="song">\+ New song<\/button><\/div>/);
+    expect(html).toMatch(/<div class="lheadrow"><button type="button" class="lgrip"[^]*?<\/button><h3 class="lhead"><button type="button" class="lfold" data-fold="mine"[^]*?<\/button><\/h3><button type="button" class="btn lnew" data-new="song">\+ New song<\/button><\/div>/);
     expect(html).toMatch(/<h3 class="lhead"><button type="button" class="lfold" data-fold="ex"[^]*?<\/button><\/h3><button type="button" class="btn lnew" data-new="exercise">\+ New exercise<\/button>/);
   });
 
@@ -235,12 +244,12 @@ describe('your own exercises', () => {
 
   it('are listed under Exercises, newest first, before the built-in ones in their order', () => {
     const r = songsListHTML(own, EXERCISES, opts());
-    expect(ids(r.html)).toEqual(['s1', 'x1', 'x2', ...EXERCISES.map((e) => e.id)]);
-    expect(r.html.indexOf('data-edit="s1"')).toBeLessThan(r.html.indexOf('data-fold="ex"'));
+    expect(ids(r.html)).toEqual(['x1', 'x2', ...EXERCISES.map((e) => e.id), 's1']);
+    expect(r.html.indexOf('data-edit="s1"')).toBeGreaterThan(r.html.indexOf('data-fold="mine"'));
     expect(r.html).toContain('My songs <span class="n">1</span>');
     expect(r.html).toContain('Exercises <span class="n">' + (EXERCISES.length + 2) + '</span>');
     // By title, the user's own by title, then the built-in ones in their own order.
-    expect(ids(songsListHTML(own, EXERCISES, opts({ sort: 'title' })).html).slice(0, 3)).toEqual(['s1', 'x2', 'x1']);
+    expect(ids(songsListHTML(own, EXERCISES, opts({ sort: 'title' })).html).slice(0, 2)).toEqual(['x2', 'x1']);
   });
 
   it('have a star, tags and the exercise wording, like any of your songs', () => {
@@ -261,7 +270,7 @@ describe('your own exercises', () => {
     expect(ids(songsListHTML(own, EXERCISES, opts({ filter: { kind: 'mine' } })).html)).toEqual(['s1']);
     expect(ids(songsListHTML(own, EXERCISES, opts({ filter: { kind: 'ex' } })).html)).toEqual(['x1', 'x2', ...EXERCISES.map((e) => e.id)]);
     expect(ids(songsListHTML(own, EXERCISES, opts({ filter: { kind: 'fav' } })).html)).toEqual(['x1']);
-    expect(ids(songsListHTML(own, EXERCISES, opts({ filter: { kind: 'tag', tag: 'learning' } })).html)).toEqual(['s1', 'x1']);
+    expect(ids(songsListHTML(own, EXERCISES, opts({ filter: { kind: 'tag', tag: 'learning' } })).html)).toEqual(['x1', 's1']);
     expect(matchesFilter(entryFor(own[2]!), { kind: 'ex' })).toBe(true);
     expect(matchesFilter(entryFor(own[2]!), { kind: 'mine' })).toBe(false);
   });

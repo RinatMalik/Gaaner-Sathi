@@ -34,6 +34,8 @@ export interface SongFileEntry {
   exercise?: true;
   sound?: Partial<SongSound>;
   notes?: string;
+  /** The checker's warnings dismissed, by fingerprint. */
+  dismissed?: string[];
 }
 
 /** A song found in an imported file: title and text are always strings; any other fields
@@ -48,6 +50,7 @@ export function songForFile(s: Song): SongFileEntry {
   if (s.exercise || s.example) e.exercise = true;
   if (s.sound) e.sound = s.sound;
   if (s.notes) e.notes = s.notes;
+  if (s.dismissed && s.dismissed.length) e.dismissed = s.dismissed;
   return e;
 }
 

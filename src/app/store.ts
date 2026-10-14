@@ -75,6 +75,9 @@ export interface Prefs extends SoundSettings {
   libSort: LibrarySort;
   /** The Music library's sections the user has folded away. */
   libFold?: { mine?: true; ex?: true };
+  /** The Music library's sections in the order the user dragged them; absent: the exercises
+   * first. */
+  libOrder?: ('mine' | 'ex')[];
   /** Pitch feedback: the octave must match too (unset: any octave counts). */
   pitchOctave?: boolean;
   /** Pitch feedback: the delay from the beat to the voice found last time, seconds. */
@@ -153,6 +156,8 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
   };
   if (typeof r.soundOpen === 'boolean') p.soundOpen = r.soundOpen;
   if (r.songSoundOpen === true) p.songSoundOpen = true;
+  const lo = r.libOrder;
+  if (Array.isArray(lo) && lo.length === 2 && lo.includes('mine') && lo.includes('ex')) p.libOrder = lo as ('mine' | 'ex')[];
   const lf = r.libFold as Record<string, unknown> | undefined;
   if (lf && typeof lf === 'object' && (lf.mine === true || lf.ex === true)) {
     p.libFold = {};
@@ -202,6 +207,7 @@ export function bodyOf(s: Song) {
   if (s.exercise) body.exercise = true;
   if (s.sound) body.sound = s.sound;
   if (s.notes) body.notes = s.notes;
+  if (s.dismissed && s.dismissed.length) body.dismissed = s.dismissed;
   return body;
 }
 

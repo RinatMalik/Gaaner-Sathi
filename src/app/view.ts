@@ -7,7 +7,7 @@
  */
 import type { GuideLevel, SoundSettings } from '../audio/sound';
 import type { BeatEntry } from '../audio/transport';
-import { checkNotation, type CheckIssue } from '../core/notation/check';
+import { checkNotation, issueKey, type CheckIssue } from '../core/notation/check';
 import { asTaals, placeIn, type Taals } from '../core/notation/taalmap';
 import { AKAR, BN_LETTER, LAT_LETTER, REPH } from '../core/notation/symbols';
 import type { NoteUnit, ParsedSong, Unit } from '../core/notation/types';
@@ -241,12 +241,13 @@ export function startOnOptionsHTML(T: TaalInfo): string {
   return html;
 }
 
-/** The song picker: "My songs" (already sorted by title), then the exercises. */
-export function libraryHTML(own: readonly { id: string; title: string }[], exercises: readonly { id: string; title: string }[]): string {
-  let html = '<optgroup label="My songs">';
-  html += own.length ? own.map((s) => '<option value="' + esc(s.id) + '">' + esc(s.title) + '</option>').join('') : '<option disabled value="">No songs yet. Press + New song</option>';
-  html += '</optgroup><optgroup label="Exercises">' + exercises.map((s) => '<option value="' + s.id + '">' + esc(s.title) + '</option>').join('') + '</optgroup>';
-  return html;
+/** The song picker: "My songs" (already sorted by title), then the exercises; or the
+ * exercises first, as the Music library shows them (new). */
+export function libraryHTML(own: readonly { id: string; title: string }[], exercises: readonly { id: string; title: string }[], exFirst = false): string {
+  const mine = '<optgroup label="My songs">' +
+    (own.length ? own.map((s) => '<option value="' + esc(s.id) + '">' + esc(s.title) + '</option>').join('') : '<option disabled value="">No songs yet. Press + New song</option>') + '</optgroup>';
+  const ex = '<optgroup label="Exercises">' + exercises.map((s) => '<option value="' + esc(s.id) + '">' + esc(s.title) + '</option>').join('') + '</optgroup>';
+  return exFirst ? ex + mine : mine + ex;
 }
 
 /** The layer chips for a rhythm style, pressed when on; hidden when the style has none. */
@@ -275,9 +276,18 @@ export function noteNames(us: readonly NoteUnit[], d: number, script: Script): s
 /** What a checker row's Show and Fix buttons point at. */
 export type IssueTarget = { kind: 'read'; g: number; g2: number } | CheckIssue;
 
+/** Dismissing the checker's warnings (new; one of the user's own songs): those dismissed, by
+ * issueKey, and whether they are listed (to bring one back). */
+export interface DismissOptions {
+  dismissed: ReadonlySet<string>;
+  showDismissed: boolean;
+}
+
 /** The checker panel: a summary, then read errors, lyric warnings, bar and line lengths
- * and octave slips (the first 12), or an all-clear line. */
-export function issuesHTML(P: ParsedSong, taals: TaalInfo | Taals, off: number, script: Script): { html: string; list: IssueTarget[] } {
+ * and octave slips (the first 12), or an all-clear line. With `dis`, each warning (not a
+ * reading error, which is always real) can be dismissed; dismissed ones are counted below
+ * the rest and listed on request, each with a button to bring it back. */
+export function issuesHTML(P: ParsedSong, taals: TaalInfo | Taals, off: number, script: Script, dis?: DismissOptions): { html: string; list: IssueTarget[] } {
   const M = asTaals(taals, off);
   const T = M.runs[0]!.T;
   const cyc = T.cycle;
@@ -290,7 +300,8 @@ export function issuesHTML(P: ParsedSong, taals: TaalInfo | Taals, off: number, 
     ? 'in ' + M.runs.map((r) => r.T.name).join(', then ')
     : cycles + ' cycle' + (cycles === 1 ? '' : 's') + ' of ' + T.name + (rem ? ' and ' + rem + ' matra' + (rem === 1 ? '' : 's') : '');
   let html = '<span class="ok">' + P.noteLines.length + ' line' + (P.noteLines.length === 1 ? '' : 's') + ' · ' + P.total + ' matras · ' + inTaal + '</span>';
-  const rows: { cls: string; text: string; i?: number; fix?: boolean }[] = [];
+  const rows: { cls: string; text: string; i?: number; fix?: boolean; key?: string }[] = [];
+  const gone: typeof rows = [];
   P.errors.forEach((e) => {
     list.push({ kind: 'read', g: e.g, g2: e.g });
     rows.push({ cls: 'err', text: 'Line ' + e.line + ', “' + esc(e.tok) + '”: ' + esc(e.msg) + '. That beat plays what it could read.', i: list.length - 1 });
@@ -300,17 +311,26 @@ export function issuesHTML(P: ParsedSong, taals: TaalInfo | Taals, off: number, 
     list.push(it);
     const i = list.length - 1;
     const name = M.line(it.line).T.name;
-    if (it.kind === 'octave') rows.push({ cls: 'warn', i, fix: true, text: 'Line ' + (it.line + 1) + ': <b>' + noteNames(it.notes, 0, script) + '</b> jumps more than an octave away from the notes on either side. Should ' + (it.notes.length > 1 ? 'they' : 'it') + ' be <b>' + noteNames(it.notes, it.delta, script) + '</b>?' });
-    else if (it.kind === 'bar') rows.push({ cls: 'warn', i, text: 'Line ' + (it.line + 1) + ', bar ' + it.bar + ' has ' + it.len + ' beats. In ' + name + ' this bar should probably have ' + it.exp + ', so a beat may be missing or extra.' });
-    else rows.push({ cls: 'warn', i, text: 'Line ' + (it.line + 1) + ' has ' + it.len + ' beats, so it ends partway through a ' + name + ' vibhag. A beat may be missing or extra.' });
+    const key = dis ? issueKey(P, it) : undefined;
+    const to = key && dis!.dismissed.has(key) ? gone : rows;
+    if (it.kind === 'octave') to.push({ cls: 'warn', i, key, fix: true, text: 'Line ' + (it.line + 1) + ': <b>' + noteNames(it.notes, 0, script) + '</b> jumps more than an octave away from the notes on either side. Should ' + (it.notes.length > 1 ? 'they' : 'it') + ' be <b>' + noteNames(it.notes, it.delta, script) + '</b>?' });
+    else if (it.kind === 'bar') to.push({ cls: 'warn', i, key, text: 'Line ' + (it.line + 1) + ', bar ' + it.bar + ' has ' + it.len + ' beats. In ' + name + ' this bar should probably have ' + it.exp + ', so a beat may be missing or extra.' });
+    else to.push({ cls: 'warn', i, key, text: 'Line ' + (it.line + 1) + ' has ' + it.len + ' beats, so it ends partway through a ' + name + ' vibhag. A beat may be missing or extra.' });
   }
-  if (!rows.length) html += '<div class="chkok">Checked: every bar lands on a ' + (M.changes ? 'vibhag line of its section’s taal' : T.name + ' vibhag line') + ' and no note looks like an octave slip.</div>';
+  const row = (r: (typeof rows)[number], back = false) => '<li class="' + r.cls + (back ? ' dis' : '') + '"><span class="t">' + r.text + '</span>' +
+    (r.i != null ? '<button type="button" class="ibtn" data-act="show" data-i="' + r.i + '">Show</button>' : '') +
+    (r.fix && !back ? '<button type="button" class="ibtn" data-act="fix" data-i="' + r.i + '">Fix</button>' : '') +
+    (r.key ? (back ? '<button type="button" class="ibtn" data-act="undismiss" data-k="' + r.key + '">Bring back</button>' : '<button type="button" class="ibtn" data-act="dismiss" data-k="' + r.key + '" title="Hide this until the line changes">Dismiss</button>') : '') + '</li>';
+  if (!rows.length && !gone.length) html += '<div class="chkok">Checked: every bar lands on a ' + (M.changes ? 'vibhag line of its section’s taal' : T.name + ' vibhag line') + ' and no note looks like an octave slip.</div>';
+  else if (!rows.length) html += '<div class="chkok">Nothing to check apart from what you dismissed.</div>';
   else {
     html += '<div class="chkhead">' + rows.length + ' thing' + (rows.length === 1 ? '' : 's') + ' to check</div><ul>' +
-      rows.slice(0, 12).map((r) => '<li class="' + r.cls + '"><span class="t">' + r.text + '</span>' +
-        (r.i != null ? '<button type="button" class="ibtn" data-act="show" data-i="' + r.i + '">Show</button>' : '') +
-        (r.fix ? '<button type="button" class="ibtn" data-act="fix" data-i="' + r.i + '">Fix</button>' : '') + '</li>').join('') +
+      rows.slice(0, 12).map((r) => row(r)).join('') +
       (rows.length > 12 ? '<li class="warn"><span class="t">and ' + (rows.length - 12) + ' more. Fix these first.</span></li>' : '') + '</ul>';
+  }
+  if (gone.length) {
+    html += '<div class="chkdis">' + gone.length + ' dismissed · <button type="button" class="linkbtn" data-act="showdis" aria-expanded="' + dis!.showDismissed + '">' + (dis!.showDismissed ? 'Hide them' : 'Show them') + '</button></div>' +
+      (dis!.showDismissed ? '<ul class="dislist">' + gone.map((r) => row(r, true)).join('') + '</ul>' : '');
   }
   return { html, list };
 }

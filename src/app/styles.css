@@ -234,6 +234,10 @@ textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--
 .issues li.err{border-left-color:var(--red-ink)}
 .issues li .t{flex:1 1 240px;min-width:0}
 .issues li b{font-family:var(--f-note);font-weight:400;font-size:18px}
+/* Dismissed warnings (new): counted under the rest, listed faded on request. */
+.chkdis{color:var(--ink-2)}
+.linkbtn{padding:0;border:0;background:none;color:var(--ink);font:inherit;font-weight:600;text-decoration:underline;text-underline-offset:.2em}
+.issues li.dis{opacity:.7;border-left-color:var(--line)}
 .ibtn{padding:2px 11px;border:1px solid var(--line);border-radius:7px;background:var(--chip);font-size:13px;font-weight:600}
 .ibtn:hover{border-color:var(--ink-2)}
 .help{background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
@@ -303,6 +307,16 @@ textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--
 .lfold svg{flex:none;width:20px;height:20px;color:var(--ink-2);transition:transform .15s}
 .lfold[aria-expanded="false"] svg{transform:rotate(-90deg)}
 button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
+/* Moving a section: drag its handle (or ↑ ↓ on it); while moving, only the headings show
+   and a brass line shows where it will go (Rinat, 2026-10-14). */
+.lgrip{flex:none;align-self:center;width:28px;height:38px;display:grid;place-items:center;padding:0;border:0;border-radius:8px;background:none;color:var(--ink-2);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.lgrip svg{width:18px;height:18px}
+.lgrip:hover{background:var(--chip);color:var(--ink)}
+#libList{position:relative}
+#libList.sorting [id^="lsec-"]{display:none}
+.lsec.dragging{position:relative;z-index:3;background:var(--paper);border-radius:10px;box-shadow:0 6px 18px var(--shadow);cursor:grabbing}
+.lsec.dragging .lgrip{cursor:grabbing}
+.ldrop{position:absolute;left:0;right:0;height:3px;border-radius:2px;background:var(--brass);pointer-events:none;z-index:4}
 .llist{list-style:none;margin:0;padding:0;background:var(--sheet);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 /* A song's row, like a line in the beat boxes: lit faintly under the pointer, with two
    buttons the row's full height at its end (under it on a phone). */
@@ -409,6 +423,21 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .rwfoot{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
 .rwfoot .spacer{flex:1 1 auto}
 .rwfoot b{font-family:var(--f-note);font-weight:400}
+/* Choosing several songs and exercises to add: rows ticked anywhere, numbered in the order
+   ticked (Rinat, 2026-10-14). */
+.rwpick{display:grid;gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--paper);min-width:0}
+.rwpickhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font-size:14px;color:var(--ink-2)}
+.rwpickq{flex:1 1 220px;min-width:0;padding:6px 10px;border:1px solid var(--line);border-radius:9px;background:var(--sheet);font-size:15px}
+.rwpickgrp{display:grid;gap:6px;min-width:0}
+.rwpickgrp h4{margin:2px 0 0;font-family:var(--f-note);font-size:18px;font-weight:400;color:var(--ink)}
+.rwpicklist{list-style:none;margin:0;padding:0;max-height:40vh;overflow:auto;overscroll-behavior:contain;background:var(--sheet);border:1px solid var(--line);border-radius:10px}
+.rwpicklist li+li{border-top:1px solid var(--rule)}
+.rwpickrow{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 12px;cursor:pointer}
+.rwpickrow:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.rwpickrow input{flex:none;width:18px;height:18px;accent-color:var(--brass)}
+.rwpicktitle{flex:1 1 auto;min-width:0;font-family:var(--f-note);font-size:16px;overflow-wrap:anywhere}
+.rwpickopen{flex:none;font-size:12px;color:var(--ink-2)}
+.rwpickn{flex:none;min-width:24px;padding:0 7px;border-radius:999px;background:var(--brass);color:var(--brass-ink);font-size:13px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums}
 @media (max-width:720px){
   .rwgo{width:auto;padding:8px 14px}
   .rwn{width:28px}
