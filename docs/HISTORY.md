@@ -49,6 +49,42 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-15 BST — Claude (Opus 5.5) — PH2-12 the pad's octaves
+
+- **Goal:** Rinat, to "The pad only goes from the lower to the upper octave, though the
+  notation can go one octave further each way. I can extend it if you need that": "do this".
+- **Inspected:** `PAD_OCTAVES`, `renderNoteButtons`, `setInsOct`, `tokenFor` (app.ts);
+  `noteToken` (core edit.ts, already writing ±2); `unitHTML` and the `.u.lo`/`.u.hi` dots,
+  which drew one dot for a note one or two octaves away; the tivra line, which hid an upper
+  Sa Re Ga Ma's dot.
+- **Changed:** `53ccbc0` (feat(edit)): view.ts: `PAD_OCTAVES` −2 … +2 (Lowest octave ·
+  অতিমন্দ্র, Highest octave · অতিতার), `PAD_LOWEST`, `PAD_HIGHEST`, `padOctaveWord`;
+  `unitHTML` adds `lo2` / `hi2`; app.ts: the side buttons named for the octave they move to,
+  off at either end, `setInsOct` clamped to the pad's range, `tokenFor` through `noteToken`;
+  styles: two dots side by side, the upper tivra Ma's dot beside its line; tests (pad.test.ts;
+  the differential test's `oneDot` allows the second dot). This commit (docs): NOTATION
+  (Octaves → Shown), ROADMAP (Phase 2 row 12), this file (the PH2-10 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`):
+  - `npm run typecheck` → 0; `npx vitest run` → 36 files, 378 passed. `npm run build` →
+    226.9 kB JS (80.3 kB gzip), 50.5 kB CSS; `bash reference/tests/run-all.sh` →
+    31/11/10/12/5 passed, 12 exercises valid.
+  - 1280 × 960, day, a new song in the beat boxes: the left button said Lower, then Lowest
+    (pad "Lower octave · মন্দ্র"), then was off at "Lowest octave · অতিমন্দ্র" (its own label
+    Lowest, the right one Lower); সা and না wrote `..সা ..না`; right four times: Lower, Middle,
+    Upper, Highest, then off at "Highest octave · অতিতার"; সা and tivra Ma wrote `র্র্সা`,
+    `র্র্হ্মা`. Free text: রা and, four octaves down, ধা wrote `র্র্রা ..ধা`. Sa Re Ga: the pad's Sa
+    `u lo lo2` at the lowest, `u hi hi2` at the highest; the preview drew `lo2`/`hi2` on all six
+    notes. No console errors.
+  - 360 × 780, night: no sideways scrolling; "Highest" 35 px in its 42 px button; two dots
+    under and over the notes, and the upper tivra Ma's dot beside its line, readable.
+  - CI run `38816617432` (`53ccbc0`): core, reference and deploy jobs green. Live: the bundle index-Dplr_f9i.js served; a new song's pad went down to "Lowest octave · অতিমন্দ্র" (left button off, Sa `u lo lo2`) and up to "Highest octave · অতিতার" (right button off), writing `..সা র্র্সা`.
+- **Decisions made:** the Entering notes row updated (two octaves either side).
+- **Risks or disagreements:** in Bengali the highest octave is two রেফs (`র্র্সা`), as the
+  notation already wrote it; fonts draw the first as a visible র্, and the highest Re
+  (`র্র্রা`) as a conjunct. Nobody has entered a song this low or high yet.
+- **Next handoff:** Rinat enters a song's lowest and highest notes from the pad.
+
 ### 2026-10-15 BST — Claude (Opus 5.5) — PH2-11 one undo for the song's text
 
 - **Goal:** Rinat: Undo "seems unintuitive … when writing anything through beat boxes, it is

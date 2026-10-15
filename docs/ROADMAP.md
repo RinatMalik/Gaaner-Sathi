@@ -84,6 +84,7 @@ Begun 2026-10-11 with Rinat's comments on the screen as it is ("mostly design am
 | 11 | **One undo:** Undo and Ctrl+Z take back the song's text step by step whatever changed it (beat boxes, pad, free text, Join, Split, octave, heading), in either view; another song opened starts afresh | 2026-10-15 | Rinat finds Undo does what is expected |
 | 12 | **The pad's octaves:** the note pad goes two octaves either side (lowest অতিমন্দ্র to highest অতিতার), as far as the notation reads; two dots for a note two octaves away | 2026-10-15 | Rinat enters the lowest and highest notes of a song from the pad |
 | 13 | **The pad in colour, its tools beside it:** a faint colour for each octave (komal and tivra stronger); Undo, Lower/Higher and Join/Split in sections beside the pad (under it when narrow); Bengali two octaves up shown as two dots and written `সা''` | 2026-10-15 | Rinat finds the octaves and the tools easy to tell apart |
+| 14 | **Two short lines to a row:** in the Practice view, lines that fit in half the width (a Keherwa or Dadra cycle on a laptop) sit two to a row within a section, the song's text unchanged; the row being sung large; a setting to keep one line to a row | 2026-10-16 | Rinat finds a Keherwa or Dadra song fills the view without empty space, and still follows the line being sung |
 
 ## Phase 3: native mobile app
 
