@@ -10,7 +10,10 @@
  * vibhag is coloured for sam, khali or tali. A
  * heading can give its section a tempo and a taal of its own (taal pherta), which the rows
  * under it follow. Every change goes into the song text (src/core/notation/boxes.ts works it out), which the
- * Free text view shows as it is. The HTML builder is pure and tested in Node.
+ * Free text view shows as it is. Where two lines both fit in half the width (a cycle of
+ * Keherwa or Dadra on a laptop), they sit side by side, two to a row, in reading order
+ * (Rinat, 2026-10-16); the text is not changed by it. The HTML builder is pure and tested in
+ * Node.
  */
 import { addHeading, appendBeats, beatsTyped, boxRows, copyRows, insertLines, insertText, moveRows, newRowShape, nextSpot, pasteRows, placeBeats, readableBeat, removeBeat, removeHeading, removeLine, setBeat, setHeading, setLyrics, type BoxRow, type BoxSpot, type BoxTaal, type NewAt } from '../core/notation/boxes';
 import { fillWords, syllables } from '../core/notation/lyrics';
@@ -114,6 +117,41 @@ function ghostCell(key: string, T: BoxTaal, p: number, first: boolean, label: st
     input(key, 'bx', '', label, first ? '' : ' tabindex="-1"') + '<span class="lxgap" style="--v:' + verses + '"></span></span>';
 }
 
+/** Which rows go two to a row (Rinat, 2026-10-16), from whether each fits in half the width
+ * (a heading never does): runs of rows that fit, paired from the first of each run, one left
+ * over taking half a row alone; rows that do not fit, and headings, end a run. The groups are
+ * rows' indices, one or two each. */
+export function pairRuns(fits: readonly boolean[]): number[][] {
+  const out: number[][] = [];
+  let open: number[] | null = null;
+  fits.forEach((f, i) => {
+    if (!f) open = null;
+    else if (open) {
+      open.push(i);
+      open = null;
+    } else {
+      open = [i];
+      out.push(open);
+    }
+  });
+  return out;
+}
+
+/** Where a row is, in the boxes' scrolled content, for dragging: and whether it is half a row. */
+interface RowBox {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+  half: boolean;
+}
+
+/** Whether a row dragged to (x, y) goes before row R: above its row, or on it before its middle
+ * (its left half's middle for half a row; its height's middle for a whole one). In reading
+ * order, the first row it goes before is where it goes. */
+export const goesBefore = (R: RowBox, x: number, y: number): boolean =>
+  y < R.top ? true : y > R.bottom ? false : R.half ? x < (R.left + R.right) / 2 : y < (R.top + R.bottom) / 2;
+
 // ── Wiring ───────────────────────────────────────────────────────────────────
 
 export interface BoxesHost {
@@ -173,6 +211,12 @@ export function initBoxes(host: BoxesHost): Boxes {
   let playingFrom = false;
   let beatNow = -1;
 
+  /** The rows that were in pairs (`n:` a line, `a:` an empty row), so the line being typed in
+   * keeps its place even if it grows past half the width; and the boxes' width they were
+   * paired at. */
+  let pairedBefore = new Set<string>();
+  let pairedAt = -1;
+
   const parsed = (): ParsedSong => parseSong(host.text());
   const el = (key: string) => box.querySelector<HTMLInputElement>('[data-key="' + key + '"]');
   const parts = (key: string) => key.split(':');
@@ -197,6 +241,7 @@ export function initBoxes(host: BoxesHost): Boxes {
     rendering = true;
     try {
       box.innerHTML = boxesHTML(rows, (n, written) => Math.max(1, written + (extraVerse.has(n) ? 1 : 0)), sel);
+      pairUp(focus?.key ?? lastKey);
     } finally {
       rendering = false;
     }
@@ -211,6 +256,62 @@ export function initBoxes(host: BoxesHost): Boxes {
     for (const e of box.querySelectorAll('.bx.cur')) e.classList.remove('cur');
     if (lastKey) el(lastKey)?.classList.add('cur');
   }
+
+  // ── Two lines to a row ─────────────────────────────────────────────────────
+
+  const rowId = (row: HTMLElement) => (row.classList.contains('bxnew') ? 'a:' + row.dataset.at : 'n:' + row.dataset.n);
+  /** The width the rows are laid out in: the boxes' own, less a scrollbar's room (so whether
+   * one shows does not change the pairs). */
+  const layoutWidth = () => Math.round(box.getBoundingClientRect().width) - 2 - 12;
+
+  /** Put lines two to a row where both fit in half the width: each row measured at the full
+   * width (its number, its boxes and its buttons), then the pairs wrapped in `.bxpair`. The row
+   * of `key` (the box being typed in) stays paired if it was, though it grows. */
+  function pairUp(key: string): void {
+    for (const p of Array.from(box.querySelectorAll('.bxpair'))) p.replaceWith(...Array.from(p.children));
+    const W = layoutWidth();
+    pairedAt = W;
+    if (W <= 0 || !box.offsetParent) return;
+    const half = Math.floor((W - 1) / 2) - 2;
+    const rows = Array.from(box.children).filter((e): e is HTMLElement => e.classList.contains('bxrow'));
+    const [k, a] = parts(key);
+    const typing = !key ? null : k === 'n' ? 'a:' + a : k === 'b' || k === 'g' || k === 'l' ? 'n:' + a : null;
+    // An empty row is measured with the buttons it will have once it is a line.
+    const sideW = box.querySelector<HTMLElement>('.bxnotes .bxside')?.offsetWidth ?? 108;
+    const need = rows.map((row) => {
+      if (row.classList.contains('bxhead')) return Infinity;
+      const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
+      const side = row.querySelector<HTMLElement>('.bxside');
+      let w = (row.querySelector<HTMLElement>('.bxln')?.offsetWidth ?? 0) + (side ? side.offsetWidth : sideW) + 2 * gap;
+      for (const g of row.querySelectorAll<HTMLElement>('.bxbeats > .bxgrp')) w += g.offsetWidth;
+      return w + 2;
+    });
+    const fits = rows.map((row, i) => need[i]! <= half || (need[i]! < Infinity && rowId(row) === typing && pairedBefore.has(typing)));
+    pairedBefore = new Set();
+    for (const g of pairRuns(fits)) {
+      const wrap = document.createElement('div');
+      wrap.className = 'bxpair';
+      rows[g[0]!]!.before(wrap);
+      for (const i of g) {
+        wrap.appendChild(rows[i]!);
+        pairedBefore.add(rowId(rows[i]!));
+      }
+    }
+  }
+
+  // The boxes' width changed (the window, or the view shown): pair them again, the box being
+  // typed in keeping the keyboard.
+  new ResizeObserver(() => {
+    if (layoutWidth() === pairedAt || drag) return;
+    const f = activeFocus();
+    rendering = true;
+    try {
+      pairUp(f?.key ?? lastKey);
+    } finally {
+      rendering = false;
+    }
+    if (f && document.activeElement !== el(f.key)) focusKey(f.key, false, f.caret);
+  }).observe(box);
 
   function focusKey(key: string, select = true, caret?: number): void {
     const e = el(key);
@@ -749,7 +850,7 @@ export function initBoxes(host: BoxesHost): Boxes {
   /** A row being dragged by its handle. Positions are in the boxes' scrolled content. */
   let drag: {
     id: number; r: number; group: number[]; rows: HTMLElement[]; grip: HTMLElement; mark: HTMLElement;
-    y0: number; tops: number[]; bottoms: number[]; to: number; y: number; moved: boolean; raf: number;
+    x0: number; y0: number; boxes: RowBox[]; to: number; x: number; y: number; moved: boolean; raf: number;
   } | null = null;
 
   /** Whether moving `group` to before row `to` would leave everything where it is. */
@@ -760,26 +861,55 @@ export function initBoxes(host: BoxesHost): Boxes {
     return group.every((g, i) => g === at + i);
   }
   const contentTop = () => box.getBoundingClientRect().top + box.clientTop - box.scrollTop;
+  const contentLeft = () => box.getBoundingClientRect().left + box.clientLeft - box.scrollLeft;
 
-  function dragTo(clientY: number): void {
+  /** A row dragged to the pointer: where it would go, in reading order, shown by a brass line,
+   * across above a whole row, or down beside half a row on the pointer's row. */
+  function dragTo(clientX: number, clientY: number): void {
     const d = drag;
     if (!d) return;
+    d.x = clientX;
     d.y = clientY;
+    const x = clientX - contentLeft();
     const y = clientY - contentTop();
-    if (!d.moved && Math.abs(y - d.y0) < 5) return;
-    if (!d.moved) d.rows.forEach((row) => row.classList.add('dragging'));
+    if (!d.moved && Math.hypot(x - d.x0, y - d.y0) < 5) return;
+    if (!d.moved) {
+      d.rows.forEach((row) => row.classList.add('dragging'));
+      box.classList.add('dragging');
+    }
     d.moved = true;
-    for (const row of d.rows) row.style.transform = 'translateY(' + (y - d.y0) + 'px)';
-    let to = d.tops.length;
-    for (let i = 0; i < d.tops.length; i++) {
-      if (!d.group.includes(i) && y < (d.tops[i]! + d.bottoms[i]!) / 2) {
+    const dx = d.boxes.some((b) => b.half) ? x - d.x0 : 0;
+    for (const row of d.rows) row.style.transform = 'translate(' + dx + 'px,' + (y - d.y0) + 'px)';
+    const B = d.boxes;
+    let to = B.length;
+    for (let i = 0; i < B.length; i++) {
+      if (!d.group.includes(i) && goesBefore(B[i]!, x, y)) {
         to = i;
         break;
       }
     }
     d.to = to;
     d.mark.hidden = staysPut(d.group, to);
-    d.mark.style.top = (to < d.tops.length ? d.tops[to]! : d.bottoms[d.bottoms.length - 1]!) - 2 + 'px';
+    const on = (b: RowBox | undefined) => b && b.half && y >= b.top && y <= b.bottom;
+    const R = B[to];
+    let prev = to - 1;
+    while (prev >= 0 && d.group.includes(prev)) prev--;
+    const P = B[prev];
+    const s = d.mark.style;
+    if (on(R) || on(P)) {
+      // Down the start of the half it goes before, or the end of the half it goes after.
+      const b = on(R) ? R! : P!;
+      s.left = (on(R) ? b.left + 1 : b.right - 6) + 'px';
+      s.top = b.top + 4 + 'px';
+      s.width = '4px';
+      s.height = Math.max(8, b.bottom - b.top - 8) + 'px';
+    } else {
+      const b = R ?? B[B.length - 1]!;
+      s.left = b.left + 4 + 'px';
+      s.top = (R ? b.top : b.bottom) - 2 + 'px';
+      s.width = Math.max(8, b.right - b.left - 8) + 'px';
+      s.height = '3px';
+    }
   }
 
   /** Near the top or bottom of the boxes (as far as they are on screen), they scroll while a
@@ -797,7 +927,7 @@ export function initBoxes(host: BoxesHost): Boxes {
       const was = box.scrollTop;
       box.scrollTop += step;
       if (box.scrollTop === was && (step > 0 ? b.bottom > window.innerHeight : b.top < 0)) window.scrollBy(0, step);
-      dragTo(d.y);
+      dragTo(d.x, d.y);
     }
     d.raf = requestAnimationFrame(edgeScroll);
   }
@@ -812,6 +942,7 @@ export function initBoxes(host: BoxesHost): Boxes {
     cancelAnimationFrame(d.raf);
     window.removeEventListener('keydown', dragKey, true);
     d.mark.remove();
+    box.classList.remove('dragging');
     for (const row of d.rows) {
       row.classList.remove('dragging');
       row.style.transform = '';
@@ -834,7 +965,12 @@ export function initBoxes(host: BoxesHost): Boxes {
     if (!g || !row || drag || ev.button !== 0) return;
     ev.preventDefault();
     const top = contentTop();
-    const rows = grips().map((x) => x.closest('.bxrow')!.getBoundingClientRect());
+    const left = contentLeft();
+    const boxes: RowBox[] = grips().map((x) => {
+      const row = x.closest<HTMLElement>('.bxrow')!;
+      const b = row.getBoundingClientRect();
+      return { left: b.left - left, right: b.right - left, top: b.top - top, bottom: b.bottom - top, half: !!row.parentElement?.classList.contains('bxpair') };
+    });
     const mark = document.createElement('div');
     mark.className = 'bxdrop';
     mark.hidden = true;
@@ -843,8 +979,8 @@ export function initBoxes(host: BoxesHost): Boxes {
     const group = movingWith(r);
     const gs = grips();
     drag = {
-      id: ev.pointerId, r, group, rows: group.map((i) => gs[i]!.closest<HTMLElement>('.bxrow')!), grip: g, mark, y0: ev.clientY - top, y: ev.clientY, to: r, moved: false, raf: 0,
-      tops: rows.map((x) => x.top - top), bottoms: rows.map((x) => x.bottom - top),
+      id: ev.pointerId, r, group, rows: group.map((i) => gs[i]!.closest<HTMLElement>('.bxrow')!), grip: g, mark,
+      x0: ev.clientX - left, y0: ev.clientY - top, x: ev.clientX, y: ev.clientY, to: r, moved: false, raf: 0, boxes,
     };
     try {
       g.setPointerCapture(ev.pointerId);
@@ -855,7 +991,7 @@ export function initBoxes(host: BoxesHost): Boxes {
     drag.raf = requestAnimationFrame(edgeScroll);
   });
   box.addEventListener('pointermove', (ev) => {
-    if (drag && ev.pointerId === drag.id) dragTo(ev.clientY);
+    if (drag && ev.pointerId === drag.id) dragTo(ev.clientX, ev.clientY);
   });
   box.addEventListener('pointerup', (ev) => {
     if (drag && ev.pointerId === drag.id) endDrag(true);
