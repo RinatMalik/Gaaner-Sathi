@@ -49,6 +49,54 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-15 BST — Claude (Opus 5.5) — PH2-10 design, round ten: the note pad
+
+- **Goal:** Rinat: round nine's Add notes was a misreading ("i actually meant about the
+  feature of adding notes about the song - which is now inside settings so that's fine");
+  "redesign the whole note buttons": a collapsible section with every button and setting for
+  entering notes; the pad's rows (Sa Re Ga Ma / Pa Dha Ni / secondary re, ga, ma, dha, ni /
+  Hold, Silence, Add New Line, Add Header); full-height buttons either side sliding it to the
+  lower or upper octave; Join, Split and Undo "somewhere sensible"; Write in in the section;
+  the song's sound back out of Settings as a main section.
+- **Inspected:** the palette (`noteButtonsHTML`, its prototype comparison), `insertText`,
+  `tokenFor`, the palette's and `+ Heading`'s handlers, the boxes' own undo (Ctrl+Z), the fix
+  row.
+- **Changed:** `628efc2` (feat(edit)): view.ts: `padHTML`, `PAD_ROWS`, `PAD_OCTAVES` (in place
+  of `noteButtonsHTML`); app.ts: `renderNoteButtons` drawing the pad, its octave name and
+  side buttons, `setInsOct` (the slide), `addHeading` (beat boxes or free text),
+  `setPadOpen`, `renderPadSummary`, one handler for the pad; the octave picker, "+ Add notes"
+  and the palette's handlers gone; `showSongSound` no longer opens Settings; index.html: the
+  Enter notes section, the fix row with Undo, the song's sound after Settings, Write in out
+  of Settings; store.ts: `padFold` (`palOpen` dropped); styles; tests (pad.test.ts; the
+  differential test's old row dropped). This commit (docs): DATA (`padFold`), ENGINE (holds
+  and rests from the pad), ROADMAP (Phase 2 row 10), this file (the PH2-08 entry moved to
+  HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`):
+  - `npm run typecheck` → 0; `npx vitest run` → 35 files, 373 passed (new: the pad's rows,
+    captions and names, the octave shown in both scripts, the octave names, Bar and Lyrics
+    line in free text only). `npm run build` → 226 kB JS (80.0 kB gzip), 50.1 kB CSS;
+    `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid.
+  - 1280 × 960, day, a new song: Enter notes open ("Beat boxes · middle octave"), the song's
+    sound its own section, Settings "Untitled song · Dadra". Tapped New line, সা, রা, গা,
+    Hold: "সা রা গা | -"; the left button: "Lower octave · মন্দ্র", itself disabled, the right
+    saying Middle; .না; right twice: "Upper octave · তার", disabled; র্সা, then Silence on a new
+    line (the Dadra line full); Heading added a heading row; Free text: "Free text · upper
+    octave", Bar and Lyrics line added, Undo hidden; Heading then র্পা and Bar wrote "# র্পা |"
+    (the note goes where the cursor is, on the heading line); the section folded ("Show",
+    `padFold`) and unfolded.
+  - 360 × 780, night: the pad 298 px wide with the side buttons full height, the komal buttons
+    38 px wide, notes 48 px tall, lower-octave dots; no sideways scrolling.
+  - CI run `38742686144` (`628efc2`): core, reference and deploy jobs green. Live: https://rinatmalik.github.io/Gaaner-Sathi/ in headless Edge at night: Edit notation with Enter notes open, 12 note buttons, "Middle octave · মধ্য", the right button moving it to "Upper octave · তার", the song's sound its own section, no "+ Add notes"; no console errors.
+- **Decisions made:** see Decisions (entering notes, redesigned).
+- **Risks or disagreements:** the octave buttons stop at lower and upper (the notation reads
+  two octaves either way; say if the pad should go further). The row with Undo, the selected
+  notes' octave, Join and Split stays shown when the pad is folded, since it works on the
+  boxes chosen. Undo after a Heading also takes back the step before it (as + Heading did
+  before). In free text a note tapped after Heading goes into the heading line, where the
+  cursor is. Nobody has used it on a phone yet.
+- **Next handoff:** Rinat enters a song with the pad.
+
 ### 2026-10-15 BST — Claude (Opus 5.5) — PH2-09 design, round nine: Edit notation's Settings, one header menu, delete in the library, a rewaz break
 
 - **Goal:** Rinat: in the Music library "next to print or save button in each line, add the

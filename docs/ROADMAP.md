@@ -82,6 +82,7 @@ Begun 2026-10-11 with Rinat's comments on the screen as it is ("mostly design am
 | 9 | **A cleaner Edit notation, and more:** the song's details, sound and file buttons in a folding Settings bar, the note buttons behind "+ Add notes"; how notes are written and the colours in one small menu in the header; delete from each of the user's Music library rows (asked in the row); a break between rewaz items, set per routine | 2026-10-15 | Rinat finds Edit notation tidier and the header cleaner |
 | 10 | **Entering notes:** an Enter notes section with Write in and a note pad (Sa Re Ga Ma; Pa Dha Ni; komal and tivra; Hold, Silence, New line, Heading) between full-height buttons that move it an octave down or up; Undo, octave, Join and Split in a row under it; the song's sound a section of its own again ("+ Add notes" undone: it had meant the notes about a song) | 2026-10-15 | Rinat enters a song from the pad comfortably on a phone and a laptop |
 | 11 | **One undo:** Undo and Ctrl+Z take back the song's text step by step whatever changed it (beat boxes, pad, free text, Join, Split, octave, heading), in either view; another song opened starts afresh | 2026-10-15 | Rinat finds Undo does what is expected |
+| 12 | **The pad's octaves:** the note pad goes two octaves either side (lowest অতিমন্দ্র to highest অতিতার), as far as the notation reads; two dots for a note two octaves away | 2026-10-15 | Rinat enters the lowest and highest notes of a song from the pad |
 
 ## Phase 3: native mobile app
 

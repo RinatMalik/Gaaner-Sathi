@@ -60,6 +60,10 @@ a space, because JavaScript counts it as whitespace (the port keeps this).
 | Upper (তার) | রেফ before the note: `র্সা` (repeat for +2: `র্র্সা`) | `'` after the note: `S'` (also `’`, `^`, `*` or a backtick) |
 | Lower (মন্দ্র) | `.` before: `.না`, or হসন্ত after: `ন্` | `.` before: `.N` |
 
+- **Shown:** one dot under a lower note in either script, one over an upper note in Sa Re Ga
+  (Bengali shows its রেফ); two octaves away, two dots side by side (Rinat, 2026-10-15; the
+  prototype drew one for either). An upper tivra Ma in Sa Re Ga has its line a little to the
+  left and the octave's dots beside it.
 - A mark written after the আকার still applies: `সা'` is upper Sa.
 - `র্` followed by a note letter is always a রেফ (upper octave on the next note). A lower Re
   has to be written `.রা`.
