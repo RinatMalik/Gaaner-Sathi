@@ -54,6 +54,7 @@ import { initRewaz, type ItemSong, type Rewaz } from './rewaz';
 import { takeBuffer, takeFileName, takesHTML, TakeStore } from './takes';
 import { initVoice, type SaChoice, type VoiceUI } from './voice';
 import { initSongs, LIB_ORDER } from './songs';
+import { firstDifference, TextUndo } from './undo';
 import { loadPrefs, LogStore, RoutineStore, savePrefs as writePrefs, SongStore, TABS, type KeyValueStore, type Tab, type WriteResult } from './store';
 import * as V from './view';
 
@@ -111,7 +112,17 @@ let keyboard: KeyboardUI = { playStarting() {}, playStopped() {} };
 /** The Voice view, wired up by init. */
 let voiceUI: VoiceUI = { render() {}, stop() {} };
 /** The editor's beat boxes, wired up by init. */
-let boxes: Boxes = { refresh() {}, render() {}, beat: () => -1, type() {}, newLine() {}, showBeat() {}, undo: () => false, linePlaying() {}, markBeat() {} };
+let boxes: Boxes = { refresh() {}, render() {}, beat: () => -1, type() {}, newLine() {}, showBeat() {}, restored() {}, linePlaying() {}, markBeat() {} };
+/** Undo for the open song's text, whatever changed it (src/app/undo.ts). */
+const textUndo = new TextUndo();
+/** Where the next change of the text is made, for undo: a beat box, a line of free text, or ''
+ * for a step of its own; and, set just before the notation box's input event fires, a key the
+ * input is to use instead of the line typed on (a note from the pad, Join, Split, an octave). */
+let textKey = '';
+let inputKey = '';
+let undoing = false;
+let editSeq = 0;
+const ownStep = () => 'step:' + ++editSeq;
 /** The notation box's pause before parsing while typing. */
 let parseTimer = 0;
 /** The editor shows beat boxes (unless the user chose free text) on the Edit view. */
@@ -1316,17 +1327,42 @@ function reparse(keepLines: boolean): void {
   if (!playing()) showIdle();
 }
 
-/** The beat boxes changed the text: as typing in the notation box does, it stops playing. */
-function setTextFromBoxes(text: string, soon: boolean): void {
+/** The beat boxes changed the text (made at `key`, for undo): as typing in the notation box
+ * does, it stops playing. */
+function setTextFromBoxes(text: string, soon: boolean, key = ''): void {
   if (text === current.text) return;
   if (active()) stop(true);
   rewaz.cancel();
   clearOverride();
+  textKey = key;
   changed('text', text);
   notationBox().value = text;
   clearTimeout(parseTimer);
   if (soon) parseTimer = window.setTimeout(() => reparse(true), 140);
   else reparse(true);
+}
+
+/** Undo, in the beat boxes or free text alike: the text as it was before the last change,
+ * the keyboard back where that change was made. */
+function undoText(): boolean {
+  const step = textUndo.undo();
+  if (!step) return false;
+  const was = current.text;
+  undoing = true;
+  try {
+    setTextFromBoxes(step.text, false);
+  } finally {
+    undoing = false;
+  }
+  if (boxesShown()) boxes.restored(step.key);
+  else if (!$('#edit').hidden) {
+    const ta = notationBox();
+    const at = Math.min(firstDifference(was, step.text), step.text.length);
+    if (finePointer()) ta.focus({ preventScroll: true });
+    ta.setSelectionRange(at, at);
+    scrollTextareaTo(ta, at);
+  }
+  return true;
 }
 
 /** Beat boxes or free text. */
@@ -1395,8 +1431,9 @@ function loadSong(song: Song | Exercise): void {
     clearOverride();
   }
   current = normalize(song);
-  // The last run's voice and scores belong to the song that was open.
+  // The last run's voice and scores belong to the song that was open, and so does undo.
   lines.clearRun();
+  textUndo.clear();
   if (song.example) {
     current.example = true;
     // Exercises sing in your Sa, once you have one (the range finder, or a change on one).
@@ -1433,6 +1470,8 @@ function loadSong(song: Song | Exercise): void {
 }
 
 function changed<K extends keyof Song>(field: K, value: Song[K]): void {
+  if (field === 'text' && value !== current.text && !undoing) textUndo.remember(current.text, textKey || ownStep());
+  if (field === 'text') textKey = '';
   current[field] = value;
   if (current.example) return;
   current.updatedAt = Date.now();
@@ -1657,6 +1696,7 @@ function applyTextEdit(r: TextEdit): void {
     try {
       ta.focus({ preventScroll: true });
       ta.setSelectionRange(r.lo, r.hi);
+      inputKey = ownStep();
       done = document.execCommand('insertText', false, r.rep);
     } catch {
       done = false;
@@ -1668,7 +1708,10 @@ function applyTextEdit(r: TextEdit): void {
   }
   if (!done) ta.value = r.text;
   ta.setSelectionRange(r.s, r.e);
-  if (!done) ta.dispatchEvent(new Event('input', { bubbles: true }));
+  if (!done) {
+    inputKey = ownStep();
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+  }
   reparse(true);
 }
 
@@ -1773,6 +1816,8 @@ function insertText(txt: string): void {
   const p = s + ins.length;
   ta.setSelectionRange(p, p);
   if (matchMedia('(pointer:fine)').matches) ta.focus();
+  // Each note from the pad is a step of its own.
+  inputKey = ownStep();
   ta.dispatchEvent(new Event('input', { bubbles: true }));
 }
 function tokenFor(semi: number): string {
@@ -2051,6 +2096,7 @@ export function init(): void {
     },
     playLine,
     playFrom: userPlay,
+    undo: undoText,
   });
   applyEditMode();
   printSong = initPrint({ song: () => current, parsed: () => parsed, taals: () => taals, script: () => prefs.script });
@@ -2365,7 +2411,11 @@ export function init(): void {
     if (active()) stop(true);
     rewaz.cancel();
     clearOverride();
-    changed('text', (e.target as HTMLTextAreaElement).value);
+    const ta = e.target as HTMLTextAreaElement;
+    // Typing on one line is one undo step (until a pause); an edit from a button is its own.
+    textKey = inputKey || 'line:' + (ta.value.slice(0, ta.selectionStart).split('\n').length - 1);
+    inputKey = '';
+    changed('text', ta.value);
     clearTimeout(parseTimer);
     parseTimer = window.setTimeout(() => reparse(true), 140);
   });
@@ -2401,7 +2451,15 @@ export function init(): void {
     if (b) setEditMode(b.dataset.v === 'text' ? 'text' : 'boxes');
   });
   $('#bxUndo').addEventListener('click', () => {
-    if (!boxes.undo()) $('#selInfo').textContent = 'Nothing to undo in the beat boxes.';
+    if (!undoText()) $('#selInfo').textContent = 'Nothing to undo.';
+  });
+  // Ctrl+Z in free text takes back the same steps as Undo (the notes from the pad among them,
+  // which the browser's own undo does not know about).
+  notationBox().addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'z') {
+      e.preventDefault();
+      undoText();
+    }
   });
 
   $('#secChips').addEventListener('click', (e) => {

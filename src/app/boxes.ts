@@ -118,8 +118,11 @@ function ghostCell(key: string, T: BoxTaal, p: number, first: boolean, label: st
 
 export interface BoxesHost {
   text(): string;
-  /** Write the song text; `soon`: parse and redraw the sheets after a pause (while typing). */
-  setText(text: string, soon: boolean): void;
+  /** Write the song text; `soon`: parse and redraw the sheets after a pause (while typing);
+   * `key`: where the change was made, for undo (src/app/undo.ts). */
+  setText(text: string, soon: boolean, key: string): void;
+  /** Take back the last change to the text (wherever it was made); false when there is none. */
+  undo(): boolean;
   /** The song's taal and the beat it starts on (sections may name taals of their own). */
   songTaal(): { taal: string; startOn: number };
   /** The beat being typed in, for the octave and beat buttons (−1 when none). */
@@ -143,7 +146,8 @@ export interface Boxes {
   newLine(): void;
   /** Go to the box of a beat (the preview, the checker). */
   showBeat(g: number): void;
-  undo(): boolean;
+  /** An undo put the text back: draw again, the keyboard on the box the change was made in. */
+  restored(key: string): void;
   /** The line playing on its own, or (`from`) the line playing started from (−1: none), for
    * its button. */
   linePlaying(n: number, from?: boolean): void;
@@ -161,8 +165,6 @@ export function initBoxes(host: BoxesHost): Boxes {
   const extraVerse = new Set<number>();
   /** The beat box last typed in. */
   let lastKey = '';
-  /** Undo: the text before each change, and the box it was made in. */
-  const undoStack: { text: string; key: string; at: number }[] = [];
   /** The song as last drawn; the rows selected (rowBlocks indices); the line playing on its own
    * and the beat sounding, kept across drawing again. */
   let drawnP: ParsedSong | null = null;
@@ -230,17 +232,12 @@ export function initBoxes(host: BoxesHost): Boxes {
     return nl && s.j < nl.beats.length ? 'b:' + s.n + ':' + s.j : 'g:' + s.n + ':' + s.j;
   }
 
-  /** Write the text, remembering the old one for undo (one step per box typed in). */
+  /** Write the text, saying which box the change was made in (for undo, kept with the song's
+   * text by the host: one step per box typed in). */
   function write(text: string, key: string, soon: boolean): void {
-    const old = host.text();
-    if (text === old) return;
+    if (text === host.text()) return;
     clearSel();
-    const top = undoStack[undoStack.length - 1];
-    if (!top || top.key !== key || Date.now() - top.at > 4000) {
-      undoStack.push({ text: old, key, at: Date.now() });
-      if (undoStack.length > 200) undoStack.shift();
-    } else top.at = Date.now();
-    host.setText(text, soon);
+    host.setText(text, soon, key);
     drawn = shapeOf();
   }
 
@@ -503,7 +500,7 @@ export function initBoxes(host: BoxesHost): Boxes {
     const [k, a, j] = parts(key);
     if ((ev.ctrlKey || ev.metaKey) && !ev.altKey && ev.key.toLowerCase() === 'z' && !ev.shiftKey) {
       ev.preventDefault();
-      undo();
+      host.undo();
       return;
     }
     if (ev.isComposing) return;
@@ -585,22 +582,18 @@ export function initBoxes(host: BoxesHost): Boxes {
     }
   }
 
-  function undo(): boolean {
-    const top = undoStack.pop();
-    if (!top) return false;
+  function restored(key: string): void {
     // Undone from a row's handle (after moving it): the focus stays on a handle there.
     const a = document.activeElement as HTMLElement | null;
     const onGrip = a && box.contains(a) && a.classList.contains('bxgrip') ? +a.dataset.r! : -1;
-    host.setText(top.text, false);
     drawn = shapeOf();
     grow = null;
     pending = null;
-    render({ key: top.key, select: false });
+    render({ key, select: false });
     if (onGrip >= 0) {
       const gs = grips();
       gs[Math.min(onGrip, gs.length - 1)]?.focus({ preventScroll: true });
     }
-    return true;
   }
 
   // ── Moving and copying lines ───────────────────────────────────────────────
@@ -930,7 +923,7 @@ export function initBoxes(host: BoxesHost): Boxes {
         else paste(r);
       } else if ((ev.ctrlKey || ev.metaKey) && !ev.altKey && !ev.shiftKey && ev.key.toLowerCase() === 'z') {
         ev.preventDefault();
-        undo();
+        host.undo();
       } else if (ev.key === 'Escape' && sel.size && !drag) {
         clearSel();
       }
@@ -1056,7 +1049,7 @@ export function initBoxes(host: BoxesHost): Boxes {
       markCurrent();
       el(key)?.scrollIntoView({ block: 'nearest' });
     },
-    undo,
+    restored,
     linePlaying(n: number, from = false) {
       playingLine = n;
       playingFrom = from;
