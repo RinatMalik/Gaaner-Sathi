@@ -1,6 +1,7 @@
 // The note pad in Edit notation (src/app/view.ts → padHTML; Rinat, 2026-10-15).
 import { describe, expect, it } from 'vitest';
 import { PAD_HIGHEST, PAD_LOWEST, PAD_OCTAVES, padHTML, padOctaveWord } from '../../src/app/view';
+import { shiftOctaves, splitBeats } from '../../src/core/notation/edit';
 
 const semis = (html: string) => Array.from(html.matchAll(/<div class="pkrow[^"]*">(.*?)<\/div>/g), (m) => Array.from(m[1]!.matchAll(/data-semi="(\d+)"/g), (x) => +x[1]!));
 const extras = (html: string) => Array.from(html.matchAll(/data-ins="(\w+)"/g), (m) => m[1]);
@@ -35,11 +36,29 @@ describe('the note pad', () => {
     expect([-2, -1, 0, 1, 2].map(padOctaveWord)).toEqual(['Lowest', 'Lower', 'Middle', 'Upper', 'Highest']);
     expect(padHTML(-2, 'bn', false)).toContain('aria-label="Sa, lowest octave"><span class="pkn"><span class="u lo lo2">সা</span>');
     expect(padHTML(-2, 'lat', false)).toContain('<span class="u lo lo2">Sa</span>');
-    expect(padHTML(2, 'bn', false)).toContain('aria-label="Sa, highest octave"><span class="pkn"><span class="u">র্র্সা</span>');
+    // Bengali two octaves up: two dots over the note, not two রেফs (which fonts draw badly).
+    expect(padHTML(2, 'bn', false)).toContain('aria-label="Sa, highest octave"><span class="pkn"><span class="u up2">সা</span>');
+    expect(padHTML(1, 'bn', false)).not.toContain('up2');
     expect(padHTML(2, 'lat', false)).toContain('<span class="u tivra hi hi2">Ma</span>');
     // One octave away keeps one dot.
     expect(padHTML(-1, 'lat', false)).not.toContain('lo2');
     expect(padHTML(1, 'lat', false)).not.toContain('hi2');
+  });
+
+  it('writes Bengali two octaves up with two marks after the note, wherever it writes octaves', () => {
+    const up = (t: string) => shiftOctaves(t, 0, t.length, 1).text;
+    const down = (t: string) => shiftOctaves(t, 0, t.length, -1).text;
+    expect(up('র্সা র্হ্মা')).toBe("সা'' হ্মা''");
+    expect(up('র্সারা')).toBe("সা''র্রা");
+    expect(down("সা'' হ্মা''")).toBe('র্সা র্হ্মা');
+    // Read in every spelling: two রেফs, a রেফ and a mark, or two marks.
+    expect(down('র্র্সা')).toBe('র্সা');
+    expect(down("র্সা'")).toBe('র্সা');
+    expect(shiftOctaves("সা''", 0, 4, 1).capped).toBe(1);
+    // A note's marks after it stay before the next note's (the prototype swapped them: N র্' হ্ম).
+    expect(up('Nহ্মা')).toBe("N'র্হ্মা");
+    const split = splitBeats("সা''রা", 0, 6);
+    expect(split.ok && split.text).toBe("সা'' রা");
   });
 
   it('adds a bar and a line of lyrics in free text', () => {

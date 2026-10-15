@@ -27,6 +27,8 @@
   --focus:#2560c7;
   --shadow:rgba(20,10,5,.18);
   --v-sam:#f6dc97; --v-sam-line:#b8892a; --v-tali:#d4e8ca; --v-tali-line:#6b9a5e; --v-khali:#ddd5f0; --v-khali-line:#8a76bd;
+  /* the note pad's octaves, lowest to highest: cool to warm */
+  --o-n2:#6a58c8; --o-n1:#2d78c0; --o-0:#2f9466; --o-1:#c98516; --o-2:#c8486b;
   --f-note:"Tiro Bangla","Noto Serif Bengali","Kohinoor Bangla",Georgia,serif;
   --f-ui:"Hind Siliguri","Noto Sans Bengali",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
@@ -37,6 +39,7 @@
     --brass:#d3a843; --brass-hi:#f2d176; --brass-ink:#22120a; --mark:#5b4614; --mark-ink:#fff6dc;
     --line:#2c2c35; --chip:#24242c; --focus:#86aaff; --shadow:rgba(0,0,0,.5);
     --v-sam:#4b3a10; --v-sam-line:#d3a843; --v-tali:#1d3a22; --v-tali-line:#79b06c; --v-khali:#30284a; --v-khali-line:#a492dc;
+    --o-n2:#a596ff; --o-n1:#68aeea; --o-0:#62c493; --o-1:#e8b04c; --o-2:#f0839f;
     color-scheme:dark;
   }
 }
@@ -46,6 +49,7 @@
   --brass:#d3a843; --brass-hi:#f2d176; --brass-ink:#22120a; --mark:#5b4614; --mark-ink:#fff6dc;
   --line:#2c2c35; --chip:#24242c; --focus:#86aaff; --shadow:rgba(0,0,0,.5);
     --v-sam:#4b3a10; --v-sam-line:#d3a843; --v-tali:#1d3a22; --v-tali-line:#79b06c; --v-khali:#30284a; --v-khali-line:#a492dc;
+  --o-n2:#a596ff; --o-n1:#68aeea; --o-0:#62c493; --o-1:#e8b04c; --o-2:#f0839f;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -177,6 +181,7 @@ button{cursor:pointer}
 .u.lo::after{content:"";position:absolute;left:50%;bottom:-.02em;width:.17em;height:.17em;margin-left:-.085em;border-radius:50%;background:currentColor}
 /* two octaves up or down: two dots side by side */
 .u.hi2::before,.u.lo2::after{margin-left:-.22em;box-shadow:.27em 0 0 currentColor}
+.u.up2::before{content:"";position:absolute;left:50%;top:-.2em;width:.17em;height:.17em;margin-left:-.22em;border-radius:50%;background:currentColor;box-shadow:.27em 0 0 currentColor}
 .u.komal{text-decoration:underline;text-decoration-thickness:.06em;text-underline-offset:.16em}
 .u.tivra::before{content:"";position:absolute;left:50%;top:-.12em;width:.06em;height:.32em;margin-left:-.03em;background:currentColor;border-radius:0;box-shadow:none}
 /* tivra Ma in an upper octave: its line a little to the left, the octave's dots beside it */
@@ -228,7 +233,6 @@ textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--
 .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .toolbar .spacer{flex:1 1 auto}
 .fstatus{font-size:13px;color:var(--ink-2);min-width:0}
-.fixrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:9px 12px;border:1px solid var(--line);border-left:3px solid var(--focus);border-radius:10px;background:var(--sheet)}
 .obtn{padding:5px 13px;border:1px solid var(--line);border-radius:8px;background:var(--chip);font-weight:600;font-size:14px}
 .obtn:hover{border-color:var(--ink-2)}
 .selinfo{font-size:13px;color:var(--ink-2);min-width:0}
@@ -481,22 +485,45 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
    and tivra) and hold, silence, new line, heading, between full-height buttons that slide it
    to the octave below or above. */
 .padbody{gap:12px}
+/* the pad and, beside it when there is room (else under it), the tools that change notes */
+.padwrap{container-type:inline-size;min-width:0}
+.padlay{display:grid;gap:12px;min-width:0}
+.padtools{display:flex;flex-wrap:wrap;gap:8px;min-width:0}
+.ptg{flex:1 1 140px;display:grid;gap:6px;padding:8px 9px 9px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
+.ptlab{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.ptb{display:flex;gap:6px}
+.ptb .obtn{flex:1 1 0;min-height:40px;padding:5px 8px;white-space:nowrap}
+.padtools .selinfo{flex:1 1 100%;padding:0 2px}
+@container (min-width:640px){.padlay{grid-template-columns:minmax(0,720px) minmax(190px,250px)}.padtools{flex-direction:column;flex-wrap:nowrap}.padtools .ptg,.padtools .selinfo{flex:none}}
+/* on a phone, each section one row: its name, then its buttons */
+@container (max-width:439px){.ptg{flex:1 1 100%;grid-template-columns:6.4em minmax(0,1fr);align-items:center;column-gap:8px;padding:6px 8px}.ptb .obtn{min-height:38px}}
+/* each octave its own faint colour (--oc), komal and tivra stronger in it */
+[data-oct="-2"]{--oc:var(--o-n2)}
+[data-oct="-1"]{--oc:var(--o-n1)}
+[data-oct="0"]{--oc:var(--o-0)}
+[data-oct="1"]{--oc:var(--o-1)}
+[data-oct="2"]{--oc:var(--o-2)}
 .pad{display:grid;grid-template-columns:58px minmax(0,1fr) 58px;gap:8px;align-items:stretch;max-width:720px;min-width:0}
 .padoct{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px 2px;border:1px solid var(--line);border-radius:12px;background:var(--paper);color:var(--ink);font-size:12px;font-weight:700;letter-spacing:.02em}
 .padoct svg{width:24px;height:24px}
-.padoct:hover:not(:disabled){border-color:var(--ink-2);background:var(--chip)}
+.padoct:not(:disabled){background:color-mix(in srgb,var(--oc) 12%,var(--paper));border-color:color-mix(in srgb,var(--oc) 40%,var(--line))}
+.padoct:hover:not(:disabled){border-color:var(--oc);background:color-mix(in srgb,var(--oc) 22%,var(--paper))}
 .padoct:disabled{opacity:.3;cursor:default}
 .padoct:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .padmid{display:grid;gap:6px;min-width:0;overflow:hidden}
 .padoctname{text-align:center;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
 .padkeys{display:grid;gap:6px;min-width:0}
 .pkrow{display:flex;gap:6px;min-width:0}
-.pk{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:54px;padding:4px 2px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font-family:var(--f-note);font-size:23px;line-height:1.15}
-.pk:hover{border-color:var(--ink-2);background:var(--chip)}
+.pk{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:54px;padding:4px 2px;border:1px solid color-mix(in srgb,var(--oc) 35%,var(--line));border-radius:10px;background:color-mix(in srgb,var(--oc) 13%,var(--paper));color:var(--ink);font-family:var(--f-note);font-size:23px;line-height:1.15}
+.pk:hover{border-color:var(--oc);background:color-mix(in srgb,var(--oc) 24%,var(--paper))}
 .pk:active{transform:translateY(1px)}
 .pk:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
-.pkc{font-family:var(--f-ui);font-size:10.5px;font-weight:600;line-height:1.2;color:var(--ink-2)}
-.pkvar .pk{background:color-mix(in srgb,var(--v-khali) 35%,var(--paper))}
+.pkc{margin-top:3px;font-family:var(--f-ui);font-size:10.5px;font-weight:600;line-height:1.2;color:var(--ink-2)}
+.pkvar .pk{background:color-mix(in srgb,var(--oc) 32%,var(--paper));border-color:color-mix(in srgb,var(--oc) 55%,var(--line))}
+.pkvar .pk:hover{background:color-mix(in srgb,var(--oc) 44%,var(--paper))}
+.pk.px,.pk.px:hover{background:var(--paper);border-color:var(--line)}
+.pk.px:hover{border-color:var(--ink-2)}
+.padoctname::before{content:"";display:inline-block;width:.8em;height:.8em;margin-right:.45em;border-radius:50%;background:var(--oc);vertical-align:-.08em}
 .pk.px{min-height:46px;border-style:dashed;font-family:var(--f-ui);font-size:13px;font-weight:600;color:var(--ink-2)}
 .pk.px .pks{font-family:var(--f-note);font-size:18px;line-height:1.1;color:var(--ink)}
 @media (max-width:520px){

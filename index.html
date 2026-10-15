@@ -303,6 +303,7 @@
             </button>
             <section class="mixer padbody" id="padBody" aria-labelledby="padHead">
               <div class="modebar"><span class="lab2" id="modeLab">Write in</span><div class="seg" id="modeSeg" role="group" aria-labelledby="modeLab"><button type="button" data-v="boxes">Beat boxes</button><button type="button" data-v="text">Free text</button></div></div>
+              <div class="padwrap"><div class="padlay">
               <div class="pad" id="pad" role="group" aria-label="Enter notes">
                 <button type="button" class="padoct" id="padLower"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="padLowerLab">Lower</span></button>
                 <div class="padmid">
@@ -311,19 +312,17 @@
                 </div>
                 <button type="button" class="padoct" id="padUpper"><span id="padUpperLab">Upper</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
               </div>
+              <!-- Changing what is written (Rinat, 2026-10-15: beside the pad, in sections). -->
+              <div class="padtools" id="fixRow" role="group" aria-label="Change what is written">
+                <div class="ptg"><span class="ptlab">Last change</span><div class="ptb"><button type="button" class="obtn" id="bxUndo" title="Take back the last change (Ctrl+Z)"><span aria-hidden="true">↶ </span>Undo</button></div></div>
+                <div class="ptg"><span class="ptlab">Selected notes</span><div class="ptb"><button type="button" class="obtn" id="octDown" aria-label="Move the selected notes down an octave">↓ Lower</button><button type="button" class="obtn" id="octUp" aria-label="Move the selected notes up an octave">↑ Higher</button></div></div>
+                <div class="ptg"><span class="ptlab">Beats</span><div class="ptb"><button type="button" class="obtn" id="joinBtn" title="Put the selected beats, or this beat and the next, into one beat">Join</button><button type="button" class="obtn" id="splitBtn" title="Give each note in the selected beat its own beat">Split</button></div></div>
+                <span class="selinfo" id="selInfo" aria-live="polite">Choose a beat box</span>
+              </div>
+              </div></div>
               <p class="phint" id="modeHint"></p>
               <span class="phint" id="kbHint" hidden>Play your keyboard: each key you press is a beat. Add holds with Hold.</span>
             </section>
-          </div>
-          <div class="fixrow" id="fixRow">
-            <button type="button" class="obtn" id="bxUndo" title="Take back the last change (Ctrl+Z)">Undo</button>
-            <span class="lab2">Selected notes</span>
-            <button type="button" class="obtn" id="octDown" aria-label="Move the selected notes down an octave">↓ Lower</button>
-            <button type="button" class="obtn" id="octUp" aria-label="Move the selected notes up an octave">↑ Higher</button>
-            <span class="lab2">Beat</span>
-            <button type="button" class="obtn" id="joinBtn" title="Put the selected beats, or this beat and the next, into one beat">Join</button>
-            <button type="button" class="obtn" id="splitBtn" title="Give each note in the selected beat its own beat">Split</button>
-            <span class="selinfo" id="selInfo" aria-live="polite">Choose a beat box</span>
           </div>
           <div class="bxkey" id="bxKey"><span>The first beat of each part of the taal:</span><span class="kk v-sam"><i></i>sam (X)</span><span class="kk v-tali"><i></i>tali (2, 3 …)</span><span class="kk v-khali"><i></i>khali (0)</span></div>
           <div class="boxes" id="boxes" role="group" aria-label="Notation, a box for each beat"></div>
@@ -340,8 +339,8 @@
               <tr><td>Notes</td><td><code>সা রা গা মা পা ধা না</code> or <code>S R G M P D N</code></td></tr>
               <tr><td>Komal</td><td><code>ঋা জ্ঞা দা ণা</code> or <code>r g d n</code></td></tr>
               <tr><td>Tivra Ma</td><td><code>হ্মা</code> or <code>M#</code></td></tr>
-              <tr><td>Upper octave (তার)</td><td><code>র্সা</code> (রেফ) or <code>S'</code></td></tr>
-              <tr><td>Lower octave (মন্দ্র)</td><td><code>.না</code> or <code>ন্</code> with হসন্ত, or <code>.N</code></td></tr>
+              <tr><td>Upper octave (তার)</td><td><code>র্সা</code> (রেফ) or <code>S'</code>; two octaves up (অতিতার) <code>সা''</code> or <code>S''</code></td></tr>
+              <tr><td>Lower octave (মন্দ্র)</td><td><code>.না</code> or <code>ন্</code> with হসন্ত, or <code>.N</code>; two octaves down (অতিমন্দ্র) <code>..না</code> or <code>..N</code></td></tr>
               <tr><td>Fix a wrong octave</td><td>Choose the beat's box, then press <b>↑ Higher</b> or <b>↓ Lower</b>. In Free text, tap the beat in the preview (shift-tap a second beat to select a run) or select notes in the text; there Alt + ↑ and Alt + ↓ do the same while typing.</td></tr>
               <tr><td>Hold the note</td><td><code>-া</code> or <code>-</code></td></tr>
               <tr><td>Silence</td><td><code>x</code>. The note before it fades out gently.</td></tr>

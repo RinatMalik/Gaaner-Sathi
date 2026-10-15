@@ -49,7 +49,7 @@ export function notesInRange(P: ParsedSong, s: number, e: number): { notes: Note
 export function shiftOctaves(text: string, s: number, e: number, delta: number): OctaveShift {
   const P = parseSong(text);
   const sel = notesInRange(P, s, e);
-  const edits: { pos: number; del: number; ins: string }[] = [];
+  const edits: { pos: number; del: number; ins: string; post?: true }[] = [];
   let count = 0;
   let capped = 0;
   for (const u of sel.notes) {
@@ -61,15 +61,20 @@ export function shiftOctaves(text: string, s: number, e: number, delta: number):
     count++;
     for (const m of u.mk) edits.push({ pos: m[0], del: m[1] - m[0], ins: '' });
     if (u.sc === 'bn') {
-      const pre = no > 0 ? REPH.repeat(no) : '.'.repeat(-no);
+      const up = bnUpper(no);
+      const pre = no > 0 ? up.pre : '.'.repeat(-no);
       if (pre) edits.push({ pos: u.cs, del: 0, ins: pre });
+      // Marks after the note go after its আকার, when it has one.
+      if (up.post) edits.push({ pos: text[u.ce] === AKAR ? u.ce + 1 : u.ce, del: 0, ins: up.post, post: true });
     } else {
       if (no < 0) edits.push({ pos: u.cs, del: 0, ins: '.'.repeat(-no) });
-      if (no > 0) edits.push({ pos: u.ce, del: 0, ins: "'".repeat(no) });
+      if (no > 0) edits.push({ pos: u.ce, del: 0, ins: "'".repeat(no), post: true });
     }
   }
   if (!edits.length) return { text, s: sel.a, e: sel.b, count, capped, lo: 0, hi: 0, rep: '' };
-  edits.sort((x, y) => y.pos - x.pos || y.del - x.del);
+  // Applied from the end; where a note's marks after it meet the next note's before it, those
+  // after it go in last, so that they come first.
+  edits.sort((x, y) => y.pos - x.pos || y.del - x.del || (x.post ? 1 : 0) - (y.post ? 1 : 0));
   let lo = Infinity;
   let hi = -Infinity;
   for (const ed of edits) {
@@ -147,8 +152,9 @@ export function splitBeats(text: string, s: number, e: number): BeatEdit {
       if (u.k === 'hold') return bn ? '-' + AKAR : '-';
       if (u.k === 'rest') return 'x';
       const lower = '.'.repeat(Math.max(0, -u.oct));
+      const up = bnUpper(u.oct);
       return bn
-        ? lower + REPH.repeat(Math.max(0, u.oct)) + BN_LETTER[u.semi] + AKAR
+        ? lower + up.pre + BN_LETTER[u.semi] + AKAR + up.post
         : lower + LAT_LETTER[u.semi] + "'".repeat(Math.max(0, u.oct));
     });
     n += toks.length;
@@ -157,10 +163,19 @@ export function splitBeats(text: string, s: number, e: number): BeatEdit {
   return { ok: true, n, text: text.slice(0, lo) + region + text.slice(hi), s: lo, e: lo + region.length, lo, hi, rep: region };
 }
 
-/** One note written as the editor writes it: Bengali with its আকার, upper octave রেফ and
- * lower dots before; Sa Re Ga letters with upper marks after (docs/NOTATION.md → Canonical). */
+/** One note written as the editor writes it: Bengali with its আকার, upper octave রেফ (two
+ * octaves up, two marks after) and lower dots before; Sa Re Ga letters with upper marks after
+ * (docs/NOTATION.md → How the editor writes notation). */
 export function noteToken(semi: number, oct: number, script: 'bn' | 'lat'): string {
   const lower = '.'.repeat(Math.max(0, -oct));
-  if (script === 'bn') return lower + REPH.repeat(Math.max(0, oct)) + BN_LETTER[semi] + AKAR;
+  const up = bnUpper(oct);
+  if (script === 'bn') return lower + up.pre + BN_LETTER[semi] + AKAR + up.post;
   return lower + LAT_LETTER[semi] + "'".repeat(Math.max(0, oct));
+}
+
+/** A Bengali note's upper octave as the editor writes it: one octave up, a রেফ before the note
+ * (`র্সা`); two up, two marks after it (`সা''`), since fonts draw two রেফs badly (Rinat,
+ * 2026-10-15; the prototype wrote `র্র্সা`). The parser reads all three. */
+export function bnUpper(oct: number): { pre: string; post: string } {
+  return oct >= 2 ? { pre: '', post: "'".repeat(oct) } : { pre: REPH.repeat(Math.max(0, oct)), post: '' };
 }

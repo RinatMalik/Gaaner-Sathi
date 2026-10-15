@@ -771,6 +771,8 @@ function issueRange(it: V.IssueTarget): [number, number] | null {
 function renderNoteButtons(): void {
   $('#padKeys').innerHTML = V.padHTML(insOct, prefs.script, !boxesMode());
   $('#padOct').textContent = V.PAD_OCTAVES[insOct] ?? '';
+  // Each octave has a colour of its own (styles: --oc), the side buttons that of the next.
+  $('#pad').dataset.oct = String(insOct);
   const lower = $<HTMLButtonElement>('#padLower');
   const upper = $<HTMLButtonElement>('#padUpper');
   // Each side button names the octave it moves to; at either end it is off and names that end.
@@ -778,6 +780,8 @@ function renderNoteButtons(): void {
   const up = Math.min(insOct + 1, V.PAD_HIGHEST);
   lower.disabled = insOct <= V.PAD_LOWEST;
   upper.disabled = insOct >= V.PAD_HIGHEST;
+  lower.dataset.oct = String(down);
+  upper.dataset.oct = String(up);
   $('#padLowerLab').textContent = V.padOctaveWord(down);
   $('#padUpperLab').textContent = V.padOctaveWord(up);
   lower.setAttribute('aria-label', 'Notes in the ' + V.padOctaveWord(down).toLowerCase() + ' octave');

@@ -41,7 +41,10 @@ export function unitHTML(u: ShownUnit, script: Script): string {
   let txt: string;
   if (script === 'bn') {
     txt = BN_NAMES[u.semi]!;
-    if (u.oct > 0) txt = REPH.repeat(u.oct) + txt;
+    // One octave up, the রেফ; two up, two dots over the note, as fonts draw two রেফs badly
+    // (Rinat, 2026-10-15; the prototype drew both রেফs).
+    if (u.oct === 1) txt = REPH + txt;
+    if (u.oct > 1) cls += ' up2';
     if (u.oct < 0) cls += ' lo';
   } else {
     txt = LAT_NAMES[u.semi]!;

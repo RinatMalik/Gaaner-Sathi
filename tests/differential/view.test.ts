@@ -26,9 +26,11 @@ const STYLES = ['tabla', 'dholak', 'kit', 'click', 'off'] as const;
 const W = protoViewWorld();
 const pick = <T>(r: () => number, xs: readonly T[]): T => xs[Math.floor(r() * xs.length)]!;
 const int = (r: () => number, n: number) => Math.floor(r() * n);
-/** The one deliberate difference in a note's glyph: a note two octaves away has a second dot
- * (classes lo2, hi2; Rinat, 2026-10-15), where the prototype drew one for either octave. */
-const oneDot = (html: string) => html.replace(/ (?:lo2|hi2)(?=[ "])/g, '');
+/** The deliberate differences in a note's glyph (Rinat, 2026-10-15): a note two octaves away
+ * has two dots (classes lo2, hi2), where the prototype drew one for either octave; and in
+ * Bengali two or more octaves up is two dots over the note (up2), where the prototype drew a
+ * রেফ for each. Both sides are brought to one form before they are compared. */
+const oneDot = (html: string) => html.replace(/ (?:lo2|hi2)(?=[ "])/g, '').replace(/<span class="u">(?:র্){2,}/g, '<span class="u up2">');
 
 // Each song parsed by both sides: the port's parser feeds the port, the prototype's its own.
 const parsed = new Map<string, [ParsedSong, any]>(SONGS.map((t) => [t, [parseSong(t), W.parseSong(t)]]));
@@ -59,10 +61,10 @@ describe('the screen matches the prototype', () => {
         const q = Q.beatList[g];
         W.set(state({ prefs: { script } }));
         return (
-          oneDot(V.beatNoteHTML(b, script)) === W.beatNoteHTML(q) &&
+          oneDot(V.beatNoteHTML(b, script)) === oneDot(W.beatNoteHTML(q)) &&
           V.lyricHTML(b) === W.lyricHTML(q) &&
           V.plainBeat(b, script) === W.plainBeat(q) &&
-          b.units.every((u, i) => oneDot(V.unitHTML(u, script)) === W.unitHTML(q.units[i], script))
+          b.units.every((u, i) => oneDot(V.unitHTML(u, script)) === oneDot(W.unitHTML(q.units[i], script)))
         );
       }),
     ).toEqual(NONE);
@@ -80,7 +82,7 @@ describe('the screen matches the prototype', () => {
         W.set(state({ prefs: { script }, parsed: Q, taal: W.taalInfo(id), current: { startOn, example } }));
         const el = { innerHTML: '' };
         W.renderSheet(el);
-        return oneDot(V.sheetHTML(P, taalInfo(id), startOn - 1, example, script)) === el.innerHTML;
+        return oneDot(V.sheetHTML(P, taalInfo(id), startOn - 1, example, script)) === oneDot(el.innerHTML);
       }),
     ).toEqual(NONE);
   });
@@ -119,7 +121,7 @@ describe('the screen matches the prototype', () => {
         W.set(state({ prefs: { script }, parsed: Q, taal: W.taalInfo(id), current: { startOn } }));
         W.renderIssues();
         const v = V.issuesHTML(P, taalInfo(id), startOn - 1, script);
-        return oneDot(v.html) === W.el('#issues').innerHTML && canon(v.list) === canon(W.issues());
+        return oneDot(v.html) === oneDot(W.el('#issues').innerHTML) && canon(v.list) === canon(W.issues());
       }),
     ).toEqual(NONE);
     // The generated songs exercise every kind of row.

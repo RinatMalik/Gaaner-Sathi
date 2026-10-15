@@ -48,6 +48,8 @@ describe('keys and notes', () => {
   it('written as the editor writes notes, in either script', () => {
     expect([noteToken(7, -1, 'bn'), noteToken(0, 1, 'bn'), noteToken(3, 0, 'bn'), noteToken(6, 0, 'bn')]).toEqual(['.পা', 'র্সা', 'জ্ঞা', 'হ্মা']);
     expect([noteToken(7, -1, 'lat'), noteToken(0, 2, 'lat'), noteToken(6, 0, 'lat')]).toEqual(['.P', "S''", 'M#']);
+    // Two octaves: two dots below, or in Bengali two marks after the note (not two রেফs).
+    expect([noteToken(11, -2, 'bn'), noteToken(0, 2, 'bn'), noteToken(6, 2, 'bn')]).toEqual(['..না', "সা''", "হ্মা''"]);
     for (const [semi, oct] of [[7, -1], [0, 1], [3, 0], [11, -2], [6, 2]] as const) {
       for (const sc of ['bn', 'lat'] as const) {
         const u = parseSong(noteToken(semi, oct, sc)).beatList[0]!.units[0]!;
