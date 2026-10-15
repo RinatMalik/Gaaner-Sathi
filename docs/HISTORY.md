@@ -49,6 +49,70 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-15 BST — Claude (Opus 5.5) — PH2-07 design, round seven: the lines' number boxes, the figure drawn round, the run's average, the settings moved
+
+- **Goal:** Rinat on round six ("looking pretty good"): the number box wider and clickable as
+  a whole; the taal figure bigger, with more movement, and the problem that "when the
+  following cycle starts, it never gets to reach the last corner of the first cycle" (perhaps
+  "have the connecting lines slowly light up as each of the beat progresses"); a total
+  average, updating as the song goes; a red-amber-green colour for each line sung without
+  losing the notes' own colours; the lines' settings into the Practice settings, with which
+  line is the one being sung and 12 lines; the keys taller; the line over the lines removed;
+  and how a note is scored (Open question 6).
+- **Inspected:** lines.ts, pitch.ts and app.ts as built in round six; `PitchTracker.summary`
+  and `scoreNote` (track.ts); the differential view tests that compared the now-singing
+  builders, now unused.
+- **Changed:** `e3752f2` (feat(practice)): lines.ts: the number box a `button.pln` (number,
+  state, score; the figure appended when the line is being sung), `shapePath` (polygons, and a
+  lens for two beats), `taalFigureHTML` with a fill, an outline and a drawn path (`pathLength`
+  1) per shape and the name, `figureProgress(T, p, f)` as fractions, `ragColour`, `taalFrac`
+  (the path's dashes every frame), `taalBeat` (the pop and the sam pulse with the Web
+  Animations API, not under reduced motion; shapes done fill), the box's tint and label, the
+  line's place from `at()`, the tail and a `dense` class for 9 or 12 lines, and the scroll
+  allowing for the shrinking line above the target (then checked again after 300 ms);
+  pitch.ts: `showAverage`, after each line and at the end; app.ts: the header line's code
+  gone (`showMessage` for errors only, `lineState` for the box: Now, Round N, Your turn, In N,
+  Paused, Done), `taalFrac` from `frame`, the Lines settings (`plAt`, 12 lines), the summary;
+  index.html: the header line and settings button removed, a Lines and a Pitch group in the
+  Practice settings, Show the keys under Keyboard; store.ts: `plRows` 12, `plAt`; view.ts:
+  `practiceSummary(s, view)`, the now-singing builders removed; styles; tests. This commit
+  (docs): DATA (`plAt`, 12), ENGINE (Shown: the tint and the average), ROADMAP (Phase 2 row
+  7), this file (Open question 6; the 2026-10-14 entry moved to HISTORY, its heading, split
+  over two lines by the last edit, joined again).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`):
+  - `npm run typecheck` → 0; `npx vitest run` → 34 files, 367 passed (new or rewritten: the
+    number box as the button; the shapes' paths, the lens; the figure's fill, outline and
+    drawn path; progress as fractions, a square closed at the end of its 4th beat; the line
+    colours from red to green; the three settings stored; the summary naming them; the
+    now-singing comparisons removed). `npm run build` → 221 kB JS (78.1 kB gzip), 46.9 kB CSS;
+    `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid.
+  - 1280 × 900, night, with the fake singer (ex-alankar-bn, some notes sharp and flat): the
+    count-in box said "In 3"; lines scored 88, 83, 84, 84, 71, 87, 83, 87, each box tinted by
+    its score (71 amber-red, 87 green-amber); "Average so far" updated as lines ended, then
+    "Average for this run · 83 · 100% of the notes sung"; the last line "Done". The number box
+    104 px, each Keherwa square 42 px.
+  - The figure at four moments, day and night (dpr 2): sam's pulse and glow, a square drawn
+    on edge by edge in sam's colour and filling once closed, the khali square dashed and drawn
+    in lavender, the next cycle starting.
+  - 360 × 780, day and night: 8 columns, no sideways scrolling, the box 60 px with 25 px
+    shapes; the Practice settings' Lines and Pitch groups; 12 lines and the 2nd being sung
+    named in the summary; the view 756 px, `dense`; the keys 112 px tall.
+  - 1280 × 960: a click near the bottom of line 6's box (on its empty part) played from line 6
+    with the Lines to practise unchanged. The line being sung sat 4th, 1st and 3rd as chosen,
+    also after the jump, once the scroll allowed for the line shrinking above it (before that
+    fix it sat 2nd when 4th was chosen).
+  - CI run `38728792012` (`e3752f2`): core, reference and deploy jobs green. Live: https://rinatmalik.github.io/Gaaner-Sathi/ in headless Edge: no line over the lines, the box of line 1 saying Start with the Dadra figure, the 12-lines and 5th-place buttons in Practice settings; a click on line 2's box played from it ("Now"), the first triangle drawn round; no console errors.
+- **Decisions made:** see Decisions (the lines, round two); Open question 6 asked.
+- **Risks or disagreements:** the figure's pop and pulse are skipped under reduced motion,
+  but the edges still draw on (they show where the beat is). The tint mixes the theme's red,
+  amber and green, so it differs a little between day and night. Twelve lines do not fit a
+  laptop screen at the normal size: the window stops at the screen's height and the rest
+  scroll. The scroll's correction uses the median small line's height, so a line with several
+  verses may land a few pixels off until the check 300 ms later. Nobody has sung with it; the
+  fake singer is a clean tone.
+- **Next handoff:** Rinat sings with round seven and answers Open question 6.
+
 ### 2026-10-15 BST — Claude (Opus 5.5) — PH2-06 design, round six: the Practice view as the song line by line, the taal as a figure, Print in the Music library
 
 - **Goal:** Rinat: "a full redesign of the practice page. Leave the settings section alone";

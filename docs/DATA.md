@@ -114,6 +114,7 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `tab` | The view open last: `practice`, `songs` (the Music library), `edit`, `rewaz`, `voice` or `progress` |
 | `soundOpen` | Whether the Practice settings, at the top of the Practice view, are unfolded; unset: folded |
 | `songSoundOpen` | `true` while the song's sound in Edit notation is unfolded; absent: folded |
+| `editSetOpen`, `palOpen` | `true` while Edit notation's Settings, and its note buttons (+ Add notes), are unfolded; absent: folded |
 | `libSort` | How the Music library sorts: `practised`, `changed` or `title` |
 | `libFold` | The Music library's sections folded away, `{ mine?: true, ex?: true }`; absent: both open. A search shows every section |
 | `libOrder` | The Music library's sections in the order dragged, `["mine", "ex"]`; absent: the exercises first. The song pickers follow it |
@@ -203,10 +204,12 @@ so years fit. Progress downloads the log as
 ## Rewaz routines
 
 ```json
-{ "routine-mv2pq1x0-k3a9c": { "name": "Morning", "updatedAt": 1791655308398, "items": [
+{ "routine-mv2pq1x0-k3a9c": { "name": "Morning", "updatedAt": 1791655308398, "gap": 10, "items": [
   { "song": "ex-long-notes", "rounds": 1 },
   { "song": "song-mv2pb608-a4kmn", "from": 0, "to": 1, "rounds": 4, "tempo": 80, "guide": "alt" } ] } }
 ```
+
+`gap` is the routine's break between items, 0–120 seconds; absent: 4 (Rinat, 2026-10-15).
 
 | Item field | Meaning |
 |---|---|
@@ -219,7 +222,7 @@ so years fit. Progress downloads the log as
 A routine has at most 40 items. Until one is saved, a starter "Daily warm-up" (exercises 1, 2,
 3 and 12) is on offer; it stays on offer like the exercises, and changing it saves it as the
 user's own (id `routine-starter`). Routines are checked when read, like songs. A routine runs
-hands-free: a 4 s pause shows what is next, and any play, stop or song change by the user
+hands-free: a break (the routine's `gap`) counts down to what is next, and any play, stop or song change by the user
 ends it.
 
 ## Takes
