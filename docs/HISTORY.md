@@ -49,6 +49,86 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-15 BST — Claude (Opus 5.5) — PH2-06 design, round six: the Practice view as the song line by line, the taal as a figure, Print in the Music library
+
+- **Goal:** Rinat: "a full redesign of the practice page. Leave the settings section alone";
+  combine "the section where it shows the current and upcoming notes, pitch checker with the
+  lyrics section … a vertical carousel where about 7 lines are visible. The currently playing
+  line is the 3rd one. As each line plays, the carousel slides one line down", the playing
+  line as in a mockup ("The lyrics part is bigger, full width pitch performance strip. When the
+  microphone is off it still shows the strip with lines representing the notes. when mic is
+  available, it also shows my pitch"); the section chips and playing from a line number stay;
+  "an elegant way you could visually demonstrate the taal" (a square whose corners light up;
+  the bols do not help); "a settings button to adjust a few relevant things"; "Remove the save
+  as pdf option from here and put it in the Music Library".
+- **Inspected:** index.html's Practice view; app.ts (play, pause, stop, frame, showBeat,
+  showIdle, highlight, the taal strip, the sheets, switchTab, print); pitch.ts (meter, trace,
+  marks, line chips); core/pitch/track.ts (expected notes, `errorFor`, `expectedAt`, the lag);
+  transport.ts (`BeatEntry.tempo` is `60 / spb` rounded); view.ts's builders and which the
+  comparison tests cover (`taalStripHTML` was compared with the prototype); songs.ts; print.ts;
+  the taals' vibhags (2, 3 and 4 beats only).
+- **Changed:** `73dc9dc` (feat(practice)): `src/app/lines.ts` (new): `columnsFor`,
+  `stripRange`, `stripY`, `linesHTML` (a cell per beat: notes, words, mark, an SVG strip with
+  note bars), `shapeCorners`, `taalFigureHTML`, `figureProgress`, and `initLines` (lazy drawing
+  when Practice shows, the HTML compared before redrawing, columns from the width, `--r` for
+  lines over more than one row, the window's height measured, scrolling the line playing to
+  third, the beat, playhead, figure, the voice as SVG paths per cell carried across beat edges,
+  scores); pitch.ts: the meter and canvas trace gone, the beats scheduled kept to place each
+  reading, the voice and line scores sent to the lines, the run's score under them; app.ts:
+  the lines wired into play, pause, the end, stop, idle, highlight, frame (the playhead),
+  switchTab and loadSong, the section pill, the settings (`applyLinesPrefs`), printing any
+  song; index.html: the lines' section (header, settings, view, keys, the pitch line) in place
+  of the Now singing panel and sheet; Print removed from Practice; songs.ts: a print button on
+  each row; print.ts: prints a song given; store.ts: `plRows`, `plSize`; view.ts:
+  `taalStripHTML` removed; styles (the old panel's rules removed); rhythm.ts's `beatLabel`
+  comment; tests. This commit (docs): ENGINE (frame, the bols, Pitch feedback → Shown),
+  NOTATION (taal pherta shown), DATA (`plRows`, `plSize`), ROADMAP (Phase 2 row 6), this file
+  (the 2026-10-13 02:40 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; the browser pane on `npm run
+  dev`; headless Edge through the DevTools protocol, as in Environment gotchas):
+  - `npm run typecheck` → 0; `npx vitest run` → 34 files, 369 passed (new: columns for every
+    taal on a phone and a laptop; strips two semitones beyond the notes and ten tall; cells per
+    beat with notes, escaped words, a held vowel faded; notes alone on a line without words;
+    vibhag marks by kind, Teentaal from beat 9 starting on khali; note bars inset where a note
+    starts and ends, carried over a held beat, two in a shared beat, none for silence; the
+    figure's corners, kinds, sam's corner and progress; the library row's print button; the
+    two settings stored). `npm run build` → 220 kB JS (78.0 kB gzip), 46.5 kB CSS;
+    `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid.
+  - In the browser pane (night): an exercise played, the beat column and playhead moving, the
+    figure traced, line 2 large with line 1 faded above.
+  - Headless Edge at 1200 × 1000 with a fake microphone (`ex-alankar-bn` sung at its tempo,
+    110, every fifth note 45 cents sharp, every seventh 25 flat, with vibrato): the voice drawn
+    on each strip, green, amber and red as expected; each line scored 83 or 88; "This run · 83
+    · 100% of the notes sung"; 25 beats marked; no console errors. (A first WAV made at 120 read
+    "400 cents sharp" and scored 0–19: the WAV's tempo, not the app.)
+  - A Teentaal song with words and a second verse, at 360 × 780 (phone emulation), night and
+    day: 8 columns, each line over two rows, no sideways scrolling (`scrollWidth` 360); after
+    two fixes (a line over two rows had two full strips; the header took three rows) four lines
+    fit and the header takes two. At 1280: 16 beats across.
+  - At 1280 × 900, day: line 3's number played from line 3 ("Line 3 · beat 5 of 16", the pill
+    অন্তরা, the Lines to practise still from line 1); Pause: "Paused · Line 3 …", the number
+    says Paused, beat 36 still lit; the keys row from the settings; Go on: Now; Edit notation
+    and back while playing: the line playing still third; Stop: line 1 "Start", no playhead,
+    no lit beat; 5 lines and Bigger kept (`plRows` 5); the library: 13 print buttons, none on
+    Practice; printing আরোহ-অবরোহ from the library filled the print sheet with it while the
+    test song stayed open, and the open song printed its own.
+  - CI run `38662305398` (`73dc9dc`): core, reference and deploy jobs green. Live: on https://rinatmalik.github.io/Gaaner-Sathi/ in headless Edge, the 8 lines of the first exercise with the figure, no Print on Practice, playing lit the beat with the playhead ("Line 2 · beat 1 of 6"), 12 print buttons in the library, no console errors.
+- **Decisions made:** see Decisions (the Practice view as lines; the taal figure; the
+  settings over the lines; Print in the Music library).
+- **Risks or disagreements:** the mockup's blue for in tune became the app's green, amber and
+  red, and its gold column the brass highlighter; the red-ink words and ruled sheet stay. The
+  section pill over the lines repeats the pressed chip above (the mockup had both). The window
+  is measured from the lines and capped at the screen's height, so many verses, or a long line
+  over two rows on a phone, show fewer lines. The voice is drawn at the delay found, so for the
+  first seconds it may sit a little early or late; nobody has sung with it, and the fake singer
+  is a clean tone. A finished run leaves the last line large with the drawing, until Play or a
+  change. If a browser never fires `afterprint`, a later Ctrl+P prints the song last printed
+  from the library. `beatLabel` (the bols) is now used only by tests. The Practice settings
+  are as they were. The browser pane's screenshots are downscaled, so the details were checked
+  in headless Edge.
+- **Next handoff:** Rinat sings with the new Practice view, and sends more design comments
+  (the Practice settings next, as Rinat said).
+
 ### 2026-10-14 BST — Claude (Opus 5.5) — PH2-05 design, round five: the exercises redone, warnings dismissed, sections dragged, routines filled at once
 
 - **Goal:** Rinat: a way "to dismiss the error it found as some of these are not applicable

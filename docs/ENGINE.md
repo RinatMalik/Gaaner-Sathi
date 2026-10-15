@@ -246,8 +246,9 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   (5 points), so long held notes leave it alone. *Why:* it works with headphones (Bluetooth
   included) and needs no setup; a click-and-listen calibration through the speakers cannot
   hear headphones.
-- **Scores:** each note on its steady part (from 100 ms or 30 % in, to 30 ms before its end),
-  so a late or scooped start does not count against it: the median distance in cents gives
+- **Scores:** each note on its steady part (from 100 ms or 30 % in, to its last 10 %), so a
+  late or scooped start, or moving early to the next note, does not count against it (the
+  last 10 %: Rinat, 2026-10-15; it was the last 30 ms): the median distance in cents gives
   100 within 10 cents, then 2 points a cent, 0 from 60. A note with voice in under half its
   readings is "not sung" (not scored, but counted in the share sung); one too short to judge
   is skipped. Lines and runs are the duration-weighted mean. Any octave counts unless the
@@ -342,8 +343,10 @@ path as pitch feedback.
   default (whatever tone is selected on it); General MIDI reed organ or accordion can be asked
   for (bank 0, program 20 or 21). Stop sends all-notes-off at once and again after anything
   already queued (browsers cannot take back queued messages).
-- **Which key to press:** a keyboard drawn on the Practice view (whole octaves around the
-  song, each Sa marked) lights the key of each note as it plays and outlines the next, and
+- **Which key to press:** a keyboard drawn on the Practice view, in a section of its own
+  while Show the keys is ticked (whole octaves around the song, with keys added on both sides
+  to fill the width at a key's natural size, `keysToFill`; each Sa marked; light and dark keys
+  in both colour schemes) lights the key of each note as it plays and outlines the next, and
   names it ("D4 · White 2", counting keys as on the CT-X3000). It needs no MIDI.
 - Not heard on a real keyboard yet: the CT-X3000's response to channel 1 (its selected tone)
   and to General MIDI program changes needs Rinat's ears.
