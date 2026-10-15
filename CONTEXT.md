@@ -43,15 +43,16 @@ wins, except a later explicit decision by Rinat, which always wins.
   playing, the rows redesigned), three (PH2-03: a song's sound in Edit notation, Practice
   settings, the Music library), four (PH2-04: your own exercises, Practice settings in
   the Practice view, Rewaz routines as folding rows), five (PH2-05: Rinat's 12 exercises,
-  dismissing warnings, sections dragged, many songs added to a routine at once) and six (PH2-06:
+  dismissing warnings, sections dragged, many songs added to a routine at once), six (PH2-06:
   the Practice view redone as the song line by line with a pitch strip, the taal as a figure,
-  Print in the Music library) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
+  Print in the Music library) and seven (PH2-07: the lines' number boxes tinted by score, the
+  figure drawn round, the run's average, the lines' settings in Practice settings) are built
+  and live. Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
-- **Next single action:** Rinat sings with the new Practice view (round six) on a phone and a
-  laptop, with Check my pitch on, and says whether the taal figure helps; answers round two's
-  two questions (Record me's microphone; colours on the Practice sheet); sends more design
-  comments, the Practice settings among them (left alone this round, as asked).
-- **Last known-good commit:** `73dc9dc` (CI run `38662305398`: core, reference and deploy jobs green; checked live).
+- **Next single action:** Rinat sings with round seven, with Check my pitch on, and answers
+  Open question 6 (scoring a note's edges); answers round two's two questions (Record me's
+  microphone; colours on the Practice sheet); sends more design comments.
+- **Last known-good commit:** `e3752f2` (CI run `38728792012`: core, reference and deploy jobs green; checked live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -362,6 +363,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-02 | Claude | Review | Design, round two: Pause and a separate Stop; nothing that plays changes the Lines to practise (play from here, sheet line numbers, sections, rewaz, takes); "Check my pitch" listens only while playing; beat box rows with the number and buttons (play this line, play from here, ×) full height, vibhag starts coloured instead of X/0, a tap anywhere on a row selects it, hover | 5 unit tests and the boxes' HTML tests; Edge scenarios `round6` (42 checks) and `rewaz6` (5), with a WAV microphone (Work log 2026-10-12 16:43) | Waiting for Rinat's use and two answers |
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
+| PH2-07 | Claude | Review | Design, round seven: each line's number box wider, the button itself, tinted red to green by the line's score; the taal figure as wide as the box, its edges drawn on through each beat, the corner popping, sam pulsing; the run's average under the lines as it goes; the line over the lines removed (the box says Now, Round 2, Your turn, In 3, Paused, Done); lines shown (5, 7, 9, 12), the line being sung (1st to 5th) and the size of words in the Practice settings; taller keys | 1 new unit test, 4 rewritten, 3 prototype comparisons removed with the builders; headless Edge at 1280 and 360 px, night and day, with a fake singer (Work log 2026-10-15, round seven) | Waiting for Rinat to sing with it, and Open question 6 |
 | PH2-06 | Claude | Review | Design, round six: the Practice view redone as the song line by line (about seven lines, the line being sung third and large, sliding on as each plays): the words big with the notes small above, a pitch strip under every line with a bar for each note and the voice drawn over it, the beat lit with a playhead, each line's score by its number; the taal as a figure beside the line being sung (a shape per vibhag, a corner per beat); a settings button over the lines; Print or save as PDF on each Music library row | 13 new unit tests and 1 rewritten; headless Edge at 1200, 1280 and 360 px, night and day, with a fake singer (Work log 2026-10-15) | Waiting for Rinat to sing with it |
 | PH2-05 | Claude | Review | Design, round five: Rinat's 12 built-in exercises, unnumbered (the prototype's kept as the tests' fixture); Dismiss on each checker warning, kept with the song while its line's notes stay the same; Exercises first in the Music library, sections dragged by a handle or moved with the arrow keys; "+ Add songs and exercises" ticks several at once | 15 new unit tests and 8 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-14) | Waiting for Rinat's use and ears |
 
@@ -434,6 +436,7 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-15 | **The Practice view is the song line by line:** one window of about seven lines (5, 7 or 9, in its settings), the line being sung third (the first two lines start at the top) and large, sliding on a line as each plays; a line number plays from there and the section chips stay above. Each beat: the words big with the notes small above (a line without words shows its notes big), a mark for how it was sung, and a pitch strip with a bar for each note at its height; while the pitch check listens the voice is drawn over the bars (green, amber, red), and each line's score shows by its number. The beat sounding is lit, with a playhead through it. It replaces the Now singing panel, the coming-up notes, the pitch meter and its trace box, and the Practice sheet; the ruled lines, the red margin and the red-ink words stay. | Rinat, chat 2026-10-15, with a mockup ("combining the section where it shows the current and upcoming notes, pitch checker with the lyrics section", "a vertical carousel where about 7 lines are visible. The currently playing line is the 3rd one", "The lyrics part is bigger, full width pitch performance strip. When the microphone is off it still shows the strip with lines representing the notes"); the details (a strip under every line, the colours, the first lines at the top, long lines over two rows on a phone, the scores by the numbers, the last line kept at the end) are Claude's | src/app/lines.ts; ENGINE.md → Pitch feedback → Shown. The editor's preview and the printed sheet are unchanged. |
 | 2026-10-15 | **The taal as a figure,** beside the line being sung: a shape per vibhag with a corner per beat (four beats a square, three a triangle, two a stroke: Keherwa two squares, Dadra two triangles, Teentaal four squares), the first corner of each in its kind's colour (sam, tali, khali, as in the beat boxes), khali's shape dashed; the cycle traced round as it goes, the beat's corner lit. The strip of bols is gone. | Rinat, chat 2026-10-15 ("a square where the corners light up for 8 beat taals. but not sure where to put it … seeing the bol's of the taal doesn't really do much for me"); generalising the square to a shape per vibhag, and its place (where Rinat's mockup drew it), are Claude's | The taal's name and structure stay over the lines ("Keherwa · 4 + 4"). |
 | 2026-10-15 | **A settings button over the lines:** lines shown (5, 7, 9), the size of the words and notes (smaller, normal, bigger), the keys to press and the pitch check's octave rule (both moved here). The Practice settings bar is left as it was. | Rinat, chat 2026-10-15 ("There could be a settings button to adjust a few relevant things", "Leave the settings section alone - we'll come back to it later"); the choice of settings is Claude's | Settings `plRows`, `plSize` (DATA.md). |
+| 2026-10-15 | **The lines, round two:** each line's number box is wider and is itself the button that plays from the line; once sung it is tinted by the line's score, red (50 or less) through amber (75) to green (95 or more), the notes keeping their own marks and traces; the lines above the one being sung fade their beats, not their boxes. The run's average shows under the lines as each line ends. The taal figure fills the box's width; each beat draws its edge on, so a shape closes as its last beat ends and then fills; the beat's corner pops and sam pulses; two beats are a lens. The line over the lines is removed: the box of the line being sung says Now, Round 2, Your turn (the guide's silent round), In 3 (the count-in), Paused or Done, and a message shows only when nothing can play. Lines shown (5, 7, 9, 12), which line is the one being sung (1st to 5th from the top) and the size of the words move into the Practice settings (a Lines group), with the keys to press (Keyboard) and the octave rule (Pitch); nine or twelve lines draw the others smaller. The keys to press are taller. | Rinat, chat 2026-10-15 ("make the left line number box wider", "Have the whole box be clickable", "Make the taal graphic a little bigger … add a bit more movement/animation/oomph … have the connecting lines slowly light up as each of the beat progresses?", "Provide a total average of the song … updating as the song progresses", "a RAG colour of the line … I don't want to lose the current colours of the individual notes", "Move the settings of the carousel into the practice settings … which line should be the highlighted/current line … option for 12", "make it a little longer vertically", "remove the line"); tinting the box rather than the line, the lens, the pulse and pop, and the wording in the box are Claude's | Replaces round six's settings button over the lines and the line above them. The now-singing builders are removed. |
 | 2026-10-15 | **Print or save as PDF** leaves the Practice view for an icon button at the end of each Music library row, which prints that song or exercise without opening it; Edit notation keeps its button. | Rinat, chat 2026-10-15 ("Remove the save as pdf option from here and put it in the Music Library"); the icon button and keeping Edit notation's are Claude's | print.ts prints any song. |
 | 2026-10-14 | **Adding to a routine:** "+ Add songs and exercises" (replacing "+ Add the open song") opens a checklist of every song and exercise, grouped as in the library, numbered in the order ticked, the open one marked, with a find box; Add puts them in that order (2 rounds each). | Rinat, chat 2026-10-14 ("There should be a way to choose all the items I want to add in a routine") | rewaz.ts. |
 
@@ -455,6 +458,12 @@ records were folded into on 2026-10-11 (the last rows say where).*
 5. **Two taal forms.** Khemta is the 12-matra form of the Bengali tabla books, not Tagore's
    6-matra Kashmiri Khemta; Dhamar is divided as in Rabindrasangeet (3+2+2+3+4), not the
    classical 5+2+3+4 (the checker accepts bars written either way). Default: as built.
+6. **Scoring a note's edges** (asked 2026-10-15): a note is scored on its steady part, from
+   100 ms in (30 % for a short note) to 30 ms before its end (10 % for a short one), by the
+   median of its readings. Rinat asked whether the first and last 10 % should not count.
+   Claude's view: keep the start as it is (already more forgiving than 10 % on most notes, and
+   the median ignores a short slide), and perhaps leave out the last 10 % (up to 100 ms) too,
+   for moving early to the next note. Default: as built.
 
 ## Work log
 
@@ -471,6 +480,70 @@ Template:
     - **Decisions made:** rows added above.
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
+
+### 2026-10-15 BST — Claude (Opus 5.5) — PH2-07 design, round seven: the lines' number boxes, the figure drawn round, the run's average, the settings moved
+
+- **Goal:** Rinat on round six ("looking pretty good"): the number box wider and clickable as
+  a whole; the taal figure bigger, with more movement, and the problem that "when the
+  following cycle starts, it never gets to reach the last corner of the first cycle" (perhaps
+  "have the connecting lines slowly light up as each of the beat progresses"); a total
+  average, updating as the song goes; a red-amber-green colour for each line sung without
+  losing the notes' own colours; the lines' settings into the Practice settings, with which
+  line is the one being sung and 12 lines; the keys taller; the line over the lines removed;
+  and how a note is scored (Open question 6).
+- **Inspected:** lines.ts, pitch.ts and app.ts as built in round six; `PitchTracker.summary`
+  and `scoreNote` (track.ts); the differential view tests that compared the now-singing
+  builders, now unused.
+- **Changed:** `e3752f2` (feat(practice)): lines.ts: the number box a `button.pln` (number,
+  state, score; the figure appended when the line is being sung), `shapePath` (polygons, and a
+  lens for two beats), `taalFigureHTML` with a fill, an outline and a drawn path (`pathLength`
+  1) per shape and the name, `figureProgress(T, p, f)` as fractions, `ragColour`, `taalFrac`
+  (the path's dashes every frame), `taalBeat` (the pop and the sam pulse with the Web
+  Animations API, not under reduced motion; shapes done fill), the box's tint and label, the
+  line's place from `at()`, the tail and a `dense` class for 9 or 12 lines, and the scroll
+  allowing for the shrinking line above the target (then checked again after 300 ms);
+  pitch.ts: `showAverage`, after each line and at the end; app.ts: the header line's code
+  gone (`showMessage` for errors only, `lineState` for the box: Now, Round N, Your turn, In N,
+  Paused, Done), `taalFrac` from `frame`, the Lines settings (`plAt`, 12 lines), the summary;
+  index.html: the header line and settings button removed, a Lines and a Pitch group in the
+  Practice settings, Show the keys under Keyboard; store.ts: `plRows` 12, `plAt`; view.ts:
+  `practiceSummary(s, view)`, the now-singing builders removed; styles; tests. This commit
+  (docs): DATA (`plAt`, 12), ENGINE (Shown: the tint and the average), ROADMAP (Phase 2 row
+  7), this file (Open question 6; the 2026-10-14 entry moved to HISTORY, its heading, split
+  over two lines by the last edit, joined again).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`):
+  - `npm run typecheck` → 0; `npx vitest run` → 34 files, 367 passed (new or rewritten: the
+    number box as the button; the shapes' paths, the lens; the figure's fill, outline and
+    drawn path; progress as fractions, a square closed at the end of its 4th beat; the line
+    colours from red to green; the three settings stored; the summary naming them; the
+    now-singing comparisons removed). `npm run build` → 221 kB JS (78.1 kB gzip), 46.9 kB CSS;
+    `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid.
+  - 1280 × 900, night, with the fake singer (ex-alankar-bn, some notes sharp and flat): the
+    count-in box said "In 3"; lines scored 88, 83, 84, 84, 71, 87, 83, 87, each box tinted by
+    its score (71 amber-red, 87 green-amber); "Average so far" updated as lines ended, then
+    "Average for this run · 83 · 100% of the notes sung"; the last line "Done". The number box
+    104 px, each Keherwa square 42 px.
+  - The figure at four moments, day and night (dpr 2): sam's pulse and glow, a square drawn
+    on edge by edge in sam's colour and filling once closed, the khali square dashed and drawn
+    in lavender, the next cycle starting.
+  - 360 × 780, day and night: 8 columns, no sideways scrolling, the box 60 px with 25 px
+    shapes; the Practice settings' Lines and Pitch groups; 12 lines and the 2nd being sung
+    named in the summary; the view 756 px, `dense`; the keys 112 px tall.
+  - 1280 × 960: a click near the bottom of line 6's box (on its empty part) played from line 6
+    with the Lines to practise unchanged. The line being sung sat 4th, 1st and 3rd as chosen,
+    also after the jump, once the scroll allowed for the line shrinking above it (before that
+    fix it sat 2nd when 4th was chosen).
+  - CI run `38728792012` (`e3752f2`): core, reference and deploy jobs green. Live: https://rinatmalik.github.io/Gaaner-Sathi/ in headless Edge: no line over the lines, the box of line 1 saying Start with the Dadra figure, the 12-lines and 5th-place buttons in Practice settings; a click on line 2's box played from it ("Now"), the first triangle drawn round; no console errors.
+- **Decisions made:** see Decisions (the lines, round two); Open question 6 asked.
+- **Risks or disagreements:** the figure's pop and pulse are skipped under reduced motion,
+  but the edges still draw on (they show where the beat is). The tint mixes the theme's red,
+  amber and green, so it differs a little between day and night. Twelve lines do not fit a
+  laptop screen at the normal size: the window stops at the screen's height and the rest
+  scroll. The scroll's correction uses the median small line's height, so a line with several
+  verses may land a few pixels off until the check 300 ms later. Nobody has sung with it; the
+  fake singer is a clean tone.
+- **Next handoff:** Rinat sings with round seven and answers Open question 6.
 
 ### 2026-10-15 BST — Claude (Opus 5.5) — PH2-06 design, round six: the Practice view as the song line by line, the taal as a figure, Print in the Music library
 
@@ -551,80 +624,5 @@ Template:
   in headless Edge.
 - **Next handoff:** Rinat sings with the new Practice view, and sends more design comments
   (the Practice settings next, as Rinat said).
-
-### 2026-10-14 BST — Claude (Opus 5.5) — PH2-05
- design, round five: the exercises redone, warnings dismissed, sections dragged, routines filled at once
-
-- **Goal:** Rinat: a way "to dismiss the error it found as some of these are not applicable
-  … maybe after the song has been exported, the dismissed list should be refreshed?";
-  "have the Exercises first, then My songs. Or make these sections draggable is probably
-  better"; "Redo the whole Exercise section. There will be 12 built in exercises … Don't
-  number them" (the list, with changes to each, two deletions, komal and tivra "can these be
-  combined?", three new patterns); in Rewaz "There should be a way to choose all the items I
-  want to add in a routine".
-- **Inspected:** `src/core/exercises/` (the specs carried over byte for byte from the
-  prototype, held to `reference/exercises.json` by `tests/ported/exercises.test.ts`, and the
-  fixture of four comparison suites and `dev/render.ts`); the checker (`check.ts`), its panel
-  (`issuesHTML`, also compared with the prototype) and its wiring; songs.ts; rewaz.ts.
-- **Changed:** `26f8550` (feat(exercises)): the new `specs.ts` (an `alankar()` helper builds
-  the climbing patterns: up from Sa until a shape starts on upper Sa, down from where the top
-  one ended), `index.ts` without the typing example, the warm-up's last item, the prototype's
-  specs and typing example moved to `tests/reference-exercises.ts`, which the ported test, the
-  `data`, `audio`, `notation` and `view` comparison suites and `dev/render.ts` now use; the
-  ported test checks the app's 12 by the same rules plus the shapes asked for. `bb7b51f`
-  (feat): `issueKey` (FNV-1a of kind, bar or notes, and the line's notes and bars);
-  `Song.dismissed` (`cleanDismissed`, storage, files); `issuesHTML(…, dis?)` with Dismiss,
-  "N dismissed · Show them" and Bring back; app.ts's `showDismissed`; songs.ts: `LIB_ORDER`
-  (exercises first), `order` in ListOptions, `.lgrip` handles, dragging (headings only while
-  moving, the list keeping its height, a brass drop line) and ↑ ↓; prefs `libOrder`;
-  `libraryHTML(…, exFirst)` and the rewaz pickers in the same order; rewaz.ts: `pickerHTML`,
-  `pickedButton`, the `picking` state, ticking updating in place, the find box; styles;
-  tests (`dismiss.test.ts` new). This commit (docs): NOTATION (Checker → Dismissing, and why
-  not at export), DATA (`dismissed`, `libOrder`), ROADMAP (Phase 2 row 5), this file (the
-  2026-10-13 01:30 entry moved to HISTORY).
-- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; the browser pane on `npm run
-  dev`, at 1200 × 800 and 360 × 780, night and day):
-  - `npm run typecheck` → 0; `npx vitest run` → 33 files, 356 passed (new: each of the 12
-    plays the same in Sa Re Ga and Bengali and checks clean, their ids and order, no numbers,
-    the shapes asked for (lines of the long notes, the tops and turns of each alankar, no lone
-    Sa line, full leap lines); the fingerprint the same across spacing, script and a line put
-    before, changed by the line's notes only; the panel's Dismiss, count, list, Bring back,
-    and nothing without the option; `dismissed` cleaned, kept, stored, exported; the section
-    order and handles; the picker's groups, numbers, open mark and button). A first leap
-    pattern (`S X S - | S X S -`) failed the checker (a Sa twice between two big leaps reads
-    as a slip), so the exercise sings `S X S X | S X S -`. `npm run build` → 212 kB JS
-    (74.9 kB gzip), 41 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed,
-    12 exercises valid.
-  - In the pane: the library lists the 12 unnumbered, Exercises first, the picker's groups
-    the same; a real drag of My songs' handle 45 px up put it first (saved, the picker
-    following, focus on the handle); ↑ on Exercises' handle put it back (no stored order);
-    with Exercises open (12 rows), a 60 px drag of its handle moved it below My songs, but
-    only after a fix: at first the page, shortened by hiding the bodies, scrolled from under
-    the pointer, so the list now keeps its height while dragging. Edit notation, a new song
-    with a short bar and an octave slip: "2 things to check", each with Dismiss (Fix too on
-    the slip); a real click on the first: "1 thing to check · 1 dismissed · Show them", saved,
-    focus on the next Dismiss; a line added above: still dismissed (now "Line 2"); its notes
-    changed: back ("2 things to check"); changed back and the other dismissed: "Nothing to
-    check apart from what you dismissed · 2 dismissed", the same after a reload; Show them,
-    Bring back; a built-in exercise has no Dismiss. Rewaz: "+ Add songs and exercises" opens
-    the checklist (Exercises then My songs, 13 rows, the open one marked, focus in Find);
-    ticking চার স্বরের দল, লম্বা স্বর, then the song numbers them 1, 2, 3; unticking the
-    middle renumbers; Find "অলংকার" shows the 6 alankars and hides My songs; Add puts the 3
-    after the warm-up's 4 in that order ("Added 3.", the warm-up saved as the user's); Cancel
-    adds nothing. 360 px: no sideways scrolling on the library, Edit notation, Rewaz (picker
-    open) and Practice, night and day. No console errors. Test song and routine deleted
-    through the app, colours back to Auto.
-  - CI run `38593941487` (`bb7b51f`): core, reference and deploy jobs green. Live: 12
-    exercises, Exercises first with two handles, the routine checklist, no console errors.
-- **Decisions made:** see Decisions (the 12 exercises; dismissing; the library's order;
-  adding to a routine).
-- **Risks or disagreements:** dismissals are not reset at export (Rinat suggested it; the
-  reason is in NOTATION.md); say if export should clear them too. Komal and tivra are one
-  exercise of two scales, not one scale with all three (that would be Purvi thaat). The new
-  seven-note pattern is in Rupak; the leap exercise sings each leap back and forth. A routine,
-  take or practice-log entry that named a removed exercise finds it gone. The checklist adds
-  2 rounds of each. Nobody has heard the new exercises; no Edge scenario script this round.
-- **Next handoff:** Rinat tries round five, sings the new exercises, and sends more design
-  comments.
 
 Older entries: `docs/HISTORY.md`.

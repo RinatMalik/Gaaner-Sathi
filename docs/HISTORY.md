@@ -49,6 +49,80 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-14 BST — Claude (Opus 5.5) — PH2-05 design, round five: the exercises redone, warnings dismissed, sections dragged, routines filled at once
+
+- **Goal:** Rinat: a way "to dismiss the error it found as some of these are not applicable
+  … maybe after the song has been exported, the dismissed list should be refreshed?";
+  "have the Exercises first, then My songs. Or make these sections draggable is probably
+  better"; "Redo the whole Exercise section. There will be 12 built in exercises … Don't
+  number them" (the list, with changes to each, two deletions, komal and tivra "can these be
+  combined?", three new patterns); in Rewaz "There should be a way to choose all the items I
+  want to add in a routine".
+- **Inspected:** `src/core/exercises/` (the specs carried over byte for byte from the
+  prototype, held to `reference/exercises.json` by `tests/ported/exercises.test.ts`, and the
+  fixture of four comparison suites and `dev/render.ts`); the checker (`check.ts`), its panel
+  (`issuesHTML`, also compared with the prototype) and its wiring; songs.ts; rewaz.ts.
+- **Changed:** `26f8550` (feat(exercises)): the new `specs.ts` (an `alankar()` helper builds
+  the climbing patterns: up from Sa until a shape starts on upper Sa, down from where the top
+  one ended), `index.ts` without the typing example, the warm-up's last item, the prototype's
+  specs and typing example moved to `tests/reference-exercises.ts`, which the ported test, the
+  `data`, `audio`, `notation` and `view` comparison suites and `dev/render.ts` now use; the
+  ported test checks the app's 12 by the same rules plus the shapes asked for. `bb7b51f`
+  (feat): `issueKey` (FNV-1a of kind, bar or notes, and the line's notes and bars);
+  `Song.dismissed` (`cleanDismissed`, storage, files); `issuesHTML(…, dis?)` with Dismiss,
+  "N dismissed · Show them" and Bring back; app.ts's `showDismissed`; songs.ts: `LIB_ORDER`
+  (exercises first), `order` in ListOptions, `.lgrip` handles, dragging (headings only while
+  moving, the list keeping its height, a brass drop line) and ↑ ↓; prefs `libOrder`;
+  `libraryHTML(…, exFirst)` and the rewaz pickers in the same order; rewaz.ts: `pickerHTML`,
+  `pickedButton`, the `picking` state, ticking updating in place, the find box; styles;
+  tests (`dismiss.test.ts` new). This commit (docs): NOTATION (Checker → Dismissing, and why
+  not at export), DATA (`dismissed`, `libOrder`), ROADMAP (Phase 2 row 5), this file (the
+  2026-10-13 01:30 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; the browser pane on `npm run
+  dev`, at 1200 × 800 and 360 × 780, night and day):
+  - `npm run typecheck` → 0; `npx vitest run` → 33 files, 356 passed (new: each of the 12
+    plays the same in Sa Re Ga and Bengali and checks clean, their ids and order, no numbers,
+    the shapes asked for (lines of the long notes, the tops and turns of each alankar, no lone
+    Sa line, full leap lines); the fingerprint the same across spacing, script and a line put
+    before, changed by the line's notes only; the panel's Dismiss, count, list, Bring back,
+    and nothing without the option; `dismissed` cleaned, kept, stored, exported; the section
+    order and handles; the picker's groups, numbers, open mark and button). A first leap
+    pattern (`S X S - | S X S -`) failed the checker (a Sa twice between two big leaps reads
+    as a slip), so the exercise sings `S X S X | S X S -`. `npm run build` → 212 kB JS
+    (74.9 kB gzip), 41 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed,
+    12 exercises valid.
+  - In the pane: the library lists the 12 unnumbered, Exercises first, the picker's groups
+    the same; a real drag of My songs' handle 45 px up put it first (saved, the picker
+    following, focus on the handle); ↑ on Exercises' handle put it back (no stored order);
+    with Exercises open (12 rows), a 60 px drag of its handle moved it below My songs, but
+    only after a fix: at first the page, shortened by hiding the bodies, scrolled from under
+    the pointer, so the list now keeps its height while dragging. Edit notation, a new song
+    with a short bar and an octave slip: "2 things to check", each with Dismiss (Fix too on
+    the slip); a real click on the first: "1 thing to check · 1 dismissed · Show them", saved,
+    focus on the next Dismiss; a line added above: still dismissed (now "Line 2"); its notes
+    changed: back ("2 things to check"); changed back and the other dismissed: "Nothing to
+    check apart from what you dismissed · 2 dismissed", the same after a reload; Show them,
+    Bring back; a built-in exercise has no Dismiss. Rewaz: "+ Add songs and exercises" opens
+    the checklist (Exercises then My songs, 13 rows, the open one marked, focus in Find);
+    ticking চার স্বরের দল, লম্বা স্বর, then the song numbers them 1, 2, 3; unticking the
+    middle renumbers; Find "অলংকার" shows the 6 alankars and hides My songs; Add puts the 3
+    after the warm-up's 4 in that order ("Added 3.", the warm-up saved as the user's); Cancel
+    adds nothing. 360 px: no sideways scrolling on the library, Edit notation, Rewaz (picker
+    open) and Practice, night and day. No console errors. Test song and routine deleted
+    through the app, colours back to Auto.
+  - CI run `38593941487` (`bb7b51f`): core, reference and deploy jobs green. Live: 12
+    exercises, Exercises first with two handles, the routine checklist, no console errors.
+- **Decisions made:** see Decisions (the 12 exercises; dismissing; the library's order;
+  adding to a routine).
+- **Risks or disagreements:** dismissals are not reset at export (Rinat suggested it; the
+  reason is in NOTATION.md); say if export should clear them too. Komal and tivra are one
+  exercise of two scales, not one scale with all three (that would be Purvi thaat). The new
+  seven-note pattern is in Rupak; the leap exercise sings each leap back and forth. A routine,
+  take or practice-log entry that named a removed exercise finds it gone. The checklist adds
+  2 rounds of each. Nobody has heard the new exercises; no Edge scenario script this round.
+- **Next handoff:** Rinat tries round five, sings the new exercises, and sends more design
+  comments.
+
 ### 2026-10-13 02:40 BST — Claude (Opus 5.5) — PH2-04 design, round four: your own exercises, Practice settings in Practice, Rewaz as folding rows
 
 - **Goal:** Rinat: "yes build the exercises option as you recommended"; "I am thinking the

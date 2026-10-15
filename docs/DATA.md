@@ -126,7 +126,7 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `voiceRange` | The lowest and highest notes the range finder heard, `{ lo, hi }`, MIDI numbers with fractions |
 | `holdNote`, `holdBest` | The hold trainer's note (cents from Sa: −500, −300, −100, 0, 200, 400, 500, 700, 900, 1100 or 1200) and the longest hold on each, `{ "700": 12.4 }` seconds |
 | `showKeys` | `true` to show the keys to press on the Practice view |
-| `plRows`, `plSize` | The Practice view's lines: how many show, `5` or `9` (absent: 7), and the size of their words and notes, `small` or `big` (absent: normal) |
+| `plRows`, `plAt`, `plSize` | The Practice view's lines (set in the Practice settings): how many show, `5`, `9` or `12` (absent: 7); which of them, from the top, is the one being sung, `1`, `2`, `4` or `5` (absent: the 3rd); the size of their words and notes, `small` or `big` (absent: normal) |
 | `midi` | A MIDI keyboard: `{ route: 'app' \| 'kb' \| 'both', sound: 'keep' \| 'organ' \| 'accordion', out?: id }`: where the guide plays, in what sound, on which keyboard |
 
 **Each song's own sound.** The harmonium, drone and rhythm settings (`reeds`, `droneType`,

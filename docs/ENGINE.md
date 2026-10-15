@@ -257,8 +257,10 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   reading is placed on its beat (from the beats scheduled, moved back by the delay) and drawn
   on that line's pitch strip over the note bars, green within 15 cents of the note expected,
   amber within 35, red beyond, grey where no note is expected; with any octave counting it is
-  drawn at the expected note's octave. Each beat sung gets a mark under its words, each line
-  its score beside its number when it finishes, the run its score under the lines. A line's
+  drawn at the expected note's octave. Each beat sung gets a mark under its words; each line,
+  when it finishes, its score in its number box, which is tinted from red (50 or less) through
+  amber (75) to green (95 or more) by it; the run's average (`summary`) shows under the lines
+  as each line finishes, tinted the same way, and is the run's score at the end. A line's
   drawing is wiped when a new round of it starts. *Why on the lines:* the eye is already on
   the line being sung, so the voice is drawn where the notes are, not in a separate box.
 - **Not yet:** timing (early or late) in the score. It needs the true round-trip delay, and
