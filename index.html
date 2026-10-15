@@ -252,35 +252,6 @@
           <div class="f" id="listF"><span class="flab" id="listLab">List under</span><div class="seg" id="listSeg" role="group" aria-labelledby="listLab"><button type="button" data-v="song">My songs</button><button type="button" data-v="exercise">Exercises</button></div></div>
         </div>
         <div class="f" id="notesF"><label for="notesIn">About this song: its meaning, where it comes from, a teacher's comments</label><textarea id="notesIn" rows="3" autocomplete="off" placeholder="Shown on the Practice view, above the notation"></textarea></div>
-        <div class="modebar"><span class="lab2" id="modeLab">Write in</span><div class="seg" id="modeSeg" role="group" aria-labelledby="modeLab"><button type="button" data-v="boxes">Beat boxes</button><button type="button" data-v="text">Free text</button></div><span class="phint" id="modeHint"></span></div>
-        <div class="sound songsound">
-          <button id="songSoundBtn" class="soundbar" type="button" aria-expanded="false" aria-controls="songMixer">
-            <span class="soundtext"><span class="mhead" id="songSoundHead">Sound of this song</span><span class="soundsum" id="songSoundSum"></span></span>
-            <span class="soundact" aria-hidden="true"><span id="songSoundAct">Change</span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-          </button>
-          <section class="mixer" id="songMixer" aria-labelledby="songSoundHead" hidden>
-            <p class="snote" id="soundNote"><span id="soundNoteText" aria-live="polite"></span><button id="soundForget" class="ibtn" type="button" hidden>Use my usual sound</button></p>
-            <div class="mgroup">
-              <span class="mhead">Melody</span><div class="mitems">
-              <div class="mx"><span class="lab2" id="reedLab">Harmonium</span>
-                <div class="seg" id="reedSeg" role="group" aria-labelledby="reedLab"><button type="button" data-v="1" title="Male reed only">1 reed</button><button type="button" data-v="2" title="Bass and male reeds">2 reeds</button><button type="button" data-v="3" title="Bass, male and female reeds">3 reeds</button></div></div>
-              <div class="mx"><span class="lab2" id="droneLab">Drone</span>
-                <div class="seg" id="droneSeg" role="group" aria-labelledby="droneLab"><button type="button" data-v="tanpura">Tanpura</button><button type="button" data-v="harmonium">Harmonium</button></div>
-                <input type="range" id="droneVol" min="0" max="1" step="0.01" aria-label="Drone volume">
-                <select id="tanTune" class="msel" aria-label="Tanpura first string"><option value="P">1st string Pa</option><option value="M">1st string Ma</option><option value="N">1st string Ni</option></select></div>
-            </div></div>
-            <div class="mgroup">
-              <span class="mhead">Rhythm</span><div class="mitems">
-              <div class="mx"><span class="sr-only" id="beatLab">Rhythm instrument</span>
-                <div class="seg" id="beatSeg" role="group" aria-labelledby="beatLab"><button type="button" data-v="tabla">Tabla</button><button type="button" data-v="dholak">Dholak</button><button type="button" data-v="kit">Drums</button><button type="button" data-v="click">Click</button><button type="button" data-v="off">Off</button></div>
-                <input type="range" id="tablaVol" min="0" max="1" step="0.01" aria-label="Rhythm volume"></div>
-              <div class="mx"><span class="lab2" id="speedLab">Speed</span>
-                <div class="seg" id="speedSeg" role="group" aria-labelledby="speedLab"><button type="button" data-v="half">Half</button><button type="button" data-v="normal">Normal</button><button type="button" data-v="double">Double</button></div></div>
-              <label class="chk2"><input type="checkbox" id="fillsChk"> Fill every 4th cycle</label>
-              <div class="mx" id="layerRow"><span class="lab2" id="layerLab">Add</span><div class="chips" id="layerChips" role="group" aria-labelledby="layerLab"></div></div>
-            </div></div>
-          </section>
-        </div>
         <div class="toolbar">
           <button id="copyBtn" class="btn" type="button">Make a copy</button>
           <button id="expBtn" class="btn" type="button">Export this song</button>
@@ -292,27 +263,61 @@
         </div>
         </section>
       </div>
+      <div class="sound songsound">
+        <button id="songSoundBtn" class="soundbar" type="button" aria-expanded="false" aria-controls="songMixer">
+          <span class="soundtext"><span class="mhead" id="songSoundHead">Sound of this song</span><span class="soundsum" id="songSoundSum"></span></span>
+          <span class="soundact" aria-hidden="true"><span id="songSoundAct">Change</span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </button>
+        <section class="mixer" id="songMixer" aria-labelledby="songSoundHead" hidden>
+          <p class="snote" id="soundNote"><span id="soundNoteText" aria-live="polite"></span><button id="soundForget" class="ibtn" type="button" hidden>Use my usual sound</button></p>
+          <div class="mgroup">
+            <span class="mhead">Melody</span><div class="mitems">
+            <div class="mx"><span class="lab2" id="reedLab">Harmonium</span>
+              <div class="seg" id="reedSeg" role="group" aria-labelledby="reedLab"><button type="button" data-v="1" title="Male reed only">1 reed</button><button type="button" data-v="2" title="Bass and male reeds">2 reeds</button><button type="button" data-v="3" title="Bass, male and female reeds">3 reeds</button></div></div>
+            <div class="mx"><span class="lab2" id="droneLab">Drone</span>
+              <div class="seg" id="droneSeg" role="group" aria-labelledby="droneLab"><button type="button" data-v="tanpura">Tanpura</button><button type="button" data-v="harmonium">Harmonium</button></div>
+              <input type="range" id="droneVol" min="0" max="1" step="0.01" aria-label="Drone volume">
+              <select id="tanTune" class="msel" aria-label="Tanpura first string"><option value="P">1st string Pa</option><option value="M">1st string Ma</option><option value="N">1st string Ni</option></select></div>
+          </div></div>
+          <div class="mgroup">
+            <span class="mhead">Rhythm</span><div class="mitems">
+            <div class="mx"><span class="sr-only" id="beatLab">Rhythm instrument</span>
+              <div class="seg" id="beatSeg" role="group" aria-labelledby="beatLab"><button type="button" data-v="tabla">Tabla</button><button type="button" data-v="dholak">Dholak</button><button type="button" data-v="kit">Drums</button><button type="button" data-v="click">Click</button><button type="button" data-v="off">Off</button></div>
+              <input type="range" id="tablaVol" min="0" max="1" step="0.01" aria-label="Rhythm volume"></div>
+            <div class="mx"><span class="lab2" id="speedLab">Speed</span>
+              <div class="seg" id="speedSeg" role="group" aria-labelledby="speedLab"><button type="button" data-v="half">Half</button><button type="button" data-v="normal">Normal</button><button type="button" data-v="double">Double</button></div></div>
+            <label class="chk2"><input type="checkbox" id="fillsChk"> Fill every 4th cycle</label>
+            <div class="mx" id="layerRow"><span class="lab2" id="layerLab">Add</span><div class="chips" id="layerChips" role="group" aria-labelledby="layerLab"></div></div>
+          </div></div>
+        </section>
+      </div>
       <div class="exNote" id="exNote" hidden>This is a built-in exercise, so edits here are not kept. Press <b>Make a copy</b> in Settings to save your own version, or <b>+ New song</b> to start from your diary.</div>
       <div class="edgrid">
         <div class="edcol">
-          <div class="edtools"><button type="button" class="btn addnotes" id="addNotesBtn" aria-expanded="false" aria-controls="pal">+ Add notes</button><button type="button" class="btn bonly" id="bxHead">+ Heading</button><button type="button" class="btn bonly" id="bxUndo">Undo</button></div>
-          <span class="phint" id="kbHint" hidden>Play your keyboard: each key you press is a beat. Add holds with Hold −.</span>
-          <div class="pal" id="pal" aria-label="Insert notes" hidden>
-            <div class="palrow">
-              <span class="lab2">Insert notes in</span>
-              <div class="seg" id="octSeg" role="group" aria-label="Octave for inserted notes"><button type="button" data-v="-1">Lower</button><button type="button" data-v="0">Middle</button><button type="button" data-v="1">Upper</button></div>
-            </div>
-            <div class="palrow" id="noteBtns"></div>
-            <div class="palrow">
-              <button type="button" class="xbtn" data-ins="hold">Hold −</button>
-              <button type="button" class="xbtn" data-ins="rest">Silence x</button>
-              <button type="button" class="xbtn tonly" data-ins="bar">Bar |</button>
-              <button type="button" class="xbtn" data-ins="nl">New line</button>
-              <button type="button" class="xbtn tonly" data-ins="ly">Lyrics line &gt;</button>
-            </div>
+          <!-- Entering notes (Rinat, 2026-10-15): how to write them, and a pad of the twelve notes and
+               what else goes in a beat, between full-height buttons that change its octave. -->
+          <div class="sound padsec">
+            <button id="padBtn" class="soundbar" type="button" aria-expanded="true" aria-controls="padBody">
+              <span class="soundtext"><span class="mhead" id="padHead">Enter notes</span><span class="soundsum" id="padSum"></span></span>
+              <span class="soundact" aria-hidden="true"><span id="padAct">Done</span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </button>
+            <section class="mixer padbody" id="padBody" aria-labelledby="padHead">
+              <div class="modebar"><span class="lab2" id="modeLab">Write in</span><div class="seg" id="modeSeg" role="group" aria-labelledby="modeLab"><button type="button" data-v="boxes">Beat boxes</button><button type="button" data-v="text">Free text</button></div></div>
+              <div class="pad" id="pad" role="group" aria-label="Enter notes">
+                <button type="button" class="padoct" id="padLower"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="padLowerLab">Lower</span></button>
+                <div class="padmid">
+                  <div class="padoctname" id="padOct" aria-live="polite"></div>
+                  <div class="padkeys" id="padKeys"></div>
+                </div>
+                <button type="button" class="padoct" id="padUpper"><span id="padUpperLab">Upper</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              </div>
+              <p class="phint" id="modeHint"></p>
+              <span class="phint" id="kbHint" hidden>Play your keyboard: each key you press is a beat. Add holds with Hold.</span>
+            </section>
           </div>
           <div class="fixrow" id="fixRow">
-            <span class="lab2">Octave</span>
+            <button type="button" class="obtn bonly" id="bxUndo">Undo</button>
+            <span class="lab2">Selected notes</span>
             <button type="button" class="obtn" id="octDown" aria-label="Move the selected notes down an octave">↓ Lower</button>
             <button type="button" class="obtn" id="octUp" aria-label="Move the selected notes up an octave">↑ Higher</button>
             <span class="lab2">Beat</span>

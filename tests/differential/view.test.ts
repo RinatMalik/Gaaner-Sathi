@@ -151,14 +151,8 @@ describe('the screen matches the prototype', () => {
     }
   });
 
-  it('the palette, the taal and start-beat pickers, and the key and octave pickers', () => {
-    for (const insOct of [-1, 0, 1]) {
-      for (const script of SCRIPTS) {
-        W.set(state({ prefs: { script }, insOct }));
-        W.renderNoteButtons();
-        expect(V.noteButtonsHTML(insOct, script)).toBe(W.el('#noteBtns').innerHTML);
-      }
-    }
+  // The palette's row of twelve became the note pad (Rinat, 2026-10-15): tests/unit/pad.test.ts.
+  it('the taal and start-beat pickers, and the key and octave pickers', () => {
     W.renderTaalControls();
     // The prototype's six come first, as it listed them; the new taals follow in their own groups.
     const first = /^<optgroup label="Common taals">(.*?)<\/optgroup>/.exec(V.taalOptionsHTML());

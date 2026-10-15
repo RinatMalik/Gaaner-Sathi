@@ -167,14 +167,27 @@ export function layerChipsHTML(style: string, on: readonly string[]): { hidden: 
 
 // ── Editor ───────────────────────────────────────────────────────────────────
 
-/** The palette's 12 note buttons, in the current script and insert octave. */
-export function noteButtonsHTML(insOct: number, script: Script): string {
-  let html = '';
-  for (let semi = 0; semi < 12; semi++) {
-    const u: ShownUnit = { k: 'note', semi, oct: insOct };
-    html += '<button type="button" class="nbtn" data-semi="' + semi + '" aria-label="Insert ' + (KOMAL.has(semi) ? 'komal ' : '') + (semi === 6 ? 'tivra ' : '') + LAT_NAMES[semi] + '">' + beatNoteHTML({ units: [u] }, script) + '</button>';
-  }
-  return html;
+/** The octaves the note pad offers, with their names. */
+export const PAD_OCTAVES: Record<number, string> = { [-1]: 'Lower octave · মন্দ্র', 0: 'Middle octave · মধ্য', 1: 'Upper octave · তার' };
+
+/** The note pad's rows (Rinat, 2026-10-15): Sa Re Ga Ma; Pa Dha Ni; komal Re, Ga, tivra Ma,
+ * komal Dha, Ni. */
+export const PAD_ROWS: readonly (readonly number[])[] = [[0, 2, 4, 5], [7, 9, 11], [1, 3, 6, 8, 10]];
+
+/** The note pad: the twelve notes in the octave notes are entered in (each named for a screen
+ * reader, komal and tivra captioned), then what else goes in a beat or a song: hold, silence,
+ * a new line and a heading, and in free text a bar and a line of lyrics. */
+export function padHTML(insOct: number, script: Script, freeText: boolean): string {
+  const oct = (PAD_OCTAVES[insOct] ?? '').split(' · ')[0]!.toLowerCase();
+  const note = (semi: number) => {
+    const kind = KOMAL.has(semi) ? 'komal' : semi === 6 ? 'tivra' : '';
+    return '<button type="button" class="pk" data-semi="' + semi + '" aria-label="' + (kind ? kind + ' ' : '') + LAT_NAMES[semi] + ', ' + oct + '">' +
+      '<span class="pkn">' + beatNoteHTML({ units: [{ k: 'note', semi, oct: insOct }] }, script) + '</span>' + (kind ? '<span class="pkc">' + kind + '</span>' : '') + '</button>';
+  };
+  const more: [string, string, string][] = [['hold', 'Hold', '–'], ['rest', 'Silence', '×'], ['nl', 'New line', '↵'], ['head', 'Heading', '#']];
+  if (freeText) more.push(['bar', 'Bar', '|'], ['ly', 'Lyrics line', '&gt;']);
+  return PAD_ROWS.map((r, i) => '<div class="pkrow' + (i === 2 ? ' pkvar' : '') + '">' + r.map(note).join('') + '</div>').join('') +
+    '<div class="pkrow pkmore">' + more.map(([k, label, sym]) => '<button type="button" class="pk px" data-ins="' + k + '"><span class="pks" aria-hidden="true">' + sym + '</span><span>' + label + '</span></button>').join('') + '</div>';
 }
 
 export function noteNames(us: readonly NoteUnit[], d: number, script: Script): string {

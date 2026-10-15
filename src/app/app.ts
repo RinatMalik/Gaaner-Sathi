@@ -759,7 +759,17 @@ function issueRange(it: V.IssueTarget): [number, number] | null {
 }
 
 function renderNoteButtons(): void {
-  $('#noteBtns').innerHTML = V.noteButtonsHTML(insOct, prefs.script);
+  $('#padKeys').innerHTML = V.padHTML(insOct, prefs.script, !boxesMode());
+  $('#padOct').textContent = V.PAD_OCTAVES[insOct] ?? '';
+  const lower = $<HTMLButtonElement>('#padLower');
+  const upper = $<HTMLButtonElement>('#padUpper');
+  lower.disabled = insOct <= -1;
+  upper.disabled = insOct >= 1;
+  $('#padLowerLab').textContent = insOct > 0 ? 'Middle' : 'Lower';
+  $('#padUpperLab').textContent = insOct < 0 ? 'Middle' : 'Upper';
+  lower.setAttribute('aria-label', insOct > 0 ? 'Notes in the middle octave' : 'Notes in the lower octave');
+  upper.setAttribute('aria-label', insOct < 0 ? 'Notes in the middle octave' : 'Notes in the upper octave');
+  renderPadSummary();
 }
 function renderStartOn(): void {
   $('#startOn').innerHTML = V.startOnOptionsHTML(taal);
@@ -1230,16 +1240,45 @@ function setEditSetOpen(open: boolean): void {
   if (open) prefs.editSetOpen = true;
   else delete prefs.editSetOpen;
 }
-/** The note buttons, shown by Add notes (remembered on the device). */
-function setPalOpen(open: boolean): void {
-  $('#addNotesBtn').setAttribute('aria-expanded', String(open));
-  $('#pal').hidden = !open;
-  $('#addNotesBtn').textContent = open ? 'Hide the note buttons' : '+ Add notes';
-  if (open) prefs.palOpen = true;
-  else delete prefs.palOpen;
+/** The Enter notes section, unfolded unless folded away (remembered on the device). */
+function setPadOpen(open: boolean): void {
+  $('#padBtn').setAttribute('aria-expanded', String(open));
+  $('#padBody').hidden = !open;
+  $('#padAct').textContent = open ? 'Done' : 'Show';
+  if (open) delete prefs.padFold;
+  else prefs.padFold = true;
 }
-/** What the folded Settings say: the title, the taal (and the beat it starts on), the tags,
- * and how the notes are written. */
+/** What the Enter notes bar says: how the notes are written, and in which octave the pad is. */
+function renderPadSummary(): void {
+  $('#padSum').textContent = (boxesMode() ? 'Beat boxes' : 'Free text') + ' · ' + (V.PAD_OCTAVES[insOct] ?? '').split(' · ')[0]!.toLowerCase();
+}
+/** The pad's octave, by its side buttons: the notes slide in from the side moved to. */
+function setInsOct(o: number): void {
+  const to = clamp(o, -1, 1);
+  if (to === insOct) return;
+  const from = insOct;
+  insOct = to;
+  renderNoteButtons();
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches && typeof Element.prototype.animate === 'function') {
+    const dx = to < from ? -28 : 28;
+    $('#padKeys').animate([{ transform: 'translateX(' + dx + 'px)', opacity: 0.25 }, { transform: 'none', opacity: 1 }], { duration: 220, easing: 'cubic-bezier(.2,.8,.3,1)' });
+  }
+}
+/** A heading after the line being written: in the beat boxes, a heading row to type in; in free
+ * text, "# " on a line of its own. */
+function addHeading(): void {
+  if (boxesMode()) {
+    setTextFromBoxes(withNewHeading(current.text), false);
+    boxes.render();
+    const heads = $$<HTMLInputElement>('#boxes .bxh');
+    heads[heads.length - 1]?.focus();
+    return;
+  }
+  const ta = notationBox();
+  const atStart = ta.selectionStart === 0 || ta.value[ta.selectionStart - 1] === '\n';
+  insertText((atStart ? '' : '\n') + '# ');
+}
+/** What the folded Settings say: the title, the taal (and the beat it starts on), the tags. */
 function renderEditSummary(): void {
   if (!current) return;
   const T = taalInfo(current.taal);
@@ -1247,13 +1286,11 @@ function renderEditSummary(): void {
     current.title,
     T.name + (current.startOn > 1 ? ', from beat ' + current.startOn : ''),
     ...(current.tags && current.tags.length ? [current.tags.join(', ')] : []),
-    boxesMode() ? 'Beat boxes' : 'Free text',
   ].join(' · ');
 }
 /** "Change this song's sound" in the Practice settings: Edit notation, with the song's sound open. */
 function showSongSound(): void {
   switchTab('edit');
-  setEditSetOpen(true);
   setSongSoundOpen(true);
   savePrefs();
   $('.songsound').scrollIntoView({ block: 'nearest' });
@@ -1310,10 +1347,11 @@ function applyEditMode(): void {
   $('.edgrid').classList.toggle('solo', b);
   for (const el of $$('#edit .tonly')) el.hidden = b;
   for (const el of $$('#edit .bonly')) el.hidden = !b;
-  renderEditSummary();
+  // The pad offers a bar and a line of lyrics in free text.
+  renderNoteButtons();
   $('#modeHint').textContent = b
-    ? 'A box for each beat: type a note and a space to go on. Notes typed together share a beat (সারা). Paste a line of words under its first note to fill a syllable per note. Tap a line to select it; drag lines by their numbers to move them, or Copy them and Paste after another line.'
-    : 'Type as in your diary: a space between beats, a new line for each line.';
+    ? 'Tap a note to put it in the beat box chosen, or type it there: a space goes on to the next box, and notes typed together share a beat (সারা).'
+    : 'Tap a note to put it where the cursor is, or type as in your diary: a space between beats, a new line for each line.';
   refreshSelection();
   if (boxesShown()) boxes.render();
 }
@@ -1815,7 +1853,6 @@ export function init(): void {
   // The song's sound controls show each song's sound as it opens (loadSong).
   setSeg('scriptSeg', prefs.script);
   applyTheme();
-  setSeg('octSeg', insOct);
   setSeg('guideSeg', prefs.guide);
   input('#countIn').checked = !!prefs.countIn;
   setSeg('guideLoopSeg', prefs.guideLoop);
@@ -1826,7 +1863,7 @@ export function init(): void {
   setSoundOpen(prefs.soundOpen ?? false);
   setSongSoundOpen(!!prefs.songSoundOpen);
   setEditSetOpen(!!prefs.editSetOpen);
-  setPalOpen(!!prefs.palOpen);
+  setPadOpen(!prefs.padFold);
   songsView = initSongs({
     ownSongs,
     exercises: EXERCISES,
@@ -2071,8 +2108,8 @@ export function init(): void {
     setEditSetOpen(!!$('#edSet').hidden);
     savePrefs();
   });
-  $('#addNotesBtn').addEventListener('click', () => {
-    setPalOpen(!!$('#pal').hidden);
+  $('#padBtn').addEventListener('click', () => {
+    setPadOpen(!!$('#padBody').hidden);
     savePrefs();
   });
   // The header's menu: open and close by its button, Escape or a tap anywhere else.
@@ -2332,23 +2369,26 @@ export function init(): void {
     clearTimeout(parseTimer);
     parseTimer = window.setTimeout(() => reparse(true), 140);
   });
-  $('#octSeg').addEventListener('click', (e) => {
-    const b = segButton(e);
-    if (!b) return;
-    insOct = +b.dataset.v!;
-    setSeg('octSeg', insOct);
-    renderNoteButtons();
-  });
-  $('#noteBtns').addEventListener('click', (e) => {
-    const b = (e.target as Element).closest<HTMLElement>('button[data-semi]');
-    if (!b) return;
-    if (boxesMode()) boxes.type(tokenFor(+b.dataset.semi!).trim());
-    else insertText(tokenFor(+b.dataset.semi!));
-  });
-  $('#pal').addEventListener('click', (e) => {
-    const b = (e.target as Element).closest<HTMLElement>('button[data-ins]');
-    if (!b) return;
+  // The note pad: its octave buttons, the notes, and hold, silence, new line, heading (and in
+  // free text, bar and lyrics line).
+  $('#pad').addEventListener('click', (e) => {
+    const b = (e.target as Element).closest<HTMLButtonElement>('button');
+    if (!b || b.disabled) return;
+    if (b.id === 'padLower' || b.id === 'padUpper') {
+      setInsOct(insOct + (b.id === 'padLower' ? -1 : 1));
+      return;
+    }
+    if (b.dataset.semi) {
+      if (boxesMode()) boxes.type(tokenFor(+b.dataset.semi).trim());
+      else insertText(tokenFor(+b.dataset.semi));
+      return;
+    }
     const k = b.dataset.ins;
+    if (!k) return;
+    if (k === 'head') {
+      addHeading();
+      return;
+    }
     if (boxesMode()) {
       if (k === 'nl') boxes.newLine();
       else if (k === 'hold' || k === 'rest') boxes.type(k === 'hold' ? '-' : 'x');
@@ -2359,12 +2399,6 @@ export function init(): void {
   $('#modeSeg').addEventListener('click', (e) => {
     const b = segButton(e);
     if (b) setEditMode(b.dataset.v === 'text' ? 'text' : 'boxes');
-  });
-  $('#bxHead').addEventListener('click', () => {
-    setTextFromBoxes(withNewHeading(current.text), false);
-    boxes.render();
-    const heads = $$<HTMLInputElement>('#boxes .bxh');
-    heads[heads.length - 1]?.focus();
   });
   $('#bxUndo').addEventListener('click', () => {
     if (!boxes.undo()) $('#selInfo').textContent = 'Nothing to undo in the beat boxes.';

@@ -71,10 +71,10 @@ export interface Prefs extends SoundSettings {
   soundOpen?: boolean;
   /** Whether a song's sound is unfolded in Edit notation; unset: folded. */
   songSoundOpen?: true;
-  /** Whether Edit notation's Settings and its note buttons (Add notes) are unfolded; unset:
-   * folded. */
+  /** Whether Edit notation's Settings are unfolded (unset: folded), and its Enter notes
+   * section folded (unset: unfolded). */
   editSetOpen?: true;
-  palOpen?: true;
+  padFold?: true;
   /** How the Music library sorts. */
   libSort: LibrarySort;
   /** The Music library's sections the user has folded away. */
@@ -166,7 +166,7 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
   if (typeof r.soundOpen === 'boolean') p.soundOpen = r.soundOpen;
   if (r.songSoundOpen === true) p.songSoundOpen = true;
   if (r.editSetOpen === true) p.editSetOpen = true;
-  if (r.palOpen === true) p.palOpen = true;
+  if (r.padFold === true) p.padFold = true;
   const lo = r.libOrder;
   if (Array.isArray(lo) && lo.length === 2 && lo.includes('mine') && lo.includes('ex')) p.libOrder = lo as ('mine' | 'ex')[];
   const lf = r.libFold as Record<string, unknown> | undefined;
