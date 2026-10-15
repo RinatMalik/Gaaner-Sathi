@@ -49,6 +49,46 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-15 BST — Claude (Opus 5.5) — PH2-11 one undo for the song's text
+
+- **Goal:** Rinat: Undo "seems unintuitive … when writing anything through beat boxes, it is
+  just editing the free text underneath, right? … why can't the undo just be attached to the
+  text editor … If it is not as simple, then leave it as it is."
+- **Inspected:** boxes.ts's undo (`undoStack`, filled only by its `write`, never emptied);
+  every path that changes the text (app.ts `changed('text')` from `setTextFromBoxes`,
+  `setText` and the notation box's input event; `applyTextEdit` for Join, Split and octaves;
+  `insertText` for the pad in free text; `addHeading`).
+- **Found:** the boxes' list missed changes made outside the boxes, so after + Heading an undo
+  took back the step before it too; and, never emptied, Undo after opening another song wrote
+  the previous song's text into the one just opened (a lost-work bug, fixed here).
+- **Changed:** `d78ac22` (fix(edit)): `src/app/undo.ts` (new: `TextUndo` with `remember`,
+  `undo`, `clear`, `firstDifference`); app.ts: the step recorded in `changed` with `textKey`
+  (a box's key, `line:N` for free text typing, a step of its own otherwise via `inputKey` and
+  `ownStep`), `undoText` (the text put back, the boxes refocused or the caret placed),
+  Ctrl+Z in the notation box, the list emptied in `loadSong`; boxes.ts: `write` passes its key
+  to the host, Ctrl+Z calls the host's undo, `restored(key)` in place of `undo`; Undo shown in
+  free text too; tests (undo.test.ts). This commit (docs): NOTATION (Undo), ROADMAP (Phase 2
+  row 11), this file (the PH2-09 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`):
+  - `npm run typecheck` → 0; `npx vitest run` → 36 files, 377 passed (new: steps taken back
+    in turn; typing in one place joined until a pause or another place; steps of their own
+    never joined; the latest 200 kept; emptied; where texts differ). `npm run build` → 227 kB
+    JS (80.3 kB gzip), 50.1 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed,
+    12 exercises valid.
+  - A new song, beat boxes: New line, সা, রা, গা, Hold, Heading from the pad; Undo took back
+    the heading alone ("সা রা গা | -"), then Hold, then গা. Free text: " মা পা" typed and ধা
+    from the pad; Undo took back ধা alone, then the typing; Ctrl+Z in the text took back রা
+    (typed in the boxes). Back in the boxes, Undo took back সা, then "Nothing to undo.". A
+    note typed, then ex-scale opened: Undo said "Nothing to undo." and ex-scale's text was
+    unchanged (185 characters).
+  - CI run `38763430833` (`d78ac22`): core, reference and deploy jobs green. Live: https://rinatmalik.github.io/Gaaner-Sathi/ in headless Edge: a new song, the pad's Heading undone alone, then Hold, then গা; no console errors.
+- **Decisions made:** see Decisions (one undo).
+- **Risks or disagreements:** no redo (there was none before). Typing a long stretch on one
+  line without a 4 s pause is one step, as typing in one box was. Ctrl+Z in free text no longer
+  uses the browser's own finer undo. The history is not kept across a reload.
+- **Next handoff:** Rinat tries Undo while entering a song.
+
 ### 2026-10-15 BST — Claude (Opus 5.5) — PH2-10 design, round ten: the note pad
 
 - **Goal:** Rinat: round nine's Add notes was a misreading ("i actually meant about the

@@ -57,12 +57,13 @@ a space, because JavaScript counts it as whitespace (the port keeps this).
 
 | | Bengali | Latin |
 |---|---|---|
-| Upper (তার) | রেফ before the note: `র্সা` (repeat for +2: `র্র্সা`) | `'` after the note: `S'` (also `’`, `^`, `*` or a backtick) |
+| Upper (তার) | রেফ before the note: `র্সা` (repeat for +2: `র্র্সা`; or `'` after it, as in Latin: `সা''`) | `'` after the note: `S'` (also `’`, `^`, `*` or a backtick) |
 | Lower (মন্দ্র) | `.` before: `.না`, or হসন্ত after: `ন্` | `.` before: `.N` |
 
 - **Shown:** one dot under a lower note in either script, one over an upper note in Sa Re Ga
   (Bengali shows its রেফ); two octaves away, two dots side by side (Rinat, 2026-10-15; the
-  prototype drew one for either). An upper tivra Ma in Sa Re Ga has its line a little to the
+  prototype drew one for either), in Bengali too for two octaves up, over the note's
+  headline, in place of two রেফs (fonts draw them as a stray র্, and `র্র্রা` as a conjunct). An upper tivra Ma in Sa Re Ga has its line a little to the
   left and the octave's dots beside it.
 - A mark written after the আকার still applies: `সা'` is upper Sa.
 - `র্` followed by a note letter is always a রেফ (upper octave on the next note). A lower Re
@@ -142,7 +143,8 @@ Dadra in the next. Built 2026-10-11 at Rinat's request.
 ## How the editor writes notation
 
 - Bengali: upper `র্` prefix, lower `.` prefix, every note followed by `া` when it ends a
-  beat, holds `-া`.
+  beat, holds `-া`. Two octaves up, two `'` after the note (and its `া`): `সা''` (Rinat,
+  2026-10-15; the prototype wrote `র্র্সা`, which fonts draw badly).
 - Latin: upper `'` suffix, lower `.` prefix.
 - Rinat's diaries may mark the lower octave with হসন্ত rather than `.`: Open question 1 in
   `CONTEXT.md`.
@@ -151,7 +153,10 @@ Dadra in the next. Built 2026-10-11 at Rinat's request.
 
 - `shiftOctaves(text, selStart, selEnd, ±1)` rewrites only the octave marks of the selected
   notes. A bare caret picks the note just left of it in its beat. Clamps at ±2. Returns the
-  new text, the new selection and an undoable `{lo, hi, rep}` replacement.
+  new text, the new selection and an undoable `{lo, hi, rep}` replacement. Where one note's
+  marks after it meet the next note's marks before it, those after come first (the
+  prototype swapped them: `N` and `হ্ম` moved up gave `Nর্'হ্ম`, read as a Re; fixed
+  2026-10-15).
 - `joinBeats(text, s, e)` merges the selected beats (or the caret's beat and the next one)
   into one beat, dropping inner আকার: `পা ধা → পধা`. Refuses across a bar or a line.
 - `splitBeats(text, s, e)` gives every unit of the selected beat(s) its own beat, written
@@ -165,8 +170,9 @@ tested, in `src/core/notation/boxes.ts`). Every box edit is a text edit, so Free
 exactly what the boxes wrote, and headings, lyrics and anything else written there are kept.
 Free text is one tap away and remembered. The beat boxes take the editor's whole width, with
 no preview beside them (they show the same; Rinat, 2026-10-11); Free text keeps its preview,
-where a beat is tapped to choose it. The Octave and Join/Split row sits above the boxes (or
-the text) and works on the box chosen (or the beats chosen).
+where a beat is tapped to choose it. Undo, the Octave buttons and Join/Split sit beside the
+note pad (under it when narrow; Rinat, 2026-10-15) and work on the box chosen (or the beats
+chosen).
 
 - **Rows** are the text's lines (round six, 2026-10-12): down the left, the row's number
   (a heading's #) the row's full height, behind the diary's red margin line; at the right

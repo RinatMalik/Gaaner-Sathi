@@ -83,6 +83,7 @@ Begun 2026-10-11 with Rinat's comments on the screen as it is ("mostly design am
 | 10 | **Entering notes:** an Enter notes section with Write in and a note pad (Sa Re Ga Ma; Pa Dha Ni; komal and tivra; Hold, Silence, New line, Heading) between full-height buttons that move it an octave down or up; Undo, octave, Join and Split in a row under it; the song's sound a section of its own again ("+ Add notes" undone: it had meant the notes about a song) | 2026-10-15 | Rinat enters a song from the pad comfortably on a phone and a laptop |
 | 11 | **One undo:** Undo and Ctrl+Z take back the song's text step by step whatever changed it (beat boxes, pad, free text, Join, Split, octave, heading), in either view; another song opened starts afresh | 2026-10-15 | Rinat finds Undo does what is expected |
 | 12 | **The pad's octaves:** the note pad goes two octaves either side (lowest অতিমন্দ্র to highest অতিতার), as far as the notation reads; two dots for a note two octaves away | 2026-10-15 | Rinat enters the lowest and highest notes of a song from the pad |
+| 13 | **The pad in colour, its tools beside it:** a faint colour for each octave (komal and tivra stronger); Undo, Lower/Higher and Join/Split in sections beside the pad (under it when narrow); Bengali two octaves up shown as two dots and written `সা''` | 2026-10-15 | Rinat finds the octaves and the tools easy to tell apart |
 
 ## Phase 3: native mobile app
 
