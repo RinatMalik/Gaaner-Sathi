@@ -106,9 +106,6 @@ export interface Prefs extends SoundSettings {
   plRows?: 5 | 9 | 12;
   plAt?: 1 | 2 | 4 | 5;
   plSize?: 'small' | 'big';
-  /** One line to a row in the Practice view, short lines too; absent: two to a row when they
-   * fit (Rinat, 2026-10-16). */
-  plOne?: true;
   /** A MIDI keyboard: where the guide plays, in what sound, and on which keyboard. */
   midi?: { route: 'app' | 'kb' | 'both'; sound: 'keep' | 'organ' | 'accordion'; out?: string };
 }
@@ -198,7 +195,6 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
   if (r.plAt === 1 || r.plAt === 2 || r.plAt === 4 || r.plAt === 5) p.plAt = r.plAt;
 
   if (r.plSize === 'small' || r.plSize === 'big') p.plSize = r.plSize;
-  if (r.plOne === true) p.plOne = true;
   const mi = r.midi as Record<string, unknown> | undefined;
   if (mi && typeof mi === 'object') {
     p.midi = { route: oneOf(mi.route, ['app', 'kb', 'both'] as const, 'app'), sound: oneOf(mi.sound, ['keep', 'organ', 'accordion'] as const, 'keep') };

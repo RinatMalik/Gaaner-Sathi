@@ -7,8 +7,7 @@
  * tall strip, the beat sounding lit and a playhead moving through it; the lines around it are
  * small; which place it takes, and how many lines show, are Practice settings. Each line's
  * number box plays from that line; once sung it is tinted red, amber or green by the line's
- * score. Short lines go two to a row when they fit (Rinat, 2026-10-16), the row being sung
- * large, with the line being sung lit in it. Beside the line being sung, a taal figure draws each vibhag as a shape with a corner
+ * score. Beside the line being sung, a taal figure draws each vibhag as a shape with a corner
  * for each beat (a square for four beats, a triangle for three, a lens for two), the edges
  * drawn on through each beat so a shape closes as its last beat ends, the corner of the beat
  * sounding lit. The HTML builders are pure and tested in Node; initLines wires them to the page.
@@ -29,36 +28,6 @@ export function columnsFor(maxBeats: number, width: number, minCol: number): num
   let c = Math.max(1, maxBeats);
   while (c > 1 && width / c < minCol) c = Math.ceil(c / 2);
   return c;
-}
-
-/** A row of the view: a heading (the song's `head`th), a line across the whole width, or one
- * or two lines side by side, each in half of it. */
-export type PlRow = { head: number } | { n: number } | { pair: number[] };
-
-/** The view's rows (Rinat, 2026-10-16): each heading its own; a line that fits in half the
- * width (`fits` its beats) shares a row with the next such line of its section, one left over
- * taking half a row alone (so beats line up down the view); any other line a row of its own.
- * The song's text is not changed: its lines stay lines, for scores, loops and rewaz. */
-export function rowsOf(P: ParsedSong, fits: (beats: number) => boolean): PlRow[] {
-  const rows: PlRow[] = [];
-  let open: number[] | null = null;
-  let h = 0;
-  for (const it of P.items) {
-    if (it.type === 'head') {
-      rows.push({ head: h++ });
-      open = null;
-    } else if (!fits(it.beats.length)) {
-      rows.push({ n: it.n });
-      open = null;
-    } else if (open) {
-      open.push(it.n);
-      open = null;
-    } else {
-      open = [it.n];
-      rows.push({ pair: open });
-    }
-  }
-  return rows;
 }
 
 /** A line's pitch strip, in cents from Sa: two semitones above and below its notes, and at
@@ -231,8 +200,6 @@ export interface LinesHost {
    * being sung (1 to 5). */
   rows(): number;
   at(): number;
-  /** Two lines to a row when they fit. */
-  pair(): boolean;
 }
 
 export interface LinesUI {
@@ -283,14 +250,8 @@ export function initLines(host: LinesHost): LinesUI {
   let drawn = '';
   let dirty = true;
   let lines: HTMLElement[] = [];
-  let heads: HTMLElement[] = [];
-  /** The rows stacked down the view (a line, or two in a pair; not the headings), each line's
-   * row, how they are grouped now, and the lines shown large (those of the row being sung). */
-  let rowEls: HTMLElement[] = [];
-  let rowOfLine: number[] = [];
-  let rowKey = '';
-  let bigLines: number[] = [];
   const cellsOf = new Map<number, HTMLElement[]>();
+  let maxBeats = 1;
   /** Each line's beats, to know which lines go over more than one row. */
   let beatsOf: number[] = [];
   let cur = -1;
@@ -321,12 +282,6 @@ export function initLines(host: LinesHost): LinesUI {
     fig.el?.remove();
     list.innerHTML = html;
     lines = Array.from(list.querySelectorAll<HTMLElement>('.pll'));
-    heads = Array.from(list.querySelectorAll<HTMLElement>('.plhd'));
-    // A row a line until the page lays them out.
-    rowEls = lines.slice();
-    rowOfLine = lines.map((_, i) => i);
-    rowKey = '';
-    bigLines = [];
     cellsOf.clear();
     for (const el of list.querySelectorAll<HTMLElement>('.plb[data-b]')) {
       const g = +el.dataset.b!;
@@ -334,6 +289,8 @@ export function initLines(host: LinesHost): LinesUI {
       cellsOf.get(g)!.push(el);
     }
     beatsOf = P.noteLines.map((l) => l.beats.length);
+    maxBeats = Math.max(1, ...beatsOf);
+    shownCols = 0;
     segs.clear();
     linePass.clear();
     last = null;
@@ -347,83 +304,30 @@ export function initLines(host: LinesHost): LinesUI {
     if (g >= 0) beat(g);
   }
 
-  /** Rows, columns and the view's height: the row playing at its full size and the rest
-   * small. Lines that fit in half the width go two to a row (when chosen), `--pcols` across
-   * each half; the rest `--cols` across the whole, a line over more than one row (`--r`)
-   * sharing the strip height of one among its rows. */
+  /** Columns and the view's height: the line playing at its full size and the rest small. A
+   * line over more than one row (`--r`) shares the strip height of one among its rows. */
+  let shownCols = 0;
   function layout(): void {
     if (!host.shown() || !view.clientWidth) return;
     const numW = lines[0]?.querySelector<HTMLElement>('.pln')?.offsetWidth ?? 60;
-    const minCol = matchMedia('(max-width:520px)').matches ? 32 : 46;
-    const width = view.clientWidth - 2;
-    const half = Math.floor(width / 2) - numW;
-    const pairing = host.pair();
-    const fits = (b: number) => pairing && b * minCol <= half;
-    regroup(rowsOf(host.parsed(), fits));
-    const cols = columnsFor(Math.max(1, ...beatsOf.filter((b) => !fits(b))), width - numW, minCol);
-    list.style.setProperty('--cols', String(cols));
-    list.style.setProperty('--pcols', String(Math.max(1, ...beatsOf.filter(fits))));
-    lines.forEach((l, i) => {
-      const r = fits(beatsOf[i] ?? 1) ? 1 : Math.ceil((beatsOf[i] ?? 1) / cols);
-      if (r > 1) l.style.setProperty('--r', String(r));
-      else l.style.removeProperty('--r');
-    });
-    const curRow = rowOfLine[cur] ?? -1;
-    const small = rowEls.filter((_, i) => i !== curRow).map((l) => l.offsetHeight).sort((a, b) => a - b);
+    const cols = columnsFor(maxBeats, view.clientWidth - numW - 2, matchMedia('(max-width:520px)').matches ? 32 : 46);
+    if (cols !== shownCols) {
+      shownCols = cols;
+      list.style.setProperty('--cols', String(cols));
+      lines.forEach((l, i) => {
+        const r = Math.ceil((beatsOf[i] ?? 1) / cols);
+        if (r > 1) l.style.setProperty('--r', String(r));
+        else l.style.removeProperty('--r');
+      });
+    }
+    const small = lines.filter((_, i) => i !== cur).map((l) => l.offsetHeight).sort((a, b) => a - b);
     const hc = small.length ? small[small.length >> 1]! : 64;
     smallH = hc;
-    const hx = rowEls[curRow]?.offsetHeight ?? hc;
+    const hx = lines[cur]?.offsetHeight ?? hc;
     const rows = host.rows();
     view.classList.toggle('dense', rows >= 9);
     view.style.setProperty('--plh', Math.round(hx + (rows - 1) * hc + 6) + 'px');
     view.style.setProperty('--pltail', Math.round(Math.max(0, rows - place() - 1) * hc) + 'px');
-  }
-
-  /** Put the lines in their rows (only when the grouping changes): a pair's lines in a
-   * `.plpair`, the rest straight in the list, the headings between. */
-  function regroup(rows: PlRow[]): void {
-    const key = JSON.stringify(rows);
-    // No lines: the list says so, and stays as it is.
-    if (key === rowKey || !lines.length) return;
-    rowKey = key;
-    const out: HTMLElement[] = [];
-    rowEls = [];
-    rowOfLine = [];
-    for (const r of rows) {
-      if ('head' in r) {
-        if (heads[r.head]) out.push(heads[r.head]!);
-        continue;
-      }
-      const ns = 'n' in r ? [r.n] : r.pair;
-      let el = lines[ns[0]!];
-      if (!el) continue;
-      if ('pair' in r) {
-        el = document.createElement('div');
-        el.className = 'plpair';
-        for (const n of ns) if (lines[n]) el.appendChild(lines[n]!);
-      }
-      for (const n of ns) rowOfLine[n] = rowEls.length;
-      rowEls.push(el);
-      out.push(el);
-    }
-    list.replaceChildren(...out);
-    markBig();
-  }
-
-  /** The lines of the row being sung are shown large, with the semitones across their strips. */
-  function markBig(): void {
-    const r = cur >= 0 ? rowOfLine[cur] : undefined;
-    const want = r == null ? [] : lines.map((_, i) => i).filter((i) => rowOfLine[i] === r);
-    if (want.join() === bigLines.join()) return;
-    for (const i of bigLines) {
-      lines[i]?.classList.remove('big');
-      clearGrid(i);
-    }
-    bigLines = want;
-    for (const i of want) {
-      lines[i]?.classList.add('big');
-      gridFor(i);
-    }
   }
 
   let layoutTimer = 0;
@@ -450,13 +354,12 @@ export function initLines(host: LinesHost): LinesUI {
    * scrolled to, it is counted at its small height, and the scroll is checked again once it
    * has shrunk. */
   function scrollTo(smooth: boolean, was = -1): void {
-    const ri = rowOfLine[cur] ?? -1;
-    if (!rowEls[ri] || !view.clientHeight) return;
+    const L = lines[cur];
+    if (!L || !view.clientHeight) return;
     const k = place();
-    let top = ri < k ? 0 : rowEls[ri - k]!.offsetTop - list.offsetTop;
-    const wr = was >= 0 ? (rowOfLine[was] ?? -1) : -1;
-    const W = rowEls[wr];
-    if (W && wr !== ri && ri >= k && wr < ri - k) {
+    let top = cur < k ? 0 : lines[cur - k]!.offsetTop - list.offsetTop;
+    const W = lines[was];
+    if (W && cur >= k && was < cur - k) {
       top -= Math.max(0, W.offsetHeight - smallH);
       clearTimeout(settleTimer);
       settleTimer = window.setTimeout(() => scrollTo(smooth), 300);
@@ -485,8 +388,9 @@ export function initLines(host: LinesHost): LinesUI {
       if (L) {
         L.classList.add('cur');
         if (fig.el) L.querySelector('.pln')!.appendChild(fig.el);
+        gridFor(n);
       }
-      markBig();
+      if (lines[was]) clearGrid(was);
       for (const k of [was, was + 1, n, n + 1]) setState(k);
       if (!playing) beat(-1);
       scrollTo(playing && was >= 0, was);

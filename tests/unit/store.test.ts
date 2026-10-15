@@ -117,17 +117,6 @@ describe('preferences', () => {
       for (const k of ['plRows', 'plAt', 'plSize']) expect(loadPrefs(S)).not.toHaveProperty(k);
     }
   });
-
-  it('keep one line to a row only when chosen (two short lines to a row by default)', () => {
-    const S = new Memory();
-    expect(loadPrefs(S)).not.toHaveProperty('plOne');
-    S.setItem(STORE_KEYS.prefs, JSON.stringify({ plOne: true }));
-    expect(loadPrefs(S)).toMatchObject({ plOne: true });
-    for (const v of [false, 'true', 1, null]) {
-      S.setItem(STORE_KEYS.prefs, JSON.stringify({ plOne: v }));
-      expect(loadPrefs(S)).not.toHaveProperty('plOne');
-    }
-  });
 });
 
 describe('your own exercises in storage', () => {
@@ -256,7 +245,6 @@ describe('the settings bars’ summaries', () => {
       .toBe('Guide full · Keys shown · 12 lines, the 4th being sung · Bigger words · Octave must match');
     expect(practiceSummary(DEFAULT_PREFS, { plRows: 9 })).toBe('Guide full · 9 lines');
     expect(practiceSummary(DEFAULT_PREFS, { plAt: 1, plSize: 'small' })).toBe('Guide full · 7 lines, the 1st being sung · Smaller words');
-    expect(practiceSummary(DEFAULT_PREFS, { plOne: true })).toBe('Guide full · One line to a row');
     // A song's sound is not in it.
     expect(practiceSummary({ ...DEFAULT_PREFS, beat: 'kit', droneVol: 0.5 })).toBe('Guide full');
   });
