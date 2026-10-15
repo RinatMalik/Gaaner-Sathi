@@ -710,6 +710,10 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .plhd{font-family:var(--f-note);font-size:15px;color:var(--ink-2);padding:6px 14px 3px calc(var(--numw) + 12px);border-bottom:1px solid var(--rule)}
 .plempty{padding:28px 20px;color:var(--ink-2);text-align:center}
 .pll{display:grid;grid-template-columns:var(--numw) minmax(0,1fr);border-bottom:1px solid var(--rule);transition:background-color .25s}
+/* two lines to a row, each in half (one left over takes its half alone) */
+.plpair{--cols:var(--pcols,8);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-bottom:1px solid var(--rule)}
+.plpair>.pll{border-bottom:0}
+.plpair>.pll+.pll{border-left:1px solid var(--rule)}
 .pll.past .plbeats{opacity:.5}
 .plbeats{transition:opacity .25s}
 .pll.cur{background:color-mix(in srgb,var(--brass) 7%,var(--sheet))}
@@ -720,7 +724,8 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .pln:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .pln:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .plnum{font-size:16px;font-weight:600;line-height:1.35;font-variant-numeric:tabular-nums;transition:font-size .25s}
-.pll.cur .plnum{font-size:30px;color:var(--ink)}
+.pll.big .plnum{font-size:30px}
+.pll.cur .plnum{color:var(--ink)}
 .plst{font-size:11px;line-height:1.3;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--ink-2)}
 .pll.cur .plst{color:var(--brass-text)}
 .plsc{font-size:17px;font-weight:700;line-height:1.25;font-variant-numeric:tabular-nums}
@@ -738,8 +743,8 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .plv2{font-size:.7em;opacity:.85}
 .ply .held{opacity:.55}
 .pll:not(.words) .pnt{color:var(--ink);font-size:calc(clamp(13px,100cqi / var(--cols) * .3,21px) * var(--ts))}
-.pll.cur .pnt{font-size:calc(clamp(12px,100cqi / var(--cols) * .24,19px) * var(--ts))}
-.pll.cur .ply,.pll.cur:not(.words) .pnt{font-size:calc(clamp(17px,100cqi / var(--cols) * .46,46px) * var(--ts))}
+.pll.big .pnt{font-size:calc(clamp(12px,100cqi / var(--cols) * .24,19px) * var(--ts))}
+.pll.big .ply,.pll.big:not(.words) .pnt{font-size:calc(clamp(17px,100cqi / var(--cols) * .46,46px) * var(--ts))}
 .plb.bad .pnt{text-decoration:underline wavy var(--red-ink);text-underline-offset:.2em}
 .plg{flex:none;width:56%;height:3px;border-radius:2px;margin:2px 0}
 .plb.pg-good .plg{background:var(--good)}
@@ -747,20 +752,20 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .plb.pg-off .plg{background:var(--red-ink)}
 .plb.pg-miss .plg{background:var(--line)}
 .plsw{position:relative;align-self:stretch;flex:none;height:22px;transition:height .25s}
-.pll.cur .plsw{--sh:clamp(84px,15vh,140px);height:calc(var(--sh) * (1 + .3 * (var(--r,1) - 1)) / var(--r,1));background:color-mix(in srgb,var(--ink) 3%,transparent)}
+.pll.big .plsw{--sh:clamp(84px,15vh,140px);height:calc(var(--sh) * (1 + .3 * (var(--r,1) - 1)) / var(--r,1));background:color-mix(in srgb,var(--ink) 3%,transparent)}
 /* Twelve or nine lines: the lines not being sung a little smaller, so more fit. */
-.plview.dense .pll:not(.cur) .pnt{font-size:calc(clamp(10px,100cqi / var(--cols) * .18,12px) * var(--ts))}
-.plview.dense .pll:not(.cur) .ply,.plview.dense .pll:not(.cur):not(.words) .pnt{font-size:calc(clamp(12px,100cqi / var(--cols) * .26,18px) * var(--ts))}
-.plview.dense .pll:not(.cur) .plsw{height:14px}
-.plview.dense .pll:not(.cur) .pln{padding-top:4px;padding-bottom:4px}
+.plview.dense .pll:not(.big) .pnt{font-size:calc(clamp(10px,100cqi / var(--cols) * .18,12px) * var(--ts))}
+.plview.dense .pll:not(.big) .ply,.plview.dense .pll:not(.big):not(.words) .pnt{font-size:calc(clamp(12px,100cqi / var(--cols) * .26,18px) * var(--ts))}
+.plview.dense .pll:not(.big) .plsw{height:14px}
+.plview.dense .pll:not(.big) .pln{padding-top:4px;padding-bottom:4px}
 .pls{display:block;width:100%;height:100%;overflow:hidden}
 .nb{stroke:var(--ink-2);stroke-opacity:.5;stroke-width:3px;vector-effect:non-scaling-stroke}
-.pll.cur .nb{stroke-width:7px;stroke-opacity:.3;stroke-linecap:round}
+.pll.big .nb{stroke-width:7px;stroke-opacity:.3;stroke-linecap:round}
 .pll.cur .plb.now .nb{stroke:var(--brass);stroke-opacity:1}
 .sg{stroke:var(--rule);stroke-width:1px;vector-effect:non-scaling-stroke}
 .sg.sa{stroke:var(--margin);stroke-width:1.5px}
 .vt{fill:none;stroke:var(--ink-2);stroke-width:1.5px;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
-.pll.cur .vt{stroke-width:2.6px}
+.pll.big .vt{stroke-width:2.6px}
 .vt.good{stroke:var(--good)}.vt.ok{stroke:var(--warn)}.vt.off{stroke:var(--red-ink)}
 /* The beat sounding: a highlighter down its column; the beats already sung faded a little. */
 .plb.now{background:color-mix(in srgb,var(--mark) 70%,transparent)}
@@ -803,7 +808,7 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
   .pl{--numw:60px}
   .pln{padding:6px 2px 8px}
   .plnum{font-size:14px}
-  .pll.cur .plnum{font-size:22px}
+  .pll.big .plnum{font-size:22px}
   .plst{font-size:9px;letter-spacing:.02em}
   .plsc{font-size:14px}
   .pln.scored{box-shadow:inset 4px 0 0 var(--lc)}
@@ -812,6 +817,6 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
   .kb{height:120px}
   .tfn{font-size:9.5px}
   .plsw{height:18px}
-  .pll.cur .plsw{--sh:clamp(72px,12vh,110px)}
+  .pll.big .plsw{--sh:clamp(72px,12vh,110px)}
   .plhd{padding-left:calc(var(--numw) + 8px)}
 }

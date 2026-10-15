@@ -1,7 +1,7 @@
 // The Practice view's lines (src/app/lines.ts): the layout, each line's strip and cells, and
 // the taal figure (Rinat, 2026-10-15).
 import { describe, expect, it } from 'vitest';
-import { columnsFor, figureProgress, linesHTML, ragColour, shapeCorners, shapePath, stripRange, stripY, taalFigureHTML } from '../../src/app/lines';
+import { columnsFor, figureProgress, linesHTML, ragColour, rowsOf, shapeCorners, shapePath, stripRange, stripY, taalFigureHTML } from '../../src/app/lines';
 import { parseSong } from '../../src/core/notation/parse';
 import { taalMap } from '../../src/core/notation/taalmap';
 import { taalInfo } from '../../src/core/taal/taals';
@@ -26,6 +26,16 @@ describe('the lines’ layout', () => {
     expect(columnsFor(7, 282, 34)).toBe(7);
     expect(columnsFor(1, 10, 34)).toBe(1);
     expect(columnsFor(0, 300, 34)).toBe(1);
+  });
+
+  it('puts lines that fit in half the width two to a row, within a section', () => {
+    // Four short lines, a heading, three short, a long one, one short.
+    const P = parseSong(['S R G M', 'P D N S', 'S R', 'G M', '# অন্তরা', 'S R G M', 'P D N S', 'S N D P', 'S R G M P D N S S R G M P D N S', 'S'].join('\n'));
+    const half = (b: number) => b <= 8;
+    expect(rowsOf(P, half)).toEqual([{ pair: [0, 1] }, { pair: [2, 3] }, { head: 0 }, { pair: [4, 5] }, { pair: [6] }, { n: 7 }, { pair: [8] }]);
+    // Off (or no room): a line to a row.
+    expect(rowsOf(P, () => false)).toEqual([{ n: 0 }, { n: 1 }, { n: 2 }, { n: 3 }, { head: 0 }, { n: 4 }, { n: 5 }, { n: 6 }, { n: 7 }, { n: 8 }]);
+    expect(rowsOf(parseSong(''), half)).toEqual([]);
   });
 
   it('gives each line a strip two semitones beyond its notes, at least ten tall', () => {

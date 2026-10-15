@@ -1881,6 +1881,7 @@ function applyLinesPrefs(): void {
   setSeg('plAtSeg', prefs.plAt ?? 3);
   setSeg('plSizeSeg', prefs.plSize ?? 'normal');
   $('#pl').dataset.size = prefs.plSize ?? 'normal';
+  input('#plPairChk').checked = !prefs.plOne;
   lines.refresh();
 }
 
@@ -1893,6 +1894,7 @@ export function init(): void {
     shown: () => !$('#practice').hidden,
     rows: () => prefs.plRows ?? 7,
     at: () => prefs.plAt ?? 3,
+    pair: () => !prefs.plOne,
   });
   applyLinesPrefs();
   // The keyboard fills its section's width: drawn again when that changes (and when it shows).
@@ -2319,6 +2321,12 @@ export function init(): void {
     const v = b.dataset.v;
     if (v === 'small' || v === 'big') prefs.plSize = v;
     else delete prefs.plSize;
+    savePrefs();
+    applyLinesPrefs();
+  });
+  input('#plPairChk').addEventListener('change', (e) => {
+    if ((e.target as HTMLInputElement).checked) delete prefs.plOne;
+    else prefs.plOne = true;
     savePrefs();
     applyLinesPrefs();
   });

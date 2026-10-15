@@ -283,6 +283,7 @@ export interface ViewSettings {
   plRows?: number;
   plAt?: number;
   plSize?: string;
+  plOne?: boolean;
   showKeys?: boolean;
   pitchOctave?: boolean;
 }
@@ -300,6 +301,7 @@ export function practiceSummary(s: SoundSettings, v: ViewSettings = {}): string 
   const at = v.plAt ?? 3;
   if (rows !== 7 || at !== 3) parts.push(rows + ' lines' + (at !== 3 ? ', the ' + (ORDINAL[at] ?? at) + ' being sung' : ''));
   if (v.plSize === 'small' || v.plSize === 'big') parts.push(v.plSize === 'big' ? 'Bigger words' : 'Smaller words');
+  if (v.plOne) parts.push('One line to a row');
   if (v.pitchOctave) parts.push('Octave must match');
   return parts.join(' · ');
 }
