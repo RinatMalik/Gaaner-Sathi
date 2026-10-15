@@ -571,12 +571,6 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .boxes{display:grid;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:0;max-height:72vh;overflow:auto;overscroll-behavior:contain}
 .bxrow{display:flex;align-items:stretch;gap:0 10px;border-bottom:1px solid var(--rule);min-width:0}
 .bxrow:last-child{border-bottom:0}
-/* Two lines to a row when both fit in half the width (Rinat, 2026-10-16); one left over takes
-   its half alone. */
-.bxpair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-bottom:1px solid var(--rule);min-width:0}
-.bxpair:last-child{border-bottom:0}
-.bxpair>.bxrow{border-bottom:0}
-.bxpair>.bxrow+.bxrow{border-left:1px solid var(--rule)}
 .bxnotes,.bxhead{cursor:pointer}
 .bxnotes:hover,.bxhead:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
 .bxln{flex:none;width:36px;text-align:center;color:var(--ink-2);font-size:13px;font-weight:600;padding-top:13px;font-variant-numeric:tabular-nums;border-right:1.5px solid var(--margin)}
@@ -606,7 +600,7 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .bxnew .bxln{color:var(--brass)}
 /* The end of a row: play this line, play from here, remove; each the row's full height. */
 .bxside{flex:none;display:flex;align-self:stretch}
-.bxbtn{width:36px;display:grid;place-items:center;padding:0;border:0;border-left:1px solid var(--rule);background:transparent;color:var(--ink-2)}
+.bxbtn{width:40px;display:grid;place-items:center;padding:0;border:0;border-left:1px solid var(--rule);background:transparent;color:var(--ink-2)}
 .bxbtn svg{width:17px;height:17px}
 .bxbtn:hover{background:var(--chip);color:var(--ink)}
 .bxbtn.bxdel:hover{color:var(--red-ink)}
@@ -627,12 +621,11 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 
 .bxgrip:hover>span{background:var(--chip);color:var(--ink)}
 .bxgrip:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
-.boxes.dragging{overflow-x:hidden}
 .bxrow.dragging{position:relative;z-index:3;background:var(--sheet);box-shadow:0 6px 18px var(--shadow);border-radius:8px}
 .bxrow.dragging,.bxrow.dragging .bxgrip{cursor:grabbing}
 .bxrow.moved{animation:bxmoved 1.2s ease-out}
 @keyframes bxmoved{from{background:color-mix(in srgb,var(--brass) 24%,transparent)}to{background:transparent}}
-.bxdrop{position:absolute;border-radius:2px;background:var(--brass);pointer-events:none;z-index:4}
+.bxdrop{position:absolute;left:4px;right:4px;height:3px;border-radius:2px;background:var(--brass);pointer-events:none;z-index:4}
 /* Selecting rows (to copy, move or paste after), playing one line, the beat sounding. */
 .bxrow.sel,.bxrow.sel:hover{background:color-mix(in srgb,var(--brass) 14%,transparent)}
 .bxgrip[aria-pressed="true"]>span{background:var(--brass);color:var(--brass-ink)}

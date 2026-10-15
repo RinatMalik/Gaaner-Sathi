@@ -2,7 +2,7 @@
 // the song text.
 import { describe, expect, it } from 'vitest';
 import { addHeading, appendBeats, barChar, beatsTyped, boxRows, insertLines, insertText, newRowShape, nextSpot, placeBeats, readableBeat, copyRows, moveRow, moveRows, pasteRows, removeBeat, removeHeading, removeLine, rowBlocks, setBeat, setHeading, setLyrics, verseTokens } from '../../src/core/notation/boxes';
-import { boxesHTML, goesBefore, pairRuns } from '../../src/app/boxes';
+import { boxesHTML } from '../../src/app/boxes';
 import { parseSong } from '../../src/core/notation/parse';
 import { taalInfo } from '../../src/core/taal/taals';
 
@@ -287,26 +287,5 @@ describe('the boxes as HTML', () => {
     // Rupak starts on khali (0); Tagore's taals have no khali.
     const R = boxesHTML(boxRows('সা রা গা | মা পা | ধা না', parseSong('সা রা গা | মা পা | ধা না'), taalInfo('rupak'), 0), () => 1);
     expect(kinds(R.slice(0, R.indexOf('bxnew')))).toEqual(['v-khali', '-', '-', 'v-tali', '-', 'v-tali', '-']);
-  });
-});
-
-describe('two lines to a row (Rinat, 2026-10-16)', () => {
-  it('pairs rows that fit in half the width, from the first of each run', () => {
-    // A heading, four short lines, a long one, three short, a heading, one short.
-    const fits = [false, true, true, true, true, false, true, true, true, false, true];
-    expect(pairRuns(fits)).toEqual([[1, 2], [3, 4], [6, 7], [8], [10]]);
-    expect(pairRuns([false, false])).toEqual([]);
-    expect(pairRuns([])).toEqual([]);
-  });
-
-  it('drops a dragged row before the first row it is above or before the middle of, in reading order', () => {
-    const left = { left: 0, right: 500, top: 100, bottom: 160, half: true };
-    const right = { left: 500, right: 1000, top: 100, bottom: 160, half: true };
-    const whole = { left: 0, right: 1000, top: 160, bottom: 220, half: false };
-    // Above the pair: before both. On it: by the halves' middles.
-    expect([goesBefore(left, 700, 90), goesBefore(right, 700, 90)]).toEqual([true, true]);
-    expect([goesBefore(left, 200, 130), goesBefore(left, 300, 130), goesBefore(right, 700, 130), goesBefore(right, 800, 130)]).toEqual([true, false, true, false]);
-    // A whole row: by its height's middle, wherever across.
-    expect([goesBefore(whole, 900, 180), goesBefore(whole, 10, 200), goesBefore(whole, 10, 230)]).toEqual([true, false, false]);
   });
 });
