@@ -150,6 +150,18 @@ describe('the Music library', () => {
     expect(ex).toContain('data-print="' + EXERCISES[0]!.id + '"');
   });
 
+  it('lets one of the user’s songs be deleted from its row, asking first in the row; never a built-in exercise', () => {
+    const row = songRowHTML(entryFor(own[0]!), opts());
+    expect(row).toMatch(/data-print="s1"[^>]*><svg[^]*?<\/svg><\/button><button type="button" class="lact ldel" data-del="s1" aria-label="Delete this song" title="Delete this song"><svg/);
+    expect(songRowHTML(entryFor(EXERCISES[0]!), opts())).not.toContain('data-del');
+    const asking = songRowHTML(entryFor(own[0]!), { ...opts(), confirmDel: 's1' });
+    expect(asking).toContain('<li class="lrow sure">');
+    expect(asking).toContain('<div class="lacts lsure"><span class="lsuret">Delete this song?</span><button type="button" class="lact ldelyes" data-delyes="s1">Delete</button><button type="button" class="lact" data-delno="s1">Keep</button></div>');
+    expect(asking).not.toContain('data-open="s1"><svg');
+    // Only the row asked about.
+    expect(songRowHTML(entryFor(own[1]!), { ...opts(), confirmDel: 's1' })).not.toContain('lsure');
+  });
+
   it('gives each heading a + New button after its fold button: a song, or an exercise', () => {
     const html = songsListHTML(own, EXERCISES, opts()).html;
     expect(html).toMatch(/<div class="lheadrow"><button type="button" class="lgrip"[^]*?<\/button><h3 class="lhead"><button type="button" class="lfold" data-fold="mine"[^]*?<\/button><\/h3><button type="button" class="btn lnew" data-new="song">\+ New song<\/button><\/div>/);

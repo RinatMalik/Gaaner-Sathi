@@ -1190,6 +1190,15 @@ function applyTheme(): void {
   if (prefs.theme) document.documentElement.setAttribute('data-theme', prefs.theme);
   else document.documentElement.removeAttribute('data-theme');
   setSeg('themeSeg', prefs.theme ?? 'auto');
+  renderDisp();
+}
+/** The header's menu button says how notes are written and the colours: "বাংলা · Auto". */
+function renderDisp(): void {
+  $('#dispSum').textContent = (prefs.script === 'lat' ? 'Sa Re Ga' : 'বাংলা') + ' · ' + (prefs.theme === 'light' ? '☀ Day' : prefs.theme === 'dark' ? '☾ Night' : 'Auto');
+}
+function setDispOpen(open: boolean): void {
+  $('#dispMenu').hidden = !open;
+  $('#dispBtn').setAttribute('aria-expanded', String(open));
 }
 
 /** The song's notes above the sheet, when it has any. */
@@ -1212,9 +1221,39 @@ function setSongSoundOpen(open: boolean): void {
   if (open) prefs.songSoundOpen = true;
   else delete prefs.songSoundOpen;
 }
+/** Edit notation's Settings (the song's details, sound and files), unfolded or not
+ * (remembered on the device). */
+function setEditSetOpen(open: boolean): void {
+  $('#edSetBtn').setAttribute('aria-expanded', String(open));
+  $('#edSet').hidden = !open;
+  $('#edSetAct').textContent = open ? 'Done' : 'Change';
+  if (open) prefs.editSetOpen = true;
+  else delete prefs.editSetOpen;
+}
+/** The note buttons, shown by Add notes (remembered on the device). */
+function setPalOpen(open: boolean): void {
+  $('#addNotesBtn').setAttribute('aria-expanded', String(open));
+  $('#pal').hidden = !open;
+  $('#addNotesBtn').textContent = open ? 'Hide the note buttons' : '+ Add notes';
+  if (open) prefs.palOpen = true;
+  else delete prefs.palOpen;
+}
+/** What the folded Settings say: the title, the taal (and the beat it starts on), the tags,
+ * and how the notes are written. */
+function renderEditSummary(): void {
+  if (!current) return;
+  const T = taalInfo(current.taal);
+  $('#edSum').textContent = [
+    current.title,
+    T.name + (current.startOn > 1 ? ', from beat ' + current.startOn : ''),
+    ...(current.tags && current.tags.length ? [current.tags.join(', ')] : []),
+    boxesMode() ? 'Beat boxes' : 'Free text',
+  ].join(' · ');
+}
 /** "Change this song's sound" in the Practice settings: Edit notation, with the song's sound open. */
 function showSongSound(): void {
   switchTab('edit');
+  setEditSetOpen(true);
   setSongSoundOpen(true);
   savePrefs();
   $('.songsound').scrollIntoView({ block: 'nearest' });
@@ -1269,8 +1308,9 @@ function applyEditMode(): void {
   $('#prevCol').hidden = b;
   $('#bxKey').hidden = !b;
   $('.edgrid').classList.toggle('solo', b);
-  for (const el of $$('#pal .tonly')) el.hidden = b;
-  for (const el of $$('#pal .bonly')) el.hidden = !b;
+  for (const el of $$('#edit .tonly')) el.hidden = b;
+  for (const el of $$('#edit .bonly')) el.hidden = !b;
+  renderEditSummary();
   $('#modeHint').textContent = b
     ? 'A box for each beat: type a note and a space to go on. Notes typed together share a beat (সারা). Paste a line of words under its first note to fill a syllable per note. Tap a line to select it; drag lines by their numbers to move them, or Copy them and Paste after another line.'
     : 'Type as in your diary: a space between beats, a new line for each line.';
@@ -1342,6 +1382,7 @@ function loadSong(song: Song | Exercise): void {
   renderStartOn();
   $('#exNote').hidden = !current.example;
   $('#delBtn').hidden = current.example;
+  renderEditSummary();
   $('#delConfirm').hidden = true;
   select('#songSel').value = current.id;
   selTouched = false;
@@ -1398,6 +1439,22 @@ function writeSongs(list: Song[]): void {
   const r = store.save(list);
   setStatus(r === 'ok' ? 'Saved in this browser' : saveError(r));
 }
+/** Delete one of the user's songs (asked first, in Edit notation or the Music library); the
+ * open one gives way to another song. */
+function deleteSong(id: string): void {
+  const s = songs.get(id);
+  if (!s) return;
+  const open = current.id === id;
+  if (open) {
+    clearTimeout(saveTimer);
+    saveTimer = 0;
+    dirty = false;
+  }
+  removeSong(id);
+  renderLibrary();
+  if (open) loadSong(Array.from(songs.values())[0] || EXERCISES[0]!);
+  setLibStatus('Deleted “' + s.title + '”.');
+}
 function removeSong(id: string): void {
   songs.delete(id);
   if (store.mode === 'local') {
@@ -1451,6 +1508,8 @@ function newSong(kind: 'song' | 'exercise' = 'song'): void {
   if (kind === 'exercise') base.exercise = true;
   createSong(base);
   switchTab('edit');
+  setEditSetOpen(true);
+  savePrefs();
   const t = input('#titleIn');
   t.focus();
   t.select();
@@ -1766,6 +1825,8 @@ export function init(): void {
   renderNoteButtons();
   setSoundOpen(prefs.soundOpen ?? false);
   setSongSoundOpen(!!prefs.songSoundOpen);
+  setEditSetOpen(!!prefs.editSetOpen);
+  setPalOpen(!!prefs.palOpen);
   songsView = initSongs({
     ownSongs,
     exercises: EXERCISES,
@@ -1794,6 +1855,7 @@ export function init(): void {
       savePrefs();
     },
     create: newSong,
+    remove: deleteSong,
     print: (id) => {
       const s = songs.get(id) || EXERCISES.find((x) => x.id === id);
       if (!s) return;
@@ -2005,6 +2067,25 @@ export function init(): void {
     savePrefs();
     setSoundOpen(open);
   });
+  $('#edSetBtn').addEventListener('click', () => {
+    setEditSetOpen(!!$('#edSet').hidden);
+    savePrefs();
+  });
+  $('#addNotesBtn').addEventListener('click', () => {
+    setPalOpen(!!$('#pal').hidden);
+    savePrefs();
+  });
+  // The header's menu: open and close by its button, Escape or a tap anywhere else.
+  $('#dispBtn').addEventListener('click', () => setDispOpen(!!$('#dispMenu').hidden));
+  document.addEventListener('click', (e) => {
+    if (!$('#dispMenu').hidden && !(e.target as Element).closest('.disp')) setDispOpen(false);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !$('#dispMenu').hidden) {
+      setDispOpen(false);
+      $('#dispBtn').focus();
+    }
+  });
   $('#songSoundBtn').addEventListener('click', () => {
     setSongSoundOpen(!!$('#songMixer').hidden);
     savePrefs();
@@ -2169,6 +2250,7 @@ export function init(): void {
     prefs.script = b.dataset.v === 'lat' ? 'lat' : 'bn';
     savePrefs();
     setSeg('scriptSeg', prefs.script);
+    renderDisp();
     renderSheets();
     renderLineSelects(true);
     renderNoteButtons();
@@ -2208,19 +2290,13 @@ export function init(): void {
   });
   $('#delYes').addEventListener('click', () => {
     if (current.example) return;
-    clearTimeout(saveTimer);
-    saveTimer = 0;
-    dirty = false;
-    const id = current.id;
-    removeSong(id);
-    const next = Array.from(songs.values())[0] || EXERCISES[0]!;
-    renderLibrary();
-    loadSong(next);
+    deleteSong(current.id);
   });
 
   input('#titleIn').addEventListener('input', (e) => {
     const v = (e.target as HTMLInputElement).value;
     changed('title', v.trim() ? v : 'Untitled ' + what());
+    renderEditSummary();
     $('#songTitle').innerHTML = V.esc(current.title) + (what() === 'exercise' ? '<span class="tag">Exercise</span>' : '');
     if (!current.example) renderLibrary();
   });
@@ -2231,17 +2307,20 @@ export function init(): void {
   input('#tagsIn').addEventListener('input', (e) => {
     const t = parseTags((e.target as HTMLInputElement).value);
     changed('tags', t.length ? t : undefined);
+    renderEditSummary();
     if (!current.example) renderLibrary();
   });
   select('#taalSel').addEventListener('change', (e) => {
     const v = (e.target as HTMLSelectElement).value;
     changed('taal', isTaalId(v) ? v : 'dadra');
+    renderEditSummary();
     taal = taalInfo(current.taal);
     renderStartOn();
     reparse(true);
   });
   select('#startOn').addEventListener('change', (e) => {
     changed('startOn', +(e.target as HTMLSelectElement).value);
+    renderEditSummary();
     reparse(true);
   });
 

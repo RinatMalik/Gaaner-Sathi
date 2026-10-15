@@ -6,7 +6,7 @@
  * do (Rinat, 2026-10-13). The HTML builders are pure and tested in Node.
  */
 import { durationText } from '../core/practice/log';
-import { ITEM_GAP, itemLines, newRoutineId, ROUTINE_LIMITS, routineSeconds, STARTER, type ItemGuide, type Routine, type RoutineItem, type SongShape } from '../core/practice/routine';
+import { gapOf, itemLines, newRoutineId, ROUTINE_LIMITS, routineSeconds, STARTER, type ItemGuide, type Routine, type RoutineItem, type SongShape } from '../core/practice/routine';
 import type { WriteResult } from './store';
 import { foldText } from '../core/song/model';
 import { esc } from './view';
@@ -120,9 +120,9 @@ export function metaText(r: Routine, saved: boolean, secs: number): string {
 
 /**
  * One routine: a heading row (its name and length; tapped anywhere it folds the routine
- * away) with a full-height Start button at its end; unfolded, its name, its items, and a
- * row to add songs and exercises (choosing several at once) or delete the routine. `n`
- * numbers its parts on the page.
+ * away) with a full-height Start button at its end; unfolded, its name and the break between
+ * its items, its items, and a row to add songs and exercises (choosing several at once) or
+ * delete the routine. `n` numbers its parts on the page.
  */
 export function routineHTML(r: Routine, n: number, o: RoutineRow, song: (id: string) => ItemSong | null, own: readonly Choice[], exercises: readonly Choice[]): string {
   const count = r.items.length;
@@ -139,7 +139,8 @@ export function routineHTML(r: Routine, n: number, o: RoutineRow, song: (id: str
     '<span class="rwname">' + esc(r.name) + '</span><span class="rwmeta">' + meta + '</span></button></h3>' +
     '<button type="button" class="rwgo" data-act="start"' + (count ? '' : ' disabled') + '>' + ICON.play + '<span>Start rewaz</span></button></div>' +
     '<div class="rwbody" id="rwb-' + n + '"' + (o.open ? '' : ' hidden') + '>' +
-    '<label class="rwf rwnamef"><span>Name</span><input type="text" data-act="name" value="' + esc(r.name) + '" maxlength="' + ROUTINE_LIMITS.name + '" autocomplete="off"></label>' +
+    '<div class="rwopts"><label class="rwf rwnamef"><span>Name</span><input type="text" data-act="name" value="' + esc(r.name) + '" maxlength="' + ROUTINE_LIMITS.name + '" autocomplete="off"></label>' +
+    '<label class="rwf rwnum rwgapf"><span>Break between items, seconds</span><input type="number" min="0" max="' + ROUTINE_LIMITS.gap + '" step="1" inputmode="numeric" data-act="gap" value="' + gapOf(r) + '"></label></div>' +
     '<ol class="rwlist">' + items + '</ol>' +
     (o.picking ? pickerHTML(own, exercises, o.exFirst, o.picking, o.openId) : '') +
     '<div class="rwfoot">' + (o.picking ? '' : '<button type="button" class="btn" data-act="pick"' + (count >= ROUTINE_LIMITS.items ? ' disabled' : '') + '>+ Add songs and exercises</button>') +
@@ -284,9 +285,20 @@ export function initRewaz(host: RewazHost): Rewaz {
       go(i);
       return;
     }
+    // The break, counting down each second.
     run.i = i;
-    showBar('Next: ' + itemText(i) + ' · starting in ' + gap + ' s');
-    run.timer = window.setTimeout(() => go(i), gap * 1000);
+    let left = gap;
+    const say = () => showBar('Next: ' + itemText(i) + ' · starting in ' + left + ' s');
+    say();
+    run.timer = window.setInterval(() => {
+      if (!run) return;
+      left--;
+      if (left > 0) say();
+      else {
+        clearInterval(run.timer);
+        go(i);
+      }
+    }, 1000);
   }
 
   function start(id: string): void {
@@ -304,7 +316,7 @@ export function initRewaz(host: RewazHost): Rewaz {
 
   function cancelRun(): void {
     if (!run) return;
-    clearTimeout(run.timer);
+    clearInterval(run.timer);
     run = null;
     bar.hidden = true;
   }
@@ -423,6 +435,22 @@ export function initRewaz(host: RewazHost): Rewaz {
       return;
     }
     const id = routineOf(el);
+    if (el.dataset.act === 'gap') {
+      const got = routine(id);
+      if (!got) return;
+      const v = Math.round(Number(el.value));
+      got.r.gap = Number.isFinite(v) && el.value !== '' ? Math.max(0, Math.min(ROUTINE_LIMITS.gap, v)) : gapOf(got.r);
+      store(got.r);
+      if (got.saved) {
+        el.value = String(got.r.gap);
+        const meta = el.closest('.rwr')?.querySelector('.rwmeta');
+        if (meta) meta.textContent = metaText(got.r, true, routineSeconds(got.r, host.song, host.countIn()));
+      } else {
+        render();
+        refocus(id, 'gap');
+      }
+      return;
+    }
     if (el.dataset.act === 'name') {
       const got = routine(id);
       if (!got) return;
@@ -490,7 +518,7 @@ export function initRewaz(host: RewazHost): Rewaz {
   // While an item plays, Skip moves on to the next; in the pause before one, it starts it now.
   $('#rwSkip').addEventListener('click', () => {
     if (!run) return;
-    clearTimeout(run.timer);
+    clearInterval(run.timer);
     if (host.playing()) {
       run.skipping = true;
       host.stop();
@@ -511,7 +539,7 @@ export function initRewaz(host: RewazHost): Rewaz {
       return run ? run.r.name : '';
     },
     finished() {
-      if (run) next(run.i + 1, ITEM_GAP);
+      if (run) next(run.i + 1, gapOf(run.r));
     },
     cancel() {
       if (!run) return;

@@ -306,13 +306,22 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .lplay svg{color:var(--brass)}
 .lact:hover{background:var(--chip);color:var(--ink)}
 .lact:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
-.lact.lprint{width:3.6em;padding:8px}
+.lact.lprint,.lact.ldel{width:3.6em;padding:8px}
+.lact.ldel:hover{color:var(--red-ink)}
+/* Delete, asked in the row itself. */
+.lrow.sure{background:color-mix(in srgb,var(--red-ink) 7%,transparent)}
+.lacts.lsure{align-items:stretch}
+.lsuret{display:flex;align-items:center;padding:8px 14px;border-left:1px solid var(--rule);font-weight:600;color:var(--red-ink)}
+.lact.ldelyes{width:7em;color:var(--red-ink)}
+.lsure .lact{width:7em}
 @media (max-width:720px){
   .lrow{flex-direction:column}
   .lacts{border-top:1px solid var(--rule)}
   .lact{flex:1 1 0;width:auto;min-height:42px;padding:8px 6px;gap:6px;font-size:13px}
   .lact:first-child{border-left:0}
-  .lact.lprint{flex:0 0 52px}
+  .lact.lprint,.lact.ldel{flex:0 0 52px}
+  .lsuret{flex:1 1 auto;border-left:0}
+  .lsure .lact{flex:0 0 auto;width:auto;padding:8px 16px}
 }
 .ltitle{font-family:var(--f-note);font-size:18px;line-height:1.35;overflow-wrap:anywhere}
 .llyric{font-family:var(--f-note);font-size:14px;color:var(--red-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -371,7 +380,9 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .rwgo:disabled{color:var(--ink-2);opacity:.6;cursor:default}
 .rwfold:focus-visible,.rwgo:focus-visible,.rwbtn:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .rwbody{display:grid;gap:12px;padding:12px 14px 14px;border-top:1px solid var(--rule);min-width:0}
-.rwnamef{max-width:420px}
+.rwopts{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 14px}
+.rwnamef{flex:1 1 220px;max-width:420px}
+.rwgapf input{width:88px}
 .rwnamef input{font-family:var(--f-note);font-size:16px}
 /* Its items: each a row like a line in the beat boxes, the number down the left and the
    buttons (move up, move down, remove) the row's full height at its end. */
@@ -450,8 +461,23 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .tabbtns{flex-wrap:wrap}
 @media (max-width:520px){.tabbtns button{padding:8px 9px}}
 
-/* Day and night (new): Auto follows the device. */
+/* Day and night (new): Auto follows the device. With how notes are written, in one small
+   menu in the header, for every view (Rinat, 2026-10-15). */
 .themeseg button{padding:3px 10px}
+.disp{position:relative;flex:none}
+.dispbtn{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.dispbtn svg{width:16px;height:16px;transition:transform .15s}
+.dispbtn[aria-expanded="true"] svg{transform:rotate(180deg)}
+#dispSum{font-family:var(--f-ui)}
+.dispmenu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;display:grid;gap:12px;width:max-content;min-width:250px;max-width:calc(100vw - 32px);padding:14px;background:var(--sheet);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px var(--shadow)}
+.dispmenu .mx{justify-content:space-between}
+@media (max-width:520px){.dispmenu{left:0;right:auto}}
+/* Edit notation: the song's settings folded away; the note buttons shown by Add notes. */
+.edsetbody{gap:14px}
+.edsetbody .songsound{background:var(--paper)}
+.edtools{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.btn.addnotes{font-weight:600}
+.btn.addnotes[aria-expanded="true"]{background:var(--ink);border-color:var(--ink);color:var(--sheet)}
 
 /* A song's notes (new): written in the editor, shown above the sheet. */
 #notesIn{width:100%;min-height:76px;resize:vertical;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--sheet);font-family:var(--f-note);font-size:16px;line-height:1.5}

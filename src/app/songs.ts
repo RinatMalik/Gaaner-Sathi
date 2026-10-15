@@ -25,6 +25,8 @@ export interface ListOptions {
   folded?: Partial<Record<LibSection, boolean>>;
   /** The sections' order; absent: LIB_ORDER. */
   order?: readonly LibSection[];
+  /** The song whose Delete was pressed, asking to confirm in its row. */
+  confirmDel?: string;
 }
 
 const GRIP_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></g></svg>';
@@ -34,12 +36,14 @@ const tight = (s: string) => foldText(s).replace(/[\s|।॥‖০\-–—~]+/g,
 const PLAY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/></svg>';
 const EDIT_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
 const PRINT_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V3.5h10V9M7 17H4.5V10.5a1.5 1.5 0 0 1 1.5-1.5h12a1.5 1.5 0 0 1 1.5 1.5V17H17M7 14h10v6.5H7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+const DEL_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 13h8l1-13M10.5 11v5.5M13.5 11v5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const FOLD_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 /** One song, laid out like a line in the beat boxes: a favourite star (own songs only), the
  * title with its first lyric and details (opens it to practise), its tags (each one filters
- * the list), and at its end buttons the row's full height: practise it, edit it, and (an
- * icon) print it or save it as a PDF. */
+ * the list), and at its end buttons the row's full height: practise it, edit it, and (icons)
+ * print it or save it as a PDF and, for the user's own, delete it (Rinat, 2026-10-15), which
+ * asks first in the row itself. */
 export function songRowHTML(e: LibraryEntry, o: ListOptions): string {
   const s = e.song;
   const at = o.practisedAt(s.id);
@@ -49,14 +53,20 @@ export function songRowHTML(e: LibraryEntry, o: ListOptions): string {
     ? '<span class="lfav" aria-hidden="true"></span>'
     : '<button type="button" class="lfav" data-fav="' + esc(s.id) + '" aria-pressed="' + !!s.fav + '" aria-label="Favourite">' + (s.fav ? '★' : '☆') + '</button>';
   const tags = (s.tags || []).map((t) => '<button type="button" class="ltag" data-tag="' + esc(t) + '">' + esc(t) + '</button>').join('');
-  return '<li class="lrow' + (s.id === o.currentId ? ' cur' : '') + '"><div class="lmain">' + star +
+  const sure = !s.example && o.confirmDel === s.id;
+  const acts = sure
+    ? '<div class="lacts lsure"><span class="lsuret">Delete this ' + what + '?</span>' +
+      '<button type="button" class="lact ldelyes" data-delyes="' + esc(s.id) + '">Delete</button>' +
+      '<button type="button" class="lact" data-delno="' + esc(s.id) + '">Keep</button></div>'
+    : '<div class="lacts"><button type="button" class="lact lplay" data-open="' + esc(s.id) + '">' + PLAY_ICON + '<span>Practise this ' + what + '</span></button>' +
+      '<button type="button" class="lact ledit" data-edit="' + esc(s.id) + '">' + EDIT_ICON + '<span>Edit this ' + what + '</span></button>' +
+      '<button type="button" class="lact lprint" data-print="' + esc(s.id) + '" aria-label="Print or save as PDF" title="Print or save as PDF">' + PRINT_ICON + '</button>' +
+      (s.example ? '' : '<button type="button" class="lact ldel" data-del="' + esc(s.id) + '" aria-label="Delete this ' + what + '" title="Delete this ' + what + '">' + DEL_ICON + '</button>') + '</div>';
+  return '<li class="lrow' + (s.id === o.currentId ? ' cur' : '') + (sure ? ' sure' : '') + '"><div class="lmain">' + star +
     '<button type="button" class="lopen" data-open="' + esc(s.id) + '"><span class="ltitle">' + esc(s.title) + '</span>' +
     (e.lyric && tight(e.lyric) !== tight(s.title) ? '<span class="llyric">' + esc(e.lyric) + '</span>' : '') +
     '<span class="lmeta">' + esc(meta) + '</span></button>' +
-    (tags ? '<span class="ltags">' + tags + '</span>' : '') + '</div>' +
-    '<div class="lacts"><button type="button" class="lact lplay" data-open="' + esc(s.id) + '">' + PLAY_ICON + '<span>Practise this ' + what + '</span></button>' +
-    '<button type="button" class="lact ledit" data-edit="' + esc(s.id) + '">' + EDIT_ICON + '<span>Edit this ' + what + '</span></button>' +
-    '<button type="button" class="lact lprint" data-print="' + esc(s.id) + '" aria-label="Print or save as PDF" title="Print or save as PDF">' + PRINT_ICON + '</button></div></li>';
+    (tags ? '<span class="ltags">' + tags + '</span>' : '') + '</div>' + acts + '</li>';
 }
 
 /**
@@ -142,6 +152,8 @@ export interface SongsHost {
   create(kind: 'song' | 'exercise'): void;
   /** Print a song, or save it as a PDF. */
   print(id: string): void;
+  /** Delete one of the user's songs (asked first). */
+  remove(id: string): void;
   /** The sections' order, kept on the device. */
   order(): readonly LibSection[];
   setOrder(o: LibSection[]): void;
@@ -152,6 +164,8 @@ export function initSongs(host: SongsHost): { render(): void } {
   const query = $<HTMLInputElement>('#libQ');
   const sortSel = $<HTMLSelectElement>('#libSort');
   let filter: LibraryFilter = { kind: 'all' };
+  /** The song whose Delete was pressed, asking to confirm. */
+  let confirmDel = '';
 
   function render(): void {
     if ($('#songs').hidden) return;
@@ -162,7 +176,7 @@ export function initSongs(host: SongsHost): { render(): void } {
       if (!own.some((s) => (s.tags || []).some((x) => foldText(x) === t))) filter = { kind: 'all' };
     }
     if (filter.kind === 'fav' && !own.some((s) => s.fav)) filter = { kind: 'all' };
-    const o: ListOptions = { query: query.value, filter, sort: host.sort(), currentId: host.currentId(), practisedAt: host.practisedAt, now: Date.now(), folded: host.folded(), order: host.order() };
+    const o: ListOptions = { query: query.value, filter, sort: host.sort(), currentId: host.currentId(), practisedAt: host.practisedAt, now: Date.now(), folded: host.folded(), order: host.order(), confirmDel };
     const r = songsListHTML(own, host.exercises, o);
     $('#libChips').innerHTML = filterChipsHTML(own, host.exercises.length, filter);
     $('#libList').innerHTML = r.html;
@@ -196,6 +210,17 @@ export function initSongs(host: SongsHost): { render(): void } {
     else if (el.dataset.open) host.open(el.dataset.open, 'practice');
     else if (el.dataset.edit) host.open(el.dataset.edit, 'edit');
     else if (el.dataset.print) host.print(el.dataset.print);
+    else if (el.dataset.del || el.dataset.delno) {
+      // Ask in the row; Keep puts the row back, with the keyboard on its Delete again.
+      const id = el.dataset.del ?? el.dataset.delno!;
+      confirmDel = el.dataset.del ? id : '';
+      render();
+      $<HTMLButtonElement>(el.dataset.del ? 'button[data-delno="' + CSS.escape(id) + '"]' : 'button[data-del="' + CSS.escape(id) + '"]')?.focus();
+    } else if (el.dataset.delyes) {
+      confirmDel = '';
+      host.remove(el.dataset.delyes);
+      render();
+    }
     else if (el.dataset.fav) host.setFav(el.dataset.fav, el.getAttribute('aria-pressed') !== 'true');
     else if (el.dataset.tag) {
       filter = { kind: 'tag', tag: el.dataset.tag };

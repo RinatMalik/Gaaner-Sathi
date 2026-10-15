@@ -25,11 +25,13 @@ export interface Routine {
   id: string;
   name: string;
   items: RoutineItem[];
+  /** Seconds of break between items, 0–120 (Rinat, 2026-10-15); absent: ITEM_GAP. */
+  gap?: number;
   /** ms since epoch. */
   updatedAt: number;
 }
 
-export const ROUTINE_LIMITS = { items: 40, rounds: 20, name: 80 } as const;
+export const ROUTINE_LIMITS = { items: 40, rounds: 20, name: 80, gap: 120 } as const;
 
 /** Ready the first time: a warm-up of four exercises, from long notes to the range from
  * mandra to taar (it ended on akar until that exercise was removed, 2026-10-14). */
@@ -71,7 +73,10 @@ export function cleanRoutine(id: string, v: unknown): Routine | null {
   const o = v as Record<string, unknown>;
   const items = (Array.isArray(o.items) ? o.items : []).map(cleanItem).filter((x): x is RoutineItem => !!x).slice(0, ROUTINE_LIMITS.items);
   const name = typeof o.name === 'string' && o.name.trim() ? o.name.trim().slice(0, ROUTINE_LIMITS.name) : 'My rewaz';
-  return { id, name, items, updatedAt: typeof o.updatedAt === 'number' && Number.isFinite(o.updatedAt) ? o.updatedAt : 0 };
+  const r: Routine = { id, name, items, updatedAt: typeof o.updatedAt === 'number' && Number.isFinite(o.updatedAt) ? o.updatedAt : 0 };
+  const gap = int(o.gap, 0, ROUTINE_LIMITS.gap);
+  if (gap != null) r.gap = gap;
+  return r;
 }
 
 /** A new routine id, like song ids. */
@@ -88,8 +93,10 @@ export interface SongShape {
   cycle: number;
 }
 
-/** Seconds between items, to breathe and see what is next. */
+/** Seconds between items, to breathe and see what is next, unless the routine says. */
 export const ITEM_GAP = 4;
+/** A routine's break between items, seconds. */
+export const gapOf = (r: Routine): number => r.gap ?? ITEM_GAP;
 
 /** The lines an item plays, clamped to the song: [from, to]. */
 export function itemLines(it: RoutineItem, lines: number): [number, number] {
@@ -111,7 +118,7 @@ export function routineSeconds(r: Routine, shapeOf: (id: string) => SongShape | 
     let beats = 0;
     for (let k = a; k <= b; k++) beats += s.lineBeats[k]!;
     const spb = 60 / (it.tempo ?? s.tempo);
-    t += (beats * it.rounds + (countIn ? s.cycle : 0)) * spb + (i < r.items.length - 1 ? ITEM_GAP : 0);
+    t += (beats * it.rounds + (countIn ? s.cycle : 0)) * spb + (i < r.items.length - 1 ? gapOf(r) : 0);
   });
   return t;
 }

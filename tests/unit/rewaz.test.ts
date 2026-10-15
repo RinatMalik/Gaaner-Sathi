@@ -62,6 +62,19 @@ describe('routines', () => {
     // The gone item adds nothing, not even a gap.
     expect(secs).toBeCloseTo(96 + 4 + (6 * 60) / 110, 6);
     expect(routineSeconds(r, shape, true) - secs).toBeCloseTo(6 + (6 * 60) / 110, 6);
+    // A break of the routine's own between items, or none.
+    expect(routineSeconds({ ...r, gap: 30 }, shape, false)).toBeCloseTo(96 + 30 + (6 * 60) / 110, 6);
+    expect(routineSeconds({ ...r, gap: 0 }, shape, false)).toBeCloseTo(96 + (6 * 60) / 110, 6);
+  });
+
+  it('keep the break between items they were given, 0 to 120 seconds', () => {
+    const at = (gap: unknown) => cleanRoutine('r', { name: 'R', items: [], gap });
+    expect(at(10)!.gap).toBe(10);
+    expect(at(0)!.gap).toBe(0);
+    expect(at(500)!.gap).toBe(120);
+    expect(at(-3)!.gap).toBe(0);
+    expect(at(7.6)!.gap).toBe(8);
+    for (const v of [undefined, '10', null, NaN]) expect(at(v)).not.toHaveProperty('gap');
   });
 });
 
@@ -144,6 +157,9 @@ describe('the Rewaz view', () => {
     expect(open).toContain('aria-expanded="true"');
     expect(open).toContain('<div class="rwbody" id="rwb-3">');
     expect(open).toContain('data-act="name" value="Morning &lt;rewaz&gt;"');
+    // The break between items: 4 seconds unless the routine says.
+    expect(open).toContain('<span>Break between items, seconds</span><input type="number" min="0" max="120" step="1" inputmode="numeric" data-act="gap" value="4">');
+    expect(routineHTML({ ...r, gap: 15 }, 3, { ...row, open: true }, shape, own, ex)).toContain('data-act="gap" value="15"');
     expect(open.match(/class="rwitem"/g)).toHaveLength(2);
     expect(open).toContain('data-act="pick">+ Add songs and exercises</button>');
     expect(open).toContain('data-act="del">Delete routine</button>');
@@ -226,8 +242,11 @@ describe('routines in storage', () => {
     const b = new RoutineStore(S);
     a.save({ id: 'r1', name: 'Morning', items: [{ song: 'x', rounds: 2 }], updatedAt: 1 });
     b.save({ id: 'r2', name: 'Evening', items: [], updatedAt: 2 });
-    a.save({ id: 'r1', name: 'Morning 2', items: [], updatedAt: 3 });
+    a.save({ id: 'r1', name: 'Morning 2', items: [], updatedAt: 3, gap: 12 });
     expect(Array.from(b.load().values()).map((r) => r.name).sort()).toEqual(['Evening', 'Morning 2']);
+    // The break is kept only when given.
+    expect(b.load().get('r1')!.gap).toBe(12);
+    expect(b.load().get('r2')).not.toHaveProperty('gap');
     a.remove('r2');
     expect(Array.from(a.load().keys())).toEqual(['r1']);
     S.setItem(STORE_KEYS.routines, '{"bad": 5, "__proto__": {"name": "x"}}');
