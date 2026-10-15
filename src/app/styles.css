@@ -175,8 +175,15 @@ button{cursor:pointer}
 .u.hold,.u.rest{color:var(--ink-2)}
 .u.hi::before{content:"";position:absolute;left:50%;top:.02em;width:.17em;height:.17em;margin-left:-.085em;border-radius:50%;background:currentColor}
 .u.lo::after{content:"";position:absolute;left:50%;bottom:-.02em;width:.17em;height:.17em;margin-left:-.085em;border-radius:50%;background:currentColor}
+/* two octaves up or down: two dots side by side */
+.u.hi2::before,.u.lo2::after{margin-left:-.22em;box-shadow:.27em 0 0 currentColor}
 .u.komal{text-decoration:underline;text-decoration-thickness:.06em;text-underline-offset:.16em}
-.u.tivra::before{content:"";position:absolute;left:50%;top:-.12em;width:.06em;height:.32em;margin-left:-.03em;background:currentColor}
+.u.tivra::before{content:"";position:absolute;left:50%;top:-.12em;width:.06em;height:.32em;margin-left:-.03em;background:currentColor;border-radius:0;box-shadow:none}
+/* tivra Ma in an upper octave: its line a little to the left, the octave's dots beside it */
+.u.tivra.hi::before{margin-left:-.17em}
+.u.tivra.hi::after{content:"";position:absolute;left:50%;top:.02em;width:.17em;height:.17em;margin-left:.01em;border-radius:50%;background:currentColor}
+.u.tivra.hi2::before{margin-left:-.31em}
+.u.tivra.hi2::after{margin-left:-.13em;box-shadow:.27em 0 0 currentColor}
 .gap{display:inline-block;width:.18em}
 
 /* editor */

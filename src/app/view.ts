@@ -49,7 +49,10 @@ export function unitHTML(u: ShownUnit, script: Script): string {
     if (u.semi === 6) cls += ' tivra';
     if (u.oct > 0) cls += ' hi';
     if (u.oct < 0) cls += ' lo';
+    if (u.oct > 1) cls += ' hi2';
   }
+  // Two octaves down: two dots under the note, in either script (the prototype drew one).
+  if (u.oct < -1) cls += ' lo2';
   return '<span class="' + cls + '">' + txt + '</span>';
 }
 
@@ -167,8 +170,19 @@ export function layerChipsHTML(style: string, on: readonly string[]): { hidden: 
 
 // ── Editor ───────────────────────────────────────────────────────────────────
 
-/** The octaves the note pad offers, with their names. */
-export const PAD_OCTAVES: Record<number, string> = { [-1]: 'Lower octave · মন্দ্র', 0: 'Middle octave · মধ্য', 1: 'Upper octave · তার' };
+/** The octaves the note pad offers, with their names: as far as the notation goes, two either
+ * side of the middle (Rinat, 2026-10-15). */
+export const PAD_OCTAVES: Record<number, string> = {
+  [-2]: 'Lowest octave · অতিমন্দ্র',
+  [-1]: 'Lower octave · মন্দ্র',
+  0: 'Middle octave · মধ্য',
+  1: 'Upper octave · তার',
+  2: 'Highest octave · অতিতার',
+};
+export const PAD_LOWEST = -2;
+export const PAD_HIGHEST = 2;
+/** An octave's one-word name (Lowest … Highest), for the pad's side buttons. */
+export const padOctaveWord = (o: number): string => (PAD_OCTAVES[o] ?? '').split(' ')[0]!;
 
 /** The note pad's rows (Rinat, 2026-10-15): Sa Re Ga Ma; Pa Dha Ni; komal Re, Ga, tivra Ma,
  * komal Dha, Ni. */

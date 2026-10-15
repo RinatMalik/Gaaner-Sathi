@@ -30,10 +30,9 @@ import type { DroneType, GuideLevel, GuideLoop, SoundSettings } from '../audio/s
 import { Transport, type BeatEntry, type PlaySource } from '../audio/transport';
 import { EXERCISES } from '../core/exercises';
 import type { Exercise } from '../core/exercises/types';
-import { joinBeats, notesInRange, shiftOctaves, splitBeats, type TextEdit } from '../core/notation/edit';
+import { joinBeats, notesInRange, noteToken, shiftOctaves, splitBeats, type TextEdit } from '../core/notation/edit';
 import { parseSong } from '../core/notation/parse';
 import { sectionOfLine, setHeadingTempo, songSections, type SongSection } from '../core/notation/sections';
-import { AKAR } from '../core/notation/symbols';
 import { oneTaal, taalMap, type Taals } from '../core/notation/taalmap';
 import type { Beat, ParsedSong, Unit } from '../core/notation/types';
 import { lastPractised, logFileText, MIN_LOG_SECS, type LogEntry } from '../core/practice/log';
@@ -774,12 +773,15 @@ function renderNoteButtons(): void {
   $('#padOct').textContent = V.PAD_OCTAVES[insOct] ?? '';
   const lower = $<HTMLButtonElement>('#padLower');
   const upper = $<HTMLButtonElement>('#padUpper');
-  lower.disabled = insOct <= -1;
-  upper.disabled = insOct >= 1;
-  $('#padLowerLab').textContent = insOct > 0 ? 'Middle' : 'Lower';
-  $('#padUpperLab').textContent = insOct < 0 ? 'Middle' : 'Upper';
-  lower.setAttribute('aria-label', insOct > 0 ? 'Notes in the middle octave' : 'Notes in the lower octave');
-  upper.setAttribute('aria-label', insOct < 0 ? 'Notes in the middle octave' : 'Notes in the upper octave');
+  // Each side button names the octave it moves to; at either end it is off and names that end.
+  const down = Math.max(insOct - 1, V.PAD_LOWEST);
+  const up = Math.min(insOct + 1, V.PAD_HIGHEST);
+  lower.disabled = insOct <= V.PAD_LOWEST;
+  upper.disabled = insOct >= V.PAD_HIGHEST;
+  $('#padLowerLab').textContent = V.padOctaveWord(down);
+  $('#padUpperLab').textContent = V.padOctaveWord(up);
+  lower.setAttribute('aria-label', 'Notes in the ' + V.padOctaveWord(down).toLowerCase() + ' octave');
+  upper.setAttribute('aria-label', 'Notes in the ' + V.padOctaveWord(up).toLowerCase() + ' octave');
   renderPadSummary();
 }
 function renderStartOn(): void {
@@ -1265,7 +1267,7 @@ function renderPadSummary(): void {
 }
 /** The pad's octave, by its side buttons: the notes slide in from the side moved to. */
 function setInsOct(o: number): void {
-  const to = clamp(o, -1, 1);
+  const to = clamp(o, V.PAD_LOWEST, V.PAD_HIGHEST);
   if (to === insOct) return;
   const from = insOct;
   insOct = to;
@@ -1821,8 +1823,7 @@ function insertText(txt: string): void {
   ta.dispatchEvent(new Event('input', { bubbles: true }));
 }
 function tokenFor(semi: number): string {
-  if (prefs.script === 'bn') return (insOct < 0 ? '.' : '') + (insOct > 0 ? 'র্' : '') + V.BN_NAMES[semi] + AKAR + ' ';
-  return (insOct < 0 ? '.' : '') + V.LAT_CODE[semi] + (insOct > 0 ? "'" : '') + ' ';
+  return noteToken(semi, insOct, prefs.script) + ' ';
 }
 const TAB_BUTTONS: Record<Tab, string> = { practice: '#tabPractice', edit: '#tabEdit', songs: '#tabSongs', rewaz: '#tabRewaz', voice: '#tabVoice', progress: '#tabProgress' };
 function switchTab(t: Tab): void {

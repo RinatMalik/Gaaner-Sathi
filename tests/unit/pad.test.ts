@@ -1,6 +1,6 @@
 // The note pad in Edit notation (src/app/view.ts → padHTML; Rinat, 2026-10-15).
 import { describe, expect, it } from 'vitest';
-import { PAD_OCTAVES, padHTML } from '../../src/app/view';
+import { PAD_HIGHEST, PAD_LOWEST, PAD_OCTAVES, padHTML, padOctaveWord } from '../../src/app/view';
 
 const semis = (html: string) => Array.from(html.matchAll(/<div class="pkrow[^"]*">(.*?)<\/div>/g), (m) => Array.from(m[1]!.matchAll(/data-semi="(\d+)"/g), (x) => +x[1]!));
 const extras = (html: string) => Array.from(html.matchAll(/data-ins="(\w+)"/g), (m) => m[1]);
@@ -26,6 +26,20 @@ describe('the note pad', () => {
     expect(PAD_OCTAVES[-1]).toBe('Lower octave · মন্দ্র');
     expect(PAD_OCTAVES[0]).toBe('Middle octave · মধ্য');
     expect(PAD_OCTAVES[1]).toBe('Upper octave · তার');
+  });
+
+  it('goes two octaves either side, as far as the notation does, with two dots for the second', () => {
+    expect([PAD_LOWEST, PAD_HIGHEST]).toEqual([-2, 2]);
+    expect(PAD_OCTAVES[-2]).toBe('Lowest octave · অতিমন্দ্র');
+    expect(PAD_OCTAVES[2]).toBe('Highest octave · অতিতার');
+    expect([-2, -1, 0, 1, 2].map(padOctaveWord)).toEqual(['Lowest', 'Lower', 'Middle', 'Upper', 'Highest']);
+    expect(padHTML(-2, 'bn', false)).toContain('aria-label="Sa, lowest octave"><span class="pkn"><span class="u lo lo2">সা</span>');
+    expect(padHTML(-2, 'lat', false)).toContain('<span class="u lo lo2">Sa</span>');
+    expect(padHTML(2, 'bn', false)).toContain('aria-label="Sa, highest octave"><span class="pkn"><span class="u">র্র্সা</span>');
+    expect(padHTML(2, 'lat', false)).toContain('<span class="u tivra hi hi2">Ma</span>');
+    // One octave away keeps one dot.
+    expect(padHTML(-1, 'lat', false)).not.toContain('lo2');
+    expect(padHTML(1, 'lat', false)).not.toContain('hi2');
   });
 
   it('adds a bar and a line of lyrics in free text', () => {
