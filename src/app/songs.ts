@@ -33,11 +33,13 @@ const tight = (s: string) => foldText(s).replace(/[\s|।॥‖০\-–—~]+/g,
 
 const PLAY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/></svg>';
 const EDIT_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
+const PRINT_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V3.5h10V9M7 17H4.5V10.5a1.5 1.5 0 0 1 1.5-1.5h12a1.5 1.5 0 0 1 1.5 1.5V17H17M7 14h10v6.5H7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
 const FOLD_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 /** One song, laid out like a line in the beat boxes: a favourite star (own songs only), the
  * title with its first lyric and details (opens it to practise), its tags (each one filters
- * the list), and at its end two buttons the row's full height: practise it, edit it. */
+ * the list), and at its end buttons the row's full height: practise it, edit it, and (an
+ * icon) print it or save it as a PDF. */
 export function songRowHTML(e: LibraryEntry, o: ListOptions): string {
   const s = e.song;
   const at = o.practisedAt(s.id);
@@ -53,7 +55,8 @@ export function songRowHTML(e: LibraryEntry, o: ListOptions): string {
     '<span class="lmeta">' + esc(meta) + '</span></button>' +
     (tags ? '<span class="ltags">' + tags + '</span>' : '') + '</div>' +
     '<div class="lacts"><button type="button" class="lact lplay" data-open="' + esc(s.id) + '">' + PLAY_ICON + '<span>Practise this ' + what + '</span></button>' +
-    '<button type="button" class="lact ledit" data-edit="' + esc(s.id) + '">' + EDIT_ICON + '<span>Edit this ' + what + '</span></button></div></li>';
+    '<button type="button" class="lact ledit" data-edit="' + esc(s.id) + '">' + EDIT_ICON + '<span>Edit this ' + what + '</span></button>' +
+    '<button type="button" class="lact lprint" data-print="' + esc(s.id) + '" aria-label="Print or save as PDF" title="Print or save as PDF">' + PRINT_ICON + '</button></div></li>';
 }
 
 /**
@@ -137,6 +140,8 @@ export interface SongsHost {
   setFolded(id: LibSection, folded: boolean): void;
   /** Start a new song, or a new exercise of the user's own, in the editor. */
   create(kind: 'song' | 'exercise'): void;
+  /** Print a song, or save it as a PDF. */
+  print(id: string): void;
   /** The sections' order, kept on the device. */
   order(): readonly LibSection[];
   setOrder(o: LibSection[]): void;
@@ -190,6 +195,7 @@ export function initSongs(host: SongsHost): { render(): void } {
     } else if (el.dataset.new === 'song' || el.dataset.new === 'exercise') host.create(el.dataset.new);
     else if (el.dataset.open) host.open(el.dataset.open, 'practice');
     else if (el.dataset.edit) host.open(el.dataset.edit, 'edit');
+    else if (el.dataset.print) host.print(el.dataset.print);
     else if (el.dataset.fav) host.setFav(el.dataset.fav, el.getAttribute('aria-pressed') !== 'true');
     else if (el.dataset.tag) {
       filter = { kind: 'tag', tag: el.dataset.tag };

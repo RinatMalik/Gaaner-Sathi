@@ -8,7 +8,7 @@ import { REFERENCE_EXERCISES as EXERCISES } from '../reference-exercises';
 import { parseSong } from '../../src/core/notation/parse';
 import type { ParsedSong } from '../../src/core/notation/types';
 import { normalize, type Song } from '../../src/core/song/model';
-import { beatLabel, LAYERS, SPEEDS } from '../../src/core/taal/rhythm';
+import { LAYERS } from '../../src/core/taal/rhythm';
 import { taalInfo } from '../../src/core/taal/taals';
 import { canon, seeded } from '../helpers';
 import { EDGE_CASES, randomSong } from './generate';
@@ -91,18 +91,15 @@ describe('the screen matches the prototype', () => {
     ).toEqual(NONE);
   });
 
-  it('the taal strip for every taal, rhythm style and speed', () => {
-    const cases = TAAL_IDS.flatMap((id) => STYLES.flatMap((beat) => (['half', 'normal', 'double'] as const).map((speed) => ({ id, beat, speed }))));
+  // The prototype's taal strip of bols is gone from the Practice view (Rinat, 2026-10-15); its
+  // name and structure stay, on the printed sheet and over the lines.
+  it('the taal name and structure for every taal', () => {
     expect(
-      differences(cases, ({ id, beat, speed }) => {
-        W.set(state({ prefs: { beat, speed }, taal: W.taalInfo(id) }));
+      differences(TAAL_IDS, (id) => {
+        W.set(state({ taal: W.taalInfo(id) }));
         W.renderTaal();
         const T = taalInfo(id);
-        return (
-          V.taalName(T) === W.el('#taalName').textContent &&
-          V.taalSub(T) === W.el('#taalSub').textContent &&
-          V.taalStripHTML(T, (p) => beatLabel(beat, T.id, SPEEDS[speed] || 1, p)) === W.el('#taalStrip').innerHTML
-        );
+        return V.taalName(T) === W.el('#taalName').textContent && V.taalSub(T) === W.el('#taalSub').textContent;
       }),
     ).toEqual(NONE);
   });

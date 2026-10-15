@@ -274,8 +274,9 @@ export function rhythmTable(style: string, tid: string, speed: number, layers: r
   return R;
 }
 
-/** The label under each beat of the taal strip: its bol for tabla (after a dash when the beat
- * itself is silent, as in Jhumra's –Dha), the main stroke otherwise. */
+/** A beat's label: its bol for tabla (after a dash when the beat itself is silent, as in
+ * Jhumra's –Dha), the main stroke otherwise. The taal strip showed it until 2026-10-15; the
+ * screen no longer shows bols (Rinat: they do not help). */
 export function beatLabel(style: string, tid: string, speed: number, p: number): string {
   if (style === 'off') return '';
   const R = rhythmTable(style, tid, speed, []);

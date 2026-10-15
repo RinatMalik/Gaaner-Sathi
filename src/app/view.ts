@@ -118,24 +118,10 @@ export function sheetHTML(P: ParsedSong, taals: TaalInfo | Taals, off: number, e
   return html;
 }
 
-// ── The taal strip ───────────────────────────────────────────────────────────
+// ── The taal's name ──────────────────────────────────────────────────────────
 
 export const taalName = (T: TaalInfo): string => T.name + ' · ' + T.bn;
 export const taalSub = (T: TaalInfo): string => T.cycle + ' matras, ' + T.vib.join(' + ');
-
-/** Each beat with its mark, number and the current style's bol (`label`). */
-export function taalStripHTML(T: TaalInfo, label: (p: number) => string): string {
-  let html = '';
-  T.vib.forEach((v, vi) => {
-    html += '<div class="vib">';
-    for (let k = 0; k < v; k++) {
-      const p = T.starts[vi]! + k;
-      html += '<div class="tb" data-p="' + p + '"><span class="tbm">' + (k === 0 ? T.marks[vi] : '') + '</span><span class="tbd">' + (p + 1) + '</span><span class="tbb">' + label(p) + '</span></div>';
-    }
-    html += '</div>';
-  });
-  return html;
-}
 
 // ── Now singing ──────────────────────────────────────────────────────────────
 

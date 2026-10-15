@@ -102,6 +102,21 @@ describe('preferences', () => {
       expect(loadPrefs(S)).not.toHaveProperty('rewazOpen');
     }
   });
+
+  it('keep the Practice lines’ settings when they differ from 7 lines at the normal size', () => {
+    const S = new Memory();
+    expect(loadPrefs(S)).not.toHaveProperty('plRows');
+    expect(loadPrefs(S)).not.toHaveProperty('plSize');
+    S.setItem(STORE_KEYS.prefs, JSON.stringify({ plRows: 9, plSize: 'big' }));
+    expect(loadPrefs(S)).toMatchObject({ plRows: 9, plSize: 'big' });
+    S.setItem(STORE_KEYS.prefs, JSON.stringify({ plRows: 5, plSize: 'small' }));
+    expect(loadPrefs(S)).toMatchObject({ plRows: 5, plSize: 'small' });
+    for (const [r, z] of [[7, 'normal'], [8, 'huge'], ['9', 1], [null, null]]) {
+      S.setItem(STORE_KEYS.prefs, JSON.stringify({ plRows: r, plSize: z }));
+      expect(loadPrefs(S)).not.toHaveProperty('plRows');
+      expect(loadPrefs(S)).not.toHaveProperty('plSize');
+    }
+  });
 });
 
 describe('your own exercises in storage', () => {

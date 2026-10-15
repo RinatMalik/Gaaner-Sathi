@@ -97,6 +97,10 @@ export interface Prefs extends SoundSettings {
   holdBest?: Record<string, number>;
   /** Show the keys to press on the Practice view. */
   showKeys?: boolean;
+  /** The Practice view's lines: how many show (unset: 7), and the size of their words and
+   * notes (unset: normal). */
+  plRows?: 5 | 9;
+  plSize?: 'small' | 'big';
   /** A MIDI keyboard: where the guide plays, in what sound, and on which keyboard. */
   midi?: { route: 'app' | 'kb' | 'both'; sound: 'keep' | 'organ' | 'accordion'; out?: string };
 }
@@ -180,6 +184,8 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
   }
   if (typeof r.holdNote === 'number' && HOLD_CENTS.includes(r.holdNote)) p.holdNote = r.holdNote;
   if (r.showKeys === true) p.showKeys = true;
+  if (r.plRows === 5 || r.plRows === 9) p.plRows = r.plRows;
+  if (r.plSize === 'small' || r.plSize === 'big') p.plSize = r.plSize;
   const mi = r.midi as Record<string, unknown> | undefined;
   if (mi && typeof mi === 'object') {
     p.midi = { route: oneOf(mi.route, ['app', 'kb', 'both'] as const, 'app'), sound: oneOf(mi.sound, ['keep', 'organ', 'accordion'] as const, 'keep') };

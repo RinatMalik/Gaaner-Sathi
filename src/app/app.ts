@@ -43,11 +43,11 @@ import { clockText, MIN_TAKE_SECS, newTakeId, textSig, type Take } from '../core
 import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefix, type ImportedSong } from '../core/song/file';
 import { cleanDismissed, cleanNotes, newId, normalize, parseTags, type Song } from '../core/song/model';
 import { SONG_SOUND_KEYS, soundOf, type SongSound } from '../core/song/sound';
-import { beatLabel, SPEEDS } from '../core/taal/rhythm';
 import { isTaalId, taalInfo, TAALS, type TaalInfo } from '../core/taal/taals';
 import { initPitch, type PitchUI } from './pitch';
 import { initBoxes, withNewHeading, type Boxes } from './boxes';
 import { initKeyboard, keyboardHTML, keyName, keyRange, type KeyboardUI } from './keyboard';
+import { initLines, type LinesUI } from './lines';
 import { initPrint } from './print';
 import { initProgress } from './progress';
 import { initRewaz, type ItemSong, type Rewaz } from './rewaz';
@@ -104,6 +104,8 @@ let pitchUI: PitchUI = { on: false, startRun() {}, pause() {}, resume() {}, beat
 /** Rewaz routines and the Progress view, wired up by init. */
 let rewaz: Rewaz = { render() {}, active: false, name: '', finished() {}, cancel() {}, beat() {} };
 let progressView: { render(): void } = { render() {} };
+/** The Practice view's lines, wired up first by init (every parse draws them). */
+let lines!: LinesUI;
 /** A MIDI keyboard, wired up by init. */
 let keyboard: KeyboardUI = { playStarting() {}, playStopped() {} };
 /** The Voice view, wired up by init. */
@@ -281,9 +283,10 @@ function play(ask: PlayAsk = pickedLines(), at: { s: number; pass: number } | nu
     startTakeRun(r.from, loop);
   }
   setPlayUI();
-  // The strip shows the taal it starts in straightaway, not when the first beat sounds.
+  // The figure shows the taal it starts in straightaway, not when the first beat sounds.
   const first = at ? taals.beat(at.s).T : taals.line(r.from).T;
   if (first.id !== stripTaal?.id) renderTaal(first);
+  lines.current(at ? (parsed.lineOfBeat[at.s] ?? r.from) : r.from, 'Now', true);
   if (r.pre > 0) setNowMessage('Count-in', '', String(r.pre));
   timer = window.setInterval(tick, 25);
   raf = requestAnimationFrame(frame);
@@ -308,6 +311,7 @@ function stop(silent?: boolean, ended = false): void {
   timer = 0;
   cancelAnimationFrame(raf);
   clearHighlight();
+  lines.playhead(-1, 0);
   boxes.markBeat(-1);
   if (lineCheck >= 0 || fromHere >= 0) {
     lineCheck = -1;
@@ -364,6 +368,7 @@ function pause(): void {
   unwake();
   setPlayUI();
   $('#nowLab').textContent = 'Paused · ' + $('#nowLab').textContent;
+  if (lastLine >= 0) lines.current(lastLine, 'Paused', true);
 }
 
 /** Go on after a pause. */
@@ -513,13 +518,19 @@ function frame(): void {
     if ('end' in cur) {
       if (run) run.end = cur.time;
       clearHighlight();
+      shownQ = null;
+      lines.playhead(-1, 0);
+      if (lastLine >= 0) lines.current(lastLine, '', false);
       markTaal(cur.p);
-      setNowMessage('Finished', 'Press play to sing it again, or tap a line to start there.');
+      setNowMessage('Finished', 'Press play to sing it again, or tap a line number to start there.');
     } else {
       trackRun(cur, ctx.currentTime);
       showBeat(cur);
     }
   }
+  // The playhead moves through the beat sounding.
+  const q = shownQ;
+  if (q && q.pass >= 0) lines.playhead(q.s, (now - q.time) / (60 / q.tempo));
   if (T.endAt && ctx.currentTime >= T.endAt) {
     stop(true, true);
     return;
@@ -612,35 +623,37 @@ function endRun(at: number, pitch: { score: number; lines: [number, number][] } 
 
 // ── Rendering ────────────────────────────────────────────────────────────────
 
+/** The editor's preview sheet (Free text), and the Practice view's lines. */
 function renderSheets(): void {
-  const html = V.sheetHTML(parsed, taals, 0, current.example, prefs.script);
-  $('#sheetP').innerHTML = html;
-  $('#sheetE').innerHTML = html;
+  $('#sheetE').innerHTML = V.sheetHTML(parsed, taals, 0, current.example, prefs.script);
   beatEls.clear();
-  for (const el of $$('.beat[data-b]')) {
+  for (const el of $$('#sheetE .beat[data-b]')) {
     const g = +el.dataset.b!;
     if (!beatEls.has(g)) beatEls.set(g, []);
     beatEls.get(g)!.push(el);
   }
   curEls = [];
+  lines.render();
 }
 
 /** The taal playing would start in: the from-line's. */
 const idleTaal = (): TaalInfo => taals.line(+select('#fromLine').value || 0).T;
-/** The deck's taal strip: the taal playing, or the one playing would start in. */
+/** The taal over the lines and its figure: the taal playing, or the one playing would start in. */
 function renderTaal(T: TaalInfo = playing() && stripTaal ? stripTaal : idleTaal()): void {
   stripTaal = T;
-  $('#taalName').textContent = V.taalName(T);
-  $('#taalSub').textContent = V.taalSub(T);
-  $('#taalStrip').innerHTML = V.taalStripHTML(T, (p) => beatLabel(sound.beat, T.id, SPEEDS[sound.speed] || 1, p));
+  const el = $('#taalName');
+  el.textContent = T.name + ' · ' + T.vib.join(' + ');
+  el.title = V.taalName(T) + ', ' + V.taalSub(T);
+  lines.taal(T);
 }
 
 function markTaal(p: number): void {
-  for (const el of $$('.tb')) el.classList.toggle('on', +el.dataset.p! === p);
+  lines.taalBeat(p);
 }
 function clearHighlight(): void {
   for (const el of curEls) el.classList.remove('now');
   curEls = [];
+  lines.beat(-1);
 }
 function highlight(g: number): void {
   clearHighlight();
@@ -650,7 +663,8 @@ function highlight(g: number): void {
   if (ln !== lastLine) {
     lastLine = ln ?? -1;
     markSection();
-    for (const sheet of [$('#sheetP'), $('#sheetE')]) {
+    if (ln != null) lines.current(ln, 'Now', true);
+    for (const sheet of [$('#sheetE')]) {
       if (!sheet.offsetParent) continue;
       const row = sheet.querySelector<HTMLElement>('.line[data-n="' + ln + '"]');
       if (!row) continue;
@@ -662,16 +676,15 @@ function highlight(g: number): void {
       }
     }
   }
+  lines.beat(g);
 }
 
+/** What is happening, above the lines: ready, the count-in, the line and beat, finished. */
 function setNow(v: V.NowView): void {
   $('#nowLab').textContent = v.label;
-  $('#bigNote').innerHTML = v.big;
-  $('#bigLy').innerHTML = v.ly;
-  if (v.next != null) $('#nextStrip').innerHTML = v.next;
 }
 function setNowMessage(label: string, sub: string, big = ''): void {
-  setNow(V.nowMessage(label, sub, big));
+  $('#nowLab').textContent = [label, big, sub].filter(Boolean).join(' · ');
 }
 function showBeat(q: BeatEntry): void {
   shownQ = q;
@@ -680,8 +693,10 @@ function showBeat(q: BeatEntry): void {
   if (tq.id !== stripTaal?.id) renderTaal(tq);
   markTaal(q.p);
   if (prefs.showKeys) markKeys(q.pass < 0 ? -1 : q.s, q.pass < 0 ? (T?.secStart ?? 0) : nextBeat(q.s));
-  if (q.pass < 0) clearHighlight();
-  else {
+  if (q.pass < 0) {
+    clearHighlight();
+    lines.current(parsed.lineOfBeat[T?.secStart ?? 0] ?? 0, 'Now', true);
+  } else {
     highlight(q.s);
     deckBeat = q.s;
   }
@@ -695,8 +710,12 @@ function showBeat(q: BeatEntry): void {
   rewaz.beat(q.pass);
 }
 function showIdle(): void {
+  // Paused, the lines stay where they were.
+  if (paused) return;
   if (idleTaal().id !== stripTaal?.id) renderTaal(idleTaal());
   markTaal(-1);
+  lines.playhead(-1, 0);
+  if (parsed.noteLines.length) lines.current(clamp(+select('#fromLine').value || 0, 0, parsed.noteLines.length - 1), 'Start', false);
   if (prefs.showKeys) {
     const first = parsed.noteLines[+select('#fromLine').value || 0]?.start ?? -1;
     markKeys(-1, first);
@@ -1253,7 +1272,8 @@ function setText(text: string): void {
   reparse(true);
 }
 
-/** Buttons for the song's sections, when it has more than one: each plays from there. */
+/** Buttons for the song's sections, when it has more than one: each plays from there; and
+ * the section of the line playing over the lines. */
 function renderSections(): void {
   const box = $('#secChips');
   box.hidden = sections.length < 2;
@@ -1266,9 +1286,13 @@ function renderSections(): void {
 }
 /** Press the button of the section playing, or the one playing would start in. */
 function markSection(): void {
-  if (sections.length < 2) return;
   const line = playing() && lastLine >= 0 ? lastLine : +select('#fromLine').value || 0;
   const k = sectionOfLine(sections, line);
+  const label = sections[k]?.label ?? '';
+  const pill = $('#plSec');
+  pill.hidden = !label;
+  if (pill.textContent !== label) pill.textContent = label;
+  if (sections.length < 2) return;
   for (const b of $$('#secChips button')) b.setAttribute('aria-pressed', String(+b.dataset.sec! === k));
 }
 
@@ -1281,6 +1305,8 @@ function loadSong(song: Song | Exercise): void {
     clearOverride();
   }
   current = normalize(song);
+  // The last run's voice and scores belong to the song that was open.
+  lines.clearRun();
   if (song.example) {
     current.example = true;
     // Exercises sing in your Sa, once you have one (the range finder, or a change on one).
@@ -1653,9 +1679,11 @@ function switchTab(t: Tab): void {
     $(TAB_BUTTONS[v]).setAttribute('aria-selected', String(v === t));
   }
   lastLine = -1;
+  if (t === 'practice') lines.refresh();
   songsView.render();
   rewaz.render();
   progressView.render();
+
   if (boxesShown()) boxes.render();
   if (t === 'voice') voiceUI.render();
   else voiceUI.stop();
@@ -1685,8 +1713,26 @@ function setTempo(v: number | string): void {
 }
 /** The clicked button inside a segmented control. */
 const segButton = (e: Event) => (e.target as Element).closest<HTMLElement>('button');
+/** Print or save as PDF: the open song, or another from the Music library. */
+let printSong: (song?: Song) => void = () => {};
+/** The lines' settings, as chosen: lines shown and the size of the words and notes. */
+function applyLinesPrefs(): void {
+  setSeg('plRowsSeg', prefs.plRows ?? 7);
+  setSeg('plSizeSeg', prefs.plSize ?? 'normal');
+  $('#pl').dataset.size = prefs.plSize ?? 'normal';
+  lines.refresh();
+}
+
 
 export function init(): void {
+  lines = initLines({
+    parsed: () => parsed,
+    taals: () => taals,
+    script: () => prefs.script,
+    shown: () => !$('#practice').hidden,
+    rows: () => prefs.plRows ?? 7,
+  });
+  applyLinesPrefs();
   select('#saKey').innerHTML = V.keyOptionsHTML();
   select('#saOct').innerHTML = V.octOptionsHTML();
   select('#taalSel').innerHTML = V.taalOptionsHTML();
@@ -1731,6 +1777,12 @@ export function init(): void {
       savePrefs();
     },
     create: newSong,
+    print: (id) => {
+      const s = songs.get(id) || EXERCISES.find((x) => x.id === id);
+      if (!s) return;
+      if (s.id === current.id) printSong();
+      else printSong(s.example ? { ...normalize(s), example: true, ...prefs.mySa } : normalize(s));
+    },
     order: () => prefs.libOrder ?? LIB_ORDER,
     setOrder: (o) => {
       if (o.join() === LIB_ORDER.join()) delete prefs.libOrder;
@@ -1752,7 +1804,8 @@ export function init(): void {
     saHz: () => saFreq(current),
     script: () => prefs.script,
     parsed: () => parsed,
-    beatEls: (g) => beatEls.get(g) || [],
+    beatEls: (g) => lines.cells(g),
+    lines,
     section: () => (T && T.playing ? { secStart: T.secStart, secEnd: T.secEnd, loop: T.loop, listen: T.loop && soundSource.guideLoop === 'alt' && soundSource.guide !== 'off' } : null),
     octave: {
       get: () => !!prefs.pitchOctave,
@@ -1884,9 +1937,8 @@ export function init(): void {
     playFrom: userPlay,
   });
   applyEditMode();
-  const printSong = initPrint({ song: () => current, parsed: () => parsed, taals: () => taals, script: () => prefs.script });
-  $('#printBtn').addEventListener('click', printSong);
-  $('#printBtn2').addEventListener('click', printSong);
+  printSong = initPrint({ song: () => current, parsed: () => parsed, taals: () => taals, script: () => prefs.script });
+  $('#printBtn2').addEventListener('click', () => printSong());
   const startSong = EXERCISES.find((e) => e.id === wanted) || EXERCISES[0]!;
   loadSong(startSong);
   renderLibrary();
@@ -2055,6 +2107,30 @@ export function init(): void {
     renderKeys();
     if (!playing()) showIdle();
   });
+  // The lines' settings: how many lines show, and how big the words and notes are.
+  $('#plSetBtn').addEventListener('click', () => {
+    const open = $('#plSet').hidden;
+    $('#plSet').hidden = !open;
+    $('#plSetBtn').setAttribute('aria-expanded', String(open));
+  });
+  $('#plRowsSeg').addEventListener('click', (e) => {
+    const b = segButton(e);
+    if (!b) return;
+    const v = +b.dataset.v!;
+    if (v === 5 || v === 9) prefs.plRows = v;
+    else delete prefs.plRows;
+    savePrefs();
+    applyLinesPrefs();
+  });
+  $('#plSizeSeg').addEventListener('click', (e) => {
+    const b = segButton(e);
+    if (!b) return;
+    const v = b.dataset.v;
+    if (v === 'small' || v === 'big') prefs.plSize = v;
+    else delete prefs.plSize;
+    savePrefs();
+    applyLinesPrefs();
+  });
   $('#takesList').addEventListener('click', (e) => void onTakeClick(e));
   $('#themeSeg').addEventListener('click', (e) => {
     const b = segButton(e);
@@ -2203,7 +2279,7 @@ export function init(): void {
     play({ from: sec.first, to: sec.last, loop: input('#loopChk').checked });
   });
   document.addEventListener('click', (e) => {
-    const b = (e.target as Element).closest<HTMLElement>('.ln[data-n]');
+    const b = (e.target as Element).closest<HTMLElement>('.ln[data-n],.pl-n[data-n]');
     if (b) {
       userPlay(+b.dataset.n!);
     }

@@ -138,15 +138,16 @@ describe('the Music library', () => {
     expect(html).toContain('data-grip="mine" aria-label="Move My songs: drag, or press the up or down arrow"');
   });
 
-  it('ends each row with two buttons: practise it and edit it, named for a song or an exercise', () => {
+  it('ends each row with its buttons: practise it, edit it (named for a song or an exercise), and print it', () => {
     const row = songRowHTML(entryFor(own[0]!), opts());
-    expect(row).toMatch(/<div class="lacts"><button type="button" class="lact lplay" data-open="s1"><svg[^]*?<span>Practise this song<\/span><\/button><button type="button" class="lact ledit" data-edit="s1"><svg[^]*?<span>Edit this song<\/span><\/button><\/div><\/li>$/);
+    expect(row).toMatch(/<div class="lacts"><button type="button" class="lact lplay" data-open="s1"><svg[^]*?<span>Practise this song<\/span><\/button><button type="button" class="lact ledit" data-edit="s1"><svg[^]*?<span>Edit this song<\/span><\/button><button type="button" class="lact lprint" data-print="s1" aria-label="Print or save as PDF" title="Print or save as PDF"><svg[^]*?<\/svg><\/button><\/div><\/li>$/);
     // The star, the title and the tags come first, together.
     expect(row.indexOf('class="lmain"')).toBeLessThan(row.indexOf('data-fav'));
     expect(row.indexOf('class="ltags"')).toBeLessThan(row.indexOf('class="lacts"'));
     const ex = songRowHTML(entryFor(EXERCISES[0]!), opts());
     expect(ex).toContain('<span>Practise this exercise</span>');
     expect(ex).toContain('<span>Edit this exercise</span>');
+    expect(ex).toContain('data-print="' + EXERCISES[0]!.id + '"');
   });
 
   it('gives each heading a + New button after its fold button: a song, or an exercise', () => {

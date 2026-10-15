@@ -2,9 +2,11 @@
  * Print or save as PDF (docs/ROADMAP.md → Phase 1): a clean swaralipi sheet, black on
  * white, through the browser's own print dialog, whose "Save as PDF" makes the file. The
  * sheet is built into a print-only element just before printing, also when the print comes
- * from the browser's menu or Ctrl+P. The HTML builder is pure and tested in Node.
+ * from the browser's menu or Ctrl+P. Any song can be printed from the Music library (Rinat,
+ * 2026-10-15), not only the one open. The HTML builder is pure and tested in Node.
  */
-import { asTaals, type Taals } from '../core/notation/taalmap';
+import { parseSong } from '../core/notation/parse';
+import { asTaals, taalMap, type Taals } from '../core/notation/taalmap';
 import type { ParsedSong } from '../core/notation/types';
 import type { Song } from '../core/song/model';
 import type { TaalInfo } from '../core/taal/taals';
@@ -38,13 +40,19 @@ export interface PrintHost {
   script(): Script;
 }
 
-/** Fill the print sheet whenever printing starts; the returned function prints. */
-export function initPrint(host: PrintHost): () => void {
+/** Fill the print sheet whenever printing starts; the returned function prints the open song,
+ * or the song it is given. */
+export function initPrint(host: PrintHost): (song?: Song) => void {
   const box = document.querySelector('#printSheet') as HTMLElement;
   let title = '';
+  /** A song printed from the Music library, until the print is over. */
+  let other: Song | null = null;
   const fill = () => {
-    const song = host.song();
-    box.innerHTML = printSheetHTML(song, host.parsed(), host.taals(), host.script());
+    const song = other ?? host.song();
+    if (other) {
+      const P = parseSong(other.text);
+      box.innerHTML = printSheetHTML(other, P, taalMap(other.text, P, other.taal, other.startOn), host.script());
+    } else box.innerHTML = printSheetHTML(song, host.parsed(), host.taals(), host.script());
     // The PDF is named after the page's title.
     if (!title) title = document.title;
     document.title = song.title + ' · Gaaner Sathi';
@@ -53,8 +61,10 @@ export function initPrint(host: PrintHost): () => void {
   window.addEventListener('afterprint', () => {
     if (title) document.title = title;
     title = '';
+    other = null;
   });
-  return () => {
+  return (song) => {
+    other = song && song.id !== host.song().id ? song : null;
     fill();
     window.print();
   };
