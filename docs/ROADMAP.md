@@ -85,6 +85,7 @@ Begun 2026-10-11 with Rinat's comments on the screen as it is ("mostly design am
 | 12 | **The pad's octaves:** the note pad goes two octaves either side (lowest অতিমন্দ্র to highest অতিতার), as far as the notation reads; two dots for a note two octaves away | 2026-10-15 | Rinat enters the lowest and highest notes of a song from the pad |
 | 13 | **The pad in colour, its tools beside it:** a faint colour for each octave (komal and tivra stronger); Undo, Lower/Higher and Join/Split in sections beside the pad (under it when narrow); Bengali two octaves up shown as two dots and written `সা''` | 2026-10-15 | Rinat finds the octaves and the tools easy to tell apart |
 | 14 | ~~**Two short lines to a row** in the Practice view~~ — reverted the same day (`c277a8c`): Rinat wanted it in Edit notation; Practice keeps a line to a row, which shows it best | 2026-10-16 | — |
+| 15 | **Two lines to a row in the beat boxes:** lines that both fit in half the width sit side by side in reading order, each with its number, words and buttons; dragging drops left or right as well as up or down; phones keep a line to a row | 2026-10-16 | Rinat enters and moves Keherwa and Dadra lines comfortably with two to a row |
 
 ## Phase 3: native mobile app
 

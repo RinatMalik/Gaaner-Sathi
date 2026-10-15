@@ -186,6 +186,16 @@ chosen).
   kind in each box's label for screen readers. A row is faintly lit under the pointer. An unfinished line shows empty boxes to the end of its cycle. After the song,
   once its last line is finished or under a heading after it, an empty row as long as the
   line before it (whole cycles) starts a new line; Enter opens one after any line.
+- **Two lines to a row** (Rinat, 2026-10-16): where two lines both fit in half the boxes'
+  width (each measured whole: its number, boxes and buttons; a cycle of Keherwa or Dadra on
+  a laptop), they sit side by side in reading order, left then right, each with its own
+  number, words and buttons. Headings and longer lines keep a whole row; a line left over
+  takes half a row (the empty row for a new line can take the half beside it). Pairs are
+  measured again after each change and when the width changes; the line being typed in
+  keeps its pair. Phones and narrow windows keep a line to a row. The text is not changed.
+  A dragged line goes before the first line it is above, or on whose half it is left of the
+  middle (a whole row: above its middle), shown by a brass line across or down beside a
+  half; ↑ ↓ on a number move a line one place in reading order.
 - **Typing:** a space or a bar moves to the next box. Several beats typed or pasted into a
   box write over the boxes after it, then fill the line's empty boxes, then make new lines
   after it (each as long as the line before). Text pasted with line breaks goes in whole,

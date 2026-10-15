@@ -49,6 +49,51 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-16 BST — Claude (Opus 5.5) — PH2-14 two short lines to a Practice row
+
+- **Goal:** Rinat chose the second of Claude's two ways to fill the empty space of a Keherwa
+  or Dadra song with a cycle to a line: "ok let's go with option 2 please" (a Practice
+  setting that puts two short lines side by side, the song's text unchanged).
+- **Inspected:** lines.ts (`build`, `layout`, `columnsFor`, `scrollTo`, `current`, `gridFor`,
+  the voice and score code, all a line to a row); the `.pll.cur` styles (size, strip, bars,
+  voice, figure, highlight); the Lines settings, `applyLinesPrefs`, `practiceSummary`,
+  the prefs.
+- **Changed:** `287fe14` (feat(practice)): lines.ts: `rowsOf` (pure: headings, pairs within a
+  section, a line left over in half a row, long lines alone), `regroup` (the lines moved into
+  `.plpair` rows only when the grouping changes, the headings between), `markBig` (the row
+  being sung large, the semitone grid on both its lines), `layout` (pairs when each beat has
+  46 px, 32 on a phone, in half the width; `--cols` for whole rows, `--pcols` for halves; row
+  heights for the view's height), `scrollTo` by rows; host `pair()`; styles: `.plpair`, the
+  sizes on `.pll.big` (the highlight, Now and the figure stay on `.cur`); store: `plOne`;
+  view: "One line to a row" in the summary; index.html: the Lines checkbox; app.ts: wiring;
+  tests (lines: `rowsOf`; store: `plOne` and its summary). This commit (docs): DATA
+  (`plOne`), ROADMAP (Phase 2 row 14), this file (the PH2-12 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`):
+  - `npm run typecheck` → 0; `npx vitest run` → 36 files, 381 passed. `npm run build` →
+    228.5 kB JS (80.9 kB gzip), 52.6 kB CSS; `bash reference/tests/run-all.sh` →
+    31/11/10/12/5 passed, 12 exercises valid.
+  - A new Keherwa song: স্থায়ী of five 8-beat lines (four with words), অন্তরা of three.
+    1280 × 900, day: rows "H [1,2] [3,4] [5] H [6,7] [8]" (line numbers), each half 8 beats
+    of 58 px; idle, line 1 Start with the figure and line 2 Next, both large. Played from
+    line 2: its half lit (In 6, then Now), line 1 dimmed. With the line being sung 1st, at
+    tempo 200: the current row stayed at the top of the view (0 px) and the view scrolled
+    only on a new row (33 → 105 px), not from one half to the other. The checkbox off: a line
+    to a row (8 across), the line being sung kept; on again: pairs.
+  - 1024 × 800, night: pairs, beats 47 px, the row inside the view (the last beat ends at its
+    edge; an element screenshot looked clipped, a viewport one does not). 360 × 780, night: a
+    line to a row, no sideways scrolling.
+  - The fake singer (Edge's fake microphone playing a recorded scale) on ex-alankar-bn (Dadra,
+    four 6-beat lines a section): rows "H H [1,2] [3,4] H [5,6] [7,8]"; the voice drawn in
+    both halves (55 strokes in lines sung, the dot in the line being sung), each line's
+    score and tint in its own box (88, 83, 83, 83, 71, 88, 83), the average 83.
+  - CI run `38821848291` (`287fe14`): core, reference and deploy jobs green. Live: the bundle index-CA3FX-6U.js served; ex-alankar-bn in Practice in rows "H H [1,2] [3,4] H [5,6] [7,8]", the setting on.
+- **Decisions made:** see Decisions (two short lines to a row).
+- **Risks or disagreements:** on by default (Rinat asked for the option to fill the space);
+  Lines shown counts rows, so 7 can show 14 lines. A song whose lines differ in length pairs
+  only those that fit; a pair's halves use the longest such line's columns.
+- **Next handoff:** Rinat practises a Keherwa or Dadra song on a laptop.
+
 ### 2026-10-15 BST — Claude (Opus 5.5) — PH2-13 the pad in colour, its tools beside it
 
 - **Goal:** Rinat: "make the upper ones two dots as well, ref not showing properly"; "all 5
