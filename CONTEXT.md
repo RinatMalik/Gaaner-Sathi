@@ -49,14 +49,14 @@ wins, except a later explicit decision by Rinat, which always wins.
   figure drawn round, the run's average, the lines' settings in Practice settings), eight
   (PH2-08: the last 10 % of each note unscored, the figure's shapes stacked, the keys in a
   full-width section), nine (PH2-09: Edit notation's Settings, one header menu for notes and
-  colours, delete in the Music library, a break between rewaz items) and ten (PH2-10: an
-  Enter notes section with a note pad between octave buttons, the song's sound its own
-  section again) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
+  colours, delete in the Music library, a break between rewaz items), ten (PH2-10: an Enter
+  notes section with a note pad between octave buttons, the song's sound its own section
+  again) and eleven (PH2-11: one undo for the song's text) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
-- **Next single action:** Rinat enters a song with the note pad (round ten) and tries round
-  nine; answers round two's two questions (Record me's microphone; colours on the Practice
-  sheet); sends more design comments.
-- **Last known-good commit:** `628efc2` (CI run `38742686144`: core, reference and deploy jobs green; checked live).
+- **Next single action:** Rinat enters a song with the note pad and Undo (rounds ten and
+  eleven) and tries round nine; answers round two's two questions (Record me's microphone;
+  colours on the Practice sheet); sends more design comments.
+- **Last known-good commit:** `d78ac22` (CI run `38763430833`: core, reference and deploy jobs green; checked live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -367,6 +367,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-02 | Claude | Review | Design, round two: Pause and a separate Stop; nothing that plays changes the Lines to practise (play from here, sheet line numbers, sections, rewaz, takes); "Check my pitch" listens only while playing; beat box rows with the number and buttons (play this line, play from here, ×) full height, vibhag starts coloured instead of X/0, a tap anywhere on a row selects it, hover | 5 unit tests and the boxes' HTML tests; Edge scenarios `round6` (42 checks) and `rewaz6` (5), with a WAV microphone (Work log 2026-10-12 16:43) | Waiting for Rinat's use and two answers |
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
+| PH2-11 | Claude | Review | One undo for the song's text (src/app/undo.ts): every change recorded where the text changes, typing in one box or one line within 4 s one step, buttons each a step; Undo and Ctrl+Z the same in beat boxes and free text; emptied when another song opens (it was not: Undo could write the previous song's text into the next) | 4 new unit tests (undo.test.ts); headless Edge (Work log 2026-10-15, round eleven) | Waiting for Rinat's use |
 | PH2-10 | Claude | Review | Design, round ten: an Enter notes section (Write in, a hint, the note pad: Sa Re Ga Ma; Pa Dha Ni; komal and tivra; Hold, Silence, New line, Heading) between full-height octave buttons; Undo, octave, Join, Split in a row under it; the song's sound its own section again; "+ Add notes" undone | 3 new unit tests (pad.test.ts), the old row's prototype comparison dropped; headless Edge at 1280 and 360 px (Work log 2026-10-15, round ten) | Waiting for Rinat's use |
 | PH2-09 | Claude | Review | Design, round nine: Edit notation's details, sound and file buttons in a folding Settings bar and its note buttons behind "+ Add notes" (undone in round ten); বাংলা / Sa Re Ga and the colours in one header menu; delete on each of the user's Music library rows, asked in the row; a break between rewaz items per routine, counted down | 2 new unit tests and 3 extended; headless Edge at 1280 and 360 px, night and day (Work log 2026-10-15, round nine) | Waiting for Rinat's use |
 | PH2-08 | Claude | Review | Design, round eight: the last 10 % of each note left out of its score; the taal figure's shapes one under another (at least 40 px, 30 on a phone); the keys to press in a full-width section of their own, keys added on both sides, taller, light and dark keys in both schemes | 3 new or rewritten unit tests (one fails on the old scoring); headless Edge at 1280 and 360 px, night and day (Work log 2026-10-15, round eight) | Waiting for Rinat's use |
@@ -443,6 +444,7 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-15 | **The Practice view is the song line by line:** one window of about seven lines (5, 7 or 9, in its settings), the line being sung third (the first two lines start at the top) and large, sliding on a line as each plays; a line number plays from there and the section chips stay above. Each beat: the words big with the notes small above (a line without words shows its notes big), a mark for how it was sung, and a pitch strip with a bar for each note at its height; while the pitch check listens the voice is drawn over the bars (green, amber, red), and each line's score shows by its number. The beat sounding is lit, with a playhead through it. It replaces the Now singing panel, the coming-up notes, the pitch meter and its trace box, and the Practice sheet; the ruled lines, the red margin and the red-ink words stay. | Rinat, chat 2026-10-15, with a mockup ("combining the section where it shows the current and upcoming notes, pitch checker with the lyrics section", "a vertical carousel where about 7 lines are visible. The currently playing line is the 3rd one", "The lyrics part is bigger, full width pitch performance strip. When the microphone is off it still shows the strip with lines representing the notes"); the details (a strip under every line, the colours, the first lines at the top, long lines over two rows on a phone, the scores by the numbers, the last line kept at the end) are Claude's | src/app/lines.ts; ENGINE.md → Pitch feedback → Shown. The editor's preview and the printed sheet are unchanged. |
 | 2026-10-15 | **The taal as a figure,** beside the line being sung: a shape per vibhag with a corner per beat (four beats a square, three a triangle, two a stroke: Keherwa two squares, Dadra two triangles, Teentaal four squares), the first corner of each in its kind's colour (sam, tali, khali, as in the beat boxes), khali's shape dashed; the cycle traced round as it goes, the beat's corner lit. The strip of bols is gone. | Rinat, chat 2026-10-15 ("a square where the corners light up for 8 beat taals. but not sure where to put it … seeing the bol's of the taal doesn't really do much for me"); generalising the square to a shape per vibhag, and its place (where Rinat's mockup drew it), are Claude's | The taal's name and structure stay over the lines ("Keherwa · 4 + 4"). |
 | 2026-10-15 | **A settings button over the lines:** lines shown (5, 7, 9), the size of the words and notes (smaller, normal, bigger), the keys to press and the pitch check's octave rule (both moved here). The Practice settings bar is left as it was. | Rinat, chat 2026-10-15 ("There could be a settings button to adjust a few relevant things", "Leave the settings section alone - we'll come back to it later"); the choice of settings is Claude's | Settings `plRows`, `plSize` (DATA.md). |
+| 2026-10-15 | **One undo for the song's text:** Undo and Ctrl+Z take back the song's text one step at a time, whatever changed it (the beat boxes, the note pad, free text, Join, Split, an octave, a heading, a line moved or pasted, the deck writing a tempo into a heading), in the beat boxes and free text alike; typing on in one box or one line within 4 s is one step, everything else a step of its own; opening another song empties the list. | Rinat, chat 2026-10-15 ("why can't the undo just be attached to the text editor … or is their more complicated things happening in the background? If it is not as simple, then leave it as it is"): it was that simple; the grouping and taking over Ctrl+Z in free text are Claude's | Fixes a song's text being overwritten by Undo after another song was opened (the boxes' list was never emptied). NOTATION.md → Beat boxes → Undo. |
 | 2026-10-15 | **Entering notes, redesigned:** Edit notation has an Enter notes section (folding, open until folded) with Write in (beat boxes or free text), a short hint and a note pad: Sa Re Ga Ma; Pa Dha Ni; komal Re, Ga, tivra Ma, komal Dha, Ni (captioned); Hold, Silence, New line, Heading (and Bar and Lyrics line in free text). Full-height buttons either side move the pad an octave down or up (lower, middle, upper), the notes sliding in from that side. Undo, the selected notes' octave, Join and Split sit in a row under the section, always shown. The song's sound is a folding section of its own again, after Settings. Round nine's "+ Add notes" is undone: Rinat had meant the notes about a song, which stay in Settings. | Rinat, chat 2026-10-15 ("i actually meant about the feature of adding notes about the song", "Create a collapsible section which will contain all the buttons and settings for entering notes", the rows, "full height buttons, left one will slide the middle buttons into lower octave and the right one … upper octave", "join, Split and Undo … Add them somewhere sensible", "bring the 'Write in' … toggle … in this section", "Bring out the sound of this song section out of settings"); the octave range (lower to upper), the captions, the slide, keeping the octave and Join/Split row outside the fold, Heading in free text and Bar and Lyrics line in free text are Claude's | Replaces the 2026-10-15 "Edit notation, cleaner" row's "+ Add notes" and its Write in and sound in Settings. Setting `padFold` (DATA.md). |
 | 2026-10-15 | **Edit notation, cleaner:** the title, taal, start beat, tags, List under, About this song, Write in (beat boxes or free text), the song's sound and the file buttons (Make a copy, Export, Print, Delete) are in a Settings bar that folds away and says the title, the taal and how the notes are written; a new song opens it with the title selected, and "Change this song's sound" opens it. The note buttons show after "+ Add notes"; + Heading and Undo stay beside it. Both remembered on the device. **One header menu** holds how notes are written (বাংলা / Sa Re Ga) and the colours (Auto / Day / Night), for every view; its button says what is chosen. **Delete in the Music library:** each of the user's songs and exercises has a delete button after Print, asking in the row; built-in exercises have none. **A break between rewaz items**, 0–120 seconds per routine (4 until set), counted down in the bar. | Rinat, chat 2026-10-15 ("next to print or save button in each line, add the option to delete this song", "add a few seconds break between each song that the use will specify", "make the option to add note appear after pressing a 'Add Notes' button. All of these other settings - title, taal, copy, print - all to be put inside a Settings section", "The chip to choose Bangla and Sa Re Ga to also be inside settings but that toggle is available in all other tabs as well - not sure how to handle this actually but want a cleaner look overall"); the header menu (with the colours), moving Write in and the song's sound into Settings, keeping + Heading and Undo out, the countdown and the 120 s limit are Claude's | Routine field `gap`; settings `editSetOpen`, `palOpen` (DATA.md). Replaces the 2026-10-10 row's "a 4 s pause" (now the default). |
 | 2026-10-15 | **A note's last 10 % is not scored** (Open question 6 answered): its steady part runs from 100 ms in (30 % of a short note) to its last 10 %, where it ended 30 ms before the end. **The taal figure's shapes stand one under another,** as big as the number box's width and the line's height allow, at least 40 px each (30 on a phone), the line growing a little for taals of many vibhags. **The keys to press are a section of their own** under the lines, shown while Show the keys is ticked, as wide as the other sections, with white keys added on both sides of the song's range at a natural key width rather than stretched, 140 px tall (120 on a phone); light and dark keys in both schemes. | Rinat, chat 2026-10-15 ("go on, make the last 10% not count", "have the second and following squares/triangles added vertically, that way they can be even bigger", "The keys could be a little bit more taller … make it in a separate section, no need to be collapsible … as wide as the other section. don't stretch it, add more keys on both sides"); the minimum size, the key widths and the keys' colours at night are Claude's | Open question 6 removed. ENGINE.md → Pitch feedback → Scores; MIDI keyboards. |
@@ -484,6 +486,46 @@ Template:
     - **Decisions made:** rows added above.
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
+
+### 2026-10-15 BST — Claude (Opus 5.5) — PH2-11 one undo for the song's text
+
+- **Goal:** Rinat: Undo "seems unintuitive … when writing anything through beat boxes, it is
+  just editing the free text underneath, right? … why can't the undo just be attached to the
+  text editor … If it is not as simple, then leave it as it is."
+- **Inspected:** boxes.ts's undo (`undoStack`, filled only by its `write`, never emptied);
+  every path that changes the text (app.ts `changed('text')` from `setTextFromBoxes`,
+  `setText` and the notation box's input event; `applyTextEdit` for Join, Split and octaves;
+  `insertText` for the pad in free text; `addHeading`).
+- **Found:** the boxes' list missed changes made outside the boxes, so after + Heading an undo
+  took back the step before it too; and, never emptied, Undo after opening another song wrote
+  the previous song's text into the one just opened (a lost-work bug, fixed here).
+- **Changed:** `d78ac22` (fix(edit)): `src/app/undo.ts` (new: `TextUndo` with `remember`,
+  `undo`, `clear`, `firstDifference`); app.ts: the step recorded in `changed` with `textKey`
+  (a box's key, `line:N` for free text typing, a step of its own otherwise via `inputKey` and
+  `ownStep`), `undoText` (the text put back, the boxes refocused or the caret placed),
+  Ctrl+Z in the notation box, the list emptied in `loadSong`; boxes.ts: `write` passes its key
+  to the host, Ctrl+Z calls the host's undo, `restored(key)` in place of `undo`; Undo shown in
+  free text too; tests (undo.test.ts). This commit (docs): NOTATION (Undo), ROADMAP (Phase 2
+  row 11), this file (the PH2-09 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`):
+  - `npm run typecheck` → 0; `npx vitest run` → 36 files, 377 passed (new: steps taken back
+    in turn; typing in one place joined until a pause or another place; steps of their own
+    never joined; the latest 200 kept; emptied; where texts differ). `npm run build` → 227 kB
+    JS (80.3 kB gzip), 50.1 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed,
+    12 exercises valid.
+  - A new song, beat boxes: New line, সা, রা, গা, Hold, Heading from the pad; Undo took back
+    the heading alone ("সা রা গা | -"), then Hold, then গা. Free text: " মা পা" typed and ধা
+    from the pad; Undo took back ধা alone, then the typing; Ctrl+Z in the text took back রা
+    (typed in the boxes). Back in the boxes, Undo took back সা, then "Nothing to undo.". A
+    note typed, then ex-scale opened: Undo said "Nothing to undo." and ex-scale's text was
+    unchanged (185 characters).
+  - CI run `38763430833` (`d78ac22`): core, reference and deploy jobs green. Live: https://rinatmalik.github.io/Gaaner-Sathi/ in headless Edge: a new song, the pad's Heading undone alone, then Hold, then গা; no console errors.
+- **Decisions made:** see Decisions (one undo).
+- **Risks or disagreements:** no redo (there was none before). Typing a long stretch on one
+  line without a 4 s pause is one step, as typing in one box was. Ctrl+Z in free text no longer
+  uses the browser's own finer undo. The history is not kept across a reload.
+- **Next handoff:** Rinat tries Undo while entering a song.
 
 ### 2026-10-15 BST — Claude (Opus 5.5) — PH2-10 design, round ten: the note pad
 
@@ -532,56 +574,5 @@ Template:
   before). In free text a note tapped after Heading goes into the heading line, where the
   cursor is. Nobody has used it on a phone yet.
 - **Next handoff:** Rinat enters a song with the pad.
-
-### 2026-10-15 BST — Claude (Opus 5.5) — PH2-09 design, round nine: Edit notation's Settings, one header menu, delete in the library, a rewaz break
-
-- **Goal:** Rinat: in the Music library "next to print or save button in each line, add the
-  option to delete this song"; in Rewaz "add a few seconds break between each song that the
-  use will specify"; in Edit notation the note buttons "after pressing a 'Add Notes' button"
-  and "title, taal, copy, print - all to be put inside a Settings section"; the বাংলা / Sa Re
-  Ga choice "inside settings but … available in all other tabs as well … want a cleaner look".
-- **Inspected:** songs.ts rows; app.ts's delete (`#delYes`); routine.ts (`ITEM_GAP`),
-  `RoutineStore.save` (it names the fields it keeps), rewaz.ts's runner (`next`, Skip,
-  Stop); Edit notation's markup and its wiring (`applyEditMode` hid `#pal .tonly/.bonly`,
-  `newSong`, `showSongSound`); the header and the tabs row.
-- **Changed:** `e3aecc1` (feat): songs.ts: a delete button on the user's rows and the asking
-  row (`confirmDel`), host `remove`; app.ts: `deleteSong` (shared with Edit notation's),
-  `setEditSetOpen`, `setPalOpen`, `renderEditSummary`, `renderDisp`, `setDispOpen` (Escape
-  and a tap elsewhere close it); routine.ts: `gap`, `gapOf`, the limit 120, the estimate;
-  store.ts: the routine's `gap` kept, prefs `editSetOpen`, `palOpen`; rewaz.ts: the break
-  field beside the name, the countdown (`setInterval`, cleared by Skip and Stop);
-  index.html: Edit notation's Settings bar around the details, About, Write in, the song's
-  sound and the file buttons, "+ Add notes" with + Heading and Undo, the palette hidden at
-  first, the header menu in place of the colours and the tabs row's script switch; styles;
-  tests. This commit (docs): DATA (`gap`, `editSetOpen`, `palOpen`), ROADMAP (Phase 2 row
-  9), this file (the PH2-07 entry moved to HISTORY).
-- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
-  DevTools protocol on `npm run dev`):
-  - `npm run typecheck` → 0; `npx vitest run` → 34 files, 370 passed (new: the break kept 0
-    to 120 and rounded, not kept when not given, stored, and in the estimate (30 s, none);
-    the break field; delete on the user's rows only, the asking row and only that row).
-    `npm run build` → 225 kB JS (79.4 kB gzip), 48.8 kB CSS; `bash reference/tests/run-all.sh`
-    → 31/11/10/12/5 passed, 12 exercises valid.
-  - 1280 × 900, day: the menu button "বাংলা · Auto", no switch in the tabs row; Sa Re Ga from
-    the menu: notes in Latin, "Sa Re Ga · Auto"; a tap elsewhere closed it. + New song: Edit
-    notation with Settings open and the title focused, "Untitled song · Dadra · Beat boxes",
-    the note buttons hidden, + Heading shown; + Add notes showed them ("Hide the note
-    buttons"), remembered; Settings folded by its bar. Rewaz: a new routine of the test song,
-    1 round, break 3, a second item added (2 items · about 1 min); started: "Next: … starting
-    in 3 s", a second later "2 s", then the second item playing. Library: Delete asked in the
-    row (focus on Keep), Keep put it back (focus on Delete), Delete removed the open song and
-    opened লম্বা স্বর, "Deleted “Short test”.".
-  - 360 × 780, night and day: the menu within the screen (16 to 268 px); Edit notation's
-    Settings and note buttons; the asking row; the routine's break field; no sideways
-    scrolling anywhere.
-  - CI run `38739059662` (`e3aecc1`): core, reference and deploy jobs green. Live: https://rinatmalik.github.io/Gaaner-Sathi/ in headless Edge: the menu button "বাংলা · Auto" and no switch in the tabs row, Edit notation's Settings and note buttons folded ("অলংকার · তিন স্বরের দল · Dadra · Beat boxes"), the warm-up's break 4, the library's 12 exercises with Print and no Delete (a fresh browser has no songs of its own); no console errors.
-- **Decisions made:** see Decisions (Edit notation cleaner; the header menu; delete in the
-  library; the rewaz break).
-- **Risks or disagreements:** বাংলা / Sa Re Ga is in the header menu only, not also inside
-  Edit notation's Settings (one place for every view; say if it should be in both). Write in
-  and the song's sound moved into Settings too, so switching to free text is one tap further.
-  A new song still lands with Settings open; existing songs open in Edit notation as last
-  left. Deleting from the library does not delete the song's takes (as in Edit notation).
-- **Next handoff:** Rinat tries round nine.
 
 Older entries: `docs/HISTORY.md`.

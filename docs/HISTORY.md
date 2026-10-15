@@ -49,6 +49,57 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-15 BST — Claude (Opus 5.5) — PH2-09 design, round nine: Edit notation's Settings, one header menu, delete in the library, a rewaz break
+
+- **Goal:** Rinat: in the Music library "next to print or save button in each line, add the
+  option to delete this song"; in Rewaz "add a few seconds break between each song that the
+  use will specify"; in Edit notation the note buttons "after pressing a 'Add Notes' button"
+  and "title, taal, copy, print - all to be put inside a Settings section"; the বাংলা / Sa Re
+  Ga choice "inside settings but … available in all other tabs as well … want a cleaner look".
+- **Inspected:** songs.ts rows; app.ts's delete (`#delYes`); routine.ts (`ITEM_GAP`),
+  `RoutineStore.save` (it names the fields it keeps), rewaz.ts's runner (`next`, Skip,
+  Stop); Edit notation's markup and its wiring (`applyEditMode` hid `#pal .tonly/.bonly`,
+  `newSong`, `showSongSound`); the header and the tabs row.
+- **Changed:** `e3aecc1` (feat): songs.ts: a delete button on the user's rows and the asking
+  row (`confirmDel`), host `remove`; app.ts: `deleteSong` (shared with Edit notation's),
+  `setEditSetOpen`, `setPalOpen`, `renderEditSummary`, `renderDisp`, `setDispOpen` (Escape
+  and a tap elsewhere close it); routine.ts: `gap`, `gapOf`, the limit 120, the estimate;
+  store.ts: the routine's `gap` kept, prefs `editSetOpen`, `palOpen`; rewaz.ts: the break
+  field beside the name, the countdown (`setInterval`, cleared by Skip and Stop);
+  index.html: Edit notation's Settings bar around the details, About, Write in, the song's
+  sound and the file buttons, "+ Add notes" with + Heading and Undo, the palette hidden at
+  first, the header menu in place of the colours and the tabs row's script switch; styles;
+  tests. This commit (docs): DATA (`gap`, `editSetOpen`, `palOpen`), ROADMAP (Phase 2 row
+  9), this file (the PH2-07 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`):
+  - `npm run typecheck` → 0; `npx vitest run` → 34 files, 370 passed (new: the break kept 0
+    to 120 and rounded, not kept when not given, stored, and in the estimate (30 s, none);
+    the break field; delete on the user's rows only, the asking row and only that row).
+    `npm run build` → 225 kB JS (79.4 kB gzip), 48.8 kB CSS; `bash reference/tests/run-all.sh`
+    → 31/11/10/12/5 passed, 12 exercises valid.
+  - 1280 × 900, day: the menu button "বাংলা · Auto", no switch in the tabs row; Sa Re Ga from
+    the menu: notes in Latin, "Sa Re Ga · Auto"; a tap elsewhere closed it. + New song: Edit
+    notation with Settings open and the title focused, "Untitled song · Dadra · Beat boxes",
+    the note buttons hidden, + Heading shown; + Add notes showed them ("Hide the note
+    buttons"), remembered; Settings folded by its bar. Rewaz: a new routine of the test song,
+    1 round, break 3, a second item added (2 items · about 1 min); started: "Next: … starting
+    in 3 s", a second later "2 s", then the second item playing. Library: Delete asked in the
+    row (focus on Keep), Keep put it back (focus on Delete), Delete removed the open song and
+    opened লম্বা স্বর, "Deleted “Short test”.".
+  - 360 × 780, night and day: the menu within the screen (16 to 268 px); Edit notation's
+    Settings and note buttons; the asking row; the routine's break field; no sideways
+    scrolling anywhere.
+  - CI run `38739059662` (`e3aecc1`): core, reference and deploy jobs green. Live: https://rinatmalik.github.io/Gaaner-Sathi/ in headless Edge: the menu button "বাংলা · Auto" and no switch in the tabs row, Edit notation's Settings and note buttons folded ("অলংকার · তিন স্বরের দল · Dadra · Beat boxes"), the warm-up's break 4, the library's 12 exercises with Print and no Delete (a fresh browser has no songs of its own); no console errors.
+- **Decisions made:** see Decisions (Edit notation cleaner; the header menu; delete in the
+  library; the rewaz break).
+- **Risks or disagreements:** বাংলা / Sa Re Ga is in the header menu only, not also inside
+  Edit notation's Settings (one place for every view; say if it should be in both). Write in
+  and the song's sound moved into Settings too, so switching to free text is one tap further.
+  A new song still lands with Settings open; existing songs open in Edit notation as last
+  left. Deleting from the library does not delete the song's takes (as in Edit notation).
+- **Next handoff:** Rinat tries round nine.
+
 ### 2026-10-15 BST — Claude (Opus 5.5) — PH2-08 design, round eight: the last 10 % unscored, the figure stacked, the keys in their own section
 
 - **Goal:** Rinat: how notes are scored and what singers aim for (answered in the reply); "go

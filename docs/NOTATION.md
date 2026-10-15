@@ -232,7 +232,12 @@ the text) and works on the box chosen (or the beats chosen).
   none yet), in the bar character the song uses most; a line keeps its own style. Words
   rewritten under a line get bars where it has them only if they were written with bars.
   Blank words between others are written `-` (a held vowel).
-- **Undo** (Ctrl+Z, or the Undo button) takes changes back one box at a time.
+- **Undo** (Ctrl+Z, or the Undo button) takes changes back one step at a time, in the beat
+  boxes and free text alike (Rinat, 2026-10-15): the history belongs to the song's text
+  (`src/app/undo.ts`), recorded wherever it changes. Typing on in one box, or on one line of
+  free text, within 4 s is one step; a note from the pad, Join, Split, an octave, a heading, a
+  line moved or pasted is a step of its own. Opening another song empties it. *Why one list:*
+  the boxes are a view of the text, and their own list missed changes made outside them.
 - **MIDI keyboards** type here too: each key is a beat, written from the song's Sa
   (`noteToken`, canonical as above), two octaves either side.
 
