@@ -49,6 +49,46 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-15 BST — Claude (Opus 5.5) — PH2-08 design, round eight: the last 10 % unscored, the figure stacked, the keys in their own section
+
+- **Goal:** Rinat: how notes are scored and what singers aim for (answered in the reply); "go
+  on, make the last 10% not count"; the taal shapes "added vertically, that way they can be
+  even bigger"; the keys "a little bit more taller … a separate section, no need to be
+  collapsible, it will only appear when the box is checked … as wide as the other section.
+  don't stretch it, add more keys on both sides".
+- **Inspected:** `scoreNote` and the score tests (track.ts, pitch-track.test.ts);
+  `keyRange` and `keyboardHTML` (keyboard.ts); the figure's CSS.
+- **Changed:** `96b944a` (feat): track.ts: the steady part ends at the last 10 %;
+  lines.ts: `--nv`, `--nh` on the figure and a flatter lens box; styles: the shapes in a
+  column sized by container units (`container-type: size` on the figure) with a minimum,
+  the keys' section and colours (`--key-w`, `--key-b`, `--key-sa`); keyboard.ts:
+  `keysToFill`; app.ts: `renderKeys` filling the width (a ResizeObserver redraws it, the last
+  keys lit put back); index.html: the keys' section after the lines; tests. This commit
+  (docs): ENGINE (Scores; Which key to press), ROADMAP (Phase 2 row 8), this file (Open
+  question 6 removed; the PH2-06 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`):
+  - `npm run typecheck` → 0; `npx vitest run` → 34 files, 368 passed (new: the last 9 % sung
+    50 cents sharp scores 100 with no wobble, which fails with the old window (checked by
+    running it against the previous track.ts); `keysToFill` adding keys below then above,
+    keeping the song's, stopping at A0 and C8; the figure's `--nv`, `--nh` and lens box).
+    `npm run build` → 221 kB JS (78.4 kB gzip), 47.3 kB CSS; `bash reference/tests/run-all.sh`
+    → 31/11/10/12/5 passed, 12 exercises valid.
+  - 1280 × 960: Keherwa's squares 63 px (42 before), Teentaal's four 40 px each, the line
+    playing 282 px tall (211 before); the keys' section 1148 px wide, 43 white keys, 140 px
+    tall, light and dark keys at night, each Sa marked, the key sounding lit. 360 × 780,
+    night: Teentaal's squares 30 px; the keys' section 328 px with the song's 14 white keys
+    (too narrow for more), 120 px tall; no sideways scrolling.
+  - CI run `38732708313` (`96b944a`): core, reference and deploy jobs green. Live: https://rinatmalik.github.io/Gaaner-Sathi/ in headless Edge at night: Keherwa's squares 63 px, the keys in their own section (not inside the lines), 43 white keys, light keys at night; no console errors.
+- **Decisions made:** see Decisions (the last 10 %; the figure stacked; the keys' section).
+- **Risks or disagreements:** with the shapes stacked, a taal of four or more vibhags makes
+  the line being sung taller than in round seven (Teentaal 282 px against 211), so a few
+  pixels fewer lines fit; two columns would have made Teentaal's squares 46 px without that.
+  The scoring change matters mostly for notes longer than about 300 ms (shorter ones already
+  left out their last 10 %), and only shifts a score when the end of a note pulls the median.
+  Nobody has sung with it.
+- **Next handoff:** Rinat sings with round eight.
+
 ### 2026-10-15 BST — Claude (Opus 5.5) — PH2-07 design, round seven: the lines' number boxes, the figure drawn round, the run's average, the settings moved
 
 - **Goal:** Rinat on round six ("looking pretty good"): the number box wider and clickable as

@@ -48,14 +48,15 @@ wins, except a later explicit decision by Rinat, which always wins.
   Print in the Music library), seven (PH2-07: the lines' number boxes tinted by score, the
   figure drawn round, the run's average, the lines' settings in Practice settings), eight
   (PH2-08: the last 10 % of each note unscored, the figure's shapes stacked, the keys in a
-  full-width section) and nine (PH2-09: Edit notation's Settings and Add notes, one header
-  menu for notes and colours, delete in the Music library, a break between rewaz items) are
-  built and live. Phase 1, features, was closed by Rinat ("That's it for features",
+  full-width section), nine (PH2-09: Edit notation's Settings, one header menu for notes and
+  colours, delete in the Music library, a break between rewaz items) and ten (PH2-10: an
+  Enter notes section with a note pad between octave buttons, the song's sound its own
+  section again) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
-- **Next single action:** Rinat tries round nine (Edit notation, the header menu, deleting in
-  the library, a rewaz break) and sings with round eight; answers round two's two questions
-  (Record me's microphone; colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `e3aecc1` (CI run `38739059662`: core, reference and deploy jobs green; checked live).
+- **Next single action:** Rinat enters a song with the note pad (round ten) and tries round
+  nine; answers round two's two questions (Record me's microphone; colours on the Practice
+  sheet); sends more design comments.
+- **Last known-good commit:** `628efc2` (CI run `38742686144`: core, reference and deploy jobs green; checked live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -366,7 +367,8 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-02 | Claude | Review | Design, round two: Pause and a separate Stop; nothing that plays changes the Lines to practise (play from here, sheet line numbers, sections, rewaz, takes); "Check my pitch" listens only while playing; beat box rows with the number and buttons (play this line, play from here, ×) full height, vibhag starts coloured instead of X/0, a tap anywhere on a row selects it, hover | 5 unit tests and the boxes' HTML tests; Edge scenarios `round6` (42 checks) and `rewaz6` (5), with a WAV microphone (Work log 2026-10-12 16:43) | Waiting for Rinat's use and two answers |
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
-| PH2-09 | Claude | Review | Design, round nine: Edit notation's details, sound and file buttons in a folding Settings bar and its note buttons behind "+ Add notes"; বাংলা / Sa Re Ga and the colours in one header menu; delete on each of the user's Music library rows, asked in the row; a break between rewaz items per routine, counted down | 2 new unit tests and 3 extended; headless Edge at 1280 and 360 px, night and day (Work log 2026-10-15, round nine) | Waiting for Rinat's use |
+| PH2-10 | Claude | Review | Design, round ten: an Enter notes section (Write in, a hint, the note pad: Sa Re Ga Ma; Pa Dha Ni; komal and tivra; Hold, Silence, New line, Heading) between full-height octave buttons; Undo, octave, Join, Split in a row under it; the song's sound its own section again; "+ Add notes" undone | 3 new unit tests (pad.test.ts), the old row's prototype comparison dropped; headless Edge at 1280 and 360 px (Work log 2026-10-15, round ten) | Waiting for Rinat's use |
+| PH2-09 | Claude | Review | Design, round nine: Edit notation's details, sound and file buttons in a folding Settings bar and its note buttons behind "+ Add notes" (undone in round ten); বাংলা / Sa Re Ga and the colours in one header menu; delete on each of the user's Music library rows, asked in the row; a break between rewaz items per routine, counted down | 2 new unit tests and 3 extended; headless Edge at 1280 and 360 px, night and day (Work log 2026-10-15, round nine) | Waiting for Rinat's use |
 | PH2-08 | Claude | Review | Design, round eight: the last 10 % of each note left out of its score; the taal figure's shapes one under another (at least 40 px, 30 on a phone); the keys to press in a full-width section of their own, keys added on both sides, taller, light and dark keys in both schemes | 3 new or rewritten unit tests (one fails on the old scoring); headless Edge at 1280 and 360 px, night and day (Work log 2026-10-15, round eight) | Waiting for Rinat's use |
 | PH2-07 | Claude | Review | Design, round seven: each line's number box wider, the button itself, tinted red to green by the line's score; the taal figure as wide as the box, its edges drawn on through each beat, the corner popping, sam pulsing; the run's average under the lines as it goes; the line over the lines removed (the box says Now, Round 2, Your turn, In 3, Paused, Done); lines shown (5, 7, 9, 12), the line being sung (1st to 5th) and the size of words in the Practice settings; taller keys | 1 new unit test, 4 rewritten, 3 prototype comparisons removed with the builders; headless Edge at 1280 and 360 px, night and day, with a fake singer (Work log 2026-10-15, round seven) | Waiting for Rinat to sing with it, and Open question 6 |
 | PH2-06 | Claude | Review | Design, round six: the Practice view redone as the song line by line (about seven lines, the line being sung third and large, sliding on as each plays): the words big with the notes small above, a pitch strip under every line with a bar for each note and the voice drawn over it, the beat lit with a playhead, each line's score by its number; the taal as a figure beside the line being sung (a shape per vibhag, a corner per beat); a settings button over the lines; Print or save as PDF on each Music library row | 13 new unit tests and 1 rewritten; headless Edge at 1200, 1280 and 360 px, night and day, with a fake singer (Work log 2026-10-15) | Waiting for Rinat to sing with it |
@@ -441,6 +443,7 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-15 | **The Practice view is the song line by line:** one window of about seven lines (5, 7 or 9, in its settings), the line being sung third (the first two lines start at the top) and large, sliding on a line as each plays; a line number plays from there and the section chips stay above. Each beat: the words big with the notes small above (a line without words shows its notes big), a mark for how it was sung, and a pitch strip with a bar for each note at its height; while the pitch check listens the voice is drawn over the bars (green, amber, red), and each line's score shows by its number. The beat sounding is lit, with a playhead through it. It replaces the Now singing panel, the coming-up notes, the pitch meter and its trace box, and the Practice sheet; the ruled lines, the red margin and the red-ink words stay. | Rinat, chat 2026-10-15, with a mockup ("combining the section where it shows the current and upcoming notes, pitch checker with the lyrics section", "a vertical carousel where about 7 lines are visible. The currently playing line is the 3rd one", "The lyrics part is bigger, full width pitch performance strip. When the microphone is off it still shows the strip with lines representing the notes"); the details (a strip under every line, the colours, the first lines at the top, long lines over two rows on a phone, the scores by the numbers, the last line kept at the end) are Claude's | src/app/lines.ts; ENGINE.md → Pitch feedback → Shown. The editor's preview and the printed sheet are unchanged. |
 | 2026-10-15 | **The taal as a figure,** beside the line being sung: a shape per vibhag with a corner per beat (four beats a square, three a triangle, two a stroke: Keherwa two squares, Dadra two triangles, Teentaal four squares), the first corner of each in its kind's colour (sam, tali, khali, as in the beat boxes), khali's shape dashed; the cycle traced round as it goes, the beat's corner lit. The strip of bols is gone. | Rinat, chat 2026-10-15 ("a square where the corners light up for 8 beat taals. but not sure where to put it … seeing the bol's of the taal doesn't really do much for me"); generalising the square to a shape per vibhag, and its place (where Rinat's mockup drew it), are Claude's | The taal's name and structure stay over the lines ("Keherwa · 4 + 4"). |
 | 2026-10-15 | **A settings button over the lines:** lines shown (5, 7, 9), the size of the words and notes (smaller, normal, bigger), the keys to press and the pitch check's octave rule (both moved here). The Practice settings bar is left as it was. | Rinat, chat 2026-10-15 ("There could be a settings button to adjust a few relevant things", "Leave the settings section alone - we'll come back to it later"); the choice of settings is Claude's | Settings `plRows`, `plSize` (DATA.md). |
+| 2026-10-15 | **Entering notes, redesigned:** Edit notation has an Enter notes section (folding, open until folded) with Write in (beat boxes or free text), a short hint and a note pad: Sa Re Ga Ma; Pa Dha Ni; komal Re, Ga, tivra Ma, komal Dha, Ni (captioned); Hold, Silence, New line, Heading (and Bar and Lyrics line in free text). Full-height buttons either side move the pad an octave down or up (lower, middle, upper), the notes sliding in from that side. Undo, the selected notes' octave, Join and Split sit in a row under the section, always shown. The song's sound is a folding section of its own again, after Settings. Round nine's "+ Add notes" is undone: Rinat had meant the notes about a song, which stay in Settings. | Rinat, chat 2026-10-15 ("i actually meant about the feature of adding notes about the song", "Create a collapsible section which will contain all the buttons and settings for entering notes", the rows, "full height buttons, left one will slide the middle buttons into lower octave and the right one … upper octave", "join, Split and Undo … Add them somewhere sensible", "bring the 'Write in' … toggle … in this section", "Bring out the sound of this song section out of settings"); the octave range (lower to upper), the captions, the slide, keeping the octave and Join/Split row outside the fold, Heading in free text and Bar and Lyrics line in free text are Claude's | Replaces the 2026-10-15 "Edit notation, cleaner" row's "+ Add notes" and its Write in and sound in Settings. Setting `padFold` (DATA.md). |
 | 2026-10-15 | **Edit notation, cleaner:** the title, taal, start beat, tags, List under, About this song, Write in (beat boxes or free text), the song's sound and the file buttons (Make a copy, Export, Print, Delete) are in a Settings bar that folds away and says the title, the taal and how the notes are written; a new song opens it with the title selected, and "Change this song's sound" opens it. The note buttons show after "+ Add notes"; + Heading and Undo stay beside it. Both remembered on the device. **One header menu** holds how notes are written (বাংলা / Sa Re Ga) and the colours (Auto / Day / Night), for every view; its button says what is chosen. **Delete in the Music library:** each of the user's songs and exercises has a delete button after Print, asking in the row; built-in exercises have none. **A break between rewaz items**, 0–120 seconds per routine (4 until set), counted down in the bar. | Rinat, chat 2026-10-15 ("next to print or save button in each line, add the option to delete this song", "add a few seconds break between each song that the use will specify", "make the option to add note appear after pressing a 'Add Notes' button. All of these other settings - title, taal, copy, print - all to be put inside a Settings section", "The chip to choose Bangla and Sa Re Ga to also be inside settings but that toggle is available in all other tabs as well - not sure how to handle this actually but want a cleaner look overall"); the header menu (with the colours), moving Write in and the song's sound into Settings, keeping + Heading and Undo out, the countdown and the 120 s limit are Claude's | Routine field `gap`; settings `editSetOpen`, `palOpen` (DATA.md). Replaces the 2026-10-10 row's "a 4 s pause" (now the default). |
 | 2026-10-15 | **A note's last 10 % is not scored** (Open question 6 answered): its steady part runs from 100 ms in (30 % of a short note) to its last 10 %, where it ended 30 ms before the end. **The taal figure's shapes stand one under another,** as big as the number box's width and the line's height allow, at least 40 px each (30 on a phone), the line growing a little for taals of many vibhags. **The keys to press are a section of their own** under the lines, shown while Show the keys is ticked, as wide as the other sections, with white keys added on both sides of the song's range at a natural key width rather than stretched, 140 px tall (120 on a phone); light and dark keys in both schemes. | Rinat, chat 2026-10-15 ("go on, make the last 10% not count", "have the second and following squares/triangles added vertically, that way they can be even bigger", "The keys could be a little bit more taller … make it in a separate section, no need to be collapsible … as wide as the other section. don't stretch it, add more keys on both sides"); the minimum size, the key widths and the keys' colours at night are Claude's | Open question 6 removed. ENGINE.md → Pitch feedback → Scores; MIDI keyboards. |
 | 2026-10-15 | **The lines, round two:** each line's number box is wider and is itself the button that plays from the line; once sung it is tinted by the line's score, red (50 or less) through amber (75) to green (95 or more), the notes keeping their own marks and traces; the lines above the one being sung fade their beats, not their boxes. The run's average shows under the lines as each line ends. The taal figure fills the box's width; each beat draws its edge on, so a shape closes as its last beat ends and then fills; the beat's corner pops and sam pulses; two beats are a lens. The line over the lines is removed: the box of the line being sung says Now, Round 2, Your turn (the guide's silent round), In 3 (the count-in), Paused or Done, and a message shows only when nothing can play. Lines shown (5, 7, 9, 12), which line is the one being sung (1st to 5th from the top) and the size of the words move into the Practice settings (a Lines group), with the keys to press (Keyboard) and the octave rule (Pitch); nine or twelve lines draw the others smaller. The keys to press are taller. | Rinat, chat 2026-10-15 ("make the left line number box wider", "Have the whole box be clickable", "Make the taal graphic a little bigger … add a bit more movement/animation/oomph … have the connecting lines slowly light up as each of the beat progresses?", "Provide a total average of the song … updating as the song progresses", "a RAG colour of the line … I don't want to lose the current colours of the individual notes", "Move the settings of the carousel into the practice settings … which line should be the highlighted/current line … option for 12", "make it a little longer vertically", "remove the line"); tinting the box rather than the line, the lens, the pulse and pop, and the wording in the box are Claude's | Replaces round six's settings button over the lines and the line above them. The now-singing builders are removed. |
@@ -481,6 +484,54 @@ Template:
     - **Decisions made:** rows added above.
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
+
+### 2026-10-15 BST — Claude (Opus 5.5) — PH2-10 design, round ten: the note pad
+
+- **Goal:** Rinat: round nine's Add notes was a misreading ("i actually meant about the
+  feature of adding notes about the song - which is now inside settings so that's fine");
+  "redesign the whole note buttons": a collapsible section with every button and setting for
+  entering notes; the pad's rows (Sa Re Ga Ma / Pa Dha Ni / secondary re, ga, ma, dha, ni /
+  Hold, Silence, Add New Line, Add Header); full-height buttons either side sliding it to the
+  lower or upper octave; Join, Split and Undo "somewhere sensible"; Write in in the section;
+  the song's sound back out of Settings as a main section.
+- **Inspected:** the palette (`noteButtonsHTML`, its prototype comparison), `insertText`,
+  `tokenFor`, the palette's and `+ Heading`'s handlers, the boxes' own undo (Ctrl+Z), the fix
+  row.
+- **Changed:** `628efc2` (feat(edit)): view.ts: `padHTML`, `PAD_ROWS`, `PAD_OCTAVES` (in place
+  of `noteButtonsHTML`); app.ts: `renderNoteButtons` drawing the pad, its octave name and
+  side buttons, `setInsOct` (the slide), `addHeading` (beat boxes or free text),
+  `setPadOpen`, `renderPadSummary`, one handler for the pad; the octave picker, "+ Add notes"
+  and the palette's handlers gone; `showSongSound` no longer opens Settings; index.html: the
+  Enter notes section, the fix row with Undo, the song's sound after Settings, Write in out
+  of Settings; store.ts: `padFold` (`palOpen` dropped); styles; tests (pad.test.ts; the
+  differential test's old row dropped). This commit (docs): DATA (`padFold`), ENGINE (holds
+  and rests from the pad), ROADMAP (Phase 2 row 10), this file (the PH2-08 entry moved to
+  HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`):
+  - `npm run typecheck` → 0; `npx vitest run` → 35 files, 373 passed (new: the pad's rows,
+    captions and names, the octave shown in both scripts, the octave names, Bar and Lyrics
+    line in free text only). `npm run build` → 226 kB JS (80.0 kB gzip), 50.1 kB CSS;
+    `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid.
+  - 1280 × 960, day, a new song: Enter notes open ("Beat boxes · middle octave"), the song's
+    sound its own section, Settings "Untitled song · Dadra". Tapped New line, সা, রা, গা,
+    Hold: "সা রা গা | -"; the left button: "Lower octave · মন্দ্র", itself disabled, the right
+    saying Middle; .না; right twice: "Upper octave · তার", disabled; র্সা, then Silence on a new
+    line (the Dadra line full); Heading added a heading row; Free text: "Free text · upper
+    octave", Bar and Lyrics line added, Undo hidden; Heading then র্পা and Bar wrote "# র্পা |"
+    (the note goes where the cursor is, on the heading line); the section folded ("Show",
+    `padFold`) and unfolded.
+  - 360 × 780, night: the pad 298 px wide with the side buttons full height, the komal buttons
+    38 px wide, notes 48 px tall, lower-octave dots; no sideways scrolling.
+  - CI run `38742686144` (`628efc2`): core, reference and deploy jobs green. Live: https://rinatmalik.github.io/Gaaner-Sathi/ in headless Edge at night: Edit notation with Enter notes open, 12 note buttons, "Middle octave · মধ্য", the right button moving it to "Upper octave · তার", the song's sound its own section, no "+ Add notes"; no console errors.
+- **Decisions made:** see Decisions (entering notes, redesigned).
+- **Risks or disagreements:** the octave buttons stop at lower and upper (the notation reads
+  two octaves either way; say if the pad should go further). The row with Undo, the selected
+  notes' octave, Join and Split stays shown when the pad is folded, since it works on the
+  boxes chosen. Undo after a Heading also takes back the step before it (as + Heading did
+  before). In free text a note tapped after Heading goes into the heading line, where the
+  cursor is. Nobody has used it on a phone yet.
+- **Next handoff:** Rinat enters a song with the pad.
 
 ### 2026-10-15 BST — Claude (Opus 5.5) — PH2-09 design, round nine: Edit notation's Settings, one header menu, delete in the library, a rewaz break
 
@@ -532,45 +583,5 @@ Template:
   A new song still lands with Settings open; existing songs open in Edit notation as last
   left. Deleting from the library does not delete the song's takes (as in Edit notation).
 - **Next handoff:** Rinat tries round nine.
-
-### 2026-10-15 BST — Claude (Opus 5.5) — PH2-08 design, round eight: the last 10 % unscored, the figure stacked, the keys in their own section
-
-- **Goal:** Rinat: how notes are scored and what singers aim for (answered in the reply); "go
-  on, make the last 10% not count"; the taal shapes "added vertically, that way they can be
-  even bigger"; the keys "a little bit more taller … a separate section, no need to be
-  collapsible, it will only appear when the box is checked … as wide as the other section.
-  don't stretch it, add more keys on both sides".
-- **Inspected:** `scoreNote` and the score tests (track.ts, pitch-track.test.ts);
-  `keyRange` and `keyboardHTML` (keyboard.ts); the figure's CSS.
-- **Changed:** `96b944a` (feat): track.ts: the steady part ends at the last 10 %;
-  lines.ts: `--nv`, `--nh` on the figure and a flatter lens box; styles: the shapes in a
-  column sized by container units (`container-type: size` on the figure) with a minimum,
-  the keys' section and colours (`--key-w`, `--key-b`, `--key-sa`); keyboard.ts:
-  `keysToFill`; app.ts: `renderKeys` filling the width (a ResizeObserver redraws it, the last
-  keys lit put back); index.html: the keys' section after the lines; tests. This commit
-  (docs): ENGINE (Scores; Which key to press), ROADMAP (Phase 2 row 8), this file (Open
-  question 6 removed; the PH2-06 entry moved to HISTORY).
-- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
-  DevTools protocol on `npm run dev`):
-  - `npm run typecheck` → 0; `npx vitest run` → 34 files, 368 passed (new: the last 9 % sung
-    50 cents sharp scores 100 with no wobble, which fails with the old window (checked by
-    running it against the previous track.ts); `keysToFill` adding keys below then above,
-    keeping the song's, stopping at A0 and C8; the figure's `--nv`, `--nh` and lens box).
-    `npm run build` → 221 kB JS (78.4 kB gzip), 47.3 kB CSS; `bash reference/tests/run-all.sh`
-    → 31/11/10/12/5 passed, 12 exercises valid.
-  - 1280 × 960: Keherwa's squares 63 px (42 before), Teentaal's four 40 px each, the line
-    playing 282 px tall (211 before); the keys' section 1148 px wide, 43 white keys, 140 px
-    tall, light and dark keys at night, each Sa marked, the key sounding lit. 360 × 780,
-    night: Teentaal's squares 30 px; the keys' section 328 px with the song's 14 white keys
-    (too narrow for more), 120 px tall; no sideways scrolling.
-  - CI run `38732708313` (`96b944a`): core, reference and deploy jobs green. Live: https://rinatmalik.github.io/Gaaner-Sathi/ in headless Edge at night: Keherwa's squares 63 px, the keys in their own section (not inside the lines), 43 white keys, light keys at night; no console errors.
-- **Decisions made:** see Decisions (the last 10 %; the figure stacked; the keys' section).
-- **Risks or disagreements:** with the shapes stacked, a taal of four or more vibhags makes
-  the line being sung taller than in round seven (Teentaal 282 px against 211), so a few
-  pixels fewer lines fit; two columns would have made Teentaal's squares 46 px without that.
-  The scoring change matters mostly for notes longer than about 300 ms (shorter ones already
-  left out their last 10 %), and only shifts a score when the end of a note pulls the median.
-  Nobody has sung with it.
-- **Next handoff:** Rinat sings with round eight.
 
 Older entries: `docs/HISTORY.md`.

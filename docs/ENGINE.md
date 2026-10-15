@@ -331,7 +331,7 @@ path as pitch feedback.
 - **Typing:** while the editor is showing, each key pressed is a beat, written from the
   song's Sa (two octaves either side), into the beat boxes or at the caret. Keys pressed
   within 40 ms of each other (an octave) type the highest once. Holds and rests come from the
-  palette. It is step entry, not timed playing: the rhythm comes from the taal and the boxes.
+  note pad (Enter notes). It is step entry, not timed playing: the rhythm comes from the taal and the boxes.
 - **The guide on the keyboard:** "Guide plays on: This device / The keyboard / Both". The
   transport tells the keyboard part of each guide note as it schedules it (`onNote`); notes
   go out on channel 1 at velocity 100 (Soft: 50), timed on the performance clock from

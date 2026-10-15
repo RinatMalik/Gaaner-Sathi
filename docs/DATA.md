@@ -114,7 +114,8 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `tab` | The view open last: `practice`, `songs` (the Music library), `edit`, `rewaz`, `voice` or `progress` |
 | `soundOpen` | Whether the Practice settings, at the top of the Practice view, are unfolded; unset: folded |
 | `songSoundOpen` | `true` while the song's sound in Edit notation is unfolded; absent: folded |
-| `editSetOpen`, `palOpen` | `true` while Edit notation's Settings, and its note buttons (+ Add notes), are unfolded; absent: folded |
+| `editSetOpen` | `true` while Edit notation's Settings are unfolded; absent: folded |
+| `padFold` | `true` while Edit notation's Enter notes section (the note pad) is folded away; absent: unfolded. (`palOpen`, from 2026-10-15's "+ Add notes", is no longer read) |
 | `libSort` | How the Music library sorts: `practised`, `changed` or `title` |
 | `libFold` | The Music library's sections folded away, `{ mine?: true, ex?: true }`; absent: both open. A search shows every section |
 | `libOrder` | The Music library's sections in the order dragged, `["mine", "ex"]`; absent: the exercises first. The song pickers follow it |
