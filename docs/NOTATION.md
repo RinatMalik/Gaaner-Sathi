@@ -125,8 +125,9 @@ Dadra in the next. Built 2026-10-11 at Rinat's request.
   under a heading after the last line is in that heading's taal.
 - **Shown:** the sheet shows the heading as written and marks each section's beats in its own
   taal; the section buttons add the taal's Bengali name; the checker's summary names the
-  taals in order ("in Dadra, then Keherwa, then Dadra"); the deck's taal strip shows the taal
-  of the section playing (or about to play), and a count-in is a cycle of it; the printed
+  taals in order ("in Dadra, then Keherwa, then Dadra"); the taal over the Practice view's
+  lines, and its figure, show the taal of the section playing (or about to play), and a
+  count-in is a cycle of it; the printed
   sheet says the taal changes by section. The section's name (`headingLabel`) leaves the
   taal out, as it leaves out the tempo.
 - In the **beat boxes,** each heading has a taal picker (the song's, or one of the nineteen):

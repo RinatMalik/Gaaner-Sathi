@@ -49,6 +49,78 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-13 02:40 BST — Claude (Opus 5.5) — PH2-04 design, round four: your own exercises, Practice settings in Practice, Rewaz as folding rows
+
+- **Goal:** Rinat: "yes build the exercises option as you recommended"; "I am thinking the
+  practice settings should be under practice tab?"; the headings "collapsible by clicking
+  anywhere along the full width of those rows"; "Recently Changed" → "Recently Added or
+  changed"; "also add a button for 'songs'"; in Rewaz "collapse each routine and show all the
+  created routines in collapsible rows, similar to how the things are shown in music library
+  … highlight on hover, big, square buttons etc".
+- **Inspected:** `src/core/song/library.ts`, `model.ts`, `file.ts` and `store.ts`'s `bodyOf`
+  (it writes only the fields it names: the mark had to be added there too); `createSong` and
+  the import (both set `example = false` after `normalize`); `src/app/rewaz.ts` (one routine at
+  a time behind a picker) and its tests.
+- **Changed:** `da17be0` (feat): `Song.exercise?: true` (`normalize`, `bodyOf`,
+  `songForFile`, which also marks an exported built-in exercise); `LibraryFilter` `mine` and
+  `isExercise`; songs.ts: own exercises under Exercises (newest first, or by title, before the
+  built-in ones), `.lheadrow` (an `h3` with a full-width `.lfold`, then `+ New song` / `+ New
+  exercise`), the Songs chip; app.ts: `newSong(kind)`, `pickerGroups()`, `what()`,
+  `loadSongLabels()` ("List under", the title tag, Delete / Export / sound wording), `#listSeg`,
+  a copy of a built-in exercise marked `exercise`, `normalize({ … example: false … })` for new
+  and imported songs, Practice settings folded at first; index.html: the Practice settings
+  block moved into `#practice`, `#libNew` and the routine picker gone, `#rwRoutines`; rewaz.ts:
+  `routineHTML`, `metaText`, items with `.rwfields` and `.rwside` buttons, the host's
+  `unfolded` (prefs `rewazOpen`, `rewazId` dropped), per-routine Start, add, delete with a
+  confirmation, a name or a rounds, tempo, guide or last-line change updating in place, a
+  song or first-line change redrawing with the focus put back; styles; tests. This commit
+  (docs): DATA (`exercise`, `rewazOpen`, `soundOpen`), ROADMAP (Phase 2 row 4), this file (the
+  2026-10-12 16:43 entry moved to HISTORY; Open question 6 removed).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; the browser pane on `npm run
+  dev`, at 1200 × 800 and 360 × 780, night and day):
+  - `npm run typecheck` → 0; `npx vitest run` → 32 files, 334 passed (new: the mark through
+    `normalize`, a song file and storage, never on a built-in one, an exported built-in coming
+    back marked; own exercises' order, star, tags and wording; the Songs chip, `mine`, `fav`
+    and tag filters reaching them; "My songs 0" when all one's own are exercises; the heading
+    rows' + buttons; `rewazOpen` read back and `rewazId` dropped; item rows' layout and icon
+    buttons; a routine folded and unfolded, its Start, name, items, add and delete; the
+    ready-made one unsaved, an empty one unable to start); `npm run build` → 205 kB JS
+    (72.9 kB gzip), 39 kB CSS; `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12
+    exercises valid.
+  - In the pane: chips "All 13 | Songs 0 | Exercises 13"; the sort says "Recently added or
+    changed"; a click on empty space at the far end of the Exercises heading folds it (the
+    fold button 1013 of 1148 px, the + button the rest), lit under the pointer (5 % ink);
+    "+ New exercise" opens Edit notation with "Untitled exercise" selected, stored with
+    `exercise: true`, in the picker's Exercises, "Sound of this exercise", "Delete exercise";
+    "List under: My songs" moves it (the stored mark gone, the picker's My songs, the library's
+    My songs) and back; "Make a copy" of exercise 2 at first went to My songs (the bug above:
+    `normalize` saw the copy while it was still `example`), fixed and checked again: an
+    exercise. Practice settings in `#practice`, above Now singing, folded, absent from the
+    other views. Rewaz: the warm-up "4 items · about 3 min · ready-made", folded; "+ New
+    routine" opens a routine with its name selected; renamed by typing and Tab, then Tab, Tab
+    to Rounds (focus never lost), 6 typed and Tab to Tempo, "about 2 min", stored; another song
+    chosen keeps the focus on its picker (groups My songs 1, Exercises 15); add, up (Move up
+    disabled on the first), remove; a click on its heading's empty space folds it and keeps
+    focus; Start shows Practice, "Evening rewaz · 1 of 2 · ১২ · আকার সাধনা · round 1 of 6" and
+    Pause; Stop rewaz ends it; Delete asks, Keep keeps; a change to the warm-up saves it as
+    the user's (Delete appears, "ready-made" goes). 360 px: no sideways scrolling on the
+    library, Edit notation, Rewaz and Practice, night and day; an item's three buttons stacked
+    (40 × 84 px); Start 124 px wide. No console errors. Test songs and routines deleted through
+    the app afterwards, colours back to Auto.
+  - CI run `38329377823` (`da17be0`): core, reference and deploy jobs green. Live: the chips,
+    the heading buttons, the sort wording, Practice settings in Practice, "List under" and the
+    Rewaz rows checked on https://rinatmalik.github.io/Gaaner-Sathi/, no console errors.
+- **Decisions made:** see Decisions (your own exercises; Practice settings in the Practice
+  view; the library's headings, Songs chip and sort wording; Rewaz as folding rows).
+- **Risks or disagreements:** connecting a MIDI keyboard for the editor's typing now means
+  visiting Practice once (it reconnects by itself after). The Practice settings start folded
+  for anyone who never unfolded them. The ready-made warm-up's first change redraws it and
+  puts the focus back on the field changed (so a Tab out of its Rounds stays there once).
+  Removing or moving an item leaves the focus on the page. No Edge scenario script this
+  round (the browser pane was visible); nothing about sound changed.
+- **Next handoff:** Rinat tries round four, answers round two's two questions, and sends more
+  design comments.
+
 ### 2026-10-13 01:30 BST — Claude (Opus 5.5) — PH2-03 design, round three: a song's sound in Edit notation, Practice settings, the Music library
 
 - **Goal:** Rinat, with a screenshot of the Sound settings: "are all of these settings song

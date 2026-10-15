@@ -14,8 +14,9 @@ were added by the app; each section says why it is built the way it is.
 - For each matra it schedules, in this order: rhythm hits (`scheduleRhythm`), guide-melody
   notes (`reed`), and a display entry pushed to `S.queue`.
 - **frame()** (requestAnimationFrame) pops queue entries whose time has passed, adjusted by
-  `outputLatency + baseLatency`, and moves the highlight, the "now singing" panel and the
-  taal strip.
+  `outputLatency + baseLatency`, and moves the highlight, the Practice view's lines (the line
+  being sung, its beat, and a playhead through the beat from the same clock) and the taal
+  figure.
 - The tanpura (`scheduleTanpura`) runs on the same tick but keeps its own free rhythm; it is
   not tied to the taal.
 
@@ -117,8 +118,8 @@ reads their ids as Dadra.
   theka (geetabitan.com, gitabitan.net). The classical 5+2+3+4 puts its bars on the same
   vibhag lines, so the checker accepts a song written either way.
 - **Deepchandi** and **Jhumra** are the standard ones. "–" is a rest: a matra, or the first
-  half of one, with no stroke. The taal strip shows a silent beat as "·" and a bol that comes
-  after the beat as "–Dha".
+  half of one, with no stroke. (`beatLabel` names a silent beat "·" and a bol that comes
+  after the beat "–Dha"; the screen no longer shows bols, since 2026-10-15.)
 - **Teora** is the Rabindrasangeet one, with talis only, as geetabitan.com gives it.
   **Kawali** follows onushilon.org (from *Tabla Bigyan*, Manas Dasgupta's *Taal-abhidhan* and
   Prafullakumar Das's *Rabindrasangit-gabeshana*); other thekas exist, such as
@@ -251,7 +252,15 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   readings is "not sung" (not scored, but counted in the share sung); one too short to judge
   is skipped. Lines and runs are the duration-weighted mean. Any octave counts unless the
   singer asks for the octave too. Rounds where the guide plays in "every other round" are for
-  listening, so not scored. The live meter calls a note in tune within 15 cents.
+  listening, so not scored. The text under the lines calls a note in tune within 15 cents.
+- **Shown** (Rinat, 2026-10-15) on the Practice view's lines (`src/app/lines.ts`): each
+  reading is placed on its beat (from the beats scheduled, moved back by the delay) and drawn
+  on that line's pitch strip over the note bars, green within 15 cents of the note expected,
+  amber within 35, red beyond, grey where no note is expected; with any octave counting it is
+  drawn at the expected note's octave. Each beat sung gets a mark under its words, each line
+  its score beside its number when it finishes, the run its score under the lines. A line's
+  drawing is wiped when a new round of it starts. *Why on the lines:* the eye is already on
+  the line being sung, so the voice is drawn where the notes are, not in a separate box.
 - **Not yet:** timing (early or late) in the score. It needs the true round-trip delay, and
   the delay found from the singing includes the singer's own lateness.
 - **End to end:** `tests/unit/pitch-track.test.ts` drives the real transport, synthesises a
