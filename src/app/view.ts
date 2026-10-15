@@ -5,8 +5,7 @@
  * output. The prototype read the script, song and taal from globals; here they are
  * passed in.
  */
-import type { GuideLevel, SoundSettings } from '../audio/sound';
-import type { BeatEntry } from '../audio/transport';
+import type { SoundSettings } from '../audio/sound';
 import { checkNotation, issueKey, type CheckIssue } from '../core/notation/check';
 import { asTaals, placeIn, type Taals } from '../core/notation/taalmap';
 import { AKAR, BN_LETTER, LAT_LETTER, REPH } from '../core/notation/symbols';
@@ -122,83 +121,6 @@ export function sheetHTML(P: ParsedSong, taals: TaalInfo | Taals, off: number, e
 
 export const taalName = (T: TaalInfo): string => T.name + ' · ' + T.bn;
 export const taalSub = (T: TaalInfo): string => T.cycle + ' matras, ' + T.vib.join(' + ');
-
-// ── Now singing ──────────────────────────────────────────────────────────────
-
-/** The section being played: beats secStart until secEnd. Loops wrap inside it. */
-export interface Section {
-  secStart: number;
-  secEnd: number;
-  secLen: number;
-  loop: boolean;
-}
-
-/** The next `n` beats after beat g, as chips; while a loop plays (`wrap`), they wrap inside it. */
-export function chipsHTML(P: ParsedSong, g: number, n: number, script: Script, wrap: Section | null): string {
-  let html = '';
-  for (let k = 1; k <= n; k++) {
-    let x = g + k;
-    if (wrap && wrap.loop && x >= wrap.secEnd) x = wrap.secStart + ((x - wrap.secEnd) % wrap.secLen);
-    const b = P.beatList[x];
-    if (!b) break;
-    html += '<span class="chipb"><span class="nt">' + beatNoteHTML(b, script) + '</span>' + lyricHTML(b).replace(/<\/span><span class="ly">[\s\S]*$/, '</span>') + '</span>';
-  }
-  return html;
-}
-
-/** The panel's label, big note, big lyric and (when it changes) the coming-up chips. */
-export interface NowView {
-  label: string;
-  big: string;
-  ly: string;
-  next?: string;
-}
-
-/** A message in the panel: a label, a line of help, and a big count. */
-export function nowMessage(label: string, sub: string, big: string): NowView {
-  return {
-    label,
-    big: big ? '<span class="count">' + esc(big) + '</span>' : '',
-    ly: sub ? '<span class="row2" style="color:var(--ink-2);font-family:var(--f-ui)">' + esc(sub) + '</span>' : '',
-  };
-}
-
-const bigLyric = (rows: readonly string[] | undefined) => (rows || []).map((t, i) => (i === 0 ? esc(t) : '<span class="row2">' + esc(t) + '</span>')).join('');
-
-/** Before playing: where it will start, and that line's first beat. */
-export function nowIdle(P: ParsedSong, T: TaalInfo, fromLine: number, example: boolean, countIn: boolean, script: Script): NowView {
-  const L = P.noteLines;
-  if (!L.length) return { ...nowMessage('Ready', example ? '' : 'Add notes in Edit notation to start.', ''), next: '' };
-  const n = Math.max(0, Math.min(L.length - 1, fromLine));
-  const first = L[n]!.beats[0]!;
-  return {
-    label: 'Ready · starts at line ' + (n + 1) + (countIn ? ' after one ' + T.name + ' cycle' : ''),
-    big: beatNoteHTML(first, script),
-    ly: bigLyric(first.lyrics),
-    next: chipsHTML(P, first.g, 4, script, null),
-  };
-}
-
-/** While playing: the count-in, or the beat being sung. Null when there is no such beat. */
-export function nowBeat(P: ParsedSong, q: BeatEntry, sec: Section, ramp: boolean, guide: GuideLevel, script: Script): NowView | null {
-  if (q.pass < 0) {
-    const left = sec.secStart - q.raw;
-    return { ...nowMessage('Count-in · you come in after ' + (left === 1 ? 'this beat' : left + ' beats'), '', String(left)), next: chipsHTML(P, sec.secStart - 1, 4, script, sec) };
-  }
-  const b = P.beatList[q.s];
-  if (!b) return null;
-  const ln = P.lineOfBeat[q.s]!;
-  const nl = P.noteLines[ln]!;
-  return {
-    label: 'Line ' + (ln + 1) + ' · beat ' + (q.s - nl.start + 1) + ' of ' + nl.beats.length +
-      (sec.loop ? ' · round ' + (q.pass + 1) : '') +
-      (sec.loop && ramp ? ' · ' + q.tempo + ' per min' : '') +
-      (sec.loop && !q.guide && guide !== 'off' ? ' · your turn, sing it alone' : ''),
-    big: beatNoteHTML(b, script),
-    ly: bigLyric(b.lyrics),
-    next: chipsHTML(P, q.s, 4, script, sec),
-  };
-}
 
 // ── Pickers ──────────────────────────────────────────────────────────────────
 
@@ -326,12 +248,29 @@ export function issuesHTML(P: ParsedSong, taals: TaalInfo | Taals, off: number, 
 const STYLE_NAMES: Record<string, string> = { tabla: 'Tabla', dholak: 'Dholak', kit: 'Drums', click: 'Click' };
 const FIRST_STRING: Record<string, string> = { P: 'Pa', M: 'Ma', N: 'Ni' };
 
+/** The Practice view's own settings beside the sound's: the lines, the keys, the octave rule. */
+export interface ViewSettings {
+  plRows?: number;
+  plAt?: number;
+  plSize?: string;
+  showKeys?: boolean;
+  pitchOctave?: boolean;
+}
+
+const ORDINAL = ['', '1st', '2nd', '3rd', '4th', '5th'];
+
 /** What the folded Practice settings are set to, in a line: "Guide full · No count-in".
- * The count-in and the tempo trainer are named only when they differ from the defaults. */
-export function practiceSummary(s: SoundSettings): string {
+ * Everything after the guide is named only when it differs from the defaults. */
+export function practiceSummary(s: SoundSettings, v: ViewSettings = {}): string {
   const parts = ['Guide ' + s.guide + (s.guide === 'off' ? '' : s.guideLoop === 'first' ? ', first round only when looping' : s.guideLoop === 'alt' ? ', every other round when looping' : '')];
   if (!s.countIn) parts.push('No count-in');
   if (s.ramp) parts.push('Speeds up by ' + s.rampStep + ' to ' + s.rampMax);
+  if (v.showKeys) parts.push('Keys shown');
+  const rows = v.plRows ?? 7;
+  const at = v.plAt ?? 3;
+  if (rows !== 7 || at !== 3) parts.push(rows + ' lines' + (at !== 3 ? ', the ' + (ORDINAL[at] ?? at) + ' being sung' : ''));
+  if (v.plSize === 'small' || v.plSize === 'big') parts.push(v.plSize === 'big' ? 'Bigger words' : 'Smaller words');
+  if (v.pitchOctave) parts.push('Octave must match');
   return parts.join(' · ');
 }
 

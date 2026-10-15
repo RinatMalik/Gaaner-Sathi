@@ -129,6 +129,7 @@
         </div></div>
         <div class="mgroup">
           <span class="mhead">Keyboard</span><div class="mitems">
+          <label class="chk2"><input type="checkbox" id="keysChk"> Show the keys to press</label>
           <button id="midiBtn" class="btn" type="button">Connect a keyboard (MIDI)</button>
           <span class="lab2" id="midiStatus" aria-live="polite"></span>
           <div class="mx" id="midiOpts" hidden>
@@ -138,27 +139,29 @@
             <select id="midiOut" class="msel" aria-label="Which keyboard plays the guide" hidden></select>
           </div>
         </div></div>
+        <div class="mgroup">
+          <span class="mhead">Lines</span><div class="mitems">
+          <div class="mx"><span class="lab2" id="plRowsLab">Lines shown</span>
+            <div class="seg" id="plRowsSeg" role="group" aria-labelledby="plRowsLab"><button type="button" data-v="5">5</button><button type="button" data-v="7">7</button><button type="button" data-v="9">9</button><button type="button" data-v="12">12</button></div></div>
+          <div class="mx"><span class="lab2" id="plAtLab">Line being sung, from the top</span>
+            <div class="seg" id="plAtSeg" role="group" aria-labelledby="plAtLab"><button type="button" data-v="1">1st</button><button type="button" data-v="2">2nd</button><button type="button" data-v="3">3rd</button><button type="button" data-v="4">4th</button><button type="button" data-v="5">5th</button></div></div>
+          <div class="mx"><span class="lab2" id="plSizeLab">Words and notes</span>
+            <div class="seg" id="plSizeSeg" role="group" aria-labelledby="plSizeLab"><button type="button" data-v="small">Smaller</button><button type="button" data-v="normal">Normal</button><button type="button" data-v="big">Bigger</button></div></div>
+        </div></div>
+        <div class="mgroup">
+          <span class="mhead">Pitch</span><div class="mitems">
+          <label class="chk2"><input type="checkbox" id="pOct"> The octave must match too</label>
+        </div></div>
       </section>
       </div>
+
       <div class="sheetHead"><h2 id="songTitle"></h2><span class="hint">Tap a section or a line number to play from there · Space bar plays and pauses</span></div>
       <div class="chips secs" id="secChips" role="group" aria-label="Sections: tap one to play from there" hidden></div>
       <details class="about" id="aboutBox" hidden><summary>About this song</summary><div class="abouttext" id="aboutText"></div></details>
       <!-- The song line by line (Rinat, 2026-10-15): about seven lines in view, the line being sung
            third and large, with its pitch strip; src/app/lines.ts. -->
       <section class="pl" id="pl" aria-label="The song, line by line">
-        <div class="plhead">
-          <span class="plsec" id="plSec" hidden></span>
-          <span class="pllab" id="nowLab">Ready</span>
-          <span class="spacer"></span>
-          <span class="pltaal" id="taalName"></span>
-          <button type="button" class="plsetbtn" id="plSetBtn" aria-expanded="false" aria-controls="plSet" aria-label="Settings for the lines" title="Settings for the lines"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="15" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="17" r="2" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
-        </div>
-        <div class="plset" id="plSet" hidden>
-          <div class="mx"><span class="lab2" id="plRowsLab">Lines shown</span><div class="seg" id="plRowsSeg" role="group" aria-labelledby="plRowsLab"><button type="button" data-v="5">5</button><button type="button" data-v="7">7</button><button type="button" data-v="9">9</button></div></div>
-          <div class="mx"><span class="lab2" id="plSizeLab">Words and notes</span><div class="seg" id="plSizeSeg" role="group" aria-labelledby="plSizeLab"><button type="button" data-v="small">Smaller</button><button type="button" data-v="normal">Normal</button><button type="button" data-v="big">Bigger</button></div></div>
-          <label class="chk2"><input type="checkbox" id="keysChk"> Show the keys to press</label>
-          <label class="chk2"><input type="checkbox" id="pOct"> Pitch check: the octave must match too</label>
-        </div>
+        <p class="plmsg" id="plMsg" aria-live="polite" hidden></p>
         <div class="plview" id="plView"><div class="pllist" id="plList"></div></div>
         <div class="keysrow" id="keysRow" hidden><div id="keysBoard"></div><span class="keyname" id="keyName" aria-live="off"></span></div>
         <div class="plfoot" id="pitchBox" hidden>

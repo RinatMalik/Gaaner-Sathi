@@ -595,7 +595,7 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 
 /* The keyboard (new): the keys to press on the Practice view. */
 .keysrow{grid-column:1/-1;display:grid;gap:4px;min-width:0}
-.kb{position:relative;display:flex;height:74px;max-width:760px;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--line)}
+.kb{position:relative;display:flex;height:112px;max-width:760px;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--line)}
 .kw{flex:1 1 0;min-width:0;margin-right:1px;background:var(--sheet);position:relative}
 .kw:last-child{margin-right:0}
 .kbk{position:absolute;top:0;height:60%;background:var(--ink);border-radius:0 0 3px 3px;z-index:1}
@@ -606,43 +606,40 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .keyname{font-size:13px;color:var(--ink-2)}
 
 /* The song line by line (Rinat, 2026-10-15): about seven lines in a window that slides on a
-   line as each one plays, the line being sung third and large with a tall pitch strip; the
-   words big and the notes small above them. Sizes follow a beat's width (container units), so
-   a line of any taal fits; the ruled sheet, the red margin and the red-ink words stay. */
+   line as each one plays, the line being sung in its place (third by default) and large with
+   a tall pitch strip; the words big and the notes small above them. Sizes follow a beat's
+   width (container units), so a line of any taal fits; the ruled sheet, the red margin and
+   the red-ink words stay. Its settings are in the Practice settings. */
 :root{--brass-text:#8a6514}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--brass-text:#d3a843}}
 :root[data-theme="dark"]{--brass-text:#d3a843}
-.pl{--numw:64px;--ts:1;background:var(--sheet);border:1px solid var(--line);border-radius:16px;min-width:0;overflow:hidden}
+.pl{--numw:104px;--ts:1;background:var(--sheet);border:1px solid var(--line);border-radius:16px;min-width:0;overflow:hidden}
 .pl[data-size="small"]{--ts:.85}
 .pl[data-size="big"]{--ts:1.2}
-.plhead{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:8px 8px 8px 14px;border-bottom:1px solid var(--rule)}
-.plhead .spacer{flex:1 1 auto}
-.plsec{font-family:var(--f-note);font-size:16px;line-height:1.5;padding:1px 12px;border-radius:999px;background:var(--brass);color:var(--brass-ink);white-space:nowrap}
-.pllab{min-width:0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);font-weight:600}
-.pltaal{font-size:14px;font-weight:500;color:var(--ink-2);white-space:nowrap}
-.plsetbtn{flex:none;width:40px;height:40px;display:grid;place-items:center;padding:0;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink)}
-.plsetbtn svg{width:20px;height:20px}
-.plsetbtn:hover{border-color:var(--ink-2)}
-.plsetbtn[aria-expanded="true"]{background:var(--ink);border-color:var(--ink);color:var(--sheet)}
-.plset{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;padding:10px 14px;border-bottom:1px solid var(--rule);background:var(--paper)}
-.plview{position:relative;height:min(var(--plh,560px),calc(100dvh - 96px));min-height:300px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.plmsg{margin:0;padding:9px 14px;border-bottom:1px solid var(--rule);font-weight:600;color:var(--red-ink)}
+.plview{position:relative;height:min(var(--plh,560px),calc(100dvh - 24px));min-height:300px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
 .pllist{--cols:8}
 .pllist::after{content:"";display:block;height:var(--pltail,0px)}
 .plhd{font-family:var(--f-note);font-size:15px;color:var(--ink-2);padding:6px 14px 3px calc(var(--numw) + 12px);border-bottom:1px solid var(--rule)}
 .plempty{padding:28px 20px;color:var(--ink-2);text-align:center}
-.pll{display:grid;grid-template-columns:var(--numw) minmax(0,1fr);border-bottom:1px solid var(--rule);transition:opacity .25s,background-color .25s}
-.pll.past{opacity:.5}
+.pll{display:grid;grid-template-columns:var(--numw) minmax(0,1fr);border-bottom:1px solid var(--rule);transition:background-color .25s}
+.pll.past .plbeats{opacity:.5}
+.plbeats{transition:opacity .25s}
 .pll.cur{background:color-mix(in srgb,var(--brass) 7%,var(--sheet))}
-/* The line's number (it plays from there), what it is (now, next) and its score; beside the
-   line being sung, the taal figure. */
-.pln{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px 8px;border-right:1.5px solid var(--margin);min-width:0}
-.pl-n{min-width:34px;padding:1px 6px;border:0;border-radius:8px;background:none;font-size:15px;font-weight:600;line-height:1.4;color:var(--ink-2);font-variant-numeric:tabular-nums;transition:font-size .25s}
-.pl-n:hover{background:var(--chip);color:var(--ink)}
-.pll.cur .pl-n{font-size:26px;color:var(--ink)}
-.plst{font-size:10.5px;line-height:1.3;letter-spacing:.07em;text-transform:uppercase;font-weight:700;color:var(--ink-2)}
+/* The number box: the line's full height, a button that plays from the line; what the line is
+   (now, next, a round, the count-in), its score, and beside the line being sung the taal
+   figure. Once sung, tinted red, amber or green by the line's score (--lc). */
+.pln{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0;padding:7px 4px 10px;border:0;border-right:1.5px solid var(--margin);border-radius:0;background:transparent;color:var(--ink-2);font:inherit;text-align:center;transition:background-color .3s}
+.pln:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.pln:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.plnum{font-size:16px;font-weight:600;line-height:1.35;font-variant-numeric:tabular-nums;transition:font-size .25s}
+.pll.cur .plnum{font-size:30px;color:var(--ink)}
+.plst{font-size:11px;line-height:1.3;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--ink-2)}
 .pll.cur .plst{color:var(--brass-text)}
-.plsc{font-size:13px;font-weight:700;line-height:1.3;font-variant-numeric:tabular-nums}
-.plsc.good{color:var(--good)}.plsc.ok{color:var(--warn)}.plsc.off{color:var(--red-ink)}.plsc.miss{color:var(--ink-2)}
+.plsc{font-size:17px;font-weight:700;line-height:1.25;font-variant-numeric:tabular-nums}
+.pln.scored{background:color-mix(in srgb,var(--lc) 22%,transparent);box-shadow:inset 5px 0 0 var(--lc)}
+.pln.scored:hover{background:color-mix(in srgb,var(--lc) 32%,transparent)}
+.pln.scored .plsc{color:var(--lc)}
 /* A cell per beat: the notes, the words, how the beat was sung, the pitch strip. */
 .plbeats{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));container-type:inline-size;min-width:0;padding-top:4px}
 .plb{position:relative;display:flex;flex-direction:column;align-items:center;min-width:0;padding:2px 1px 0}
@@ -664,6 +661,11 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .plb.pg-miss .plg{background:var(--line)}
 .plsw{position:relative;align-self:stretch;flex:none;height:22px;transition:height .25s}
 .pll.cur .plsw{--sh:clamp(84px,15vh,140px);height:calc(var(--sh) * (1 + .3 * (var(--r,1) - 1)) / var(--r,1));background:color-mix(in srgb,var(--ink) 3%,transparent)}
+/* Twelve or nine lines: the lines not being sung a little smaller, so more fit. */
+.plview.dense .pll:not(.cur) .pnt{font-size:calc(clamp(10px,100cqi / var(--cols) * .18,12px) * var(--ts))}
+.plview.dense .pll:not(.cur) .ply,.plview.dense .pll:not(.cur):not(.words) .pnt{font-size:calc(clamp(12px,100cqi / var(--cols) * .26,18px) * var(--ts))}
+.plview.dense .pll:not(.cur) .plsw{height:14px}
+.plview.dense .pll:not(.cur) .pln{padding-top:4px;padding-bottom:4px}
 .pls{display:block;width:100%;height:100%;overflow:hidden}
 .nb{stroke:var(--ink-2);stroke-opacity:.5;stroke-width:3px;vector-effect:non-scaling-stroke}
 .pll.cur .nb{stroke-width:7px;stroke-opacity:.3;stroke-linecap:round}
@@ -679,37 +681,46 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .plph{position:absolute;top:0;bottom:0;z-index:1;width:2px;margin-left:-1px;border-radius:1px;background:var(--ink);opacity:.7;pointer-events:none}
 .pldot{position:absolute;z-index:2;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;border:2px solid var(--sheet);background:var(--ink-2);pointer-events:none}
 .pldot.good{background:var(--good)}.pldot.ok{background:var(--warn)}.pldot.off{background:var(--red-ink)}
-/* The taal figure: a shape per vibhag, a corner per beat; the first corner of each in its
-   kind's colour (sam, tali, khali, as in the beat boxes), khali's shape dashed; the cycle traced
-   round as it goes, the beat sounding lit. */
+/* The taal figure, as big as the number box allows: a shape per vibhag, a corner per beat, in
+   its kind's colour (sam, tali, khali, as in the beat boxes; khali's outline dashed). Each
+   beat draws the edge on to the next corner, so a shape closes as its last beat ends and then
+   fills; the corner sounding pops; at sam the figure pulses and starts again. */
 .tf{display:none}
-.pll.cur .tf{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 5px;max-width:62px;margin-top:10px}
-.tfs{width:27px;height:27px;overflow:visible}
-.tfo{fill:none;stroke:color-mix(in srgb,var(--ink-2) 50%,transparent);stroke-width:1.6;stroke-linejoin:round}
+.pll.cur .tf{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;margin-top:10px}
+.tfg{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;width:100%;padding:0 2px;transform-origin:center}
+.tfs{display:block;width:100%;height:auto;aspect-ratio:1;overflow:visible}
+.tfs.v-sam{--vk:var(--v-sam-line)}
+.tfs.v-tali{--vk:var(--v-tali-line)}
+.tfs.v-khali{--vk:var(--v-khali-line)}
+.tff{fill:var(--vk);fill-opacity:0;stroke:none;transition:fill-opacity .35s}
+.tfs.full .tff{fill-opacity:.28}
+.tfo{fill:none;stroke:color-mix(in srgb,var(--ink-2) 45%,transparent);stroke-width:1.4;stroke-linejoin:round}
 .tfs.v-khali .tfo{stroke-dasharray:2.6 2.4}
-.tfp{fill:none;stroke:var(--ink);stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
-.tfv{fill:var(--sheet);stroke:var(--ink-2);stroke-width:1.3;transform-box:fill-box;transform-origin:center;transition:transform .12s}
-.tfs.v-sam .tf1{fill:var(--v-sam);stroke:var(--v-sam-line)}
-.tfs.v-tali .tf1{fill:var(--v-tali);stroke:var(--v-tali-line)}
-.tfs.v-khali .tf1{fill:var(--v-khali);stroke:var(--v-khali-line)}
-.tfv.done{fill:var(--ink-2);stroke:var(--ink-2)}
-.tfv.on{fill:var(--brass);stroke:var(--brass-ink);transform:scale(1.55)}
-/* Under the lines: the keys to press, and how the voice is doing while the pitch check is on. */
+.tfp{fill:none;stroke:var(--vk);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+.tfv{fill:var(--sheet);stroke:var(--ink-2);stroke-width:1.3;transform-box:fill-box;transform-origin:center;transition:fill .15s}
+.tfv.tf1{fill:var(--vk);stroke:var(--vk)}
+.tfv.done{fill:var(--vk);stroke:var(--vk)}
+.tfv.on{fill:var(--brass);stroke:var(--brass-ink);transform:scale(1.6)}
+.tfn{font-size:11px;font-weight:600;line-height:1.2;color:var(--ink-2);overflow-wrap:anywhere}
+/* Under the lines: the keys to press, and how the voice is doing while the pitch check is on,
+   with the run's average as it goes, tinted by it. */
 .pl .keysrow{padding:10px 14px;border-top:1px solid var(--rule)}
-.plfoot{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;padding:8px 14px;border-top:1px solid var(--rule)}
+.plfoot{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:8px 14px;border-top:1px solid var(--rule)}
 .plfoot .spacer{flex:1 1 auto}
 .pmsg.good{color:var(--good)}.pmsg.ok{color:var(--warn)}.pmsg.off{color:var(--red-ink)}
+.pavg{display:inline-flex;align-items:center;gap:10px;padding:3px 14px 3px 4px;border-radius:999px;background:color-mix(in srgb,var(--lc) 18%,transparent);border:1.5px solid var(--lc);font-size:13px;font-weight:600;color:var(--ink)}
+.pavg b{display:grid;place-items:center;min-width:42px;height:34px;padding:0 6px;border-radius:999px;background:var(--lc);color:var(--sheet);font-size:19px;font-variant-numeric:tabular-nums}
 @media (max-width:520px){
-  .pl{--numw:44px}
-  .plhead{padding:6px 6px 6px 10px;gap:4px 8px}
-  .pl-n{min-width:0;padding:1px 3px;font-size:13px}
-  .pll.cur .pl-n{font-size:21px}
-  .plst{font-size:9px;letter-spacing:.03em}
-  .pll.cur .tf{max-width:40px;gap:5px 2px}
-  .tfs{width:17px;height:17px}
+  .pl{--numw:60px}
+  .pln{padding:6px 2px 8px}
+  .plnum{font-size:14px}
+  .pll.cur .plnum{font-size:22px}
+  .plst{font-size:9px;letter-spacing:.02em}
+  .plsc{font-size:14px}
+  .pln.scored{box-shadow:inset 4px 0 0 var(--lc)}
+  .tfg{gap:4px;padding:0 1px}
+  .tfn{font-size:9.5px}
   .plsw{height:18px}
   .pll.cur .plsw{--sh:clamp(72px,12vh,110px)}
-  /* The section, the taal and the settings button on one row; what is happening under them. */
-  .pllab{order:5;flex-basis:100%;font-size:11px}
   .plhd{padding-left:calc(var(--numw) + 8px)}
 }

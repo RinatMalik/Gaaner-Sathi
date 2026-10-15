@@ -1,7 +1,7 @@
 // The Practice view's lines (src/app/lines.ts): the layout, each line's strip and cells, and
 // the taal figure (Rinat, 2026-10-15).
 import { describe, expect, it } from 'vitest';
-import { columnsFor, figureProgress, linesHTML, shapeCorners, stripRange, stripY, taalFigureHTML } from '../../src/app/lines';
+import { columnsFor, figureProgress, linesHTML, ragColour, shapeCorners, shapePath, stripRange, stripY, taalFigureHTML } from '../../src/app/lines';
 import { parseSong } from '../../src/core/notation/parse';
 import { taalMap } from '../../src/core/notation/taalmap';
 import { taalInfo } from '../../src/core/taal/taals';
@@ -54,11 +54,11 @@ describe('the lines', () => {
   const M = taalMap(text, P, 'keherwa', 1);
   const html = linesHTML(P, M, 0, 'bn');
 
-  it('shows the headings and each line with a button that plays from it', () => {
+  it('shows the headings and each line with its number box, a button that plays from it', () => {
     expect(html.startsWith('<div class="plhd">স্থায়ী</div><div class="pll words" data-n="0"')).toBe(true);
     expect(html).toContain('<div class="plhd">অন্তরা · tempo 90</div>');
-    expect(html).toContain('<button type="button" class="pl-n" data-n="0" aria-label="Play from line 1">1</button><span class="plst"></span><span class="plsc"></span>');
-    expect(html).toContain('<button type="button" class="pl-n" data-n="2" aria-label="Play from line 3">3</button>');
+    expect(html).toContain('<div class="pll words" data-n="0" data-lo="-200" data-hi="900"><button type="button" class="pln" data-n="0" aria-label="Play from line 1"><span class="plnum">1</span><span class="plst"></span><span class="plsc"></span></button><div class="plbeats">');
+    expect(html).toContain('<button type="button" class="pln" data-n="2" aria-label="Play from line 3"><span class="plnum">3</span>');
   });
 
   it('gives each beat a cell: its notes, its words (escaped, a held vowel faded), the mark for how it was sung, its strip', () => {
@@ -107,35 +107,57 @@ describe('the lines', () => {
 });
 
 describe('the taal figure', () => {
-  it('draws a vibhag of four beats as a square, three as a triangle, two as a stroke', () => {
+  it('draws a vibhag of four beats as a square, three as a triangle, two as a lens, each a closed path from its first corner', () => {
     expect(shapeCorners(4)).toEqual([[3, 3], [21, 3], [21, 21], [3, 21]]);
     expect(shapeCorners(3)[0]).toEqual([12, 4.5]);
     expect(shapeCorners(3).map((c) => c[1])).toEqual([4.5, 19.5, 19.5]);
     expect(shapeCorners(2)).toEqual([[3, 12], [21, 12]]);
     expect(shapeCorners(1)).toEqual([[12, 12]]);
+    expect(shapePath(4)).toBe('M3 3L21 3L21 21L3 21Z');
+    expect(shapePath(3)).toBe('M12 4.5L20.66 19.5L3.34 19.5Z');
+    // Two beats: over to the second corner, then back under to the first.
+    expect(shapePath(2)).toBe('M3 12A10 10 0 0 1 21 12A10 10 0 0 1 3 12Z');
   });
 
   it('has a shape per vibhag, of its kind, and a corner per beat, sam’s bigger', () => {
     const k = taalFigureHTML(taalInfo('keherwa'));
-    expect(k.startsWith('<span class="tf" role="img" aria-label="Keherwa: 4 + 4 beats"><svg class="tfs v-sam"')).toBe(true);
+    expect(k.startsWith('<span class="tf" role="img" aria-label="Keherwa: 4 + 4 beats"><span class="tfg"><svg class="tfs v-sam"')).toBe(true);
+    expect(k.endsWith('</svg></span><span class="tfn">Keherwa</span></span>')).toBe(true);
     expect(k).toContain('<svg class="tfs v-khali"');
     expect(Array.from(k.matchAll(/data-p="(\d+)"/g), (m) => +m[1]!)).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
     expect(k).toContain('<circle class="tfv tf1 tfsam" cx="3" cy="3" r="3.4" data-p="0"/>');
     expect(k).toContain('<circle class="tfv tf1" cx="3" cy="3" r="2.6" data-p="4"/>');
-    expect(k.match(/<polygon class="tfo"/g)).toHaveLength(2);
-    // Rupak begins on khali; Ektal is six strokes; Teentaal four squares.
-    expect(taalFigureHTML(taalInfo('rupak'))).toMatch(/^<span class="tf"[^>]*><svg class="tfs v-khali"/);
-    expect(taalFigureHTML(taalInfo('ektal')).match(/<polyline class="tfo"/g)).toHaveLength(6);
+    // Each shape: a fill, its outline, and the path drawn on as the beats go, a fraction at a time.
+    expect(k).toContain('<path class="tff" d="M3 3L21 3L21 21L3 21Z"/><path class="tfo" d="M3 3L21 3L21 21L3 21Z"/><path class="tfp" d="M3 3L21 3L21 21L3 21Z" pathLength="1" stroke-dasharray="0 2"/>');
+    expect(k.match(/<path class="tfp"/g)).toHaveLength(2);
+    // Rupak begins on khali; Ektal is six lenses; Teentaal four squares.
+    expect(taalFigureHTML(taalInfo('rupak'))).toMatch(/^<span class="tf"[^>]*><span class="tfg"><svg class="tfs v-khali"/);
+    expect(taalFigureHTML(taalInfo('ektal')).match(/<path class="tfo" d="M3 12A/g)).toHaveLength(6);
     expect(taalFigureHTML(taalInfo('teentaal')).match(/<svg class="tfs v-tali"/g)).toHaveLength(2);
   });
 
-  it('traces each shape round to the beat sounding, the ones before closed', () => {
+  it('draws each shape on through its beats, so the last beat closes it as the next vibhag starts', () => {
     const T = taalInfo('keherwa');
-    expect(figureProgress(T, -1)).toEqual(['', '']);
-    expect(figureProgress(T, 0)).toEqual(['3,3', '']);
-    expect(figureProgress(T, 2)).toEqual(['3,3 21,3 21,21', '']);
-    expect(figureProgress(T, 5)).toEqual(['3,3 21,3 21,21 3,21 3,3', '3,3 21,3']);
+    expect(figureProgress(T, -1, 0.5)).toEqual([0, 0]);
+    expect(figureProgress(T, 0)).toEqual([0, 0]);
+    expect(figureProgress(T, 0, 0.5)).toEqual([0.125, 0]);
+    expect(figureProgress(T, 2, 0.5)).toEqual([0.625, 0]);
+    // The 4th beat draws the edge back to the first corner: at its end the square is closed.
+    expect(figureProgress(T, 3, 1)).toEqual([1, 0]);
+    expect(figureProgress(T, 5, 0.25)).toEqual([1, 0.3125]);
+    expect(figureProgress(T, 7, 1)).toEqual([1, 1]);
+    expect(figureProgress(T, 7, 3)).toEqual([1, 1]);
     const J = taalInfo('jhaptal');
-    expect(figureProgress(J, 2)).toEqual(['3,12 21,12', '12,4.5', '', '']);
+    expect(figureProgress(J, 2, 0.5)).toEqual([1, 0.5 / 3, 0, 0]);
+  });
+
+  it('colours a line by its score: red, amber, green, mixed between, grey when not sung', () => {
+    expect(ragColour(30)).toBe('var(--red-ink)');
+    expect(ragColour(50)).toBe('var(--red-ink)');
+    expect(ragColour(62.5)).toBe('color-mix(in srgb, var(--warn) 50%, var(--red-ink))');
+    expect(ragColour(75)).toBe('color-mix(in srgb, var(--good) 0%, var(--warn))');
+    expect(ragColour(85)).toBe('color-mix(in srgb, var(--good) 50%, var(--warn))');
+    expect(ragColour(95)).toBe('var(--good)');
+    expect(ragColour(NaN)).toBe('var(--ink-2)');
   });
 });

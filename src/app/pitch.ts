@@ -1,7 +1,8 @@
 /**
  * Pitch feedback on the Practice view (docs/ROADMAP.md → Pitch feedback): the microphone
  * button, the voice drawn on each line's pitch strip against the notes (lines.ts), a mark on
- * each beat sung, a score for each line, and a line of text saying how close the voice is.
+ * each beat sung, a score for each line, the run's average as it goes (Rinat, 2026-10-15), and
+ * a line of text saying how close the voice is.
  * Readings, expected notes and scores come from src/core/pitch/track.ts; the microphone from
  * src/audio/mic.ts. "Check my pitch" switches it on; the microphone then listens only while a
  * song plays (Rinat, 2026-10-12): it comes on when playing starts or goes on after a pause, and
@@ -11,7 +12,7 @@ import { Mic, MicError, micProblemText, type MicReading } from '../audio/mic';
 import type { BeatEntry } from '../audio/transport';
 import type { ParsedSong } from '../core/notation/types';
 import { beatNotes, centsFromSa, eventsByBeat, nearestNote, PitchTracker, type LineResult, type NoteResult, type Section } from '../core/pitch/track';
-import type { LinesUI } from './lines';
+import { ragColour, type LinesUI } from './lines';
 import { beatNoteHTML, type Script } from './view';
 
 export interface PitchHost {
@@ -200,6 +201,16 @@ export function initPitch(host: PitchHost): PitchUI {
     const r = tracker.settle(final);
     r.notes.forEach(mark);
     r.lines.forEach(lineDone);
+    if (r.lines.length) showAverage(false);
+  }
+
+  /** The run's average so far, under the lines and tinted by it, updated as each line ends; at
+   * the end, the run's (as the practice log keeps it). */
+  function showAverage(final: boolean): void {
+    const s = tracker?.summary();
+    scoresEl.innerHTML = s
+      ? '<span class="pavg" style="--lc:' + ragColour(s.score) + '"><b>' + s.score + '</b><span>' + (final ? 'Average for this run' : 'Average so far') + ' · ' + Math.round(s.sung * 100) + '% of the notes sung</span></span>'
+      : '';
   }
 
   /** Scoring starts with the first beat scheduled, while the microphone is still starting:
@@ -349,10 +360,11 @@ export function initPitch(host: PitchHost): PitchUI {
       if (!tracker) return null;
       settle(true);
       const s = tracker.summary();
+      showAverage(true);
       host.lag.set(tracker.lag);
       tracker = null;
-      scoresEl.innerHTML = s ? '<span class="pchip sum ' + grade(s.score) + '">This run · ' + s.score + ' · ' + Math.round(s.sung * 100) + '% of the notes sung</span>' : '';
       return s ? { score: s.score, lines: s.lines } : null;
+
     },
   };
 }

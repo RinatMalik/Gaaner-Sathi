@@ -5,10 +5,12 @@
  * shows its notes big), and under them a pitch strip: a bar for each note at its height and,
  * while "Check my pitch" listens, the voice drawn over it. The line being sung is large, with a
  * tall strip, the beat sounding lit and a playhead moving through it; the lines around it are
- * small. Beside it, a taal figure draws each vibhag as a shape with a corner for each beat (a
- * square for four beats, a triangle for three, a stroke for two), the corner of the beat
- * sounding lit and the shapes traced round as the cycle goes. The HTML builders are pure and
- * tested in Node; initLines wires them to the page.
+ * small; which place it takes, and how many lines show, are Practice settings. Each line's
+ * number box plays from that line; once sung it is tinted red, amber or green by the line's
+ * score. Beside the line being sung, a taal figure draws each vibhag as a shape with a corner
+ * for each beat (a square for four beats, a triangle for three, a lens for two), the edges
+ * drawn on through each beat so a shape closes as its last beat ends, the corner of the beat
+ * sounding lit. The HTML builders are pure and tested in Node; initLines wires them to the page.
  */
 import { asTaals, placeIn, type Taals } from '../core/notation/taalmap';
 import type { NotesLine, ParsedSong } from '../core/notation/types';
@@ -71,8 +73,9 @@ function wordsHTML(rows: readonly string[] | undefined): string {
 }
 
 /**
- * Every heading and notes line of the song. A line: its number (a button that plays from
- * there) with room for what it is (now, next) and its score, then a cell per beat, laid out
+ * Every heading and notes line of the song. A line: its number box (a button the line's full
+ * height that plays from there) with room for what it is (now, next) and its score, then a cell
+ * per beat, laid out
  * `--cols` across by the page: the notes, the words, a mark for how the beat was sung, and the
  * pitch strip with a bar for each note sounding in the beat (inset where a note starts or ends,
  * so repeated notes show as two). The first beat of each vibhag is marked by its kind.
@@ -110,7 +113,7 @@ export function linesHTML(P: ParsedSong, taals: TaalInfo | Taals, off: number, s
         '<span class="plsw"><svg class="pls" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' + bars + '<g class="pltr"></g></svg></span></div>';
     }
     html += '<div class="pll' + (words ? ' words' : '') + '" data-n="' + it.n + '" data-lo="' + r.lo + '" data-hi="' + r.hi + '">' +
-      '<div class="pln"><button type="button" class="pl-n" data-n="' + it.n + '" aria-label="Play from line ' + (it.n + 1) + '">' + (it.n + 1) + '</button><span class="plst"></span><span class="plsc"></span></div>' +
+      '<button type="button" class="pln" data-n="' + it.n + '" aria-label="Play from line ' + (it.n + 1) + '"><span class="plnum">' + (it.n + 1) + '</span><span class="plst"></span><span class="plsc"></span></button>' +
       '<div class="plbeats">' + cells + '</div></div>';
   }
   return html;
@@ -119,7 +122,7 @@ export function linesHTML(P: ParsedSong, taals: TaalInfo | Taals, off: number, s
 // ── The taal figure ──────────────────────────────────────────────────────────
 
 /** The corners of a vibhag's shape in a 24 × 24 box, a corner a beat, clockwise from the top
- * left (a square), the top (a triangle) or the left (a stroke, for two beats). */
+ * left (a square), the top (a triangle) or the left (a lens, for two beats). */
 export function shapeCorners(n: number): [number, number][] {
   if (n <= 1) return [[12, 12]];
   const R = n === 4 ? 9 * Math.SQRT2 : n === 2 ? 9 : 10;
@@ -132,29 +135,50 @@ export function shapeCorners(n: number): [number, number][] {
   });
 }
 
-const pts = (c: readonly [number, number][]) => c.map((p) => p[0] + ',' + p[1]).join(' ');
-
-/** The taal as shapes, one per vibhag, each a sam, tali or khali (drawn dashed, the empty
- * clap); every corner is a beat (`data-p`), sam's a little bigger. */
-export function taalFigureHTML(T: TaalInfo): string {
-  return '<span class="tf" role="img" aria-label="' + esc(T.name + ': ' + T.vib.join(' + ') + ' beats') + '">' + T.vib.map((n, k) => {
-    const c = shapeCorners(n);
-    const outline = n >= 3 ? '<polygon class="tfo" points="' + pts(c) + '"/>' : n === 2 ? '<polyline class="tfo" points="' + pts(c) + '"/>' : '';
-    const dots = c.map((p, j) => '<circle class="tfv' + (j === 0 ? ' tf1' : '') + (T.starts[k]! + j === 0 ? ' tfsam' : '') + '" cx="' + p[0] + '" cy="' + p[1] + '" r="' + (T.starts[k]! + j === 0 ? 3.4 : 2.6) + '" data-p="' + (T.starts[k]! + j) + '"/>').join('');
-    return '<svg class="tfs ' + kindOf(T.marks[k]) + '" viewBox="-2 -2 28 28" aria-hidden="true">' + outline + '<polyline class="tfp" points=""/>' + dots + '</svg>';
-  }).join('') + '</span>';
+/** A vibhag's shape as one closed path from its first corner round to it again, a stroke a
+ * beat: a polygon, or for two beats a lens of two arcs (over, then back under). */
+export function shapePath(n: number): string {
+  if (n <= 1) return 'M12 4A8 8 0 1 1 11.99 4Z';
+  if (n === 2) return 'M3 12A10 10 0 0 1 21 12A10 10 0 0 1 3 12Z';
+  return 'M' + shapeCorners(n).map((p) => p[0] + ' ' + p[1]).join('L') + 'Z';
 }
 
-/** How far round each shape the cycle has gone at taal beat p (−1: not started): a shape
- * done is closed, the one sounding traced to the beat's corner, those to come empty. */
-export function figureProgress(T: TaalInfo, p: number): string[] {
+/** The taal as shapes, one per vibhag, each a sam, tali or khali (drawn dashed, the empty
+ * clap); every corner is a beat (`data-p`), sam's a little bigger; the taal's name under them.
+ * Each shape has its outline, a path drawn on as the beats go (`pathLength` 1, so its dashes
+ * are fractions of the way round) and a fill shown once it is complete. */
+export function taalFigureHTML(T: TaalInfo): string {
+  const shapes = T.vib.map((n, k) => {
+    const d = shapePath(n);
+    const dots = shapeCorners(n).map((p, j) => {
+      const at = T.starts[k]! + j;
+      return '<circle class="tfv' + (j === 0 ? ' tf1' : '') + (at === 0 ? ' tfsam' : '') + '" cx="' + p[0] + '" cy="' + p[1] + '" r="' + (at === 0 ? 3.4 : 2.6) + '" data-p="' + at + '"/>';
+    }).join('');
+    return '<svg class="tfs ' + kindOf(T.marks[k]) + '" viewBox="-3 -3 30 30" aria-hidden="true"><path class="tff" d="' + d + '"/><path class="tfo" d="' + d + '"/><path class="tfp" d="' + d + '" pathLength="1" stroke-dasharray="0 2"/>' + dots + '</svg>';
+  }).join('');
+  return '<span class="tf" role="img" aria-label="' + esc(T.name + ': ' + T.vib.join(' + ') + ' beats') + '"><span class="tfg">' + shapes + '</span><span class="tfn">' + esc(T.name) + '</span></span>';
+}
+
+/** How far round each shape the cycle has gone, 0 to 1, at fraction f of taal beat p (−1: not
+ * started): the shapes before the beat's are closed, the beat's drawn from its corner towards
+ * the next (the last beat's back to the first, closing it), those after empty. */
+export function figureProgress(T: TaalInfo, p: number, f = 0): number[] {
   return T.vib.map((n, k) => {
-    const c = shapeCorners(n);
     const j = p - T.starts[k]!;
-    if (p < 0 || j < 0) return '';
-    if (j >= n) return pts(n >= 3 ? [...c, c[0]!] : c);
-    return pts(c.slice(0, j + 1));
+    if (p < 0 || j < 0) return 0;
+    if (j >= n) return 1;
+    return (j + clamp(f, 0, 1)) / n;
   });
+}
+
+/** A line's colour by its score: red to 50, amber at 75, green from 95, mixed between, from
+ * the theme's own colours (so it suits day and night); grey when not sung. */
+export function ragColour(score: number): string {
+  if (!Number.isFinite(score)) return 'var(--ink-2)';
+  if (score <= 50) return 'var(--red-ink)';
+  if (score >= 95) return 'var(--good)';
+  if (score < 75) return 'color-mix(in srgb, var(--warn) ' + Math.round(((score - 50) / 25) * 100) + '%, var(--red-ink))';
+  return 'color-mix(in srgb, var(--good) ' + Math.round(((score - 75) / 20) * 100) + '%, var(--warn))';
 }
 
 // ── Wiring ───────────────────────────────────────────────────────────────────
@@ -165,8 +189,10 @@ export interface LinesHost {
   script(): Script;
   /** The Practice view is showing. */
   shown(): boolean;
-  /** How many lines to show (5, 7 or 9). */
+  /** How many lines to show (5, 7, 9 or 12), and which of them, from the top, is the one
+   * being sung (1 to 5). */
   rows(): number;
+  at(): number;
 }
 
 export interface LinesUI {
@@ -174,8 +200,8 @@ export interface LinesUI {
   render(): void;
   /** The view came into sight, or its size or settings changed. */
   refresh(): void;
-  /** The line playing (or that playing would start at): shown third, large. `state`: what its
-   * number says (Now, Paused, Start). */
+  /** The line playing (or that playing would start at): shown large, in its place (third by
+   * default). `state`: what its number box says (Now, Round 2, Your turn, In 3, Paused, Start). */
   current(n: number, state: string, playing: boolean): void;
   /** Light song beat g in the line playing (−1: none). */
   beat(g: number): void;
@@ -184,6 +210,8 @@ export interface LinesUI {
   /** The taal the figure shows, and the beat of it sounding (−1: none). */
   taal(T: TaalInfo): void;
   taalBeat(p: number): void;
+  /** How far through the taal beat sounding playing is, 0 to 1: the figure's edges draw on. */
+  taalFrac(f: number): void;
   /** The voice at fraction f of beat g in round `pass`: `cents` from Sa as drawn (`fold`: moved
    * by octaves into the strip), `cls` how close it is; null cents: no voice (a gap). */
   voice(g: number, pass: number, f: number, cents: number | null, fold: boolean, cls: string): void;
@@ -204,7 +232,7 @@ interface Seg {
 }
 
 const SVGNS = 'http://www.w3.org/2000/svg';
-const grade = (score: number) => (score >= 85 ? 'good' : score >= 60 ? 'ok' : 'off');
+const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export function initLines(host: LinesHost): LinesUI {
   const $ = <T extends HTMLElement>(s: string) => document.querySelector(s) as T;
@@ -223,7 +251,7 @@ export function initLines(host: LinesHost): LinesUI {
   let curState = '';
   let playingNow = false;
   let nowG = -1;
-  let fig: { T: TaalInfo | null; el: HTMLElement | null; p: number } = { T: null, el: null, p: -1 };
+  let fig: { T: TaalInfo | null; el: HTMLElement | null; p: number; f: number } = { T: null, el: null, p: -1, f: 0 };
   const scores = new Map<number, number>();
   /** The voice drawn: each cell's segments, each line's round, and the last point. */
   const segs = new Map<number, Seg[]>();
@@ -274,8 +302,8 @@ export function initLines(host: LinesHost): LinesUI {
   let shownCols = 0;
   function layout(): void {
     if (!host.shown() || !view.clientWidth) return;
-    const numW = lines[0]?.querySelector<HTMLElement>('.pln')?.offsetWidth ?? 48;
-    const cols = columnsFor(maxBeats, view.clientWidth - numW - 2, matchMedia('(max-width:520px)').matches ? 34 : 46);
+    const numW = lines[0]?.querySelector<HTMLElement>('.pln')?.offsetWidth ?? 60;
+    const cols = columnsFor(maxBeats, view.clientWidth - numW - 2, matchMedia('(max-width:520px)').matches ? 32 : 46);
     if (cols !== shownCols) {
       shownCols = cols;
       list.style.setProperty('--cols', String(cols));
@@ -287,10 +315,12 @@ export function initLines(host: LinesHost): LinesUI {
     }
     const small = lines.filter((_, i) => i !== cur).map((l) => l.offsetHeight).sort((a, b) => a - b);
     const hc = small.length ? small[small.length >> 1]! : 64;
+    smallH = hc;
     const hx = lines[cur]?.offsetHeight ?? hc;
     const rows = host.rows();
+    view.classList.toggle('dense', rows >= 9);
     view.style.setProperty('--plh', Math.round(hx + (rows - 1) * hc + 6) + 'px');
-    view.style.setProperty('--pltail', Math.round(Math.max(0, rows - 3) * hc) + 'px');
+    view.style.setProperty('--pltail', Math.round(Math.max(0, rows - place() - 1) * hc) + 'px');
   }
 
   let layoutTimer = 0;
@@ -307,15 +337,28 @@ export function initLines(host: LinesHost): LinesUI {
     scrollTo(false);
   }
 
-  /** Scroll so the line playing is third from the top (or as near as the song's start allows). */
-  function scrollTo(smooth: boolean): void {
+  /** How many lines sit above the one being sung (two, by default). */
+  const place = () => Math.max(0, Math.min(host.at(), host.rows()) - 1);
+  /** A line's usual height, not being sung (from the last layout). */
+  let smallH = 64;
+  let settleTimer = 0;
+  /** Scroll so the line playing is in its place (or as near as the song's start allows). The
+   * line that was being sung (`was`) shrinks over a quarter second: when it is above the line
+   * scrolled to, it is counted at its small height, and the scroll is checked again once it
+   * has shrunk. */
+  function scrollTo(smooth: boolean, was = -1): void {
     const L = lines[cur];
     if (!L || !view.clientHeight) return;
-    const above = lines[Math.max(0, cur - 2)]!;
-    const top = cur < 2 ? 0 : above.offsetTop - list.offsetTop;
-    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const k = place();
+    let top = cur < k ? 0 : lines[cur - k]!.offsetTop - list.offsetTop;
+    const W = lines[was];
+    if (W && cur >= k && was < cur - k) {
+      top -= Math.max(0, W.offsetHeight - smallH);
+      clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(() => scrollTo(smooth), 300);
+    }
     if (Math.abs(view.scrollTop - top) < 2) return;
-    view.scrollTo({ top, behavior: smooth && !reduce ? 'smooth' : 'auto' });
+    view.scrollTo({ top, behavior: smooth && !reduced() ? 'smooth' : 'auto' });
   }
 
   function setState(n: number): void {
@@ -343,7 +386,8 @@ export function initLines(host: LinesHost): LinesUI {
       if (lines[was]) clearGrid(was);
       for (const k of [was, was + 1, n, n + 1]) setState(k);
       if (!playing) beat(-1);
-      scrollTo(playing && was >= 0);
+      scrollTo(playing && was >= 0, was);
+
     } else {
       lines.forEach((l, i) => l.classList.toggle('past', playing && i < n));
       setState(n);
@@ -399,22 +443,42 @@ export function initLines(host: LinesHost): LinesUI {
     fig.el?.remove();
     const box = document.createElement('span');
     box.innerHTML = taalFigureHTML(T);
-    fig = { T, el: box.firstElementChild as HTMLElement, p: -2 };
+    fig = { T, el: box.firstElementChild as HTMLElement, p: -2, f: 0 };
     lines[cur]?.querySelector('.pln')?.appendChild(fig.el!);
     taalBeat(-1);
   }
 
+  /** A new taal beat: its corner lights with a pop, the shapes before it are complete (and
+   * fill), and at sam the figure starts again with a pulse. */
   function taalBeat(p: number): void {
     const { T, el } = fig;
     if (!T || !el || p === fig.p) return;
+    const was = fig.p;
     fig.p = p;
-    const prog = figureProgress(T, p);
-    el.querySelectorAll('.tfp').forEach((pl, k) => pl.setAttribute('points', prog[k] ?? ''));
+    fig.f = -1;
+    taalFrac(0);
+    el.querySelectorAll('.tfs').forEach((s, k) => s.classList.toggle('full', p >= T.starts[k]! + T.vib[k]!));
+    let on: SVGElement | null = null;
     for (const c of el.querySelectorAll<SVGElement>('.tfv')) {
       const q = +c.dataset.p!;
       c.classList.toggle('on', q === p);
       c.classList.toggle('done', p >= 0 && q < p);
+      if (q === p) on = c;
     }
+    if (reduced() || typeof Element.prototype.animate !== 'function') return;
+    on?.animate([{ transform: 'scale(2.7)' }, { transform: 'scale(1.6)' }], { duration: 300, easing: 'cubic-bezier(.2,.8,.3,1.25)' });
+    if (p === 0 && was !== 0) {
+      const glow = getComputedStyle(el).getPropertyValue('--brass').trim() || '#c4952b';
+      el.querySelector('.tfg')?.animate([{ transform: 'scale(1.16)', filter: 'drop-shadow(0 0 7px ' + glow + ')' }, { transform: 'scale(1)', filter: 'drop-shadow(0 0 0 transparent)' }], { duration: 520, easing: 'ease-out' });
+    }
+  }
+
+  function taalFrac(f: number): void {
+    const { T, el, p } = fig;
+    if (!T || !el || Math.abs(f - fig.f) < 0.008) return;
+    fig.f = f;
+    const prog = figureProgress(T, p, f);
+    el.querySelectorAll('.tfp').forEach((s, k) => s.setAttribute('stroke-dasharray', (prog[k] ?? 0).toFixed(3) + ' 2'));
   }
 
   // ── The voice ──────────────────────────────────────────────────────────────
@@ -487,12 +551,16 @@ export function initLines(host: LinesHost): LinesUI {
     } else dot.remove();
   }
 
+  /** A line sung: its score in its number box, tinted by it. */
   function showScore(n: number, score: number): void {
-    const el = lines[n]?.querySelector<HTMLElement>('.plsc');
-    if (!el) return;
-    el.className = 'plsc ' + (Number.isFinite(score) ? grade(score) : 'miss');
-    el.textContent = Number.isFinite(score) ? String(score) : '–';
-    el.title = Number.isFinite(score) ? 'Pitch score for this line: ' + score + ' out of 100' : 'Not sung';
+    const box = lines[n]?.querySelector<HTMLElement>('.pln');
+    const el = box?.querySelector<HTMLElement>('.plsc');
+    if (!box || !el) return;
+    const sung = Number.isFinite(score);
+    box.classList.add('scored');
+    box.style.setProperty('--lc', ragColour(score));
+    el.textContent = sung ? String(score) : '–';
+    box.setAttribute('aria-label', 'Play from line ' + (n + 1) + (sung ? ' (scored ' + score + ' out of 100)' : ' (not sung)'));
   }
 
   new ResizeObserver(() => {
@@ -513,6 +581,7 @@ export function initLines(host: LinesHost): LinesUI {
     playhead,
     taal,
     taalBeat,
+    taalFrac,
     voice,
     voiceOff() {
       dot.remove();
@@ -524,9 +593,11 @@ export function initLines(host: LinesHost): LinesUI {
     },
     clearRun() {
       scores.clear();
-      for (const el of list.querySelectorAll<HTMLElement>('.plsc')) {
-        el.textContent = '';
-        el.className = 'plsc';
+      for (const box of list.querySelectorAll<HTMLElement>('.pln.scored')) {
+        box.classList.remove('scored');
+        box.style.removeProperty('--lc');
+        box.querySelector('.plsc')!.textContent = '';
+        box.setAttribute('aria-label', 'Play from line ' + (+box.dataset.n! + 1));
       }
       for (const el of list.querySelectorAll('.pltr')) el.textContent = '';
       segs.clear();

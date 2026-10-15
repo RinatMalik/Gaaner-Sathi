@@ -103,18 +103,18 @@ describe('preferences', () => {
     }
   });
 
-  it('keep the Practice lines’ settings when they differ from 7 lines at the normal size', () => {
+  it('keep the Practice lines’ settings when they differ from 7 lines, the 3rd sung, at the normal size', () => {
     const S = new Memory();
-    expect(loadPrefs(S)).not.toHaveProperty('plRows');
-    expect(loadPrefs(S)).not.toHaveProperty('plSize');
-    S.setItem(STORE_KEYS.prefs, JSON.stringify({ plRows: 9, plSize: 'big' }));
-    expect(loadPrefs(S)).toMatchObject({ plRows: 9, plSize: 'big' });
-    S.setItem(STORE_KEYS.prefs, JSON.stringify({ plRows: 5, plSize: 'small' }));
-    expect(loadPrefs(S)).toMatchObject({ plRows: 5, plSize: 'small' });
-    for (const [r, z] of [[7, 'normal'], [8, 'huge'], ['9', 1], [null, null]]) {
-      S.setItem(STORE_KEYS.prefs, JSON.stringify({ plRows: r, plSize: z }));
-      expect(loadPrefs(S)).not.toHaveProperty('plRows');
-      expect(loadPrefs(S)).not.toHaveProperty('plSize');
+    for (const k of ['plRows', 'plAt', 'plSize']) expect(loadPrefs(S)).not.toHaveProperty(k);
+    S.setItem(STORE_KEYS.prefs, JSON.stringify({ plRows: 9, plAt: 1, plSize: 'big' }));
+    expect(loadPrefs(S)).toMatchObject({ plRows: 9, plAt: 1, plSize: 'big' });
+    S.setItem(STORE_KEYS.prefs, JSON.stringify({ plRows: 12, plAt: 5, plSize: 'small' }));
+    expect(loadPrefs(S)).toMatchObject({ plRows: 12, plAt: 5, plSize: 'small' });
+    S.setItem(STORE_KEYS.prefs, JSON.stringify({ plRows: 5, plAt: 2 }));
+    expect(loadPrefs(S)).toMatchObject({ plRows: 5, plAt: 2 });
+    for (const [r, a, z] of [[7, 3, 'normal'], [8, 6, 'huge'], ['9', '1', 1], [null, null, null]]) {
+      S.setItem(STORE_KEYS.prefs, JSON.stringify({ plRows: r, plAt: a, plSize: z }));
+      for (const k of ['plRows', 'plAt', 'plSize']) expect(loadPrefs(S)).not.toHaveProperty(k);
     }
   });
 });
@@ -239,6 +239,12 @@ describe('the settings bars’ summaries', () => {
       .toBe('Guide soft, every other round when looping · No count-in · Speeds up by 6 to 140');
     expect(practiceSummary({ ...DEFAULT_PREFS, guideLoop: 'first' })).toBe('Guide full, first round only when looping');
     expect(practiceSummary({ ...DEFAULT_PREFS, guide: 'off', guideLoop: 'first' })).toBe('Guide off');
+    // The lines, the keys and the octave rule, named only when changed.
+    expect(practiceSummary(DEFAULT_PREFS, { plRows: 7, plAt: 3, plSize: 'normal', showKeys: false, pitchOctave: false })).toBe('Guide full');
+    expect(practiceSummary(DEFAULT_PREFS, { plRows: 12, plAt: 4, plSize: 'big', showKeys: true, pitchOctave: true }))
+      .toBe('Guide full · Keys shown · 12 lines, the 4th being sung · Bigger words · Octave must match');
+    expect(practiceSummary(DEFAULT_PREFS, { plRows: 9 })).toBe('Guide full · 9 lines');
+    expect(practiceSummary(DEFAULT_PREFS, { plAt: 1, plSize: 'small' })).toBe('Guide full · 7 lines, the 1st being sung · Smaller words');
     // A song's sound is not in it.
     expect(practiceSummary({ ...DEFAULT_PREFS, beat: 'kit', droneVol: 0.5 })).toBe('Guide full');
   });

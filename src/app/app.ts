@@ -245,14 +245,14 @@ function pickedLines(): PlayAsk {
  * paused beat. A check of one line leaves the log, takes and pitch scores alone. */
 function play(ask: PlayAsk = pickedLines(), at: { s: number; pass: number } | null = null): void {
   if (!parsed.noteLines.length) {
-    setNowMessage('No notes to play yet', 'Open Edit notation and type a line from your diary.');
+    showMessage('No notes to play yet: open Edit notation and type a line from your diary.');
     return;
   }
   let tr: Transport;
   try {
     tr = ensureAudio();
   } catch (e) {
-    setNowMessage('Sound is unavailable', e instanceof Error ? e.message : String(e));
+    showMessage('Sound is unavailable: ' + (e instanceof Error ? e.message : String(e)));
     return;
   }
   const ctx = tr.E.ctx as AudioContext;
@@ -286,8 +286,8 @@ function play(ask: PlayAsk = pickedLines(), at: { s: number; pass: number } | nu
   // The figure shows the taal it starts in straightaway, not when the first beat sounds.
   const first = at ? taals.beat(at.s).T : taals.line(r.from).T;
   if (first.id !== stripTaal?.id) renderTaal(first);
-  lines.current(at ? (parsed.lineOfBeat[at.s] ?? r.from) : r.from, 'Now', true);
-  if (r.pre > 0) setNowMessage('Count-in', '', String(r.pre));
+  showMessage('');
+  lines.current(at ? (parsed.lineOfBeat[at.s] ?? r.from) : r.from, r.pre > 0 ? 'In ' + r.pre : 'Now', true);
   timer = window.setInterval(tick, 25);
   raf = requestAnimationFrame(frame);
   void wake();
@@ -367,7 +367,6 @@ function pause(): void {
   cancelAnimationFrame(raf);
   unwake();
   setPlayUI();
-  $('#nowLab').textContent = 'Paused · ' + $('#nowLab').textContent;
   if (lastLine >= 0) lines.current(lastLine, 'Paused', true);
 }
 
@@ -520,17 +519,20 @@ function frame(): void {
       clearHighlight();
       shownQ = null;
       lines.playhead(-1, 0);
-      if (lastLine >= 0) lines.current(lastLine, '', false);
+      if (lastLine >= 0) lines.current(lastLine, 'Done', false);
       markTaal(cur.p);
-      setNowMessage('Finished', 'Press play to sing it again, or tap a line number to start there.');
     } else {
       trackRun(cur, ctx.currentTime);
       showBeat(cur);
     }
   }
-  // The playhead moves through the beat sounding.
+  // The playhead moves through the beat sounding, and the taal figure's edges draw on.
   const q = shownQ;
-  if (q && q.pass >= 0) lines.playhead(q.s, (now - q.time) / (60 / q.tempo));
+  if (q) {
+    const f = (now - q.time) / (60 / q.tempo);
+    if (q.pass >= 0) lines.playhead(q.s, f);
+    lines.taalFrac(f);
+  }
   if (T.endAt && ctx.currentTime >= T.endAt) {
     stop(true, true);
     return;
@@ -638,12 +640,9 @@ function renderSheets(): void {
 
 /** The taal playing would start in: the from-line's. */
 const idleTaal = (): TaalInfo => taals.line(+select('#fromLine').value || 0).T;
-/** The taal over the lines and its figure: the taal playing, or the one playing would start in. */
+/** The taal figure beside the line playing: the taal playing, or the one playing would start in. */
 function renderTaal(T: TaalInfo = playing() && stripTaal ? stripTaal : idleTaal()): void {
   stripTaal = T;
-  const el = $('#taalName');
-  el.textContent = T.name + ' · ' + T.vib.join(' + ');
-  el.title = V.taalName(T) + ', ' + V.taalSub(T);
   lines.taal(T);
 }
 
@@ -663,7 +662,6 @@ function highlight(g: number): void {
   if (ln !== lastLine) {
     lastLine = ln ?? -1;
     markSection();
-    if (ln != null) lines.current(ln, 'Now', true);
     for (const sheet of [$('#sheetE')]) {
       if (!sheet.offsetParent) continue;
       const row = sheet.querySelector<HTMLElement>('.line[data-n="' + ln + '"]');
@@ -679,12 +677,18 @@ function highlight(g: number): void {
   lines.beat(g);
 }
 
-/** What is happening, above the lines: ready, the count-in, the line and beat, finished. */
-function setNow(v: V.NowView): void {
-  $('#nowLab').textContent = v.label;
+/** A message over the lines, only when there is something wrong (nothing to play, no sound):
+ * what is playing shows on the lines themselves. */
+function showMessage(text: string): void {
+  const el = $('#plMsg');
+  el.hidden = !text;
+  if (el.textContent !== text) el.textContent = text;
 }
-function setNowMessage(label: string, sub: string, big = ''): void {
-  $('#nowLab').textContent = [label, big, sub].filter(Boolean).join(' · ');
+/** What the number box of the line playing says: the round when looping, "Your turn" when the
+ * guide leaves the line to the singer (every other round), else Now. */
+function lineState(q: BeatEntry): string {
+  if (T?.loop && !q.guide && soundSource.guide !== 'off') return 'Your turn';
+  return T?.loop && q.pass > 0 ? 'Round ' + (q.pass + 1) : 'Now';
 }
 function showBeat(q: BeatEntry): void {
   shownQ = q;
@@ -694,9 +698,11 @@ function showBeat(q: BeatEntry): void {
   markTaal(q.p);
   if (prefs.showKeys) markKeys(q.pass < 0 ? -1 : q.s, q.pass < 0 ? (T?.secStart ?? 0) : nextBeat(q.s));
   if (q.pass < 0) {
+    // The count-in: the first line to sing waits, counting down.
     clearHighlight();
-    lines.current(parsed.lineOfBeat[T?.secStart ?? 0] ?? 0, 'Now', true);
+    lines.current(parsed.lineOfBeat[T?.secStart ?? 0] ?? 0, 'In ' + ((T?.secStart ?? 0) - q.raw), true);
   } else {
+    lines.current(parsed.lineOfBeat[q.s] ?? 0, lineState(q), true);
     highlight(q.s);
     deckBeat = q.s;
   }
@@ -705,8 +711,6 @@ function showBeat(q: BeatEntry): void {
   const t = shownTempo();
   const busy = document.activeElement === input('#tempoRange') || document.activeElement === input('#tempoNum');
   if (!busy && input('#tempoNum').value !== String(t)) showTempo(t);
-  const v = V.nowBeat(parsed, q, T!, prefs.ramp, soundSource.guide, prefs.script);
-  if (v) setNow(v);
   rewaz.beat(q.pass);
 }
 function showIdle(): void {
@@ -722,7 +726,7 @@ function showIdle(): void {
   }
   markSection();
   showTempo(shownTempo());
-  setNow(V.nowIdle(parsed, idleTaal(), +select('#fromLine').value || 0, current.example, prefs.countIn, prefs.script));
+  showMessage('');
 }
 
 function renderLineSelects(keep: boolean): void {
@@ -801,7 +805,8 @@ function setSeg(id: string, v: string | number): void {
 /** The settings bars: what the folded settings are set to (the practice settings under the
  * deck, the open song's sound in Edit notation). */
 function renderSoundSummary(): void {
-  $('#soundSum').textContent = V.practiceSummary(sound);
+  $('#soundSum').textContent = V.practiceSummary(sound, prefs);
+
   if (current) $('#songSoundSum').textContent = V.songSoundSummary(sound);
 }
 
@@ -1288,10 +1293,6 @@ function renderSections(): void {
 function markSection(): void {
   const line = playing() && lastLine >= 0 ? lastLine : +select('#fromLine').value || 0;
   const k = sectionOfLine(sections, line);
-  const label = sections[k]?.label ?? '';
-  const pill = $('#plSec');
-  pill.hidden = !label;
-  if (pill.textContent !== label) pill.textContent = label;
   if (sections.length < 2) return;
   for (const b of $$('#secChips button')) b.setAttribute('aria-pressed', String(+b.dataset.sec! === k));
 }
@@ -1715,9 +1716,11 @@ function setTempo(v: number | string): void {
 const segButton = (e: Event) => (e.target as Element).closest<HTMLElement>('button');
 /** Print or save as PDF: the open song, or another from the Music library. */
 let printSong: (song?: Song) => void = () => {};
-/** The lines' settings, as chosen: lines shown and the size of the words and notes. */
+/** The lines' settings, as chosen: lines shown, which is the one being sung, and the size of
+ * the words and notes. */
 function applyLinesPrefs(): void {
   setSeg('plRowsSeg', prefs.plRows ?? 7);
+  setSeg('plAtSeg', prefs.plAt ?? 3);
   setSeg('plSizeSeg', prefs.plSize ?? 'normal');
   $('#pl').dataset.size = prefs.plSize ?? 'normal';
   lines.refresh();
@@ -1731,6 +1734,7 @@ export function init(): void {
     script: () => prefs.script,
     shown: () => !$('#practice').hidden,
     rows: () => prefs.plRows ?? 7,
+    at: () => prefs.plAt ?? 3,
   });
   applyLinesPrefs();
   select('#saKey').innerHTML = V.keyOptionsHTML();
@@ -2107,18 +2111,23 @@ export function init(): void {
     renderKeys();
     if (!playing()) showIdle();
   });
-  // The lines' settings: how many lines show, and how big the words and notes are.
-  $('#plSetBtn').addEventListener('click', () => {
-    const open = $('#plSet').hidden;
-    $('#plSet').hidden = !open;
-    $('#plSetBtn').setAttribute('aria-expanded', String(open));
-  });
+  // The lines' settings: how many lines show, which is the one being sung, and how big the
+  // words and notes are.
   $('#plRowsSeg').addEventListener('click', (e) => {
     const b = segButton(e);
     if (!b) return;
     const v = +b.dataset.v!;
-    if (v === 5 || v === 9) prefs.plRows = v;
+    if (v === 5 || v === 9 || v === 12) prefs.plRows = v;
     else delete prefs.plRows;
+    savePrefs();
+    applyLinesPrefs();
+  });
+  $('#plAtSeg').addEventListener('click', (e) => {
+    const b = segButton(e);
+    if (!b) return;
+    const v = +b.dataset.v!;
+    if (v === 1 || v === 2 || v === 4 || v === 5) prefs.plAt = v;
+    else delete prefs.plAt;
     savePrefs();
     applyLinesPrefs();
   });
@@ -2279,7 +2288,7 @@ export function init(): void {
     play({ from: sec.first, to: sec.last, loop: input('#loopChk').checked });
   });
   document.addEventListener('click', (e) => {
-    const b = (e.target as Element).closest<HTMLElement>('.ln[data-n],.pl-n[data-n]');
+    const b = (e.target as Element).closest<HTMLElement>('.ln[data-n],.pln[data-n]');
     if (b) {
       userPlay(+b.dataset.n!);
     }

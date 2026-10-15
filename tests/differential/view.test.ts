@@ -1,7 +1,8 @@
 // The new screen's HTML against the prototype's own rendering code (cut out of the HTML
 // and run against fake page elements), on the edge cases, every exercise and generated
-// songs: note glyphs, the diary sheet, line pickers, the checker panel, the taal strip,
-// the now-singing panel, chips, the song picker, layer chips and the editor palette.
+// songs: note glyphs, the diary sheet, line pickers, the checker panel, the taal's name, the
+// song picker, layer chips and the editor palette. (The now-singing panel, its chips and the
+// taal strip were compared too until the Practice view was redone, 2026-10-15.)
 import { describe, expect, it } from 'vitest';
 import * as V from '../../src/app/view';
 import { REFERENCE_EXERCISES as EXERCISES } from '../reference-exercises';
@@ -43,16 +44,6 @@ function differences<T>(cases: T[], same: (c: T) => boolean) {
   return { differing: bad.length, first: bad.slice(0, 3) };
 }
 const NONE = { differing: 0, first: [] };
-
-// The now-singing panel's four elements. Unwritten ones keep a marker, so "not written" counts.
-const NOW = ['#nowLab', '#bigNote', '#bigLy', '#nextStrip'] as const;
-const MARK = '∅';
-function protoNow(run: () => void): string[] {
-  for (const s of NOW) Object.assign(W.el(s), { textContent: MARK, innerHTML: MARK });
-  run();
-  return [W.el('#nowLab').textContent, W.el('#bigNote').innerHTML, W.el('#bigLy').innerHTML, W.el('#nextStrip').innerHTML];
-}
-const portNow = (v: V.NowView | null): string[] => (v ? [v.label, v.big, v.ly, v.next ?? MARK] : [MARK, MARK, MARK, MARK]);
 
 describe('the screen matches the prototype', () => {
   it('note glyphs, lyrics and plain beats, in both scripts', () => {
@@ -131,69 +122,6 @@ describe('the screen matches the prototype', () => {
     // The generated songs exercise every kind of row.
     const html = cases.map(({ t, id, startOn, script }) => V.issuesHTML(parsed.get(t)![0], taalInfo(id), startOn - 1, script).html).join('');
     for (const bit of ['data-act="fix"', 'data-act="show"', 'should probably have', 'ends partway', 'is not a note', 'lyrics need', 'more. Fix these first', 'Checked: every bar']) expect(html).toContain(bit);
-  });
-
-  it('the now-singing panel when ready, in every taal and both scripts', () => {
-    const r = seeded(3);
-    const cases = SONGS.map((t) => ({ t, id: pick(r, TAAL_IDS), from: int(r, 10) - 1, countIn: r() < 0.5, example: r() < 0.3, script: pick(r, SCRIPTS) }));
-    expect(
-      differences(cases, ({ t, id, from, countIn, example, script }) => {
-        const [P, Q] = parsed.get(t)!;
-        W.set(state({ prefs: { script, countIn }, parsed: Q, taal: W.taalInfo(id), current: { startOn: 1, example } }));
-        W.el('#fromLine').value = String(from);
-        const got = protoNow(() => W.showIdle());
-        return canon(portNow(V.nowIdle(P, taalInfo(id), +String(from) || 0, example, countIn, script))) === canon(got);
-      }),
-    ).toEqual(NONE);
-  });
-
-  it('the now-singing panel while playing: count-in, every beat, loops and rounds', () => {
-    const r = seeded(4);
-    const cases: { t: string; q: any; sec: V.Section; ramp: boolean; guide: 'full' | 'soft' | 'off'; script: 'bn' | 'lat' }[] = [];
-    for (const t of SONGS) {
-      const P = parsed.get(t)![0];
-      const L = P.noteLines;
-      if (!L.length) continue;
-      for (let k = 0; k < 3; k++) {
-        const from = int(r, L.length);
-        const to = from + int(r, L.length - from);
-        const loop = r() < 0.6;
-        const secStart = L[from]!.start;
-        const secEnd = loop ? L[to]!.end : P.total;
-        const sec = { secStart, secEnd, secLen: Math.max(1, secEnd - secStart), loop };
-        const opts = { ramp: r() < 0.5, guide: pick(r, ['full', 'soft', 'off'] as const), script: pick(r, SCRIPTS) };
-        for (let c = 1; c <= 3; c++) cases.push({ t, sec, ...opts, q: { s: secStart - c, raw: secStart - c, p: int(r, 8), pass: -1, tempo: 100, guide: false } });
-        for (let c = 0; c < 6; c++) {
-          const s = secStart + int(r, sec.secLen + 2);
-          cases.push({ t, sec, ...opts, q: { s, raw: s + int(r, 40), p: int(r, 16), pass: int(r, 4), tempo: 60 + int(r, 120), guide: r() < 0.5 } });
-        }
-      }
-    }
-    expect(cases.length).toBeGreaterThan(5000);
-    expect(
-      differences(cases, ({ t, q, sec, ramp, guide, script }) => {
-        const [P, Q] = parsed.get(t)!;
-        W.set(state({ prefs: { script, ramp, guide }, parsed: Q, S: { playing: true, ...sec, curEls: [], lastLine: -1 } }));
-        const got = protoNow(() => W.showBeat(q));
-        return canon(portNow(V.nowBeat(P, q, sec, ramp, guide, script))) === canon(got);
-      }),
-    ).toEqual(NONE);
-  });
-
-  it('panel messages and the coming-up chips, wrapping inside a loop', () => {
-    for (const [label, sub, big] of [['Count-in', '', '7'], ['Finished', 'Press play to sing it again, or tap a line to start there.', ''], ['<b>&"', '<i>"&', '<&>'], ['', '', '']]) {
-      expect(canon(portNow(V.nowMessage(label!, sub!, big!)))).toBe(canon(protoNow(() => W.setNowMessage(label, sub, big))));
-    }
-    const r = seeded(5);
-    const cases = SONGS.flatMap((t) => [0, 1, 2].map(() => ({ t, g: int(r, 40) - 3, n: int(r, 6), playing: r() < 0.7, loop: r() < 0.6, a: int(r, 20), len: 1 + int(r, 12), script: pick(r, SCRIPTS) })));
-    expect(
-      differences(cases, ({ t, g, n, playing, loop, a, len, script }) => {
-        const [P, Q] = parsed.get(t)!;
-        const sec = { secStart: a, secEnd: a + len, secLen: len, loop };
-        W.set(state({ prefs: { script }, parsed: Q, S: { playing, ...sec } }));
-        return V.chipsHTML(P, g, n, script, playing ? sec : null) === W.chipsFrom(g, n);
-      }),
-    ).toEqual(NONE);
   });
 
   it('the song picker, with awkward titles', () => {
