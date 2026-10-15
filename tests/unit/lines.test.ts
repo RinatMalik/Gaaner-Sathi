@@ -119,9 +119,10 @@ describe('the taal figure', () => {
     expect(shapePath(2)).toBe('M3 12A10 10 0 0 1 21 12A10 10 0 0 1 3 12Z');
   });
 
-  it('has a shape per vibhag, of its kind, and a corner per beat, sam’s bigger', () => {
+  it('has a shape per vibhag, of its kind, one under another, and a corner per beat, sam’s bigger', () => {
     const k = taalFigureHTML(taalInfo('keherwa'));
-    expect(k.startsWith('<span class="tf" role="img" aria-label="Keherwa: 4 + 4 beats"><span class="tfg"><svg class="tfs v-sam"')).toBe(true);
+    // How many shapes, and their heights added up in widths, for the page to size them by.
+    expect(k.startsWith('<span class="tf" style="--nv:2;--nh:2" role="img" aria-label="Keherwa: 4 + 4 beats"><span class="tfg"><svg class="tfs v-sam" viewBox="-3 -3 30 30"')).toBe(true);
     expect(k.endsWith('</svg></span><span class="tfn">Keherwa</span></span>')).toBe(true);
     expect(k).toContain('<svg class="tfs v-khali"');
     expect(Array.from(k.matchAll(/data-p="(\d+)"/g), (m) => +m[1]!)).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
@@ -131,8 +132,13 @@ describe('the taal figure', () => {
     expect(k).toContain('<path class="tff" d="M3 3L21 3L21 21L3 21Z"/><path class="tfo" d="M3 3L21 3L21 21L3 21Z"/><path class="tfp" d="M3 3L21 3L21 21L3 21Z" pathLength="1" stroke-dasharray="0 2"/>');
     expect(k.match(/<path class="tfp"/g)).toHaveLength(2);
     // Rupak begins on khali; Ektal is six lenses; Teentaal four squares.
-    expect(taalFigureHTML(taalInfo('rupak'))).toMatch(/^<span class="tf"[^>]*><span class="tfg"><svg class="tfs v-khali"/);
-    expect(taalFigureHTML(taalInfo('ektal')).match(/<path class="tfo" d="M3 12A/g)).toHaveLength(6);
+    expect(taalFigureHTML(taalInfo('rupak'))).toMatch(/^<span class="tf" style="--nv:3;--nh:2.2"[^>]*><span class="tfg"><svg class="tfs v-khali"/);
+    // A lens is drawn in a flatter box.
+    const e = taalFigureHTML(taalInfo('ektal'));
+    expect(e.match(/<path class="tfo" d="M3 12A/g)).toHaveLength(6);
+    expect(e.match(/viewBox="-3 3 30 18"/g)).toHaveLength(6);
+    expect(e).toContain('style="--nv:6;--nh:3.6"');
+
     expect(taalFigureHTML(taalInfo('teentaal')).match(/<svg class="tfs v-tali"/g)).toHaveLength(2);
   });
 

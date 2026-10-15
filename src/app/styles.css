@@ -594,12 +594,17 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .tkempty{color:var(--ink-2);font-size:14px;padding:4px 0}
 
 /* The keyboard (new): the keys to press on the Practice view. */
-.keysrow{grid-column:1/-1;display:grid;gap:4px;min-width:0}
-.kb{position:relative;display:flex;height:112px;max-width:760px;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--line)}
-.kw{flex:1 1 0;min-width:0;margin-right:1px;background:var(--sheet);position:relative}
+/* In a section of its own, as wide as the others: keys of a natural width, more of them on a
+   wider screen (Rinat, 2026-10-15). */
+:root{--key-w:#fbfbf8;--key-b:#1b1c24;--key-sa:#b3261e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--key-w:#d9d6cc;--key-b:#0c0c0f;--key-sa:#b3261e}}
+:root[data-theme="dark"]{--key-w:#d9d6cc;--key-b:#0c0c0f;--key-sa:#b3261e}
+.keyscard{display:grid;gap:6px;padding:12px 14px;background:var(--sheet);border:1px solid var(--line);border-radius:16px;min-width:0}
+.kb{position:relative;display:flex;height:140px;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--line)}
+.kw{flex:1 1 0;min-width:0;margin-right:1px;background:var(--key-w);position:relative}
 .kw:last-child{margin-right:0}
-.kbk{position:absolute;top:0;height:60%;background:var(--ink);border-radius:0 0 3px 3px;z-index:1}
-.kw.sa::after,.kbk.sa::after{content:"";position:absolute;left:50%;bottom:5px;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--red-ink)}
+.kbk{position:absolute;top:0;height:60%;background:var(--key-b);border-radius:0 0 3px 3px;z-index:1}
+.kw.sa::after,.kbk.sa::after{content:"";position:absolute;left:50%;bottom:5px;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--key-sa)}
 .kw.next,.kbk.next{box-shadow:inset 0 0 0 2px var(--brass)}
 .kw.now{background:var(--brass)}
 .kbk.now{background:var(--brass)}
@@ -686,9 +691,12 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
    beat draws the edge on to the next corner, so a shape closes as its last beat ends and then
    fills; the corner sounding pops; at sam the figure pulses and starts again. */
 .tf{display:none}
-.pll.cur .tf{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;margin-top:10px}
-.tfg{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;width:100%;padding:0 2px;transform-origin:center}
-.tfs{display:block;width:100%;height:auto;aspect-ratio:1;overflow:visible}
+/* The shapes one under another, as big as the box's width and the line's height allow (the
+   figure takes the box's remaining height without adding to it: size containment), but at
+   least --tmin each, the line growing to make room when it has many vibhags. */
+.pll.cur .tf{--tg:6px;--tmin:40px;display:flex;flex:1 1 0;min-height:calc(var(--nh) * var(--tmin) + (var(--nv) - 1) * var(--tg) + 20px);flex-direction:column;align-items:center;gap:4px;width:100%;margin-top:8px;container-type:size}
+.tfg{display:flex;flex-direction:column;align-items:center;gap:var(--tg);width:100%;transform-origin:center}
+.tfs{display:block;flex:none;width:min(100cqw - 6px, (100cqh - 20px - (var(--nv) - 1) * var(--tg)) / var(--nh));height:auto;overflow:visible}
 .tfs.v-sam{--vk:var(--v-sam-line)}
 .tfs.v-tali{--vk:var(--v-tali-line)}
 .tfs.v-khali{--vk:var(--v-khali-line)}
@@ -704,7 +712,6 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .tfn{font-size:11px;font-weight:600;line-height:1.2;color:var(--ink-2);overflow-wrap:anywhere}
 /* Under the lines: the keys to press, and how the voice is doing while the pitch check is on,
    with the run's average as it goes, tinted by it. */
-.pl .keysrow{padding:10px 14px;border-top:1px solid var(--rule)}
 .plfoot{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:8px 14px;border-top:1px solid var(--rule)}
 .plfoot .spacer{flex:1 1 auto}
 .pmsg.good{color:var(--good)}.pmsg.ok{color:var(--warn)}.pmsg.off{color:var(--red-ink)}
@@ -718,7 +725,9 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
   .plst{font-size:9px;letter-spacing:.02em}
   .plsc{font-size:14px}
   .pln.scored{box-shadow:inset 4px 0 0 var(--lc)}
-  .tfg{gap:4px;padding:0 1px}
+  .pll.cur .tf{--tg:4px;--tmin:30px}
+  .keyscard{padding:10px}
+  .kb{height:120px}
   .tfn{font-size:9.5px}
   .plsw{height:18px}
   .pll.cur .plsw{--sh:clamp(72px,12vh,110px)}

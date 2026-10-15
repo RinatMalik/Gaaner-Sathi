@@ -143,10 +143,15 @@ export function shapePath(n: number): string {
   return 'M' + shapeCorners(n).map((p) => p[0] + ' ' + p[1]).join('L') + 'Z';
 }
 
-/** The taal as shapes, one per vibhag, each a sam, tali or khali (drawn dashed, the empty
- * clap); every corner is a beat (`data-p`), sam's a little bigger; the taal's name under them.
- * Each shape has its outline, a path drawn on as the beats go (`pathLength` 1, so its dashes
- * are fractions of the way round) and a fill shown once it is complete. */
+/** A shape's height for its width: a lens is flat, the rest square. */
+const shapeAspect = (n: number) => (n === 2 ? 0.6 : 1);
+
+/** The taal as shapes, one per vibhag, one under another (Rinat, 2026-10-15), each a sam, tali
+ * or khali (drawn dashed, the empty clap); every corner is a beat (`data-p`), sam's a little
+ * bigger; the taal's name under them. Each shape has its outline, a path drawn on as the beats
+ * go (`pathLength` 1, so its dashes are fractions of the way round) and a fill shown once it is
+ * complete. `--nh`: the shapes' heights added up, in widths, so the page can make them as big
+ * as the box's width and height allow. */
 export function taalFigureHTML(T: TaalInfo): string {
   const shapes = T.vib.map((n, k) => {
     const d = shapePath(n);
@@ -154,9 +159,11 @@ export function taalFigureHTML(T: TaalInfo): string {
       const at = T.starts[k]! + j;
       return '<circle class="tfv' + (j === 0 ? ' tf1' : '') + (at === 0 ? ' tfsam' : '') + '" cx="' + p[0] + '" cy="' + p[1] + '" r="' + (at === 0 ? 3.4 : 2.6) + '" data-p="' + at + '"/>';
     }).join('');
-    return '<svg class="tfs ' + kindOf(T.marks[k]) + '" viewBox="-3 -3 30 30" aria-hidden="true"><path class="tff" d="' + d + '"/><path class="tfo" d="' + d + '"/><path class="tfp" d="' + d + '" pathLength="1" stroke-dasharray="0 2"/>' + dots + '</svg>';
+    return '<svg class="tfs ' + kindOf(T.marks[k]) + '" viewBox="' + (n === 2 ? '-3 3 30 18' : '-3 -3 30 30') + '" aria-hidden="true"><path class="tff" d="' + d + '"/><path class="tfo" d="' + d + '"/><path class="tfp" d="' + d + '" pathLength="1" stroke-dasharray="0 2"/>' + dots + '</svg>';
   }).join('');
-  return '<span class="tf" role="img" aria-label="' + esc(T.name + ': ' + T.vib.join(' + ') + ' beats') + '"><span class="tfg">' + shapes + '</span><span class="tfn">' + esc(T.name) + '</span></span>';
+  const nh = Math.round(T.vib.reduce((a, n) => a + shapeAspect(n), 0) * 100) / 100;
+  return '<span class="tf" style="--nv:' + T.vib.length + ';--nh:' + nh + '" role="img" aria-label="'
+ + esc(T.name + ': ' + T.vib.join(' + ') + ' beats') + '"><span class="tfg">' + shapes + '</span><span class="tfn">' + esc(T.name) + '</span></span>';
 }
 
 /** How far round each shape the cycle has gone, 0 to 1, at fraction f of taal beat p (−1: not

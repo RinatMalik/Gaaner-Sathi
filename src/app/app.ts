@@ -46,7 +46,7 @@ import { SONG_SOUND_KEYS, soundOf, type SongSound } from '../core/song/sound';
 import { isTaalId, taalInfo, TAALS, type TaalInfo } from '../core/taal/taals';
 import { initPitch, type PitchUI } from './pitch';
 import { initBoxes, withNewHeading, type Boxes } from './boxes';
-import { initKeyboard, keyboardHTML, keyName, keyRange, type KeyboardUI } from './keyboard';
+import { initKeyboard, keyboardHTML, keyName, keyRange, keysToFill, type KeyboardUI } from './keyboard';
 import { initLines, type LinesUI } from './lines';
 import { initPrint } from './print';
 import { initProgress } from './progress';
@@ -1141,7 +1141,11 @@ async function onTakeClick(e: Event): Promise<void> {
   }
 }
 
-/** The keyboard on the Practice view: the song's notes' range in whole octaves. */
+/** The keyboard on the Practice view, in a section of its own while Show the keys is ticked:
+ * the song's notes' range in whole octaves, with keys added on both sides to fill the width
+ * (keys about 26 px wide, 22 on a phone), never stretched. */
+let keysDrawn = '';
+let keysShown: [number, number] = [-1, -1];
 function renderKeys(): void {
   const row = $('#keysRow');
   row.hidden = !prefs.showKeys;
@@ -1150,8 +1154,14 @@ function renderKeys(): void {
   const sa = saMidi(current);
   const span = songSpan(parsed) ?? { lo: 0, hi: 12 };
   const [lo, hi] = keyRange(sa + span.lo, sa + span.hi);
-  $('#keysBoard').innerHTML = keyboardHTML(lo, hi, sa);
+  const board = $('#keysBoard');
+  const fit = board.clientWidth ? Math.floor(board.clientWidth / (matchMedia('(max-width:520px)').matches ? 22 : 26)) : 0;
+  const html = keyboardHTML(...keysToFill(lo, hi, fit), sa);
+  if (html === keysDrawn) return;
+  keysDrawn = html;
+  board.innerHTML = html;
   $('#keyName').textContent = '';
+  markKeys(...keysShown);
 }
 /** The beat after g while playing (inside the loop when looping), or −1. */
 function nextBeat(g: number): number {
@@ -1162,6 +1172,7 @@ function nextBeat(g: number): number {
 }
 /** Press the keys of beat `now` and outline the first note of beat `next`. */
 function markKeys(now: number, next: number): void {
+  keysShown = [now, next];
   const notes = (g: number) => (parsed.beatList[g]?.units ?? []).flatMap((u) => (u.k === 'note' ? [saMidi(current) + u.semi + 12 * u.oct] : []));
   const on = new Set(now >= 0 ? notes(now) : []);
   const soon = next >= 0 ? notes(next).slice(0, 1) : [];
@@ -1737,6 +1748,8 @@ export function init(): void {
     at: () => prefs.plAt ?? 3,
   });
   applyLinesPrefs();
+  // The keyboard fills its section's width: drawn again when that changes (and when it shows).
+  new ResizeObserver(() => renderKeys()).observe($('#keysRow'));
   select('#saKey').innerHTML = V.keyOptionsHTML();
   select('#saOct').innerHTML = V.octOptionsHTML();
   select('#taalSel').innerHTML = V.taalOptionsHTML();

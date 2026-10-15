@@ -111,6 +111,20 @@ describe('scores', () => {
     expect(tr.results.every((r) => r.score === 100)).toBe(true);
   });
 
+  it('ignores the last 10 % of each note, where the voice may already be moving to the next', () => {
+    const tr = new PitchTracker({ lag: 0, anyOctave: true, saHz: SA });
+    tr.addNotes(place(P, { spb: 0.6 }));
+    // In tune, then 50 cents sharp for the last 9 % (54 ms of 600): the steady part is steady.
+    readings(tr, 0, 4.9, (t) => {
+      const n = tr.expectedAt(t);
+      if (!n) return 0;
+      return hzOf(n, t > n.t1 - 0.09 * (n.t1 - n.t0) ? 50 : 0);
+    });
+    tr.settle(true);
+    expect(tr.results.map((r) => [r.score, r.wobble])).toEqual(Array(8).fill([100, 0]));
+  });
+
+
   it('finishes each line as the next begins, round by round, and leaves listening rounds unscored', () => {
     const sec = { secStart: 0, secEnd: 8, loop: true };
     const tr = new PitchTracker({ lag: 0, anyOctave: true, saHz: SA });

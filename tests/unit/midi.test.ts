@@ -1,7 +1,7 @@
 // Keyboards: MIDI messages and timing (src/audio/midi.ts), the notes keys type, and the keys
 // drawn on the Practice view (src/app/keyboard.ts); the transport's guide notes.
 import { describe, expect, it } from 'vitest';
-import { keyboardHTML, keyName, keyRange } from '../../src/app/keyboard';
+import { keyboardHTML, keyName, keyRange, keysToFill } from '../../src/app/keyboard';
 import { createEngine } from '../../src/audio/engine';
 import { allOff, keyToNote, noteOff, noteOn, programChange, readNoteOn, toPerformanceTime } from '../../src/audio/midi';
 import { DEFAULT_SOUND } from '../../src/audio/sound';
@@ -65,6 +65,19 @@ describe('keys and notes', () => {
     expect((html.match(/ sa"/g) ?? []).length).toBe(2);
     expect(html).toContain('data-m="49" style="left:5.000%;width:4.286%"');
     expect(keyName(62)).toBe('D4 · White 2');
+    // Across a wider space: white keys added below and above in turn, the song's kept whole.
+    expect(keysToFill(48, 71, 14)).toEqual([48, 71]);
+    expect(keysToFill(48, 71, 10)).toEqual([48, 71]);
+    expect(keysToFill(48, 71, 15)).toEqual([47, 71]);
+    expect(keysToFill(48, 71, 16)).toEqual([47, 72]);
+    expect(keysToFill(48, 71, 17)).toEqual([45, 72]);
+    const [a, b] = keysToFill(48, 83, 40);
+    expect((keyboardHTML(a, b, 52).match(/class="kw/g) ?? []).length).toBe(40);
+    // Never past a piano's ends.
+    expect(keysToFill(21, 35, 60)[0]).toBe(21);
+    const [lo2, hi2] = keysToFill(96, 108, 30);
+    expect(hi2).toBe(108);
+    expect(lo2).toBeLessThan(96);
     expect(keyName(54)).toBe('F♯3 · Black 3');
   });
 });

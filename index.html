@@ -163,7 +163,6 @@
       <section class="pl" id="pl" aria-label="The song, line by line">
         <p class="plmsg" id="plMsg" aria-live="polite" hidden></p>
         <div class="plview" id="plView"><div class="pllist" id="plList"></div></div>
-        <div class="keysrow" id="keysRow" hidden><div id="keysBoard"></div><span class="keyname" id="keyName" aria-live="off"></span></div>
         <div class="plfoot" id="pitchBox" hidden>
           <span class="pmsg" id="pMsg"></span>
           <span class="pnote" id="pNote"></span>
@@ -173,6 +172,7 @@
           <span class="phint" id="pLag"></span>
         </div>
       </section>
+      <section class="keyscard" id="keysRow" aria-label="The keys to press" hidden><div id="keysBoard"></div><span class="keyname" id="keyName" aria-live="off"></span></section>
       <details class="takes" id="takesBox" open hidden>
         <summary>My takes <span class="n" id="takesCount"></span></summary>
         <p class="phint">While <b>Record me</b> is on, each play is a take. Play one back against the guide to hear where you were off. Takes stay in this browser.</p>

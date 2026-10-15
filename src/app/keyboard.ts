@@ -22,7 +22,32 @@ export function keyRange(lo: number, hi: number): [number, number] {
   return [a, b];
 }
 
-/** A keyboard from `lo` to `hi` (MIDI numbers, lo a C and hi a B), with each Sa marked. */
+const isWhite = (m: number) => !BLACK.has(mod(m, 12));
+
+/** The keys to draw across the width (Rinat, 2026-10-15): the song's (`lo` to `hi`, white keys
+ * at both ends), with white keys added on both sides in turn, below first, until there are
+ * `whites` of them, within a piano's A0 to C8; never fewer than the song's own. */
+export function keysToFill(lo: number, hi: number, whites: number): [number, number] {
+  let a = lo;
+  let b = hi;
+  let n = 0;
+  for (let m = a; m <= b; m++) if (isWhite(m)) n++;
+  let below = true;
+  while (n < whites && (a > 21 || b < 108)) {
+    if ((below && a > 21) || b >= 108) {
+      do a--;
+      while (!isWhite(a));
+    } else {
+      do b++;
+      while (!isWhite(b));
+    }
+    n++;
+    below = !below;
+  }
+  return [a, b];
+}
+
+/** A keyboard from `lo` to `hi` (MIDI numbers, both white keys), with each Sa marked. */
 export function keyboardHTML(lo: number, hi: number, sa: number): string {
   const whites: number[] = [];
   for (let m = lo; m <= hi; m++) if (!BLACK.has(mod(m, 12))) whites.push(m);

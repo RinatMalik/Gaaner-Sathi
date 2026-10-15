@@ -275,10 +275,14 @@ export class PitchTracker {
     return { score: Math.round(mean(sung)), sung: w(sung) / Math.max(1e-9, w(judged)), lines };
   }
 
+  /** A note's score from its steady part: from 100 ms in (30 % of a short note), so a late or
+   * scooped start does not count, to its last 10 %, so moving early to the next note does not
+   * either (Rinat, 2026-10-15; it was the last 30 ms). */
   private scoreNote(n: ExpectedNote): NoteResult {
     const dur = n.t1 - n.t0;
     const a = n.t0 + Math.min(0.1, 0.3 * dur);
-    const b = n.t1 - Math.min(0.03, 0.1 * dur);
+    const b = n.t1 - 0.1 * dur;
+
     const none = { note: n, cents: NaN, score: NaN, wobble: NaN };
     if (b - a < 0.05) return { ...none, status: 'short' };
     const errs: number[] = [];
