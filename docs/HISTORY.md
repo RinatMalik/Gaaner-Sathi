@@ -49,6 +49,57 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-15 BST — Claude (Opus 5.5) — PH2-13 the pad in colour, its tools beside it
+
+- **Goal:** Rinat: "make the upper ones two dots as well, ref not showing properly"; "all 5
+  octaves to have different faint colours and the alternative 5 notes tivra, komal etc, to
+  have different noticeable intensity of the same colour or a different colour"; Join,
+  Split, higher, lower "there is real estate remaining on the right side of the note pad.
+  can these buttons be located there? sectioned and all"; and, not to build yet, whether two
+  cycles in one Practice line would cause issues elsewhere.
+- **Inspected:** `unitHTML`; every place that writes octave marks (`noteToken`,
+  `shiftOctaves`, `splitBeats`; the exercise generator, whose exercises never reach +2, left
+  alone); the parser's marks after a note (`'` after the আকার adds an octave); the beat boxes
+  (inputs showing the text itself); the differential tests' edit comparisons; for the
+  question, `columnsFor` (46 px columns, 32 on a phone), the practice log's per-line scores,
+  rewaz items' and takes' line ranges.
+- **Found:** the prototype's `shiftOctaves` puts a note's after-marks behind the next note's
+  before-marks where they meet (`Nহ্ম` up gave `Nর্'হ্ম`, read as a Re): fixed with the new
+  ordering (the prototype's notes came out wrong in 1,759 of the differential test's random
+  selections, texts that mix the two scripts).
+- **Changed:** `5ce09ed` (feat(edit)): edit.ts: `bnUpper` (two up: `''` after the note and its
+  আকার), used by `noteToken`, `splitBeats` and `shiftOctaves`, whose after-marks now sort
+  first; view.ts: `up2` for Bengali two up; app.ts: `data-oct` on the pad and side buttons;
+  index.html: the tools (`#fixRow`) inside the section beside the pad, in three sections, and
+  the help table's two-octave rows; styles: `--o-n2` … `--o-2` in day and night, the keys'
+  tints, `.padwrap` / `.padlay` with container queries (beside at 640 px and up, one row per
+  section under 440 px), two dots over a Bengali headline; tests (pad: the writing and the
+  order; midi: Bengali two up and down; the differential tests accept the new spelling and
+  order when the notes come out the same as the prototype's or as intended). This commit
+  (docs): NOTATION (Octaves, How the editor writes, Edit operations, Beat boxes), ROADMAP
+  (Phase 2 row 13), this file (the PH2-11 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`):
+  - `npm run typecheck` → 0; `npx vitest run` → 36 files, 379 passed. `npm run build` →
+    227.2 kB JS (80.4 kB gzip), 52.3 kB CSS; `bash reference/tests/run-all.sh` →
+    31/11/10/12/5 passed, 12 exercises valid.
+  - 1280 × 960, day, a new song: সা and tivra Ma from the middle, upper and highest octaves
+    wrote `সা হ্মা র্সা | র্হ্মা সা'' হ্মা''`; the keys violet, blue, green, amber and rose from
+    lowest to highest, komal/tivra deeper, the side buttons in the next octave's colour; the
+    tools a 250 px column beside the 720 px pad (Last change, Selected notes, Beats, then the
+    status); in Free text (the preview beside, the column 565 px) the three sections in a row
+    under the pad. The beat boxes show `সা''`; the preview and Practice show two dots over
+    সা, রা, গা.
+  - 360 × 780, night: the rose and violet tints readable, the tools one row per section (200
+    px in all, was 288), no sideways scrolling.
+  - CI run `38819778754` (`5ce09ed`): core, reference and deploy jobs green. Live: the bundle index-D-Axru-c.js served; a new song's pad at the highest octave rose-tinted (`data-oct` 2), its Sa `u up2`, writing `সা''`; the tools a 250 px column beside the 720 px pad.
+- **Decisions made:** Two octaves up in Bengali (new); Entering notes, redesigned (updated).
+- **Risks or disagreements:** songs written before with `র্র্সা` keep that text (read the
+  same, shown with two dots) until Lower/Higher rewrites them. In Sa Re Ga a lower komal's
+  dots touch its underline, as one dot did. The tools now fold away with the pad. Two cycles
+  per Practice line: Claude's view given in chat, nothing built.
+- **Next handoff:** Rinat tries the coloured pad and decides on two cycles per line.
+
 ### 2026-10-15 BST — Claude (Opus 5.5) — PH2-12 the pad's octaves
 
 - **Goal:** Rinat, to "The pad only goes from the lower to the upper octave, though the
