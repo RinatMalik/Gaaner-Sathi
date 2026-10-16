@@ -178,7 +178,10 @@ in a box rewrites the hidden text and moves its selection, which they missed unt
 the box after the beats it made): with a mouse the keyboard goes there, on a phone it is lit
 for the pad. One that cannot be done says why, and the keyboard goes back to the box. New
 line (the pad's, or Enter) puts the keyboard in the new line with a mouse (Rinat,
-2026-10-16).
+2026-10-16). While the beat boxes (or the text) are on screen and those tools are not
+(scrolled away, or folded with Enter notes), a bar at the foot of the screen offers them
+(Undo, Lower, Higher, Join, Split) and says which beat is chosen; it goes when they come
+back into view (Rinat, 2026-10-16).
 
 - **Rows** are the text's lines (round six, 2026-10-12): down the left, the row's number
   (a heading's #) the row's full height, behind the diary's red margin line; at the right

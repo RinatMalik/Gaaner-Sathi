@@ -49,6 +49,27 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-16 BST — Claude (Opus 5.5) — PH2-15 reverted: the beat boxes a line to a row again
+
+- **Goal:** Rinat, of two lines to a row in the beat boxes: "naah, this is too crowded. don't
+  like this. please revert back."
+- **Inspected:** `a51b534` (the only code commit since `084274c`'s parent's code; `f7baa37`
+  was docs).
+- **Changed:** `084274c` (revert of `a51b534`): boxes.ts, styles (the row buttons 40 px
+  again) and boxes.test.ts as before; `git diff c277a8c HEAD -- src index.html tests` empty,
+  so the code is `5ce09ed`'s. This commit (docs): NOTATION (Beat boxes: a line to a row),
+  ROADMAP (row 15 struck), this file (decision, PH2-15 row, the PH2-14 revert entry moved
+  to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10):
+  - `npm run typecheck` → 0; `npx vitest run` → 36 files, 379 passed. `npm run build` → the
+    same JS and CSS files as `5ce09ed` (index-D-Axru-c.js, index-DQNoU8-u.css);
+    `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid.
+  - CI run `38826823056` (`084274c`): core, reference and deploy jobs green. Live: the bundle index-D-Axru-c.js served (`5ce09ed`'s); the Keherwa song in the beat boxes a line to a row at 1280 px.
+- **Decisions made:** a line to a row in both views (new; the two pairing rows struck).
+- **Risks or disagreements:** none; the empty space beside short lines stays, as Rinat
+  chose.
+- **Next handoff:** Rinat sends more design comments.
+
 ### 2026-10-16 BST — Claude (Opus 5.5) — PH2-15 two lines to a row in the beat boxes
 
 - **Goal:** Rinat, after Claude's plan for the beat boxes: "Yes, build two lines to a row in
