@@ -1371,6 +1371,42 @@ function undoText(): boolean {
   return true;
 }
 
+/** The tools that change notes (Undo, the octave, Join, Split), kept in view (Rinat,
+ * 2026-10-16): a bar at the foot of the screen while the beat boxes (or the text) are on it
+ * and the tools beside the pad are not (scrolled away, or folded with Enter notes). Its buttons
+ * press the tools' own, and it says what they say. */
+function keepToolsInView(): void {
+  const bar = $('#fixFloat');
+  const tools = $('#fixRow');
+  const info = $('#selInfo');
+  const mirror = $('#ffInfo');
+  bar.addEventListener('click', (e) => {
+    const b = (e.target as Element).closest<HTMLElement>('[data-ff]');
+    if (b) $('#' + b.dataset.ff).click();
+  });
+  const copy = () => (mirror.innerHTML = info.innerHTML);
+  new MutationObserver(copy).observe(info, { childList: true, characterData: true, subtree: true });
+  copy();
+  // In view: the tools when at least half of them shows; the boxes or text when any of them does.
+  const seen = new Map<Element, number>();
+  const area = [$('#boxes'), notationBox()];
+  const update = () => {
+    const show = !$('#edit').hidden && area.some((a) => (seen.get(a) ?? 0) > 0) && (seen.get(tools) ?? 0) < 0.5;
+    if (bar.hidden === !show) return;
+    bar.hidden = !show;
+    // Room under the page for the bar, so the last lines can be scrolled above it.
+    document.body.style.paddingBottom = show ? bar.offsetHeight + 24 + 'px' : '';
+  };
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const en of entries) seen.set(en.target, en.isIntersecting ? en.intersectionRatio || 0.01 : 0);
+      update();
+    },
+    { threshold: [0, 0.5, 1] },
+  );
+  for (const el of [tools, ...area]) io.observe(el);
+}
+
 /** Beat boxes or free text. */
 function setEditMode(m: 'boxes' | 'text'): void {
   if (m === 'text') prefs.editMode = 'text';
@@ -2502,6 +2538,7 @@ export function init(): void {
   $('#bxUndo').addEventListener('click', () => {
     if (!undoText()) $('#selInfo').textContent = 'Nothing to undo.';
   });
+  keepToolsInView();
   // Ctrl+Z in free text takes back the same steps as Undo (the notes from the pad among them,
   // which the browser's own undo does not know about).
   notationBox().addEventListener('keydown', (e) => {

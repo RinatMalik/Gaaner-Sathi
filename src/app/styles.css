@@ -635,6 +635,23 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 /* Selecting rows (to copy, move or paste after), playing one line, the beat sounding. */
 .bxrow.sel,.bxrow.sel:hover{background:color-mix(in srgb,var(--brass) 14%,transparent)}
 .bxgrip[aria-pressed="true"]>span{background:var(--brass);color:var(--brass-ink)}
+/* The tools kept in view at the foot of the screen (Rinat, 2026-10-16). */
+.fixfloat{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px 14px;max-width:calc(100vw - 24px);padding:7px 8px 7px 16px;background:var(--sheet);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 24px var(--shadow)}
+.fixfloat[hidden]{display:none}
+.ffinfo{min-width:0;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--ink-2)}
+.ffinfo b{font-family:var(--f-note);font-weight:400;font-size:18px;color:var(--ink)}
+.ffinfo:empty{display:none}
+.ffbtns{display:flex;align-items:center;gap:6px}
+.ffbtns .obtn{min-height:38px;white-space:nowrap}
+.ffsep{align-self:stretch;width:1px;margin:3px 2px;background:var(--rule)}
+@media (max-width:520px){
+  .fixfloat{left:8px;right:8px;bottom:8px;transform:none;max-width:none;flex-direction:column;align-items:stretch;gap:6px;padding:8px}
+  .ffinfo{max-width:none;text-align:center}
+  .ffbtns{gap:4px}
+  .ffbtns .obtn{flex:1 1 auto;padding:5px 6px;font-size:13px}
+  .ffl{display:none}
+  .ffsep{margin:3px 0}
+}
 .bxselbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:8px 10px;background:var(--sheet);border-bottom:1px solid var(--rule)}
 .bxselbar .bxselt{flex:1 1 auto;font-weight:600}
 .bxcell .bx.playing{background:var(--mark);color:var(--mark-ink);border-color:var(--brass);box-shadow:0 0 0 2px var(--brass)}

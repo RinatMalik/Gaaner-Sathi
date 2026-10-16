@@ -359,6 +359,20 @@
         </div>
       </div>
     </div>
+    <!-- The tools that change notes, kept in view at the foot of the screen while the beat boxes
+         (or the text) are on it and the tools beside the pad are not (Rinat, 2026-10-16). -->
+    <div class="fixfloat" id="fixFloat" role="toolbar" aria-label="Change what is written" hidden>
+      <span class="ffinfo" id="ffInfo" aria-hidden="true"></span>
+      <div class="ffbtns">
+        <button type="button" class="obtn" data-ff="bxUndo" title="Take back the last change (Ctrl+Z)"><span aria-hidden="true">↶</span><span class="ffl"> Undo</span></button>
+        <span class="ffsep" aria-hidden="true"></span>
+        <button type="button" class="obtn" data-ff="octDown" aria-label="Move the selected notes down an octave">↓ Lower</button>
+        <button type="button" class="obtn" data-ff="octUp" aria-label="Move the selected notes up an octave">↑ Higher</button>
+        <span class="ffsep" aria-hidden="true"></span>
+        <button type="button" class="obtn" data-ff="joinBtn" title="Put the selected beats, or this beat and the next, into one beat">Join</button>
+        <button type="button" class="obtn" data-ff="splitBtn" title="Give each note in the selected beat its own beat">Split</button>
+      </div>
+    </div>
   </main>
 </div>
 <div id="printSheet" class="printsheet"></div>
