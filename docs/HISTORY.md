@@ -49,6 +49,48 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-16 BST — Claude (Opus 5.5) — PH2-15 two lines to a row in the beat boxes
+
+- **Goal:** Rinat, after Claude's plan for the beat boxes: "Yes, build two lines to a row in
+  the beat boxes as you described."
+- **Inspected:** boxes.ts: `boxesHTML` (rows: number, beats, ▶ ≡ ×), `render`, focus and
+  `leave` (which `rendering` silences), the drag code (`dragTo` by height alone, the drop
+  marker), ↑ ↓ on a number, selection, `becomeLine`, the pad's `type`; the row styles.
+- **Changed:** `a51b534` (feat(edit)): boxes.ts: `pairRuns` (pure: runs of rows that fit,
+  paired from the first, one left over alone), `goesBefore` (pure: the drop rule),
+  `pairUp` (after each draw: rows measured at full width, number + boxes + buttons, an empty
+  row with a line's buttons; pairs wrapped in `.bxpair`; the line of the box being typed in
+  keeps its pair), a ResizeObserver pairing again when the width changes (keeping the focus),
+  the drag in two dimensions (`RowBox`, the marker across or down, the boxes clipped
+  sideways while dragging); styles: `.bxpair`, `.bxbtn` 36 px, `.boxes.dragging`, the marker
+  placed by JS; tests (boxes: `pairRuns`, `goesBefore`). This commit (docs): NOTATION (Beat
+  boxes → Two lines to a row), ROADMAP (Phase 2 row 15), this file (the first PH2-14 entry
+  moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`, with real mouse drags and clicks):
+  - `npm run typecheck` → 0; `npx vitest run` → 36 files, 381 passed. `npm run build` →
+    229.2 kB JS (81.3 kB gzip), 52.6 kB CSS; `bash reference/tests/run-all.sh` →
+    31/11/10/12/5 passed, 12 exercises valid.
+  - A Keherwa song (স্থায়ী of five 8-beat lines, four with words; অন্তরা of three) at 1280 ×
+    900: rows "H [1,2] [3,4] [5] H [6,7] [8,+]" (the empty row beside line 8). Line 1
+    dragged to the right of line 4's middle: lines 2 3 4 1 5; line 7 dragged left of line
+    2's middle: 1 7 2 3 …, the brass marker down beside line 2; ↑ ↓ on a number moved a line
+    one place; Undo took each back. New line and eight notes from the pad after line 8: "[8,9]
+    [+]". A click on a box of line 2 (the right half), then না on the pad: line 2's third
+    beat became না. Pairs at 1440, 1280, 1240, 1200 and 1160 px; a line to a row at 1120 and 1024 (the empty row too); to Practice
+    and back, Free text and back: pairs again. 360 × 780, night: a line to a row, no sideways
+    scrolling. Day and night screenshots checked.
+  - A pad note after a scripted `.focus()` went to the end of the song, on the old code as
+    well: headless Edge does not fire focus events for it; with real clicks it goes to the
+    box chosen.
+  - CI run `38824838275` (`a51b534`): core, reference and deploy jobs green. Live: the bundle index-CMbOCfhS.js served; the Keherwa song in the beat boxes in rows "H [1,2] [3,4] [5] H [6,7] [8,+]" at 1280 px.
+- **Decisions made:** see Decisions (two lines to a row in the beat boxes).
+- **Risks or disagreements:** always on where it fits, with no setting (say if one is
+  wanted). Inserting or moving a line reflows the pairs after it (lines change halves).
+  The boxes' width is fixed by `width: 2.6em` (`field-sizing` does not widen them), so a long
+  syllable does not widen a line; noted, not changed.
+- **Next handoff:** Rinat enters a Keherwa or Dadra song in the beat boxes on a laptop.
+
 ### 2026-10-16 BST — Claude (Opus 5.5) — PH2-14 reverted: Practice a line to a row again
 
 - **Goal:** Rinat: "i didn't want two lines in practice section, i wanted in the edit notation

@@ -172,7 +172,13 @@ Free text is one tap away and remembered. The beat boxes take the editor's whole
 no preview beside them (they show the same; Rinat, 2026-10-11); Free text keeps its preview,
 where a beat is tapped to choose it. Undo, the Octave buttons and Join/Split sit beside the
 note pad (under it when narrow; Rinat, 2026-10-15) and work on the box chosen (or the beats
-chosen).
+chosen). In the beat boxes that is the chosen box's beat, read afresh from the text (typing
+in a box rewrites the hidden text and moves its selection, which they missed until
+2026-10-16). After Higher, Lower, Join or Split there, the next box is chosen (after a Split,
+the box after the beats it made): with a mouse the keyboard goes there, on a phone it is lit
+for the pad. One that cannot be done says why, and the keyboard goes back to the box. New
+line (the pad's, or Enter) puts the keyboard in the new line with a mouse (Rinat,
+2026-10-16).
 
 - **Rows** are the text's lines (round six, 2026-10-12): down the left, the row's number
   (a heading's #) the row's full height, behind the diary's red margin line; at the right
@@ -187,7 +193,10 @@ chosen).
   once its last line is finished or under a heading after it, an empty row as long as the
   line before it (whole cycles) starts a new line; Enter opens one after any line.
 - A line to a row, whatever the width: two to a row (2026-10-16) was too crowded for Rinat
-  and was taken out the same day.
+  and was taken out the same day. Instead each line's boxes are centred between its number
+  and its buttons, in a block as wide as the longest line's (measured, `--bxw`), so the
+  beats stay one under another (Rinat, 2026-10-16); the empty row keeps a line's button
+  room so its boxes line up too. On a phone the boxes fill the row as before.
 - **Typing:** a space or a bar moves to the next box. Several beats typed or pasted into a
   box write over the boxes after it, then fill the line's empty boxes, then make new lines
   after it (each as long as the line before). Text pasted with line breaks goes in whole,

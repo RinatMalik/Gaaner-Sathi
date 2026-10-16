@@ -86,6 +86,7 @@ Begun 2026-10-11 with Rinat's comments on the screen as it is ("mostly design am
 | 13 | **The pad in colour, its tools beside it:** a faint colour for each octave (komal and tivra stronger); Undo, Lower/Higher and Join/Split in sections beside the pad (under it when narrow); Bengali two octaves up shown as two dots and written `সা''` | 2026-10-15 | Rinat finds the octaves and the tools easy to tell apart |
 | 14 | ~~**Two short lines to a row** in the Practice view~~ — reverted the same day (`c277a8c`): Rinat wanted it in Edit notation; Practice keeps a line to a row, which shows it best | 2026-10-16 | — |
 | 15 | ~~**Two lines to a row in the beat boxes**~~ — reverted the same day (`084274c`): too crowded for Rinat; the beat boxes keep a line to a row | 2026-10-16 | — |
+| 16 | **Beat box fixes:** Join, Split, Higher and Lower work on the box chosen after typing in it, then move to the next box; New line puts the keyboard in the new line; each line's boxes centred, the beats kept aligned | 2026-10-16 | Rinat joins, splits and adds lines in the beat boxes without hunting for the result |
 
 ## Phase 3: native mobile app
 
