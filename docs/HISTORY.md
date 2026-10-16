@@ -49,6 +49,33 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-16 BST — Claude (Opus 5.5) — PH2-14 reverted: Practice a line to a row again
+
+- **Goal:** Rinat: "i didn't want two lines in practice section, i wanted in the edit notation
+  section. Practice section was fine with one line per row as that gives the best
+  visibility. please reverse this."
+- **Inspected:** `287fe14` (the only code commit since `5ce09ed`; `c14b9e1` was docs); for
+  the beat boxes, `boxesHTML` (a row: grip, beats, ▶ ≡ × buttons), the drag code
+  (`dragTo`, by height alone), the styles; widths measured at 1280 px.
+- **Changed:** `c277a8c` (revert of `287fe14`): lines.ts, styles, store (`plOne` gone; a stored
+  `plOne` is dropped on load), view, index.html, app.ts and the tests as they were at
+  `5ce09ed` (`git diff 5ce09ed HEAD -- src index.html tests` empty). This commit (docs):
+  DATA (`plOne` gone), ROADMAP (row 14 struck), this file (decision, PH2-14 row, the PH2-13
+  entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10):
+  - `npm run typecheck` → 0; `npx vitest run` → 36 files, 379 passed. `npm run build` → the
+    same JS and CSS files as `5ce09ed` (index-D-Axru-c.js, index-DQNoU8-u.css);
+    `bash reference/tests/run-all.sh` → 31/11/10/12/5 passed, 12 exercises valid.
+  - Beat boxes at 1280 × 900 (headless Edge), a Keherwa song of 8-beat lines with words: the
+    box area 1148 px; each line's number 36 px, its boxes 373 px, its ▶ ≡ × 120 px, so two
+    lines (about 1,100 px with gaps) fit at this width and not much narrower.
+  - CI run `%s` (`c277a8c`): core, reference and deploy jobs green. Live: %s.
+- **Decisions made:** Practice keeps a line to a row (new; the pairing row struck).
+- **Risks or disagreements:** none from the revert. The beat boxes plan (drag needs left and
+  right as well as up and down; regroup only when not typing; fits from about 1,250 px)
+  waits for Rinat's go-ahead.
+- **Next handoff:** Rinat decides on two lines to a row in the beat boxes.
+
 ### 2026-10-16 BST — Claude (Opus 5.5) — PH2-14 two short lines to a Practice row
 
 - **Goal:** Rinat chose the second of Claude's two ways to fill the empty space of a Keherwa
