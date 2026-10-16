@@ -195,16 +195,30 @@ export const PAD_ROWS: readonly (readonly number[])[] = [[0, 2, 4, 5], [7, 9, 11
  * reader, komal and tivra captioned), then what else goes in a beat or a song: hold, silence,
  * a new line and a heading, and in free text a bar and a line of lyrics. */
 export function padHTML(insOct: number, script: Script, freeText: boolean): string {
-  const oct = (PAD_OCTAVES[insOct] ?? '').split(' · ')[0]!.toLowerCase();
-  const note = (semi: number) => {
-    const kind = KOMAL.has(semi) ? 'komal' : semi === 6 ? 'tivra' : '';
-    return '<button type="button" class="pk" data-semi="' + semi + '" aria-label="' + (kind ? kind + ' ' : '') + LAT_NAMES[semi] + ', ' + oct + '">' +
-      '<span class="pkn">' + beatNoteHTML({ units: [{ k: 'note', semi, oct: insOct }] }, script) + '</span>' + (kind ? '<span class="pkc">' + kind + '</span>' : '') + '</button>';
-  };
   const more: [string, string, string][] = [['hold', 'Hold', '–'], ['rest', 'Silence', '×'], ['nl', 'New line', '↵'], ['head', 'Heading', '#']];
   if (freeText) more.push(['bar', 'Bar', '|'], ['ly', 'Lyrics line', '&gt;']);
-  return PAD_ROWS.map((r, i) => '<div class="pkrow' + (i === 2 ? ' pkvar' : '') + '">' + r.map(note).join('') + '</div>').join('') +
+  return PAD_ROWS.map((r, i) => '<div class="pkrow' + (i === 2 ? ' pkvar' : '') + '">' + r.map((s) => padKey(s, insOct, script, true)).join('') + '</div>').join('') +
     '<div class="pkrow pkmore">' + more.map(([k, label, sym]) => '<button type="button" class="pk px" data-ins="' + k + '"><span class="pks" aria-hidden="true">' + sym + '</span><span>' + label + '</span></button>').join('') + '</div>';
+}
+
+/** A note's key on the pad or the dock: the note in the octave notes are entered in, named for a
+ * screen reader, komal and tivra captioned when `caption`. */
+function padKey(semi: number, insOct: number, script: Script, caption: boolean): string {
+  const oct = (PAD_OCTAVES[insOct] ?? '').split(' · ')[0]!.toLowerCase();
+  const kind = KOMAL.has(semi) ? 'komal' : semi === 6 ? 'tivra' : '';
+  return '<button type="button" class="pk" data-semi="' + semi + '" aria-label="' + (kind ? kind + ' ' : '') + LAT_NAMES[semi] + ', ' + oct + '">' +
+    '<span class="pkn">' + beatNoteHTML({ units: [{ k: 'note', semi, oct: insOct }] }, script) + '</span>' + (kind && caption ? '<span class="pkc">' + kind + '</span>' : '') + '</button>';
+}
+
+/** The note keys of the dock at the foot of Edit notation (Rinat, 2026-10-16): Sa to Ni; komal
+ * Re, Ga, tivra Ma, komal Dha, Ni (not captioned, their deeper colour says so); hold, silence
+ * and a new line (and a bar, in free text). */
+export function dockKeysHTML(insOct: number, script: Script, freeText: boolean): string {
+  const more: [string, string, string][] = [['hold', 'Hold', '–'], ['rest', 'Silence', '×'], ['nl', 'New line', '↵']];
+  if (freeText) more.push(['bar', 'Bar', '|']);
+  return '<span class="ffg">' + PAD_ROWS[0]!.concat(PAD_ROWS[1]!).map((s) => padKey(s, insOct, script, false)).join('') + '</span>' +
+    '<span class="ffg pkvar">' + PAD_ROWS[2]!.map((s) => padKey(s, insOct, script, false)).join('') + '</span>' +
+    '<span class="ffg ffx">' + more.map(([k, label, sym]) => '<button type="button" class="pk px" data-ins="' + k + '" title="' + label + '"><span class="pks" aria-hidden="true">' + sym + '</span><span>' + label + '</span></button>').join('') + '</span>';
 }
 
 export function noteNames(us: readonly NoteUnit[], d: number, script: Script): string {

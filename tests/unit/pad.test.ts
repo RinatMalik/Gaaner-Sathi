@@ -1,6 +1,6 @@
 // The note pad in Edit notation (src/app/view.ts → padHTML; Rinat, 2026-10-15).
 import { describe, expect, it } from 'vitest';
-import { PAD_HIGHEST, PAD_LOWEST, PAD_OCTAVES, padHTML, padOctaveWord } from '../../src/app/view';
+import { dockKeysHTML, PAD_HIGHEST, PAD_LOWEST, PAD_OCTAVES, padHTML, padOctaveWord } from '../../src/app/view';
 import { shiftOctaves, splitBeats } from '../../src/core/notation/edit';
 
 const semis = (html: string) => Array.from(html.matchAll(/<div class="pkrow[^"]*">(.*?)<\/div>/g), (m) => Array.from(m[1]!.matchAll(/data-semi="(\d+)"/g), (x) => +x[1]!));
@@ -59,6 +59,17 @@ describe('the note pad', () => {
     expect(up('Nহ্মা')).toBe("N'র্হ্মা");
     const split = splitBeats("সা''রা", 0, 6);
     expect(split.ok && split.text).toBe("সা'' রা");
+  });
+
+  it('gives the dock at the foot of the screen the same keys in a row, without captions', () => {
+    const html = dockKeysHTML(0, 'bn', false);
+    const groups = Array.from(html.matchAll(/<span class="ffg[^"]*">(.*?)<\/span>(?=<span class="ffg|$)/g), (m) => Array.from(m[1]!.matchAll(/data-(?:semi|ins)="(\w+)"/g), (x) => x[1]));
+    expect(groups).toEqual([['0', '2', '4', '5', '7', '9', '11'], ['1', '3', '6', '8', '10'], ['hold', 'rest', 'nl']]);
+    expect(html).toContain('<span class="ffg pkvar">');
+    expect(html).not.toContain('pkc');
+    expect(html).toContain('aria-label="komal Re, middle octave"');
+    expect(dockKeysHTML(-2, 'lat', true)).toContain('<span class="u lo lo2">Sa</span>');
+    expect(extras(dockKeysHTML(0, 'bn', true))).toEqual(['hold', 'rest', 'nl', 'bar']);
   });
 
   it('adds a bar and a line of lyrics in free text', () => {

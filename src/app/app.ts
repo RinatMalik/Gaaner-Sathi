@@ -770,6 +770,9 @@ function issueRange(it: V.IssueTarget): [number, number] | null {
 
 function renderNoteButtons(): void {
   $('#padKeys').innerHTML = V.padHTML(insOct, prefs.script, !boxesMode());
+  $('#ffKeys').innerHTML = V.dockKeysHTML(insOct, prefs.script, !boxesMode());
+  $('#ffNotes').dataset.oct = String(insOct);
+  $('#ffOct').textContent = V.padOctaveWord(insOct);
   $('#padOct').textContent = V.PAD_OCTAVES[insOct] ?? '';
   // Each octave has a colour of its own (styles: --oc), the side buttons that of the next.
   $('#pad').dataset.oct = String(insOct);
@@ -786,6 +789,14 @@ function renderNoteButtons(): void {
   $('#padUpperLab').textContent = V.padOctaveWord(up);
   lower.setAttribute('aria-label', 'Notes in the ' + V.padOctaveWord(down).toLowerCase() + ' octave');
   upper.setAttribute('aria-label', 'Notes in the ' + V.padOctaveWord(up).toLowerCase() + ' octave');
+  // The dock's octave buttons, as the pad's.
+  for (const [b, lab] of [[$<HTMLButtonElement>('#ffLower'), $('#ffLowerLab')], [$<HTMLButtonElement>('#ffUpper'), $('#ffUpperLab')]] as const) {
+    const of = b.id === 'ffLower' ? lower : upper;
+    b.disabled = of.disabled;
+    b.dataset.oct = of.dataset.oct!;
+    b.setAttribute('aria-label', of.getAttribute('aria-label')!);
+    lab.textContent = V.padOctaveWord(+of.dataset.oct!);
+  }
   renderPadSummary();
 }
 function renderStartOn(): void {
@@ -1371,13 +1382,13 @@ function undoText(): boolean {
   return true;
 }
 
-/** The tools that change notes (Undo, the octave, Join, Split), kept in view (Rinat,
- * 2026-10-16): a bar at the foot of the screen while the beat boxes (or the text) are on it
- * and the tools beside the pad are not (scrolled away, or folded with Enter notes). Its buttons
- * press the tools' own, and it says what they say. */
+/** The note pad's keys and the tools that change notes (Undo, the octave, Join, Split), kept in
+ * view (Rinat, 2026-10-16): a dock at the foot of the screen while the beat boxes (or the text)
+ * are on it and the pad with its tools is not (scrolled away, or folded with Enter notes). Its
+ * keys work as the pad's; its tools press the tools' own, and it says what they say. */
 function keepToolsInView(): void {
   const bar = $('#fixFloat');
-  const tools = $('#fixRow');
+  const tools = document.querySelector('.padwrap')!;
   const info = $('#selInfo');
   const mirror = $('#ffInfo');
   bar.addEventListener('click', (e) => {
@@ -1387,7 +1398,8 @@ function keepToolsInView(): void {
   const copy = () => (mirror.innerHTML = info.innerHTML);
   new MutationObserver(copy).observe(info, { childList: true, characterData: true, subtree: true });
   copy();
-  // In view: the tools when at least half of them shows; the boxes or text when any of them does.
+  // In view: the pad and its tools when at least half of them shows (of the screen's height,
+  // if they are taller); the boxes or text when any of them does.
   const seen = new Map<Element, number>();
   const area = [$('#boxes'), notationBox()];
   const update = () => {
@@ -1399,10 +1411,13 @@ function keepToolsInView(): void {
   };
   const io = new IntersectionObserver(
     (entries) => {
-      for (const en of entries) seen.set(en.target, en.isIntersecting ? en.intersectionRatio || 0.01 : 0);
+      for (const en of entries) {
+        const tall = Math.min(en.boundingClientRect.height, en.rootBounds?.height ?? Infinity);
+        seen.set(en.target, en.isIntersecting ? Math.max(0.01, tall > 0 ? en.intersectionRect.height / tall : 0) : 0);
+      }
       update();
     },
-    { threshold: [0, 0.5, 1] },
+    { threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1] },
   );
   for (const el of [tools, ...area]) io.observe(el);
 }
@@ -2506,16 +2521,21 @@ export function init(): void {
   });
   // The note pad: its octave buttons, the notes, and hold, silence, new line, heading (and in
   // free text, bar and lyrics line).
-  $('#pad').addEventListener('click', (e) => {
+  // (The dock at the foot of the screen has the same keys, and the same octave.)
+  const onPad = (e: Event) => {
     const b = (e.target as Element).closest<HTMLButtonElement>('button');
     if (!b || b.disabled) return;
-    if (b.id === 'padLower' || b.id === 'padUpper') {
-      setInsOct(insOct + (b.id === 'padLower' ? -1 : 1));
+    const step = b.id === 'padLower' || b.id === 'ffLower' ? -1 : b.id === 'padUpper' || b.id === 'ffUpper' ? 1 : 0;
+    if (step) {
+      setInsOct(insOct + step);
       return;
     }
     if (b.dataset.semi) {
-      if (boxesMode()) boxes.type(tokenFor(+b.dataset.semi).trim());
-      else insertText(tokenFor(+b.dataset.semi));
+      if (boxesMode()) {
+        boxes.type(tokenFor(+b.dataset.semi).trim());
+        // The info says the box now lit (the next), which the octave and beat buttons work on.
+        refreshSelection();
+      } else insertText(tokenFor(+b.dataset.semi));
       return;
     }
     const k = b.dataset.ins;
@@ -2527,10 +2547,13 @@ export function init(): void {
     if (boxesMode()) {
       if (k === 'nl') boxes.newLine();
       else if (k === 'hold' || k === 'rest') boxes.type(k === 'hold' ? '-' : 'x');
+      refreshSelection();
       return;
     }
     insertText(k === 'hold' ? '- ' : k === 'rest' ? 'x ' : k === 'bar' ? '| ' : k === 'nl' ? '\n' : '\n> ');
-  });
+  };
+  $('#pad').addEventListener('click', onPad);
+  $('#ffNotes').addEventListener('click', onPad);
   $('#modeSeg').addEventListener('click', (e) => {
     const b = segButton(e);
     if (b) setEditMode(b.dataset.v === 'text' ? 'text' : 'boxes');

@@ -359,11 +359,18 @@
         </div>
       </div>
     </div>
-    <!-- The tools that change notes, kept in view at the foot of the screen while the beat boxes
-         (or the text) are on it and the tools beside the pad are not (Rinat, 2026-10-16). -->
-    <div class="fixfloat" id="fixFloat" role="toolbar" aria-label="Change what is written" hidden>
+    <!-- The note pad's keys and the tools that change notes, kept in view at the foot of the screen
+         while the beat boxes (or the text) are on it and the pad is not (Rinat, 2026-10-16). -->
+    <div class="fixfloat" id="fixFloat" role="region" aria-label="Notes and the tools that change them" hidden>
+      <div class="ffnotes" id="ffNotes" role="group" aria-label="Enter notes">
+        <button type="button" class="padoct ffoct" id="ffLower"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="ffLowerLab">Lower</span></button>
+        <span class="ffoctname" id="ffOct"></span>
+        <div class="ffkeys" id="ffKeys"></div>
+        <button type="button" class="padoct ffoct" id="ffUpper"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="ffUpperLab">Upper</span></button>
+      </div>
+      <div class="fftools">
       <span class="ffinfo" id="ffInfo" aria-hidden="true"></span>
-      <div class="ffbtns">
+      <div class="ffbtns" role="toolbar" aria-label="Change what is written">
         <button type="button" class="obtn" data-ff="bxUndo" title="Take back the last change (Ctrl+Z)"><span aria-hidden="true">↶</span><span class="ffl"> Undo</span></button>
         <span class="ffsep" aria-hidden="true"></span>
         <button type="button" class="obtn" data-ff="octDown" aria-label="Move the selected notes down an octave">↓ Lower</button>
@@ -371,6 +378,7 @@
         <span class="ffsep" aria-hidden="true"></span>
         <button type="button" class="obtn" data-ff="joinBtn" title="Put the selected beats, or this beat and the next, into one beat">Join</button>
         <button type="button" class="obtn" data-ff="splitBtn" title="Give each note in the selected beat its own beat">Split</button>
+      </div>
       </div>
     </div>
   </main>

@@ -636,7 +636,19 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .bxrow.sel,.bxrow.sel:hover{background:color-mix(in srgb,var(--brass) 14%,transparent)}
 .bxgrip[aria-pressed="true"]>span{background:var(--brass);color:var(--brass-ink)}
 /* The tools kept in view at the foot of the screen (Rinat, 2026-10-16). */
-.fixfloat{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px 14px;max-width:calc(100vw - 24px);padding:7px 8px 7px 16px;background:var(--sheet);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 24px var(--shadow)}
+.fixfloat{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:40;display:flex;flex-direction:column;align-items:stretch;gap:7px;width:max-content;max-width:calc(100vw - 24px);padding:8px;background:var(--sheet);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 24px var(--shadow)}
+/* the dock's keys: the pad's, smaller, in one row (the octave buttons at either end) */
+.ffnotes{display:flex;align-items:stretch;gap:6px}
+.ffoct{min-width:50px;padding:3px 4px;gap:1px;border-radius:10px;font-size:10px}
+.ffoct svg{width:16px;height:16px}
+.ffoctname{align-self:center;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);white-space:nowrap}
+.ffoctname::before{content:"";display:inline-block;width:.8em;height:.8em;margin-right:.4em;border-radius:50%;background:var(--oc);vertical-align:-.08em}
+.ffkeys{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px 10px;min-width:0}
+.ffg{display:flex;gap:4px;min-width:0}
+.ffkeys .pk{flex:0 0 auto;min-width:42px;min-height:42px;padding:2px 6px;border-radius:8px;font-size:19px}
+.ffkeys .pk.px{min-width:46px;padding:2px 4px;font-size:10px;line-height:1.1}
+.ffkeys .pk.px .pks{font-size:15px}
+.fftools{display:flex;align-items:center;justify-content:space-between;gap:6px 14px;padding-left:8px}
 .fixfloat[hidden]{display:none}
 .ffinfo{min-width:0;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--ink-2)}
 .ffinfo b{font-family:var(--f-note);font-weight:400;font-size:18px;color:var(--ink)}
@@ -645,7 +657,20 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .ffbtns .obtn{min-height:38px;white-space:nowrap}
 .ffsep{align-self:stretch;width:1px;margin:3px 2px;background:var(--rule)}
 @media (max-width:520px){
-  .fixfloat{left:8px;right:8px;bottom:8px;transform:none;max-width:none;flex-direction:column;align-items:stretch;gap:6px;padding:8px}
+  .fixfloat{left:8px;right:8px;bottom:8px;transform:none;width:auto;max-width:none;gap:6px;padding:6px}
+  /* on a phone: the naturals in one row, komal and tivra with hold, silence, new line in the
+     next, the octave buttons either side of both */
+  .ffnotes{display:grid;grid-template-columns:30px minmax(0,1fr) 30px;gap:4px}
+  .ffoct{min-width:0;padding:2px 0}
+  .ffoct span,.ffoctname{display:none}
+  .ffkeys{gap:4px}
+  .ffg{gap:3px}
+  .ffg:first-child{flex:1 1 100%}
+  .ffg.pkvar{flex:5 1 0}
+  .ffg.ffx{flex:3 1 0}
+  .ffkeys .pk,.ffkeys .pk.px{flex:1 1 0;min-width:0;min-height:36px;padding:1px 0;font-size:16px}
+  .ffkeys .pk.px>span:last-child{display:none}
+  .fftools{flex-direction:column;align-items:stretch;gap:5px;padding-left:0}
   .ffinfo{max-width:none;text-align:center}
   .ffbtns{gap:4px}
   .ffbtns .obtn{flex:1 1 auto;padding:5px 6px;font-size:13px}
