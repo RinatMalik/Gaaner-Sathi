@@ -57,15 +57,16 @@ wins, except a later explicit decision by Rinat, which always wins.
   day, as Rinat wanted it in Edit notation, and fifteen (PH2-15: two lines to a row in the
   beat boxes) was reverted the same day too, as too crowded: both views keep a line to a
   row. Sixteen (PH2-16: Join, Split and the octave on the box chosen, on to the next box,
-  New line's keyboard, the beat boxes centred) and seventeen (PH2-17: the tools kept in view
-  at the foot of the screen) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
+  New line's keyboard, the beat boxes centred), seventeen (PH2-17: the tools kept in view
+  at the foot of the screen) and eighteen (PH2-18: the note pad's keys in that dock) are
+  built and live. Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
 - **Next single action:** Rinat enters a song in the beat boxes again (rounds sixteen and
-  seventeen: Join, Split, Higher, Lower and New line; the lines centred; the tools' bar at
-  the foot of the screen) and tries round nine;
+  eighteen: Join, Split, Higher, Lower and New line; the lines centred; the dock of notes
+  and tools at the foot of the screen) and tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `10aa4bd` (CI run `38967420068`: core, reference and deploy jobs green; checked live).
+- **Last known-good commit:** `8ea48d2` (CI run `38969986778`: core, reference and deploy jobs green; checked live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -376,6 +377,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-02 | Claude | Review | Design, round two: Pause and a separate Stop; nothing that plays changes the Lines to practise (play from here, sheet line numbers, sections, rewaz, takes); "Check my pitch" listens only while playing; beat box rows with the number and buttons (play this line, play from here, ×) full height, vibhag starts coloured instead of X/0, a tap anywhere on a row selects it, hover | 5 unit tests and the boxes' HTML tests; Edge scenarios `round6` (42 checks) and `rewaz6` (5), with a WAV microphone (Work log 2026-10-12 16:43) | Waiting for Rinat's use and two answers |
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
+| PH2-18 | Claude | Review | The note pad's keys in the dock at the foot of the screen: Sa to Ni, komal and tivra, Hold, Silence, New line (Bar in free text) between octave buttons, above the info and tools; the pad's octave and colours shared; shown while the pad (with its tools) is out of view; the info names the box lit after a note | 1 new unit test (pad: `dockKeysHTML`); headless Edge at 1280 px (day, night) and a 360 px touch phone (day, night): notes, octave, hold and a new line from the dock on line 22 and line 6 of a 29-line song (Work log 2026-10-16, round eighteen) | Waiting for Rinat's use |
 | PH2-17 | Claude | Review | The tools kept in view: a bar at the foot of the screen with Undo, Lower, Higher, Join and Split and the chosen beat, while the beat boxes or text are on screen and the tools beside the pad are not (scrolled away or folded); its buttons press the tools' own | Headless Edge at 1280 px (day, night) and a 360 px touch phone (both): shown and hidden as it should be, its Split, Higher and Undo on line 22 of a 29-line song (Work log 2026-10-16, round seventeen) | Waiting for Rinat's use |
 | PH2-16 | Claude | Review | Beat box fixes: Join, Split, Higher and Lower on the chosen box's beat read afresh (after typing in it they acted at the end of the song), then on to the next box (focused with a mouse, lit on a phone; refused ones say why and go back to the box); New line focuses the new line with a mouse; each line's boxes centred in a block as wide as the longest line's | Headless Edge with real typing and clicks on a 29-line Dadra song and a Keherwa one, 1280 px and a 360 px touch phone; free text unchanged (Work log 2026-10-16, round sixteen) | Waiting for Rinat's use |
 | PH2-15 | Claude | Reverted | (Reverted 2026-10-16, `084274c`: too crowded for Rinat.) Two lines to a row in the beat boxes: lines that both fit in half the width side by side in reading order (headings and longer lines whole; one left over in half a row), measured after each draw and when the width changes, the line being typed in keeping its pair; dragging by reading order with left/right drops; the row buttons 36 px | 2 new unit tests (boxes: `pairRuns`, `goesBefore`); headless Edge at 1280 (day, night), 1440, 1024 and 360 px: pairs, drags both ways, ↑ ↓, undo, the pad, tab and mode switches (Work log 2026-10-16, round fifteen) | None: a line to a row stays |
@@ -459,6 +461,7 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-15 | **The Practice view is the song line by line:** one window of about seven lines (5, 7 or 9, in its settings), the line being sung third (the first two lines start at the top) and large, sliding on a line as each plays; a line number plays from there and the section chips stay above. Each beat: the words big with the notes small above (a line without words shows its notes big), a mark for how it was sung, and a pitch strip with a bar for each note at its height; while the pitch check listens the voice is drawn over the bars (green, amber, red), and each line's score shows by its number. The beat sounding is lit, with a playhead through it. It replaces the Now singing panel, the coming-up notes, the pitch meter and its trace box, and the Practice sheet; the ruled lines, the red margin and the red-ink words stay. | Rinat, chat 2026-10-15, with a mockup ("combining the section where it shows the current and upcoming notes, pitch checker with the lyrics section", "a vertical carousel where about 7 lines are visible. The currently playing line is the 3rd one", "The lyrics part is bigger, full width pitch performance strip. When the microphone is off it still shows the strip with lines representing the notes"); the details (a strip under every line, the colours, the first lines at the top, long lines over two rows on a phone, the scores by the numbers, the last line kept at the end) are Claude's | src/app/lines.ts; ENGINE.md → Pitch feedback → Shown. The editor's preview and the printed sheet are unchanged. |
 | 2026-10-15 | **The taal as a figure,** beside the line being sung: a shape per vibhag with a corner per beat (four beats a square, three a triangle, two a stroke: Keherwa two squares, Dadra two triangles, Teentaal four squares), the first corner of each in its kind's colour (sam, tali, khali, as in the beat boxes), khali's shape dashed; the cycle traced round as it goes, the beat's corner lit. The strip of bols is gone. | Rinat, chat 2026-10-15 ("a square where the corners light up for 8 beat taals. but not sure where to put it … seeing the bol's of the taal doesn't really do much for me"); generalising the square to a shape per vibhag, and its place (where Rinat's mockup drew it), are Claude's | The taal's name and structure stay over the lines ("Keherwa · 4 + 4"). |
 | 2026-10-15 | **A settings button over the lines:** lines shown (5, 7, 9), the size of the words and notes (smaller, normal, bigger), the keys to press and the pitch check's octave rule (both moved here). The Practice settings bar is left as it was. | Rinat, chat 2026-10-15 ("There could be a settings button to adjust a few relevant things", "Leave the settings section alone - we'll come back to it later"); the choice of settings is Claude's | Settings `plRows`, `plSize` (DATA.md). |
+| 2026-10-16 | **The note pad in the dock:** the bar at the foot of Edit notation becomes a dock: the pad's keys in a row (Sa to Ni, then komal Re, Ga, tivra Ma, komal Dha, Ni without captions, their deeper tint saying so; Hold, Silence, New line, and Bar in free text) between octave buttons (each naming and tinted for where it goes, the current octave named between on a laptop), above the info and the tools. It shares the pad's octave, so either moves both. It shows while the boxes or text are on screen and the pad with its tools is under half in view (of the screen's height, if taller) or folded. On a phone the naturals take one row and komal, tivra, hold, silence and new line the next, the octave buttons either side. After a note from either pad, the info names the box now lit. | Rinat, chat 2026-10-16 ("please also add the buttons for the notes at the bottom. even on desktop, i would use the buttons because i am not a very good bangla keyboard user"); the layout, no Heading in the dock and the shared octave are Claude's | Extends the row below. src/app/view.ts `dockKeysHTML`; app.ts `keepToolsInView`. |
 | 2026-10-16 | **The tools kept in view:** while the beat boxes (or the free text) are on screen and the tools beside the note pad are not (scrolled away, or folded with Enter notes), a bar at the foot of the screen offers Undo, Lower, Higher, Join and Split and shows which beat is chosen; it hides when the tools come back into view and on other tabs. On a phone it spans the width, the info above the buttons (Undo as ↶ alone). The tools beside the pad stay. | Rinat, chat 2026-10-16 (Claude offered "keep those buttons in view while you scroll the boxes"; Rinat: "yes it does bother me … to tell you to reduce the height of the enter notes section a bit. But your solution sounds more elegant"); the bar at the foot, the show rule (the tools under half in view) and its phone form are Claude's | Folding Enter notes now keeps the tools at hand, for a shorter Edit notation. NOTATION.md → Beat boxes. |
 | 2026-10-16 | **On to the next box after an edit; the lines centred:** in the beat boxes, after Higher, Lower, Join or Split the next box is chosen (after a Split, the one after the beats it made): with a mouse the keyboard goes there, on a phone it is lit for the pad (its keyboard stays down); one that cannot be done says why and the keyboard goes back to the box. New line puts the keyboard in the new line with a mouse. Each line's boxes sit centred between its number and its buttons, in a block as wide as the longest line's, so beats stay aligned. | Rinat, chat 2026-10-16 ("when any operation is done on a beat box (i.e. join, split, upper, lower etc) the cursor should automatically move to the next beat box"; "How about making the contents of each line center aligned?"); the phone's lit box, the block width and going back to the box on a refusal are Claude's | Fixes Join, Split and the octave missing the box after typing in it (Rinat: "join and split is not working it seems"; "new line doesn't seem to work"). NOTATION.md → Beat boxes. |
 | 2026-10-16 | **A line to a row, in the beat boxes and in Practice:** two to a row was tried in both on 2026-10-16 and reverted the same day; the empty space beside a short Keherwa or Dadra line stays. | Rinat, chat 2026-10-16 (Practice: "Practice section was fine with one line per row as that gives the best visibility"; the beat boxes: "naah, this is too crowded. don't like this. please revert back") | Replaces the two rows below. Writing two cycles to a notation line remains possible (it costs per-line scores, loops and saved line ranges). |
@@ -509,6 +512,41 @@ Template:
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
 
+### 2026-10-16 BST — Claude (Opus 5.5) — PH2-18 the note pad in the dock
+
+- **Goal:** Rinat: "please also add the buttons for the notes at the bottom. even on desktop,
+  i would use the buttons because i am not a very good bangla keyboard user".
+- **Inspected:** `padHTML`, `renderNoteButtons`, the pad's click handler, `setInsOct`; the
+  bar's show rule (half of `#fixRow` in view).
+- **Changed:** `8ea48d2` (feat(edit)): view.ts: `padKey` (one key, captioned or not, shared
+  by `padHTML`, whose output is unchanged), `dockKeysHTML`; index.html: the dock's notes row
+  (`#ffNotes`: `#ffLower`, `#ffOct`, `#ffKeys`, `#ffUpper`) above the info and tools;
+  app.ts: `renderNoteButtons` draws the dock's keys and octave buttons too, one handler
+  (`onPad`) for both pads, the info refreshed after a note or hold in the beat boxes,
+  `keepToolsInView` watching the whole `.padwrap` (visible share of the screen's height when
+  taller); styles: the dock (one row on a laptop, two on a phone), its keys the pad's,
+  smaller; tests (pad: `dockKeysHTML`). This commit (docs): NOTATION (Beat boxes), ROADMAP
+  (Phase 2 row 18), this file (the PH2-16 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`, real clicks):
+  - `npm run typecheck` → 0; `npx vitest run` → 36 files, 380 passed. `npm run build` →
+    229.8 kB JS (81.4 kB gzip), 54.9 kB CSS; `bash reference/tests/run-all.sh` →
+    31/11/10/12/5 passed, 12 exercises valid.
+  - The 29-line Dadra song at 1280 × 900: the pad in view, no dock; at line 22 the dock (905
+    × 105 px). Line 22's second box clicked, then the dock's গা and মা: "সা গা মা | পা পা -";
+    its › : "Upper" in the dock and "Upper octave · তার" on the pad; সা and Hold: "সা গা মা |
+    র্সা - -"; New line and পা: line 23 "র্পা". Night checked.
+  - 360 × 780 touch phone, day and night: the dock 166 px tall, the naturals 35 px wide and
+    the rest 30 px, no sideways scrolling; line 6's second box, then ধা from the dock:
+    "রামা ধা রা | সা .না -", the info "রা · line 6" (the box now lit).
+  - CI run `38969986778` (`8ea48d2`): core, reference and deploy jobs green. Live: the bundle index-CfSa2qeP.js served; the 29-line Dadra song at line 22: the dock shown, its গা into line 22's second box ("সা গা - | পা পা -"), the info naming the next box.
+- **Decisions made:** see Decisions (the note pad in the dock).
+- **Risks or disagreements:** the dock takes about 105 px of a laptop's screen and 166 px of a
+  phone's while it shows (the page is padded so nothing is out of reach). Heading is not in
+  the dock (the pad above has it). A ghost box lit (the empty end of a line) shows "Choose a
+  beat box" in the info, as before.
+- **Next handoff:** Rinat enters a long song from the dock.
+
 ### 2026-10-16 BST — Claude (Opus 5.5) — PH2-17 the tools kept in view
 
 - **Goal:** Rinat, to Claude's offer to keep the octave, Join and Split buttons in view in a
@@ -543,53 +581,5 @@ Template:
   boxes). The bar covers the foot of the screen while it shows (the page is padded so
   nothing is out of reach).
 - **Next handoff:** Rinat edits a long song with the bar.
-
-### 2026-10-16 BST — Claude (Opus 5.5) — PH2-16 beat box fixes, on to the next box, lines centred
-
-- **Goal:** Rinat (with a screenshot of lines 22–29 of a Dadra song): "new line doesn't seem
-  to work. Also join and split is not working it seems. All in beat boxes view"; the empty
-  space in the middle: "How about making the contents of each line center aligned?"; "when
-  any operation is done on a beat box (i.e. join, split, upper, lower etc) the cursor should
-  automatically move to the next beat box".
-- **Inspected:** app.ts `applyOctave`, `applyBeatEdit`, `refreshSelection`, the boxes'
-  `focusBeat` (which sets the hidden text's selection), `setTextFromBoxes` (which sets its
-  value); boxes.ts `newLine`, `showBeat`, the row styles.
-- **Found** (reproduced in headless Edge with real typing): after typing in a box, the hidden
-  text's value is set, which moves its selection to the end of the song; the info line then
-  said "No notes selected" and Split "Select a beat that has more than one note", or a button
-  acted at the song's end, out of view. Clicking a box again made them work, which is why
-  short tests passed. New line marked the new line but left the keyboard on the button, so
-  typing went nowhere.
-- **Changed:** `762abe8` (fix(edit)): app.ts: `selRange` (the chosen box's beat read afresh
-  in the beat boxes, the selection in free text), `moveOn` (the next box chosen after an
-  edit), `cannot` (a refusal says why, the keyboard back on the box), `refreshSelection`
-  reading the text afresh in the beat boxes ("A beat without notes" for a hold or rest);
-  boxes.ts: `showBeat(g, focus)`, `newLine` focusing the new line with a mouse, `centre`
-  (`--bxw`, measured after each draw and when the boxes show); styles: the lines' blocks
-  centred, the empty row's button room. This commit (docs): NOTATION (Beat boxes), ROADMAP
-  (Phase 2 row 16), this file (the PH2-15 entry moved to HISTORY).
-- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
-  DevTools protocol on `npm run dev`, real clicks and typing):
-  - `npm run typecheck` → 0; `npx vitest run` → 36 files, 379 passed. `npm run build` →
-    228.0 kB JS (80.8 kB gzip), 52.5 kB CSS; `bash reference/tests/run-all.sh` →
-    31/11/10/12/5 passed, 12 exercises valid.
-  - A 29-line Dadra song like Rinat's (words, two-note beats, rests, "# অন্তরা #1"), 1280 px:
-    line 22's first box clicked, End, "গা" typed ("সাগা"); Split: "সা গা রা - | পা পা -", the
-    keyboard on রা; Higher: র্রা, on to the hold ("A beat without notes · line 22"); Join
-    there: "Those beats are in different bars, so they stay separate.", the keyboard back on
-    the hold; "মা" typed into it; New line: the keyboard in the new line, "সা রা " typed made
-    line 23 "সা রা".
-  - 360 × 780 touch phone, night: Higher on line 1's second box: র্রা, the third box lit (the
-    keyboard not raised); পা from the pad went into it. No sideways scrolling.
-  - A Keherwa song at 1280: every line's boxes, and the empty row's, at 396–770 px, centred
-    between the number (to 96) and the buttons (from 1071). Free text: রা selected, Higher:
-    র্রা, the selection kept (unchanged behaviour).
-  - CI run `38953489058` (`762abe8`): core, reference and deploy jobs green. Live: the bundle index-DzbcDc6i.js served; the 29-line Dadra song: line 22's first box clicked, "গা" typed, Split gave "সা গা রা - | পা পা -" with the keyboard on রা; the boxes centred (`--bxw` 578 px).
-- **Decisions made:** see Decisions (on to the next box after an edit; the lines centred).
-- **Risks or disagreements:** the octave and Join/Split buttons still sit by the pad, above
-  the boxes, so in a long song the line is out of view while pressing them (the focus then
-  scrolls back to it with a mouse). A Split that adds beats moves the lines after it in the
-  cycle (the checker says so). No unit test: the change is in page wiring.
-- **Next handoff:** Rinat edits a song in the beat boxes.
 
 Older entries: `docs/HISTORY.md`.

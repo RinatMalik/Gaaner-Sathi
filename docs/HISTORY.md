@@ -49,6 +49,54 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-16 BST — Claude (Opus 5.5) — PH2-16 beat box fixes, on to the next box, lines centred
+
+- **Goal:** Rinat (with a screenshot of lines 22–29 of a Dadra song): "new line doesn't seem
+  to work. Also join and split is not working it seems. All in beat boxes view"; the empty
+  space in the middle: "How about making the contents of each line center aligned?"; "when
+  any operation is done on a beat box (i.e. join, split, upper, lower etc) the cursor should
+  automatically move to the next beat box".
+- **Inspected:** app.ts `applyOctave`, `applyBeatEdit`, `refreshSelection`, the boxes'
+  `focusBeat` (which sets the hidden text's selection), `setTextFromBoxes` (which sets its
+  value); boxes.ts `newLine`, `showBeat`, the row styles.
+- **Found** (reproduced in headless Edge with real typing): after typing in a box, the hidden
+  text's value is set, which moves its selection to the end of the song; the info line then
+  said "No notes selected" and Split "Select a beat that has more than one note", or a button
+  acted at the song's end, out of view. Clicking a box again made them work, which is why
+  short tests passed. New line marked the new line but left the keyboard on the button, so
+  typing went nowhere.
+- **Changed:** `762abe8` (fix(edit)): app.ts: `selRange` (the chosen box's beat read afresh
+  in the beat boxes, the selection in free text), `moveOn` (the next box chosen after an
+  edit), `cannot` (a refusal says why, the keyboard back on the box), `refreshSelection`
+  reading the text afresh in the beat boxes ("A beat without notes" for a hold or rest);
+  boxes.ts: `showBeat(g, focus)`, `newLine` focusing the new line with a mouse, `centre`
+  (`--bxw`, measured after each draw and when the boxes show); styles: the lines' blocks
+  centred, the empty row's button room. This commit (docs): NOTATION (Beat boxes), ROADMAP
+  (Phase 2 row 16), this file (the PH2-15 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`, real clicks and typing):
+  - `npm run typecheck` → 0; `npx vitest run` → 36 files, 379 passed. `npm run build` →
+    228.0 kB JS (80.8 kB gzip), 52.5 kB CSS; `bash reference/tests/run-all.sh` →
+    31/11/10/12/5 passed, 12 exercises valid.
+  - A 29-line Dadra song like Rinat's (words, two-note beats, rests, "# অন্তরা #1"), 1280 px:
+    line 22's first box clicked, End, "গা" typed ("সাগা"); Split: "সা গা রা - | পা পা -", the
+    keyboard on রা; Higher: র্রা, on to the hold ("A beat without notes · line 22"); Join
+    there: "Those beats are in different bars, so they stay separate.", the keyboard back on
+    the hold; "মা" typed into it; New line: the keyboard in the new line, "সা রা " typed made
+    line 23 "সা রা".
+  - 360 × 780 touch phone, night: Higher on line 1's second box: র্রা, the third box lit (the
+    keyboard not raised); পা from the pad went into it. No sideways scrolling.
+  - A Keherwa song at 1280: every line's boxes, and the empty row's, at 396–770 px, centred
+    between the number (to 96) and the buttons (from 1071). Free text: রা selected, Higher:
+    র্রা, the selection kept (unchanged behaviour).
+  - CI run `38953489058` (`762abe8`): core, reference and deploy jobs green. Live: the bundle index-DzbcDc6i.js served; the 29-line Dadra song: line 22's first box clicked, "গা" typed, Split gave "সা গা রা - | পা পা -" with the keyboard on রা; the boxes centred (`--bxw` 578 px).
+- **Decisions made:** see Decisions (on to the next box after an edit; the lines centred).
+- **Risks or disagreements:** the octave and Join/Split buttons still sit by the pad, above
+  the boxes, so in a long song the line is out of view while pressing them (the focus then
+  scrolls back to it with a mouse). A Split that adds beats moves the lines after it in the
+  cycle (the checker says so). No unit test: the change is in page wiring.
+- **Next handoff:** Rinat edits a song in the beat boxes.
+
 ### 2026-10-16 BST — Claude (Opus 5.5) — PH2-15 reverted: the beat boxes a line to a row again
 
 - **Goal:** Rinat, of two lines to a row in the beat boxes: "naah, this is too crowded. don't
