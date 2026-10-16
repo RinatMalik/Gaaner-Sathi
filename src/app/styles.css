@@ -577,6 +577,11 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 /* A heading's fields wrap among themselves; its × stays at the end of the row, as on a line. */
 .bxhf{flex:1 1 auto;display:flex;flex-wrap:wrap;align-items:center;align-content:center;gap:6px;min-width:0;padding:8px 0;cursor:auto}
 .bxbeats{flex:1 1 auto;display:flex;flex-wrap:wrap;align-content:flex-start;gap:8px 0;min-width:0;padding:8px 0}
+/* A line's boxes centred between its number and its buttons, in a block as wide as the longest
+   line's (--bxw, measured), so beats stay one under another (Rinat, 2026-10-16). */
+.bxnotes>.bxbeats,.bxnew>.bxbeats{flex:0 1 var(--bxw,auto);margin-inline:auto}
+/* The empty row keeps the room of a line's buttons, so its boxes centre as the lines' do. */
+.bxnew::after{content:"";flex:none;width:120px}
 .bxgrp{display:flex;gap:3px;padding:0 7px;border-left:1.5px solid var(--ink-2)}
 .bxgrp:first-child{border-left:0;padding-left:0}
 .bxcell{display:grid;justify-items:center;align-content:start;gap:2px}
@@ -612,6 +617,7 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
   /* On a phone the buttons stack, a third of the row's height each. */
   .bxside{flex-direction:column}
   .bxbtn{width:34px;flex:1 1 0;min-height:30px}
+  .bxnew::after{width:34px}
   .bxbtn+.bxbtn{border-top:1px solid var(--rule)}
 }
 /* Moving rows: the number is the handle; a brass line shows where the row will go. */

@@ -144,8 +144,9 @@ export interface Boxes {
   type(token: string): void;
   /** A new line after the line last typed in (the New line button, Enter). */
   newLine(): void;
-  /** Go to the box of a beat (the preview, the checker). */
-  showBeat(g: number): void;
+  /** Go to the box of a beat (the preview, the checker; the next box after an octave, Join or
+   * Split). `focus` false: only light it (on a phone, so its keyboard stays down). */
+  showBeat(g: number, focus?: boolean): void;
   /** An undo put the text back: draw again, the keyboard on the box the change was made in. */
   restored(key: string): void;
   /** The line playing on its own, or (`from`) the line playing started from (−1: none), for
@@ -200,12 +201,33 @@ export function initBoxes(host: BoxesHost): Boxes {
     } finally {
       rendering = false;
     }
+    centre();
     drawSelBar();
     showPlaying();
     lightBeat();
     if (focus) focusKey(focus.key, focus.select, focus.caret);
     markCurrent();
   }
+
+  /** Each line's boxes centred between its number and its buttons, as one block as wide as the
+   * longest line's, so the beats stay one under another (Rinat, 2026-10-16). Measured when the
+   * boxes show (a hidden box measures nothing; they are measured again once shown). */
+  function centre(): void {
+    if (!box.offsetParent) return;
+    let w = 0;
+    for (const b of box.querySelectorAll<HTMLElement>('.bxnotes > .bxbeats, .bxnew > .bxbeats')) {
+      let s = 0;
+      for (const g of Array.from(b.children)) s += (g as HTMLElement).offsetWidth;
+      w = Math.max(w, s);
+    }
+    if (w) box.style.setProperty('--bxw', Math.ceil(w) + 2 + 'px');
+  }
+  let shownW = 0;
+  new ResizeObserver(() => {
+    const w = box.clientWidth;
+    if (w && w !== shownW) centre();
+    shownW = w;
+  }).observe(box);
 
   function markCurrent(): void {
     for (const e of box.querySelectorAll('.bx.cur')) e.classList.remove('cur');
@@ -1035,17 +1057,20 @@ export function initBoxes(host: BoxesHost): Boxes {
       const first = (row ?? box.querySelector<HTMLElement>('.bxnew[data-at="end"]'))?.querySelector<HTMLInputElement>('input');
       if (first) {
         lastKey = first.dataset.key!;
+        // With a mouse, the keyboard goes to the new line (Rinat, 2026-10-16: typing went
+        // nowhere); on a phone it stays down, the pad typing there.
+        if (matchMedia('(pointer:fine)').matches) first.focus({ preventScroll: true });
         markCurrent();
         first.scrollIntoView({ block: 'nearest' });
       }
     },
-    showBeat(g: number) {
+    showBeat(g: number, focus = true) {
       const P = parsed();
       const n = P.lineOfBeat[g];
       if (n == null) return;
       const key = 'b:' + n + ':' + (g - P.noteLines[n]!.start);
       lastKey = key;
-      focusKey(key);
+      if (focus) focusKey(key);
       markCurrent();
       el(key)?.scrollIntoView({ block: 'nearest' });
     },

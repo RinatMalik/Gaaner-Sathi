@@ -1635,20 +1635,51 @@ const finePointer = () => matchMedia('(pointer:fine)').matches;
 /** How to choose notes to change: a beat box, or (in Free text) the preview. */
 const chooseFirst = () => (boxesMode() ? 'Choose a beat box' : 'Tap a beat in the preview');
 
+/** The text the octave, Join and Split buttons work on: in the beat boxes, the beat of the box
+ * chosen, read afresh from the text (typing in a box rewrites the hidden text, which moves its
+ * selection to the end: the buttons then missed the box; Rinat, 2026-10-16); in free text, the
+ * selection. Null: nothing chosen yet. */
+function selRange(): [number, number] | null {
+  if (!selTouched) return null;
+  if (boxesMode()) {
+    const b = parseSong(current.text).beatList[boxes.beat()];
+    return b ? [b.a, b.b] : null;
+  }
+  const ta = notationBox();
+  return [ta.selectionStart, ta.selectionEnd];
+}
+
+/** In the beat boxes, after an octave, Join or Split, the next box (song beat g) is the one
+ * chosen (Rinat, 2026-10-16): with a mouse the keyboard goes there, on a phone it is lit for
+ * the pad. */
+function moveOn(g: number): void {
+  boxes.showBeat(Math.min(g, parsed.beatList.length - 1), finePointer());
+  refreshSelection();
+}
+/** A button that could not do its work says why; in the beat boxes the keyboard goes back to
+ * the box chosen (song beat g), so typing goes on there. */
+function cannot(msg: string, g: number): void {
+  if (boxesMode() && g >= 0) boxes.showBeat(g, finePointer());
+  $('#selInfo').textContent = msg;
+}
+
 function refreshSelection(): void {
   for (const el of selEls) el.classList.remove('sel');
   selEls = [];
   const info = $('#selInfo');
   if (!info) return;
-  if (!selTouched) {
+  const range = selRange();
+  if (!range) {
     info.textContent = boxesMode() ? 'Choose a beat box' : 'Tap a beat in the preview, or select notes in the box';
     return;
   }
-  const ta = notationBox();
-  const r = notesInRange(parsed, ta.selectionStart, ta.selectionEnd);
+  // The beat boxes' text may be a moment ahead of the parse (typing in a box parses after a
+  // pause), so it is read afresh there.
+  const P = boxesMode() ? parseSong(current.text) : parsed;
+  const r = notesInRange(P, range[0], range[1]);
   const ns = new Set<Unit>(r.notes);
   const beats: Beat[] = [];
-  for (const b of parsed.beatList) if (b && b.units.some((u) => ns.has(u))) beats.push(b);
+  for (const b of P.beatList) if (b && b.units.some((u) => ns.has(u))) beats.push(b);
   for (const b of beats) {
     for (const el of beatEls.get(b.g) || []) {
       if (el.closest('#sheetE')) {
@@ -1658,10 +1689,11 @@ function refreshSelection(): void {
     }
   }
   if (!r.notes.length) {
-    info.textContent = 'No notes selected. ' + chooseFirst() + '.';
+    const n = boxesMode() ? P.lineOfBeat[boxes.beat()] : undefined;
+    info.textContent = n != null ? 'A beat without notes · line ' + (n + 1) : 'No notes selected. ' + chooseFirst() + '.';
     return;
   }
-  const lines = Array.from(new Set(beats.map((b) => parsed.lineOfBeat[b.g]! + 1)));
+  const lines = Array.from(new Set(beats.map((b) => P.lineOfBeat[b.g]! + 1)));
   const where = lines.length === 1 ? 'line ' + lines[0] : 'lines ' + lines[0] + '–' + lines[lines.length - 1];
   if (r.notes.length === 1) info.innerHTML = '<b>' + V.beatNoteHTML({ units: [r.notes[0]!] }, prefs.script) + '</b> · ' + where;
   else info.textContent = r.notes.length + ' notes · ' + where;
@@ -1677,20 +1709,28 @@ function scrollTextareaTo(ta: HTMLTextAreaElement, pos: number): void {
 
 function applyOctave(delta: number): void {
   const ta = notationBox();
-  if (!selTouched) {
+  const range = selRange();
+  if (!range) {
     $('#selInfo').textContent = chooseFirst() + ' first, then press ' + (delta > 0 ? '↑' : '↓') + '.';
     return;
   }
-  const r = shiftOctaves(ta.value, ta.selectionStart, ta.selectionEnd, delta);
+  const g = boxes.beat();
+  const r = shiftOctaves(ta.value, range[0], range[1], delta);
   if (!r.count) {
-    $('#selInfo').textContent = r.capped
-      ? delta > 0
-        ? 'Already two octaves up, the highest the player goes.'
-        : 'Already two octaves down, the lowest the player goes.'
-      : 'No notes selected. ' + chooseFirst() + '.';
+    cannot(
+      r.capped
+        ? delta > 0
+          ? 'Already two octaves up, the highest the player goes.'
+          : 'Already two octaves down, the lowest the player goes.'
+        : boxesMode()
+          ? 'This beat has no notes to move.'
+          : 'No notes selected. ' + chooseFirst() + '.',
+      g,
+    );
     return;
   }
   applyTextEdit(r);
+  if (boxesMode()) moveOn(g + 1);
 }
 
 /** Write an edit into the notation box. With a mouse it goes through the browser's own
@@ -1723,16 +1763,20 @@ function applyTextEdit(r: TextEdit): void {
 
 function applyBeatEdit(kind: 'join' | 'split'): void {
   const ta = notationBox();
-  if (!selTouched) {
+  const range = selRange();
+  if (!range) {
     $('#selInfo').textContent = chooseFirst() + ' first, then press ' + (kind === 'join' ? 'Join' : 'Split') + '.';
     return;
   }
-  const r = (kind === 'join' ? joinBeats : splitBeats)(ta.value, ta.selectionStart, ta.selectionEnd);
+  const g = boxes.beat();
+  const r = (kind === 'join' ? joinBeats : splitBeats)(ta.value, range[0], range[1]);
   if (!r.ok) {
-    $('#selInfo').textContent = r.msg;
+    cannot(r.msg, g);
     return;
   }
   applyTextEdit(r);
+  // On past the beat joined, or the beats it was split into.
+  if (boxesMode()) moveOn(g + (kind === 'join' ? 1 : r.n));
 }
 
 // ── Song files: export, back up, import ──────────────────────────────────────
