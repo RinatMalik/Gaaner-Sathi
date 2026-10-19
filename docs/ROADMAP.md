@@ -89,6 +89,7 @@ Begun 2026-10-11 with Rinat's comments on the screen as it is ("mostly design am
 | 16 | **Beat box fixes:** Join, Split, Higher and Lower work on the box chosen after typing in it, then move to the next box; New line puts the keyboard in the new line; each line's boxes centred, the beats kept aligned | 2026-10-16 | Rinat joins, splits and adds lines in the beat boxes without hunting for the result |
 | 17 | **The tools kept in view:** Undo, Lower, Higher, Join and Split in a bar at the foot of the screen while the boxes or text are on it and the tools beside the pad are not | 2026-10-16 | Rinat edits a long song without scrolling up to the tools |
 | 18 | **The note pad in the dock:** the pad's keys (notes, komal and tivra, Hold, Silence, New line) and octave buttons join the tools at the foot of the screen | 2026-10-16 | Rinat enters a long song's notes from the dock, on a laptop and a phone |
+| 19 | **The next line readable ahead:** in Practice, the line after the one being sung has its words and notes as big; its pitch strip, and the rest, stay small | 2026-10-19 | Rinat reads the coming line while singing |
 
 ## Phase 3: native mobile app
 

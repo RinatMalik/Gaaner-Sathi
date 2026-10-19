@@ -49,6 +49,41 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-16 BST — Claude (Opus 5.5) — PH2-17 the tools kept in view
+
+- **Goal:** Rinat, to Claude's offer to keep the octave, Join and Split buttons in view in a
+  long song: "yes it does bother me and that was gonna be my next prompt. to tell you to
+  reduce the height of the enter notes section a bit. But your solution sounds more
+  elegant."
+- **Inspected:** pinned elements on the page (none but the menus and the boxes' selection
+  bar); the tools' handlers and every writer of `#selInfo`.
+- **Changed:** `10aa4bd` (feat(edit)): index.html: `#fixFloat` (a toolbar: the info, ↶ Undo,
+  ↓ Lower, ↑ Higher, Join, Split) at the end of Edit notation; app.ts: `keepToolsInView`
+  (its buttons click the tools' own; a MutationObserver copies `#selInfo`; an
+  IntersectionObserver shows it while `#boxes` or the notation box is on screen and under half
+  of `#fixRow` is, and pads the page's foot by its height); styles: the bar (centred at the
+  foot; on a phone full width in two rows). This commit (docs): NOTATION (Beat boxes),
+  ROADMAP (Phase 2 row 17), this file (the PH2-15 revert entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`, real clicks and typing):
+  - `npm run typecheck` → 0; `npx vitest run` → 36 files, 379 passed. `npm run build` →
+    228.7 kB JS (81.1 kB gzip), 53.5 kB CSS; `bash reference/tests/run-all.sh` →
+    31/11/10/12/5 passed, 12 exercises valid.
+  - The 29-line Dadra song at 1280 × 900: the tools in view, no bar; line 22 in view, the bar
+    (page padded 78 px); "গা" typed into line 22's first box ("2 notes · line 22" in the
+    bar); the bar's Split: "সা গা রা - | পা পা -", the keyboard on রা; its Higher: র্রা; its
+    Undo: রা again. Enter notes folded: the bar with the boxes. Practice: no bar. Free text
+    with the tools in view: no bar. Night checked.
+  - 360 × 780 touch phone, night and day: the bar 344 px wide at the foot, "2 notes · line 6"
+    above ↶ (41 px), ↓ Lower, ↑ Higher, Join, Split; no sideways scrolling.
+  - CI run `38967420068` (`10aa4bd`): core, reference and deploy jobs green. Live: the bundle index-DXgKuJTV.js served; the 29-line Dadra song: no bar with the tools in view; at line 22 the bar, its Higher on line 22's second box gave র্রা and moved the keyboard to the next box.
+- **Decisions made:** see Decisions (the tools kept in view).
+- **Risks or disagreements:** the note pad itself is not kept in view (on a phone, entering
+  notes deep in a song still means scrolling up to it, or using the phone's keyboard in the
+  boxes). The bar covers the foot of the screen while it shows (the page is padded so
+  nothing is out of reach).
+- **Next handoff:** Rinat edits a long song with the bar.
+
 ### 2026-10-16 BST — Claude (Opus 5.5) — PH2-16 beat box fixes, on to the next box, lines centred
 
 - **Goal:** Rinat (with a screenshot of lines 22–29 of a Dadra song): "new line doesn't seem
