@@ -13,8 +13,10 @@
  * for each beat (a square for four beats, a triangle for three, a lens for two), the edges
  * drawn on through each beat so a shape closes as its last beat ends, the corner of the beat
  * sounding lit. While "Check my pitch" is on, a gauge at the end of the line being sung shows
- * how close the voice is to the note (Rinat, 2026-10-19). The HTML builders are pure and tested
- * in Node; initLines wires them to the page.
+ * how close the voice is to the note (Rinat, 2026-10-19). Any line tapped opens to the size of
+ * the line being sung, to look back at how it was sung, each beat's cents under its strip
+ * (Rinat, 2026-10-19). The HTML builders are pure and tested in Node; initLines wires them to
+ * the page.
  */
 import { asTaals, placeIn, type Taals } from '../core/notation/taalmap';
 import type { NotesLine, ParsedSong } from '../core/notation/types';
@@ -82,7 +84,9 @@ function wordsHTML(rows: readonly string[] | undefined): string {
  * per beat, laid out
  * `--cols` across by the page: the notes, the words, a mark for how the beat was sung, and the
  * pitch strip with a bar for each note sounding in the beat (inset where a note starts or ends,
- * so repeated notes show as two). The first beat of each vibhag is marked by its kind.
+ * so repeated notes show as two). The first beat of each vibhag is marked by its kind. A
+ * button, shown only when focused (a tap or click anywhere on the line does the same), opens
+ * the line in full.
  */
 export function linesHTML(P: ParsedSong, taals: TaalInfo | Taals, off: number, script: Script): string {
   const M = asTaals(taals, off);
@@ -118,7 +122,8 @@ export function linesHTML(P: ParsedSong, taals: TaalInfo | Taals, off: number, s
     }
     html += '<div class="pll' + (words ? ' words' : '') + '" data-n="' + it.n + '" data-lo="' + r.lo + '" data-hi="' + r.hi + '">' +
       '<button type="button" class="pln" data-n="' + it.n + '" aria-label="Play from line ' + (it.n + 1) + '"><span class="plnum">' + (it.n + 1) + '</span><span class="plst"></span><span class="plsc"></span></button>' +
-      '<div class="plbeats">' + cells + '</div></div>';
+      '<div class="plbeats">' + cells + '</div>' +
+      '<button type="button" class="plopen" data-o="' + it.n + '" aria-expanded="false">Show line ' + (it.n + 1) + ' in full</button></div>';
   }
   return html;
 }
@@ -298,6 +303,9 @@ export function initLines(host: LinesHost): LinesUI {
   let maxBeats = 1;
   /** Each line's beats, to know which lines go over more than one row. */
   let beatsOf: number[] = [];
+  /** Lines opened to full size, to look back at how they were sung (Rinat, 2026-10-19). */
+  const opened = new Set<number>();
+  let revealTimer = 0;
   let cur = -1;
   let curState = '';
   let playingNow = false;
@@ -334,6 +342,7 @@ export function initLines(host: LinesHost): LinesUI {
     dot.remove();
     fig.el?.remove();
     gEl.remove();
+    opened.clear();
     list.innerHTML = html;
     lines = Array.from(list.querySelectorAll<HTMLElement>('.pll'));
     cellsOf.clear();
@@ -379,7 +388,7 @@ export function initLines(host: LinesHost): LinesUI {
         else l.style.removeProperty('--r');
       });
     }
-    const small = lines.filter((_, i) => i !== cur && i !== cur + 1).map((l) => l.offsetHeight).sort((a, b) => a - b);
+    const small = lines.filter((_, i) => i !== cur && i !== cur + 1 && !opened.has(i)).map((l) => l.offsetHeight).sort((a, b) => a - b);
     const hc = small.length ? small[small.length >> 1]! : 64;
     smallH = hc;
     const hx = lines[cur]?.offsetHeight ?? hc;
@@ -443,6 +452,8 @@ export function initLines(host: LinesHost): LinesUI {
     if (n !== was) {
       cur = n;
       lines[was]?.classList.remove('cur');
+      // Its beats were faded as they went by; the line as a whole is now (while playing).
+      for (const el of lines[was]?.querySelectorAll('.plb.past') ?? []) el.classList.remove('past');
       lines[was + 1]?.classList.remove('nxt');
       lines[n + 1]?.classList.add('nxt');
       lines.forEach((l, i) => l.classList.toggle('past', playing && i < n));
@@ -453,7 +464,7 @@ export function initLines(host: LinesHost): LinesUI {
         gridFor(n);
       }
       placeGauge();
-      if (lines[was]) clearGrid(was);
+      if (lines[was] && !opened.has(was)) clearGrid(was);
       for (const k of [was, was + 1, n, n + 1]) setState(k);
       if (!playing) beat(-1);
       scrollTo(playing && was >= 0, was);
@@ -468,7 +479,7 @@ export function initLines(host: LinesHost): LinesUI {
   /** The semitone lines across the strip of the line playing (Sa stronger). */
   function gridFor(n: number): void {
     const L = lines[n];
-    if (!L) return;
+    if (!L || L.querySelector('.plgrid')) return;
     const r = { lo: +L.dataset.lo!, hi: +L.dataset.hi! };
     let g = '';
     for (let c = r.lo + 100; c < r.hi; c += 100) {
@@ -621,6 +632,44 @@ export function initLines(host: LinesHost): LinesUI {
     } else dot.remove();
   }
 
+  // ── Lines opened ─────────────────────────────────────────────────────────────
+
+  function setOpen(n: number, on: boolean): void {
+    const L = lines[n];
+    if (!L) return;
+    if (on) opened.add(n);
+    else opened.delete(n);
+    L.classList.toggle('open', on);
+    L.querySelector('.plopen')?.setAttribute('aria-expanded', String(on));
+    if (on) gridFor(n);
+    else if (n !== cur) clearGrid(n);
+  }
+
+  /** Scroll the view so a line opened shows whole (its top, if it is taller than the view). */
+  function reveal(n: number): void {
+    const L = lines[n];
+    if (!L) return;
+    const top = L.offsetTop - list.offsetTop;
+    let to = view.scrollTop;
+    if (top + L.offsetHeight > to + view.clientHeight) to = top + L.offsetHeight - view.clientHeight;
+    if (top < to) to = top;
+    if (Math.abs(to - view.scrollTop) > 1) view.scrollTo({ top: to, behavior: reduced() ? 'auto' : 'smooth' });
+  }
+
+  // A tap or click on a line (not its number box, which plays from it) opens or closes it.
+  list.addEventListener('click', (e) => {
+    const t = e.target as Element;
+    if (t.closest('.pln')) return;
+    const L = t.closest<HTMLElement>('.pll');
+    if (!L) return;
+    const n = +L.dataset.n!;
+    const on = !opened.has(n);
+    setOpen(n, on);
+    clearTimeout(revealTimer);
+    // Once it has grown (a quarter second).
+    if (on) revealTimer = window.setTimeout(() => reveal(n), 280);
+  });
+
   /** The gauge goes at the end of the line being sung, while it is on. */
   function placeGauge(): void {
     const L = lines[cur];
@@ -697,6 +746,7 @@ export function initLines(host: LinesHost): LinesUI {
       showScore(n, score);
     },
     clearRun() {
+      for (const n of [...opened]) setOpen(n, false);
       scores.clear();
       for (const box of list.querySelectorAll<HTMLElement>('.pln.scored')) {
         box.classList.remove('scored');

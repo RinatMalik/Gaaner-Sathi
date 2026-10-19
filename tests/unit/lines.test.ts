@@ -61,6 +61,13 @@ describe('the lines', () => {
     expect(html).toContain('<button type="button" class="pln" data-n="2" aria-label="Play from line 3"><span class="plnum">3</span>');
   });
 
+  it('ends each line with a button that opens it in full, to look back at it (Rinat, 2026-10-19)', () => {
+    expect(html.match(/class="plopen"/g)).toHaveLength(P.noteLines.length);
+    expect(html).toContain('</div><button type="button" class="plopen" data-o="2" aria-expanded="false">Show line 3 in full</button></div>');
+    // Not a play-from-here button: that one is the number box (data-n).
+    expect(html).not.toMatch(/class="plopen" data-n=/);
+  });
+
   it('gives each beat a cell: its notes, its words (escaped, a held vowel faded), the mark for how it was sung, its strip', () => {
     const c = cells(html);
     expect(c.map((x) => x.g)).toEqual(Array.from({ length: P.total }, (_, g) => g));

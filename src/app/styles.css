@@ -351,6 +351,7 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .pn{position:absolute;top:2px;bottom:2px;width:6px;margin-left:-3px;border-radius:3px;background:var(--ink)}
 .pn.good{background:var(--good)}.pn.ok{background:var(--warn)}.pn.off{background:var(--red-ink)}
 .pmsg{font-weight:600;min-width:0}
+.pmsg:empty{display:none}
 .pscores{display:flex;flex-wrap:wrap;gap:6px}
 .pscores:empty{display:none}
 .pchip{font-size:13px;font-weight:600;padding:1px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2)}
@@ -755,8 +756,8 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .pllist::after{content:"";display:block;height:var(--pltail,0px)}
 .plhd{font-family:var(--f-note);font-size:15px;color:var(--ink-2);padding:6px 14px 3px calc(var(--numw) + 12px);border-bottom:1px solid var(--rule)}
 .plempty{padding:28px 20px;color:var(--ink-2);text-align:center}
-.pll{display:grid;grid-template-columns:var(--numw) minmax(0,1fr) var(--gw,0px);border-bottom:1px solid var(--rule);transition:background-color .25s}
-.pll.past .plbeats{opacity:.5}
+.pll{position:relative;display:grid;grid-template-columns:var(--numw) minmax(0,1fr) var(--gw,0px);border-bottom:1px solid var(--rule);transition:background-color .25s}
+.pll.past:not(.open) .plbeats{opacity:.5}
 .plbeats{transition:opacity .25s}
 .pll.cur{background:color-mix(in srgb,var(--brass) 7%,var(--sheet))}
 /* The number box: the line's full height, a button that plays from the line; what the line is
@@ -785,9 +786,10 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .ply .held{opacity:.55}
 .pll:not(.words) .pnt{color:var(--ink);font-size:calc(clamp(13px,100cqi / var(--cols) * .3,21px) * var(--ts))}
 /* The line being sung and the next one, to read ahead (Rinat, 2026-10-19): words and notes as
-   big; only the one being sung has the tall strip, the tint and the figure. */
-.pll:is(.cur,.nxt) .pnt{font-size:calc(clamp(12px,100cqi / var(--cols) * .24,19px) * var(--ts))}
-.pll:is(.cur,.nxt) .ply,.pll:is(.cur,.nxt):not(.words) .pnt{font-size:calc(clamp(17px,100cqi / var(--cols) * .46,46px) * var(--ts))}
+   big; only the one being sung has the tall strip, the tint and the figure. A line opened to
+   look back at it (.open) is as big, with the tall strip. */
+.pll:is(.cur,.nxt,.open) .pnt{font-size:calc(clamp(12px,100cqi / var(--cols) * .24,19px) * var(--ts))}
+.pll:is(.cur,.nxt,.open) .ply,.pll:is(.cur,.nxt,.open):not(.words) .pnt{font-size:calc(clamp(17px,100cqi / var(--cols) * .46,46px) * var(--ts))}
 .plb.bad .pnt{text-decoration:underline wavy var(--red-ink);text-underline-offset:.2em}
 .plg{flex:none;width:56%;height:3px;border-radius:2px;margin:2px 0}
 .plb.pg-good .plg{background:var(--good)}
@@ -795,20 +797,33 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .plb.pg-off .plg{background:var(--red-ink)}
 .plb.pg-miss .plg{background:var(--line)}
 .plsw{position:relative;align-self:stretch;flex:none;height:22px;transition:height .25s}
-.pll.cur .plsw{--sh:clamp(84px,15vh,140px);height:calc(var(--sh) * (1 + .3 * (var(--r,1) - 1)) / var(--r,1));background:color-mix(in srgb,var(--ink) 3%,transparent)}
+.pll:is(.cur,.open) .plsw{--sh:clamp(84px,15vh,140px);height:calc(var(--sh) * (1 + .3 * (var(--r,1) - 1)) / var(--r,1));background:color-mix(in srgb,var(--ink) 3%,transparent)}
 /* Twelve or nine lines: the lines not being sung a little smaller, so more fit. */
-.plview.dense .pll:not(.cur,.nxt) .pnt{font-size:calc(clamp(10px,100cqi / var(--cols) * .18,12px) * var(--ts))}
-.plview.dense .pll:not(.cur,.nxt) .ply,.plview.dense .pll:not(.cur,.nxt):not(.words) .pnt{font-size:calc(clamp(12px,100cqi / var(--cols) * .26,18px) * var(--ts))}
-.plview.dense .pll:not(.cur) .plsw{height:14px}
+.plview.dense .pll:not(.cur,.nxt,.open) .pnt{font-size:calc(clamp(10px,100cqi / var(--cols) * .18,12px) * var(--ts))}
+.plview.dense .pll:not(.cur,.nxt,.open) .ply,.plview.dense .pll:not(.cur,.nxt,.open):not(.words) .pnt{font-size:calc(clamp(12px,100cqi / var(--cols) * .26,18px) * var(--ts))}
+.plview.dense .pll:not(.cur,.open) .plsw{height:14px}
 .plview.dense .pll:not(.cur) .pln{padding-top:4px;padding-bottom:4px}
 .pls{display:block;width:100%;height:100%;overflow:hidden}
 .nb{stroke:var(--ink-2);stroke-opacity:.5;stroke-width:3px;vector-effect:non-scaling-stroke}
-.pll.cur .nb{stroke-width:7px;stroke-opacity:.3;stroke-linecap:round}
+.pll:is(.cur,.open) .nb{stroke-width:7px;stroke-opacity:.3;stroke-linecap:round}
 .pll.cur .plb.now .nb{stroke:var(--brass);stroke-opacity:1}
 .sg{stroke:var(--rule);stroke-width:1px;vector-effect:non-scaling-stroke}
 .sg.sa{stroke:var(--margin);stroke-width:1.5px}
 .vt{fill:none;stroke:var(--ink-2);stroke-width:1.5px;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
-.pll.cur .vt{stroke-width:2.6px}
+.pll:is(.cur,.open) .vt{stroke-width:2.6px}
+/* Looking back (Rinat, 2026-10-19): a tap or click on a line opens it to full size, and again
+   closes it; an opened line shows each beat's cents under its strip, in its mark's colour. The
+   button that does the same shows only when focused from the keyboard. */
+.plbeats{cursor:zoom-in}
+.pll.open .plbeats{cursor:zoom-out}
+@media (hover:hover){.pll:not(.cur,.open):hover{background:color-mix(in srgb,var(--ink) 4%,var(--sheet))}}
+.pll.open:not(.cur){background:color-mix(in srgb,var(--ink) 2.5%,var(--sheet))}
+.pll.open .plb[data-c]::after{content:attr(data-c);font-size:12px;font-weight:700;line-height:1.5;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pll.open .plb.pg-good::after{color:var(--good)}
+.pll.open .plb.pg-ok::after{color:var(--warn)}
+.pll.open .plb.pg-off::after{color:var(--red-ink)}
+.plopen{position:absolute;top:4px;right:4px;z-index:3;padding:2px 10px;border:1px solid var(--line);border-radius:999px;background:var(--sheet);color:var(--ink);font-size:12px;clip-path:inset(50%);white-space:nowrap}
+.plopen:focus-visible{clip-path:none;outline:2px solid var(--focus);outline-offset:1px}
 .vt.good{stroke:var(--good)}.vt.ok{stroke:var(--warn)}.vt.off{stroke:var(--red-ink)}
 /* The beat sounding: a highlighter down its column; the beats already sung faded a little. */
 .plb.now{background:color-mix(in srgb,var(--mark) 70%,transparent)}
@@ -855,7 +870,7 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .pgb.ok{background:color-mix(in srgb,var(--warn) 34%,transparent)}
 .pgb.off{background:color-mix(in srgb,var(--red-ink) 28%,transparent)}
 .pgc{position:absolute;left:-4px;right:-4px;top:50%;height:2px;margin-top:-1px;border-radius:1px;background:var(--ink-2);opacity:.55}
-.pgm{position:absolute;left:-9px;right:-9px;top:50%;height:7px;margin-top:-3.5px;border-radius:4px;border:1.5px solid var(--sheet);background:var(--ink-2);transition:top .1s linear,background-color .15s,opacity .2s}
+.pgm{position:absolute;left:-9px;right:-9px;top:50%;height:7px;margin-top:-3.5px;border-radius:4px;border:1.5px solid var(--sheet);background:var(--ink-2);transition:top .06s linear,background-color .15s,opacity .2s}
 .pgauge.idle .pgm{opacity:0}
 .pgv{font-size:14px;font-weight:700;line-height:1.2;min-height:1.2em;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
 .pgauge.good :is(.pgn,.pgv){color:var(--good)}.pgauge.good .pgm{background:var(--good)}
@@ -882,7 +897,7 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
   .kb{height:120px}
   .tfn{font-size:9.5px}
   .plsw{height:18px}
-  .pll.cur .plsw{--sh:clamp(72px,12vh,110px)}
+  .pll:is(.cur,.open) .plsw{--sh:clamp(72px,12vh,110px)}
   .plhd{padding-left:calc(var(--numw) + 8px)}
   .pl.gauged{--gw:22px}
   .pgauge{gap:3px;padding:6px 0 8px}

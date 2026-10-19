@@ -13,7 +13,7 @@ import { Mic, MicError, micProblemText, type MicReading } from '../audio/mic';
 import type { BeatEntry } from '../audio/transport';
 import type { ParsedSong } from '../core/notation/types';
 import { beatNotes, centsFromSa, eventsByBeat, nearestNote, PitchTracker, type LineResult, type NoteResult, type Section } from '../core/pitch/track';
-import { closeness, ragColour, type LinesUI } from './lines';
+import { centsText, closeness, ragColour, type LinesUI } from './lines';
 import { beatNoteHTML, type Script } from './view';
 
 export interface PitchHost {
@@ -91,7 +91,8 @@ export function initPitch(host: PitchHost): PitchUI {
   }
 
   const WAITING = 'The microphone listens while the song plays. Press play and sing.';
-  const LISTENING = 'Listening. The gauge at the end of the line shows how close you are: up is sharp, down is flat.';
+  /** After a run: how to look back at it. */
+  const REVIEW = 'Tap a line to open it and see how you sang each beat.';
 
   /** "Check my pitch" switched on: ready for the next play (or listening now, if playing). */
   function turnOn(): void {
@@ -129,7 +130,7 @@ export function initPitch(host: PitchHost): PitchUI {
       mic = m;
       if (tracker && host.lag.get() == null) tracker.lag = m.latency();
       setButton(true, 'Listening');
-      message(LISTENING);
+      message('');
       raf = requestAnimationFrame(draw);
     } catch (e) {
       wanted = false;
@@ -168,6 +169,7 @@ export function initPitch(host: PitchHost): PitchUI {
 
   function clearMarks(): void {
     for (const el of document.querySelectorAll('.pg-good,.pg-ok,.pg-off,.pg-miss')) el.classList.remove('pg-good', 'pg-ok', 'pg-off', 'pg-miss');
+    for (const el of document.querySelectorAll<HTMLElement>('[data-c]')) delete el.dataset.c;
     marks.clear();
   }
 
@@ -181,6 +183,9 @@ export function initPitch(host: PitchHost): PitchUI {
     for (const el of host.beatEls(g)) {
       el.classList.remove('pg-good', 'pg-ok', 'pg-off', 'pg-miss');
       el.classList.add('pg-' + cls);
+      // The cents, shown when the line is opened to look back at it.
+      if (r.status === 'sung') el.dataset.c = centsText(r.cents);
+      else delete el.dataset.c;
     }
   }
 
@@ -223,10 +228,11 @@ export function initPitch(host: PitchHost): PitchUI {
 
   // ── Drawing ────────────────────────────────────────────────────────────────
 
-  /** The median distance of the last ~200 ms of readings from a target, in cents: one
-   * cycle of vibrato, so the gauge shows the pitch sung rather than its swing. */
+  /** The median distance of the last ~100 ms of readings from a target, in cents: enough
+   * that a wobble does not shake the gauge, short so that it answers the voice quickly (it
+   * was ~200 ms until 2026-10-19). */
   function steady(target: (r: MicReading) => number | null): number | null {
-    const last = recent.slice(-9);
+    const last = recent.slice(-5);
     if (!last.length || !last[last.length - 1]!.hz) return null;
     const v = last.filter((r) => r.hz).map(target).filter((c): c is number => c != null).sort((a, b) => a - b);
     return v.length ? v[v.length >> 1]! : null;
@@ -261,7 +267,10 @@ export function initPitch(host: PitchHost): PitchUI {
         const c = steady((r) => (r.t - tracker!.lag >= from && r.t - tracker!.lag < note.t1 ? tracker!.errorFor(r.hz, note) : null));
         if (c != null || !latest?.hz) showGauge(c, '', sungAbs);
       }
-      lagEl.textContent = 'Delay ' + Math.round(tracker.lag * 1000) + ' ms';
+      // The delay found from the singing, and the part the device itself reports (sound out
+      // and in): the rest is how far behind the guide the voice comes.
+      const lag = 'Delay ' + Math.round(tracker.lag * 1000) + ' ms · device ' + Math.round(mic.latency() * 1000) + ' ms';
+      if (lagEl.textContent !== lag) lagEl.textContent = lag;
       drawVoice(sa);
     } else {
       const c = steady((r) => nearestNote(centsFromSa(r.hz, sa)).off);
@@ -352,6 +361,7 @@ export function initPitch(host: PitchHost): PitchUI {
       settle(true);
       const s = tracker.summary();
       showAverage(true);
+      if (s) message(REVIEW);
       host.lag.set(tracker.lag);
       tracker = null;
       return s ? { score: s.score, lines: s.lines } : null;
