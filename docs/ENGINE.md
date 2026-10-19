@@ -253,7 +253,7 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   readings is "not sung" (not scored, but counted in the share sung); one too short to judge
   is skipped. Lines and runs are the duration-weighted mean. Any octave counts unless the
   singer asks for the octave too. Rounds where the guide plays in "every other round" are for
-  listening, so not scored. The text under the lines calls a note in tune within 15 cents.
+  listening, so not scored. The gauge (below) calls a note in tune within 15 cents.
 - **Shown** (Rinat, 2026-10-15) on the Practice view's lines (`src/app/lines.ts`): each
   reading is placed on its beat (from the beats scheduled, moved back by the delay) and drawn
   on that line's pitch strip over the note bars, green within 15 cents of the note expected,
@@ -264,6 +264,16 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   as each line finishes, tinted the same way, and is the run's score at the end. A line's
   drawing is wiped when a new round of it starts. *Why on the lines:* the eye is already on
   the line being sung, so the voice is drawn where the notes are, not in a separate box.
+- **The gauge** (Rinat, 2026-10-19, in place of a line of text under the lines: "maybe
+  showing the cents vertically"): while the pitch check is on, a column at the end of every
+  line, filled in the line being sung (`gaugeHTML`, `gaugeY`). It shows the note sung (the
+  nearest to the voice), a scale with the note expected across its middle (green within 15
+  cents, amber within 35, red to 50, the marker held at the end beyond), a marker that slides
+  up when sharp and down when flat, as on the strip, and the cents (`centsText`; not on a
+  phone, where the column is 22 px). The marker is the median of the last ~200 ms of this
+  note's readings, so vibrato does not swing it; with no note expected it shows "Rest", and
+  outside a section the distance to the nearest note. It follows the voice, so it is a
+  delay behind the lit beat.
 - **Not yet:** timing (early or late) in the score. It needs the true round-trip delay, and
   the delay found from the singing includes the singer's own lateness.
 - **End to end:** `tests/unit/pitch-track.test.ts` drives the real transport, synthesises a

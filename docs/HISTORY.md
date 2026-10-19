@@ -49,6 +49,41 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-16 BST — Claude (Opus 5.5) — PH2-18 the note pad in the dock
+
+- **Goal:** Rinat: "please also add the buttons for the notes at the bottom. even on desktop,
+  i would use the buttons because i am not a very good bangla keyboard user".
+- **Inspected:** `padHTML`, `renderNoteButtons`, the pad's click handler, `setInsOct`; the
+  bar's show rule (half of `#fixRow` in view).
+- **Changed:** `8ea48d2` (feat(edit)): view.ts: `padKey` (one key, captioned or not, shared
+  by `padHTML`, whose output is unchanged), `dockKeysHTML`; index.html: the dock's notes row
+  (`#ffNotes`: `#ffLower`, `#ffOct`, `#ffKeys`, `#ffUpper`) above the info and tools;
+  app.ts: `renderNoteButtons` draws the dock's keys and octave buttons too, one handler
+  (`onPad`) for both pads, the info refreshed after a note or hold in the beat boxes,
+  `keepToolsInView` watching the whole `.padwrap` (visible share of the screen's height when
+  taller); styles: the dock (one row on a laptop, two on a phone), its keys the pad's,
+  smaller; tests (pad: `dockKeysHTML`). This commit (docs): NOTATION (Beat boxes), ROADMAP
+  (Phase 2 row 18), this file (the PH2-16 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`, real clicks):
+  - `npm run typecheck` → 0; `npx vitest run` → 36 files, 380 passed. `npm run build` →
+    229.8 kB JS (81.4 kB gzip), 54.9 kB CSS; `bash reference/tests/run-all.sh` →
+    31/11/10/12/5 passed, 12 exercises valid.
+  - The 29-line Dadra song at 1280 × 900: the pad in view, no dock; at line 22 the dock (905
+    × 105 px). Line 22's second box clicked, then the dock's গা and মা: "সা গা মা | পা পা -";
+    its › : "Upper" in the dock and "Upper octave · তার" on the pad; সা and Hold: "সা গা মা |
+    র্সা - -"; New line and পা: line 23 "র্পা". Night checked.
+  - 360 × 780 touch phone, day and night: the dock 166 px tall, the naturals 35 px wide and
+    the rest 30 px, no sideways scrolling; line 6's second box, then ধা from the dock:
+    "রামা ধা রা | সা .না -", the info "রা · line 6" (the box now lit).
+  - CI run `38969986778` (`8ea48d2`): core, reference and deploy jobs green. Live: the bundle index-CfSa2qeP.js served; the 29-line Dadra song at line 22: the dock shown, its গা into line 22's second box ("সা গা - | পা পা -"), the info naming the next box.
+- **Decisions made:** see Decisions (the note pad in the dock).
+- **Risks or disagreements:** the dock takes about 105 px of a laptop's screen and 166 px of a
+  phone's while it shows (the page is padded so nothing is out of reach). Heading is not in
+  the dock (the pad above has it). A ghost box lit (the empty end of a line) shows "Choose a
+  beat box" in the info, as before.
+- **Next handoff:** Rinat enters a long song from the dock.
+
 ### 2026-10-16 BST — Claude (Opus 5.5) — PH2-17 the tools kept in view
 
 - **Goal:** Rinat, to Claude's offer to keep the octave, Join and Split buttons in view in a

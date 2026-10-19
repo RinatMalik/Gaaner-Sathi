@@ -90,6 +90,7 @@ Begun 2026-10-11 with Rinat's comments on the screen as it is ("mostly design am
 | 17 | **The tools kept in view:** Undo, Lower, Higher, Join and Split in a bar at the foot of the screen while the boxes or text are on it and the tools beside the pad are not | 2026-10-16 | Rinat edits a long song without scrolling up to the tools |
 | 18 | **The note pad in the dock:** the pad's keys (notes, komal and tivra, Hold, Silence, New line) and octave buttons join the tools at the foot of the screen | 2026-10-16 | Rinat enters a long song's notes from the dock, on a laptop and a phone |
 | 19 | **The next line readable ahead:** in Practice, the line after the one being sung has its words and notes as big; its pitch strip, and the rest, stay small | 2026-10-19 | Rinat reads the coming line while singing |
+| 20 | **The pitch gauge:** in place of the text under the lines, a vertical gauge at the end of the line being sung: the note sung, a scale green, amber and red either side of the note expected, a marker sliding up when sharp and down when flat, the cents | 2026-10-19 | Rinat sings with the pitch check on and finds the gauge easier to read than the text |
 
 ## Phase 3: native mobile app
 
