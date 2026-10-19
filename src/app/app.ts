@@ -2083,6 +2083,13 @@ export function init(): void {
         savePrefs();
       },
     },
+    devLag: {
+      get: () => prefs.deviceLag,
+      set: (v) => {
+        prefs.deviceLag = v;
+        savePrefs();
+      },
+    },
   });
   rewaz = initRewaz({
     choices: pickerGroups,

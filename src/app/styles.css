@@ -358,6 +358,9 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .pchip.good{color:var(--good);border-color:var(--good)}.pchip.ok{color:var(--warn);border-color:var(--warn)}.pchip.off{color:var(--red-ink);border-color:var(--red-ink)}
 .pchip.sum{background:var(--chip)}
 .phint{font-size:13px;color:var(--ink-2)}
+.pmeasure{flex-wrap:nowrap}
+.pmeasure .phint{min-width:0;max-width:46ch}
+@media (max-width:520px){.pmeasure{flex-wrap:wrap}}
 
 /* Rewaz (new): routines, the bar shown while one runs, and the Progress view. */
 .btn.primary{background:var(--brass);border-color:var(--brass);color:var(--brass-ink);font-weight:600}

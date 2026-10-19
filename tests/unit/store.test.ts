@@ -51,6 +51,14 @@ describe('preferences', () => {
     expect([q.beat, q.droneVol, q.soundOpen]).toEqual(['kit', 0.4, false]);
   });
 
+  it('keep the delays found and measured, when they could be real (Rinat, 2026-10-19)', () => {
+    const S = new Memory();
+    S.setItem(STORE_KEYS.prefs, JSON.stringify({ pitchLag: 0.21, deviceLag: 0.046 }));
+    expect([loadPrefs(S).pitchLag, loadPrefs(S).deviceLag]).toEqual([0.21, 0.046]);
+    S.setItem(STORE_KEYS.prefs, JSON.stringify({ pitchLag: 2, deviceLag: -0.01 }));
+    expect([loadPrefs(S).pitchLag, loadPrefs(S).deviceLag]).toEqual([undefined, undefined]);
+  });
+
   it('fall back to the defaults for values the controls cannot make', () => {
     const S = new Memory();
     S.setItem(STORE_KEYS.prefs, JSON.stringify({ beat: 'banjo', tablaVol: 7, reeds: '3', speed: null, layers: 'x', rampMax: -5, soundOpen: 'yes', tab: 'other' }));

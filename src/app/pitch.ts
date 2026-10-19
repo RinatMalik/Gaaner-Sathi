@@ -5,10 +5,14 @@
  * a gauge at the end of the line being sung showing the note sung and how close it is (Rinat,
  * 2026-10-19: in place of a line of text under the lines).
  * Readings, expected notes and scores come from src/core/pitch/track.ts; the microphone from
- * src/audio/mic.ts. "Check my pitch" switches it on; the microphone then listens only while a
+ * src/audio/mic.ts. The device's own delay can be measured with clicks (src/audio/latency.ts;
+ * Rinat, 2026-10-19): the voice is then drawn when it was sung, and the delay under the lines
+ * says how much is the device's and how much the voice's.
+ * "Check my pitch" switches it on; the microphone then listens only while a
  * song plays (Rinat, 2026-10-12): it comes on when playing starts or goes on after a pause, and
  * goes off when it stops or pauses.
  */
+import { measureDelay } from '../audio/latency';
 import { Mic, MicError, micProblemText, type MicReading } from '../audio/mic';
 import type { BeatEntry } from '../audio/transport';
 import type { ParsedSong } from '../core/notation/types';
@@ -30,6 +34,8 @@ export interface PitchHost {
   /** Whether the octave must match, and the delay found last time (seconds). */
   octave: { get(): boolean; set(v: boolean): void };
   lag: { get(): number | undefined; set(v: number): void };
+  /** The device's own delay (sound out and back in) as last measured, seconds. */
+  devLag: { get(): number | undefined; set(v: number): void };
   /** The Practice view's lines: the voice is drawn on their strips, each line's score beside it. */
   lines: Pick<LinesUI, 'voice' | 'voiceOff' | 'lineScore' | 'clearRun' | 'gaugeOn' | 'gauge'>;
 }
@@ -63,6 +69,8 @@ export function initPitch(host: PitchHost): PitchUI {
   const scoresEl = $('#pScores');
   const octBox = $<HTMLInputElement>('#pOct');
   const lagEl = $('#pLag');
+  const measureBtn = $<HTMLButtonElement>('#pMeasure');
+  const measureMsg = $('#pMeasureMsg');
 
   /** "Check my pitch" is on; the microphone is wanted now (playing); it is open; opening. */
   let armed = false;
@@ -267,9 +275,11 @@ export function initPitch(host: PitchHost): PitchUI {
         const c = steady((r) => (r.t - tracker!.lag >= from && r.t - tracker!.lag < note.t1 ? tracker!.errorFor(r.hz, note) : null));
         if (c != null || !latest?.hz) showGauge(c, '', sungAbs);
       }
-      // The delay found from the singing, and the part the device itself reports (sound out
-      // and in): the rest is how far behind the guide the voice comes.
-      const lag = 'Delay ' + Math.round(tracker.lag * 1000) + ' ms · device ' + Math.round(mic.latency() * 1000) + ' ms';
+      // The delay found from the singing, and the device's part (sound out and back in):
+      // measured, the rest is how far behind (or ahead of) the guide the voice comes; else
+      // the device's own figure.
+      const dev = host.devLag.get();
+      const lag = 'Delay ' + ms(tracker.lag) + (dev != null ? ': the device ' + ms(dev) + ', your voice ' + ms(Math.abs(tracker.lag - dev)) + (tracker.lag >= dev ? ' behind' : ' ahead of') + ' the guide' : ' · the device says ' + ms(mic.latency()));
       if (lagEl.textContent !== lag) lagEl.textContent = lag;
       drawVoice(sa);
     } else {
@@ -305,7 +315,11 @@ export function initPitch(host: PitchHost): PitchUI {
       if (r.t <= drawnT) continue;
       drawnT = r.t;
       const t = r.t - tracker.lag;
-      const at = placeOf(t);
+      // Where it goes: when it was sung, once the device's own delay is measured (so the line
+      // keeps up with the playhead, and a voice behind the guide shows behind its notes); else
+      // lined up with its notes. Its colour is always against the note being sung.
+      const dev = host.devLag.get();
+      const at = placeOf(dev != null ? r.t - dev : t);
       if (!at) continue;
       if (!r.hz) {
         host.lines.voice(at.s, at.pass, at.f, null, false, '');
@@ -318,6 +332,42 @@ export function initPitch(host: PitchHost): PitchUI {
       } else host.lines.voice(at.s, at.pass, at.f, centsFromSa(r.hz, sa), true, 'free');
     }
   }
+
+  // ── Measuring the device's delay ───────────────────────────────────────────
+
+  const ms = (s: number) => Math.round(s * 1000) + ' ms';
+  function showMeasured(): void {
+    const d = host.devLag.get();
+    measureMsg.textContent = d == null
+      ? 'Hold an earphone against the microphone (or turn the speakers up), keep quiet, and press it: eight clicks are played and timed.'
+      : 'Your device’s delay: ' + ms(d) + ', sound out and back in. Measure again after changing headphones or speakers.';
+  }
+  measureBtn.addEventListener('click', async () => {
+    if (host.section() || mic || starting) {
+      measureMsg.textContent = 'Stop the song first, then measure.';
+      return;
+    }
+    const ctx = host.audio();
+    if (!ctx) {
+      measureMsg.textContent = micProblemText('unsupported');
+      return;
+    }
+    measureBtn.disabled = true;
+    measureMsg.textContent = 'Listening for the clicks: keep quiet for six seconds…';
+    try {
+      const r = await measureDelay(ctx);
+      if (r.delay == null) measureMsg.textContent = 'The clicks were not heard clearly (' + r.heard + ' of ' + r.of + '). Hold an earphone right against the microphone, or turn the volume up, and try again.';
+      else {
+        host.devLag.set(r.delay);
+        showMeasured();
+      }
+    } catch (e) {
+      measureMsg.textContent = micProblemText(e instanceof MicError ? e.problem : 'other');
+    } finally {
+      measureBtn.disabled = false;
+    }
+  });
+  showMeasured();
 
   // ── Wiring ─────────────────────────────────────────────────────────────────
 
