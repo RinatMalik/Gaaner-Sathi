@@ -12,7 +12,9 @@
  * score. Beside the line being sung, a taal figure draws each vibhag as a shape with a corner
  * for each beat (a square for four beats, a triangle for three, a lens for two), the edges
  * drawn on through each beat so a shape closes as its last beat ends, the corner of the beat
- * sounding lit. The HTML builders are pure and tested in Node; initLines wires them to the page.
+ * sounding lit. While "Check my pitch" is on, a gauge at the end of the line being sung shows
+ * how close the voice is to the note (Rinat, 2026-10-19). The HTML builders are pure and tested
+ * in Node; initLines wires them to the page.
  */
 import { asTaals, placeIn, type Taals } from '../core/notation/taalmap';
 import type { NotesLine, ParsedSong } from '../core/notation/types';
@@ -190,6 +192,40 @@ export function ragColour(score: number): string {
   return 'color-mix(in srgb, var(--good) ' + Math.round(((score - 75) / 20) * 100) + '%, var(--warn))';
 }
 
+// ── The pitch gauge ──────────────────────────────────────────────────────────
+
+/** How close a reading is to the note expected: in tune within 15 cents, close within 35 (as
+ * the voice is coloured and the beats marked), off beyond. */
+export const IN_TUNE = 15;
+export const CLOSE = 35;
+export const closeness = (cents: number): 'good' | 'ok' | 'off' => (Math.abs(cents) <= IN_TUNE ? 'good' : Math.abs(cents) <= CLOSE ? 'ok' : 'off');
+
+/** The gauge's reach either way, in cents (a quarter tone): beyond it the marker stays at the end. */
+export const GAUGE_REACH = 50;
+
+/** Where the gauge's marker sits for a reading `cents` off the note, in percent from its top:
+ * sharp up and flat down, as on the pitch strip. */
+export const gaugeY = (cents: number): number => 50 - (clamp(cents, -GAUGE_REACH, GAUGE_REACH) / GAUGE_REACH) * 50;
+
+/** A reading's cents as the gauge writes them: whole and signed ("+12", "−8", "0"). */
+export function centsText(cents: number): string {
+  const n = Math.round(cents);
+  return n > 0 ? '+' + n : n < 0 ? '−' + -n : '0';
+}
+
+/** The pitch gauge (Rinat, 2026-10-19), at the end of the line being sung while the pitch check
+ * is on: the note sung above, a scale as tall as the line with the note expected across its
+ * middle (in tune green, close amber, off red, each band as tall as its share of the reach), a
+ * marker sliding up when sharp and down when flat, and the cents under it. */
+export function gaugeHTML(): string {
+  const band = (cls: string, a: number, b: number) => '<span class="pgb ' + cls + '" style="top:' + gaugeY(b) + '%;height:' + (gaugeY(a) - gaugeY(b)) + '%"></span>';
+  const R = GAUGE_REACH;
+  return '<div class="pgauge idle" role="img" aria-label="Pitch gauge: how close your voice is to the note, sharp above the middle, flat below">' +
+    '<span class="pgn" aria-hidden="true"></span><span class="pgs" aria-hidden="true"><span class="pgt">' +
+    band('off', CLOSE, R) + band('ok', IN_TUNE, CLOSE) + band('good', -IN_TUNE, IN_TUNE) + band('ok', -CLOSE, -IN_TUNE) + band('off', -R, -CLOSE) +
+    '</span><span class="pgc"></span><span class="pgm"></span></span><span class="pgv" aria-hidden="true"></span></div>';
+}
+
 // ── Wiring ───────────────────────────────────────────────────────────────────
 
 export interface LinesHost {
@@ -232,6 +268,12 @@ export interface LinesUI {
   clearRun(): void;
   /** The cells of song beat g, for the marks of how each beat was sung. */
   cells(g: number): readonly HTMLElement[];
+  /** The pitch gauge shown at the end of the line being sung (the pitch check on), or not. */
+  gaugeOn(on: boolean): void;
+  /** The gauge: the note sung (HTML; '' for none), how far the voice is from the note expected
+   * in cents (null: no marker) and so how close (`good`, `ok`, `off`, or ''), and a word in place
+   * of the cents when there are none (a rest). */
+  gauge(note: string, cents: number | null, cls: string, label: string): void;
 }
 
 interface Seg {
@@ -272,6 +314,15 @@ export function initLines(host: LinesHost): LinesUI {
   const dot = document.createElement('span');
   dot.className = 'pldot';
   dot.setAttribute('aria-hidden', 'true');
+  const tmp = document.createElement('div');
+  tmp.innerHTML = gaugeHTML();
+  const gEl = tmp.firstElementChild as HTMLElement;
+  const gNote = gEl.querySelector<HTMLElement>('.pgn')!;
+  const gMark = gEl.querySelector<HTMLElement>('.pgm')!;
+  const gVal = gEl.querySelector<HTMLElement>('.pgv')!;
+  /** The gauge is on; what it shows (drawn every frame, so only changes touch the page). */
+  let gaugeShown = false;
+  const gNow = { note: '', y: '', cls: '', v: '' };
 
   function build(): void {
     dirty = false;
@@ -282,6 +333,7 @@ export function initLines(host: LinesHost): LinesUI {
     head.remove();
     dot.remove();
     fig.el?.remove();
+    gEl.remove();
     list.innerHTML = html;
     lines = Array.from(list.querySelectorAll<HTMLElement>('.pll'));
     cellsOf.clear();
@@ -313,7 +365,11 @@ export function initLines(host: LinesHost): LinesUI {
   function layout(): void {
     if (!host.shown() || !view.clientWidth) return;
     const numW = lines[0]?.querySelector<HTMLElement>('.pln')?.offsetWidth ?? 60;
-    const cols = columnsFor(maxBeats, view.clientWidth - numW - 2, matchMedia('(max-width:520px)').matches ? 32 : 46);
+    // The gauge's column, when on; on a phone a beat may then be a little narrower, so that
+    // eight beats still go across a 360 px screen.
+    const gw = gaugeShown ? parseFloat(getComputedStyle(view).getPropertyValue('--gw')) || 0 : 0;
+    const phone = matchMedia('(max-width:520px)').matches;
+    const cols = columnsFor(maxBeats, view.clientWidth - numW - gw - 2, phone ? (gaugeShown ? 30 : 32) : 46);
     if (cols !== shownCols) {
       shownCols = cols;
       list.style.setProperty('--cols', String(cols));
@@ -396,6 +452,7 @@ export function initLines(host: LinesHost): LinesUI {
         if (fig.el) L.querySelector('.pln')!.appendChild(fig.el);
         gridFor(n);
       }
+      placeGauge();
       if (lines[was]) clearGrid(was);
       for (const k of [was, was + 1, n, n + 1]) setState(k);
       if (!playing) beat(-1);
@@ -564,6 +621,41 @@ export function initLines(host: LinesHost): LinesUI {
     } else dot.remove();
   }
 
+  /** The gauge goes at the end of the line being sung, while it is on. */
+  function placeGauge(): void {
+    const L = lines[cur];
+    if (gaugeShown && L) {
+      if (gEl.parentElement !== L) L.appendChild(gEl);
+    } else gEl.remove();
+  }
+
+  function gaugeOn(on: boolean): void {
+    if (on === gaugeShown) return;
+    gaugeShown = on;
+    view.parentElement?.classList.toggle('gauged', on);
+    gauge('', null, '', '');
+    placeGauge();
+    shownCols = 0;
+    if (host.shown()) refresh();
+  }
+
+  function gauge(note: string, cents: number | null, cls: string, label: string): void {
+    if (note !== gNow.note) gNote.innerHTML = gNow.note = note;
+    const y = cents == null ? '' : gaugeY(cents).toFixed(1) + '%';
+    if (y !== gNow.y) {
+      gNow.y = y;
+      gEl.classList.toggle('idle', !y);
+      if (y) gMark.style.top = y;
+    }
+    if (cls !== gNow.cls) {
+      gEl.classList.remove('good', 'ok', 'off');
+      if (cls) gEl.classList.add(cls);
+      gNow.cls = cls;
+    }
+    const v = cents == null ? label : centsText(cents);
+    if (v !== gNow.v) gVal.textContent = gNow.v = v;
+  }
+
   /** A line sung: its score in its number box, tinted by it. */
   function showScore(n: number, score: number): void {
     const box = lines[n]?.querySelector<HTMLElement>('.pln');
@@ -619,5 +711,7 @@ export function initLines(host: LinesHost): LinesUI {
       dot.remove();
     },
     cells: (g) => cellsOf.get(g) ?? [],
+    gaugeOn,
+    gauge,
   };
 }

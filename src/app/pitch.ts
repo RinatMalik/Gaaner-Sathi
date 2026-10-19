@@ -2,7 +2,8 @@
  * Pitch feedback on the Practice view (docs/ROADMAP.md → Pitch feedback): the microphone
  * button, the voice drawn on each line's pitch strip against the notes (lines.ts), a mark on
  * each beat sung, a score for each line, the run's average as it goes (Rinat, 2026-10-15), and
- * a line of text saying how close the voice is.
+ * a gauge at the end of the line being sung showing the note sung and how close it is (Rinat,
+ * 2026-10-19: in place of a line of text under the lines).
  * Readings, expected notes and scores come from src/core/pitch/track.ts; the microphone from
  * src/audio/mic.ts. "Check my pitch" switches it on; the microphone then listens only while a
  * song plays (Rinat, 2026-10-12): it comes on when playing starts or goes on after a pause, and
@@ -12,7 +13,7 @@ import { Mic, MicError, micProblemText, type MicReading } from '../audio/mic';
 import type { BeatEntry } from '../audio/transport';
 import type { ParsedSong } from '../core/notation/types';
 import { beatNotes, centsFromSa, eventsByBeat, nearestNote, PitchTracker, type LineResult, type NoteResult, type Section } from '../core/pitch/track';
-import { ragColour, type LinesUI } from './lines';
+import { closeness, ragColour, type LinesUI } from './lines';
 import { beatNoteHTML, type Script } from './view';
 
 export interface PitchHost {
@@ -30,7 +31,7 @@ export interface PitchHost {
   octave: { get(): boolean; set(v: boolean): void };
   lag: { get(): number | undefined; set(v: number): void };
   /** The Practice view's lines: the voice is drawn on their strips, each line's score beside it. */
-  lines: Pick<LinesUI, 'voice' | 'voiceOff' | 'lineScore' | 'clearRun'>;
+  lines: Pick<LinesUI, 'voice' | 'voiceOff' | 'lineScore' | 'clearRun' | 'gaugeOn' | 'gauge'>;
 }
 
 export interface PitchUI {
@@ -53,14 +54,11 @@ export interface PitchUI {
 /** A score's colour class: in tune, close, or off; and a note not sung. */
 const grade = (score: number) => (score >= 85 ? 'good' : score >= 60 ? 'ok' : 'off');
 const RANK: Record<string, number> = { good: 0, ok: 1, off: 2, miss: 3 };
-/** How close a reading is to the note expected: in tune within 15 cents, close within 35. */
-const closeness = (cents: number) => (Math.abs(cents) <= 15 ? 'good' : Math.abs(cents) <= 35 ? 'ok' : 'off');
 
 export function initPitch(host: PitchHost): PitchUI {
   const $ = <T extends HTMLElement>(s: string) => document.querySelector(s) as T;
   const btn = $('#micBtn');
   const box = $('#pitchBox');
-  const noteEl = $('#pNote');
   const msgEl = $('#pMsg');
   const scoresEl = $('#pScores');
   const octBox = $<HTMLInputElement>('#pOct');
@@ -88,20 +86,12 @@ export function initPitch(host: PitchHost): PitchUI {
     btn.setAttribute('aria-pressed', String(on));
     $('#micLab').textContent = label;
   }
-  // Drawn every frame, so the text is only touched when it changes.
-  function message(text: string, cls = ''): void {
+  function message(text: string): void {
     if (msgEl.textContent !== text) msgEl.textContent = text;
-    const c = 'pmsg' + (cls ? ' ' + cls : '');
-    if (msgEl.className !== c) msgEl.className = c;
-  }
-  let noteShown = '';
-  function sungNote(html: string): void {
-    if (noteShown === html) return;
-    noteShown = html;
-    noteEl.innerHTML = html;
   }
 
   const WAITING = 'The microphone listens while the song plays. Press play and sing.';
+  const LISTENING = 'Listening. The gauge at the end of the line shows how close you are: up is sharp, down is flat.';
 
   /** "Check my pitch" switched on: ready for the next play (or listening now, if playing). */
   function turnOn(): void {
@@ -109,7 +99,7 @@ export function initPitch(host: PitchHost): PitchUI {
     box.hidden = false;
     setButton(true, 'Pitch check on');
     message(WAITING);
-    sungNote('');
+    host.lines.gaugeOn(true);
     if (host.section()) startRun();
   }
 
@@ -118,6 +108,7 @@ export function initPitch(host: PitchHost): PitchUI {
     armed = false;
     setButton(false, 'Check my pitch');
     box.hidden = true;
+    host.lines.gaugeOn(false);
   }
 
   /** Open the microphone (playing has started, or gone on). */
@@ -138,12 +129,13 @@ export function initPitch(host: PitchHost): PitchUI {
       mic = m;
       if (tracker && host.lag.get() == null) tracker.lag = m.latency();
       setButton(true, 'Listening');
-      message('Sing…');
+      message(LISTENING);
       raf = requestAnimationFrame(draw);
     } catch (e) {
       wanted = false;
       armed = false;
       setButton(false, 'Check my pitch');
+      host.lines.gaugeOn(false);
       message(micProblemText(e instanceof MicError ? e.problem : 'other'));
     } finally {
       starting = false;
@@ -160,9 +152,9 @@ export function initPitch(host: PitchHost): PitchUI {
     raf = 0;
     recent = [];
     host.lines.voiceOff();
+    host.lines.gauge('', null, '', '');
     if (!armed) return;
     setButton(true, 'Pitch check on');
-    sungNote('');
     message(text);
   }
 
@@ -232,7 +224,7 @@ export function initPitch(host: PitchHost): PitchUI {
   // ── Drawing ────────────────────────────────────────────────────────────────
 
   /** The median distance of the last ~200 ms of readings from a target, in cents: one
-   * cycle of vibrato, so the text shows the pitch sung rather than its swing. */
+   * cycle of vibrato, so the gauge shows the pitch sung rather than its swing. */
   function steady(target: (r: MicReading) => number | null): number | null {
     const last = recent.slice(-9);
     if (!last.length || !last[last.length - 1]!.hz) return null;
@@ -240,17 +232,15 @@ export function initPitch(host: PitchHost): PitchUI {
     return v.length ? v[v.length >> 1]! : null;
   }
 
-  function showMeter(cents: number | null, label: string, sungCents: number | null): void {
-    if (cents == null) message(label);
-    else {
-      const n = Math.round(Math.abs(cents));
-      message(Math.abs(cents) <= 15 ? 'In tune' : n + ' cents ' + (cents > 0 ? 'sharp' : 'flat'), closeness(cents));
-    }
-    if (sungCents == null) sungNote('');
-    else {
+  /** The gauge: the note sung (`sungCents` from Sa) and `cents` off the note expected, or
+   * `label` in place of the cents. */
+  function showGauge(cents: number | null, label: string, sungCents: number | null): void {
+    let note = '';
+    if (sungCents != null) {
       const nn = nearestNote(sungCents);
-      sungNote('You: <b>' + beatNoteHTML({ units: [{ k: 'note', semi: nn.semi, oct: nn.oct }] }, host.script()) + '</b>');
+      note = beatNoteHTML({ units: [{ k: 'note', semi: nn.semi, oct: nn.oct }] }, host.script());
     }
+    host.lines.gauge(note, cents, cents == null ? '' : closeness(cents), label);
   }
 
   function draw(): void {
@@ -263,19 +253,20 @@ export function initPitch(host: PitchHost): PitchUI {
     if (tracker && host.section()) {
       const live = tracker.live();
       const note = live?.note ?? null;
-      if (!note) showMeter(null, latest && latest.hz ? 'Rest' : 'Sing…', sungAbs);
+      if (!note) showGauge(null, latest && latest.hz ? 'Rest' : '', sungAbs);
       else {
         // Only this note's readings, past its first moments (as when scoring), so a note
         // change never shows the last note's pitch against the new one.
         const from = note.t0 + Math.min(0.08, 0.3 * (note.t1 - note.t0));
         const c = steady((r) => (r.t - tracker!.lag >= from && r.t - tracker!.lag < note.t1 ? tracker!.errorFor(r.hz, note) : null));
-        if (c != null || !latest?.hz) showMeter(c, 'Sing…', sungAbs);
+        if (c != null || !latest?.hz) showGauge(c, '', sungAbs);
       }
       lagEl.textContent = 'Delay ' + Math.round(tracker.lag * 1000) + ' ms';
       drawVoice(sa);
     } else {
       const c = steady((r) => nearestNote(centsFromSa(r.hz, sa)).off);
-      showMeter(c, 'Sing a note: the text shows how close it is to the nearest one.', sungAbs);
+      // No note expected (not in a section): how close to the nearest note.
+      showGauge(c, '', sungAbs);
     }
   }
 

@@ -351,8 +351,6 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .pn{position:absolute;top:2px;bottom:2px;width:6px;margin-left:-3px;border-radius:3px;background:var(--ink)}
 .pn.good{background:var(--good)}.pn.ok{background:var(--warn)}.pn.off{background:var(--red-ink)}
 .pmsg{font-weight:600;min-width:0}
-.pnote{font-size:14px;color:var(--ink-2)}
-.pnote b{font-family:var(--f-note);font-weight:400;font-size:20px;color:var(--ink)}
 .pscores{display:flex;flex-wrap:wrap;gap:6px}
 .pscores:empty{display:none}
 .pchip{font-size:13px;font-weight:600;padding:1px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2)}
@@ -757,7 +755,7 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .pllist::after{content:"";display:block;height:var(--pltail,0px)}
 .plhd{font-family:var(--f-note);font-size:15px;color:var(--ink-2);padding:6px 14px 3px calc(var(--numw) + 12px);border-bottom:1px solid var(--rule)}
 .plempty{padding:28px 20px;color:var(--ink-2);text-align:center}
-.pll{display:grid;grid-template-columns:var(--numw) minmax(0,1fr);border-bottom:1px solid var(--rule);transition:background-color .25s}
+.pll{display:grid;grid-template-columns:var(--numw) minmax(0,1fr) var(--gw,0px);border-bottom:1px solid var(--rule);transition:background-color .25s}
 .pll.past .plbeats{opacity:.5}
 .plbeats{transition:opacity .25s}
 .pll.cur{background:color-mix(in srgb,var(--brass) 7%,var(--sheet))}
@@ -842,6 +840,28 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .tfv.done{fill:var(--vk);stroke:var(--vk)}
 .tfv.on{fill:var(--brass);stroke:var(--brass-ink);transform:scale(1.6)}
 .tfn{font-size:11px;font-weight:600;line-height:1.2;color:var(--ink-2);overflow-wrap:anywhere}
+/* The pitch gauge (Rinat, 2026-10-19): a column at the end of every line while the pitch check
+   is on (so the beats stay one under another), filled in the line being sung: the note sung,
+   a scale with the note expected across its middle (green within 15 cents, amber within 35,
+   red to 50), a marker that slides up when sharp and down when flat, as on the strip, and the
+   cents. Its colour is how close the voice is. */
+.pl.gauged{--gw:60px}
+.pgauge{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;padding:8px 0 10px;border-left:1px solid var(--rule)}
+.pgn{font-family:var(--f-note);font-size:22px;line-height:1.25;min-height:1.25em;color:var(--ink-2);white-space:nowrap}
+.pgs{position:relative;flex:1 1 auto;width:18px;min-height:60px}
+.pgt{position:absolute;inset:0;border-radius:8px;overflow:hidden;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 10%,transparent)}
+.pgb{position:absolute;left:0;right:0}
+.pgb.good{background:color-mix(in srgb,var(--good) 45%,transparent)}
+.pgb.ok{background:color-mix(in srgb,var(--warn) 34%,transparent)}
+.pgb.off{background:color-mix(in srgb,var(--red-ink) 28%,transparent)}
+.pgc{position:absolute;left:-4px;right:-4px;top:50%;height:2px;margin-top:-1px;border-radius:1px;background:var(--ink-2);opacity:.55}
+.pgm{position:absolute;left:-9px;right:-9px;top:50%;height:7px;margin-top:-3.5px;border-radius:4px;border:1.5px solid var(--sheet);background:var(--ink-2);transition:top .1s linear,background-color .15s,opacity .2s}
+.pgauge.idle .pgm{opacity:0}
+.pgv{font-size:14px;font-weight:700;line-height:1.2;min-height:1.2em;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pgauge.good :is(.pgn,.pgv){color:var(--good)}.pgauge.good .pgm{background:var(--good)}
+.pgauge.ok :is(.pgn,.pgv){color:var(--warn)}.pgauge.ok .pgm{background:var(--warn)}
+.pgauge.off :is(.pgn,.pgv){color:var(--red-ink)}.pgauge.off .pgm{background:var(--red-ink)}
+@media (prefers-reduced-motion:reduce){.pgm{transition:none}}
 /* Under the lines: the keys to press, and how the voice is doing while the pitch check is on,
    with the run's average as it goes, tinted by it. */
 .plfoot{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:8px 14px;border-top:1px solid var(--rule)}
@@ -864,4 +884,11 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
   .plsw{height:18px}
   .pll.cur .plsw{--sh:clamp(72px,12vh,110px)}
   .plhd{padding-left:calc(var(--numw) + 8px)}
+  .pl.gauged{--gw:22px}
+  .pgauge{gap:3px;padding:6px 0 8px}
+  .pgn{font-size:13px}
+  .pgs{width:10px}
+  .pgc{left:-3px;right:-3px}
+  .pgm{left:-5px;right:-5px;height:6px;margin-top:-3px}
+  .pgv{display:none}
 }

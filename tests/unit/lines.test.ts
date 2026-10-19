@@ -1,7 +1,7 @@
 // The Practice view's lines (src/app/lines.ts): the layout, each line's strip and cells, and
 // the taal figure (Rinat, 2026-10-15).
 import { describe, expect, it } from 'vitest';
-import { columnsFor, figureProgress, linesHTML, ragColour, shapeCorners, shapePath, stripRange, stripY, taalFigureHTML } from '../../src/app/lines';
+import { centsText, closeness, columnsFor, figureProgress, gaugeHTML, gaugeY, linesHTML, ragColour, shapeCorners, shapePath, stripRange, stripY, taalFigureHTML } from '../../src/app/lines';
 import { parseSong } from '../../src/core/notation/parse';
 import { taalMap } from '../../src/core/notation/taalmap';
 import { taalInfo } from '../../src/core/taal/taals';
@@ -165,5 +165,33 @@ describe('the taal figure', () => {
     expect(ragColour(85)).toBe('color-mix(in srgb, var(--good) 50%, var(--warn))');
     expect(ragColour(95)).toBe('var(--good)');
     expect(ragColour(NaN)).toBe('var(--ink-2)');
+  });
+});
+
+describe('the pitch gauge (Rinat, 2026-10-19)', () => {
+  it('puts the note expected in the middle, sharp up and flat down, held at a quarter tone', () => {
+    expect(gaugeY(0)).toBe(50);
+    expect(gaugeY(25)).toBe(25);
+    expect(gaugeY(-25)).toBe(75);
+    expect(gaugeY(50)).toBe(0);
+    expect(gaugeY(-50)).toBe(100);
+    expect(gaugeY(180)).toBe(0);
+    expect(gaugeY(-90)).toBe(100);
+  });
+
+  it('writes the cents whole and signed', () => {
+    expect(centsText(12.4)).toBe('+12');
+    expect(centsText(-7.6)).toBe('−8');
+    expect(centsText(0.3)).toBe('0');
+    expect(centsText(-0.4)).toBe('0');
+  });
+
+  it('has bands for in tune, close and off, as the voice is coloured', () => {
+    expect([0, 15, -15, 16, 35, -35, 36, -80].map(closeness)).toEqual(['good', 'good', 'good', 'ok', 'ok', 'ok', 'off', 'off']);
+    const bands = Array.from(gaugeHTML().matchAll(/<span class="pgb (\w+)" style="top:([\d.]+)%;height:([\d.]+)%"/g), (m) => [m[1], +m[2]!, +m[3]!]);
+    // From the top: off (sharp), close, in tune across the middle, close, off (flat); end to end.
+    expect(bands).toEqual([['off', 0, 15], ['ok', 15, 20], ['good', 35, 30], ['ok', 65, 20], ['off', 85, 15]]);
+    expect(gaugeHTML()).toContain('class="pgauge idle"');
+    expect(gaugeHTML()).toContain('class="pgm"');
   });
 });
