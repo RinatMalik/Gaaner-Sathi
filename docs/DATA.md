@@ -120,8 +120,8 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `libFold` | The Music library's sections folded away, `{ mine?: true, ex?: true }`; absent: both open. A search shows every section |
 | `libOrder` | The Music library's sections in the order dragged, `["mine", "ex"]`; absent: the exercises first. The song pickers follow it |
 | `pitchOctave` | `true` when pitch feedback counts the octave too |
-| `pitchLag` | The delay from a beat to the voice, found last time, seconds (0–0.6) |
-| `deviceLag` | The device's own delay, sound out and back in, as last measured with clicks, seconds (0–0.6); absent until measured. Once set, the voice is drawn when it was sung |
+| `pitchLag` | No longer read (2026-10-19): the delay from a beat to the voice, fitted to the singing, which forgave lateness. The voice is judged at `deviceLag` |
+| `deviceLag` | The device's own delay, sound out and back in, as last measured with clicks, seconds (0–0.6); absent until measured (the device's own figure is used then). The voice is judged and drawn at it, when it was sung |
 | `rewazOpen` | The ids of the rewaz routines unfolded on the Rewaz view; absent: all folded. (`rewazId`, the routine last chosen, is no longer read) |
 | `theme` | `light` (Day) or `dark` (Night); absent: Auto, as the device says. Read by a line in the page's head before the app runs, so a reload never flashes the other colours |
 | `editMode` | `text` when the editor shows free text; absent: beat boxes |
@@ -244,7 +244,7 @@ in IndexedDB, never in song files; Download writes one as a mono 16-bit WAV file
 | `from`, `to`, `loop`, `rounds` | Lines played, whether they looped, rounds begun |
 | `tempo`, `flat` | The song's tempo then; a rewaz item's tempo, which every beat took, if one played |
 | `countIn`, `ramp`, `rampStep`, `rampMax` | The count-in and tempo trainer as they were, so playback is the same run |
-| `lag` | Seconds from a beat to the voice reaching the app; playback skips that much of the take |
+| `lag` | Seconds from a beat to the voice reaching the app; playback skips that much of the take. From 2026-10-19 the device's delay only (`deviceLag`, else its own figure), so a take is heard as it was sung; before, the delay fitted to the singing |
 | `sig` | A fingerprint of the notation then, to say when it has changed since |
 
 The samples are 16-bit, at `rate`, starting at the run's first scheduled beat (count-in

@@ -49,6 +49,56 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-19 BST — Claude (Opus 5.5) — PH2-21 looking back at a run; the delay
+
+- **Goal:** Rinat: remove "Listening. The gauge …" and put the average's chip on the left;
+  "the experience of inspecting my performance after finish singing is not great" (expand
+  lines "on mouse hover … or maybe on click"); "the delay is quite significant. why is that?
+  what can be done to reduce it?"
+- **Inspected:** the footer's markup; lines.ts `current`, `beat`, `layout`, the click on the
+  number box (app.ts, `.pln[data-n]`); pitch.ts `mark`, `steady`, `draw`; mic.ts (window
+  2048 samples, readings every 1024, timed at the window's middle on the context clock;
+  `latency()`); track.ts `refineLag`; the playhead (moved back by the output latency).
+- **Found:** each line's beats kept the faded mark (`.plb.past`, 45 %) after the next line
+  began, so every sung line stayed faded after a run. The delay is not processing: it is
+  sound out + the singer + sound in, measured from the singing, and already taken out of the
+  scores and the lines; the voice drawn trails the playhead by about the delay less the
+  output latency, and the gauge's own median added ~100 ms. The 260–280 ms in Claude's tests
+  is the test's own (the WAV starts 0.4 s early, as the microphone opens after play).
+- **Changed:** `6440f30` (feat(practice)): lines.ts: `.plopen` in each line, `setOpen`,
+  `reveal`, a click on a line opens or closes it, `opened` kept out of the layout's median,
+  the grid kept on opened lines, lines closed on a new run, the old line's beats unfaded when
+  the line changes; pitch.ts: no "Listening" text, `REVIEW` after a run, each beat's cents
+  (`data-c`, cleared on a new run), the delay with the device's part, `steady` over 5
+  readings; index.html: the average before the message; styles: opened lines (`.open` with
+  the line being sung's sizes, the cents under the strips, zoom cursors, a hover tint), the
+  focus-only button, `.pmsg:empty`, the gauge's 60 ms glide; tests (lines: the open button).
+  This commit (docs): ENGINE (Delay, the gauge, Looking back), ROADMAP (Phase 2 row 21), this
+  file (the PH2-19 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`, real clicks and keys; the synthesised singer of round
+  twenty as the microphone):
+  - `npm run typecheck` → 0; `npx vitest run` → 36 files, 384 passed. `npm run build` →
+    232.3 kB JS (82.2 kB gzip), 57.5 kB CSS; `bash reference/tests/run-all.sh` →
+    31/11/10/12/5 passed, 12 exercises valid.
+  - 1280 × 900: while singing, the footer the average chip, then the hints and "Delay 260
+    ms · device 62 ms", no message. Lines 2 and 3 opened while playing: 80 → 249 px, words
+    21 → 46 px, strips 22 → 135 px, 8 semitone lines, the cents "+27 +26 +22 +26 +27 +24 +25
+    +29" (sung +25) and "−45 −46 −43 −44 −46 −43 −44 −48" (sung −45), the view scrolled to
+    show them; closed again: 80 px. After Stop: "Average for this run" first, then "Tap a
+    line to open it and see how you sang each beat."; no line faded (was 0.45 on the words of
+    every line sung). Enter on the focused "Show line 3 in full" opens it and again closes
+    it. Night checked.
+  - 360 × 780 touch phone, night: line 3 opened after Stop: 63 → 162 px, strip 94 px, the
+    cents under each beat, no sideways scrolling.
+  - CI run `39240691532` (`6440f30`): core, reference and deploy jobs green. Live: bundle index-C3UNWd8Y.js; the synthesised singer stopped after three lines: the average first, then the look-back text, "Delay 340 ms · device 62 ms"; line 2 opened with its cents +21…+27.
+- **Decisions made:** see Decisions (looking back at a run).
+- **Risks or disagreements:** the delay itself is the device's and the singer's: the app can
+  only answer sooner (the gauge) and say which part is the device's; Bluetooth headphones may
+  under-report. Many lines opened make the view scroll more. The cents under a beat are its
+  worst note's when it has two.
+- **Next handoff:** Rinat looks back at a run, and says what headphones or speakers they use.
+
 ### 2026-10-19 BST — Claude (Opus 5.5) — PH2-20 the pitch gauge
 
 - **Goal:** Rinat, to Claude's proposal and mock-up: "Yes, build the vertical pitch gauge at

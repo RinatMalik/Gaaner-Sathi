@@ -238,15 +238,21 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   silence, hiss and plain noise read as no pitch; 0.24 ms a window on the dev laptop.
 - **Expected notes:** each scheduled matra (`onBeat`) gives the note pieces the guide plays
   in it; pieces of the same held note join up.
-- **Delay:** a reading belongs to the note scheduled `lag` seconds earlier (sound out, the
-  singer, sound back in). It starts from the device's figures (output, base and input
-  latency), or the delay found last time, and is refined from the singing every 1.5 s (0.5 s
-  until confirmed): the delay, 0–600 ms, at which most of the last 10 s of readings land
-  within half a semitone of their note. It only moves when another delay fits clearly better
-  (5 points), so long held notes leave it alone. *Why:* it works with headphones (Bluetooth
-  included) and needs no setup; a click-and-listen calibration through the speakers cannot
-  hear headphones. The scores are not hurt by it (each reading is judged against the note
-  sung `lag` earlier). (Rinat, 2026-10-19: "the delay is quite significant. why is that?")
+- **When it was sung** (Rinat, 2026-10-19: "i should see the real time true feedback so i
+  can work on my delay/lateness … trying to make it too clever that it misrepresents is not
+  the way to go. i don't care if scores drop if they are supposed"): a reading belongs to the
+  note that was playing when it was sung, as the singer heard it: `t − lag`, where `lag` is
+  only the device's delay, sound out and back in (measured, below; else the device's own
+  figure: output, base and input latency). Everything follows it: the voice drawn, its
+  colours, the gauge, the marks and the scores. Nothing is fitted to the singing. *Until
+  2026-10-19* the lag was fitted to the singing (the delay, 0–600 ms, at which most readings
+  landed on their notes), which took the singer's lateness off without saying so, and each
+  note was scored on its middle only.
+- **How far behind the guide** (`behind`): measured every second from the last 10 s of
+  singing, the shift (−200 to +600 ms) at which most readings land within half a semitone of
+  the note playing, the nearest to none where several fit as well (held notes). It is said
+  under the lines ("your voice 250 ms behind the guide", "with the guide" within 20 ms) and
+  never taken off anything.
 - **The device's delay, measured** (Rinat, 2026-10-19, a Scarlett 2i2: "let's solve it in
   desktop for now"): "Measure the delay" in Practice settings (Pitch) plays eight clicks
   (4 ms of falling noise, 0.6 s apart, the first 0.7 s after the microphone opens) and
@@ -255,25 +261,29 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   loudest sample is twice the quiet's (its 99.5th percentile, before the first click), at the
   first sample a third as loud (`src/audio/dsp/clicks.ts`). The median of five or more heard,
   the middle ones within 10 ms, is the device's delay, sound out and back in (`deviceLag`);
-  else it says how many were heard and to hold an earphone closer. The singer's part is then
-  `lag − deviceLag`. Under the lines: "Delay 280 ms: the device 50 ms, your voice 230 ms
-  behind the guide" (unmeasured: "· the device says 62 ms", its own figure, which Bluetooth
-  often under-reports). Once measured, the voice is drawn when it was sung (each reading at
-  `t − deviceLag`), not lined up with its notes: the line keeps up with the playhead, and a
-  voice behind the guide shows behind its notes; its colour, the gauge and the scores still
-  follow the note being sung (`t − lag`). *Why clicks through an earphone held to the
-  microphone:* with headphones the microphone cannot otherwise hear the app.
-- **Scores:** each note on its steady part (from 100 ms or 30 % in, to its last 10 %), so a
-  late or scooped start, or moving early to the next note, does not count against it (the
-  last 10 %: Rinat, 2026-10-15; it was the last 30 ms): the median distance in cents gives
-  100 within 10 cents, then 2 points a cent, 0 from 60. A note with voice in under half its
-  readings is "not sung" (not scored, but counted in the share sung); one too short to judge
-  is skipped. Lines and runs are the duration-weighted mean. Any octave counts unless the
-  singer asks for the octave too. Rounds where the guide plays in "every other round" are for
-  listening, so not scored. The gauge (below) calls a note in tune within 15 cents.
+  else it says how many were heard and to hold an earphone closer. Under the lines: "Device
+  delay 50 ms (measured) · your voice 250 ms behind the guide"; unmeasured, "Device delay
+  62 ms, as it says: measure it in Practice settings" (Bluetooth often under-reports it). A
+  take plays back skipping the device's delay, so it is heard as it was sung. *Why clicks
+  through an earphone held to the microphone:* with headphones the microphone cannot
+  otherwise hear the app.
+- **Scores** (Rinat, 2026-10-19): every reading while a note played scores 100 within 10
+  cents of it, then 2 points a cent less, 0 from 60, and 0 with no voice; the note's score is
+  their average, from its start to its end (only 25 ms at each end left out, half the
+  detector's window, where a reading also holds the next note). So a late, scooped or
+  early-leaving voice, and silence, count against the note. Its cents are the median once
+  the voice reached it (within 50 cents), and how late that was is kept (`arrive`). A note
+  with no voice at all is "not sung" and scores 0; one too short to judge (under 30 ms) is
+  skipped. Lines and runs are the duration-weighted mean of the notes judged. Any octave
+  counts unless the singer asks for the octave too. Rounds where the guide plays in "every
+  other round" are for listening, so not scored. The gauge (below) calls a note in tune
+  within 15 cents. (Until 2026-10-19: the median over the note's middle, from 100 ms in to
+  its last 10 %, and notes not sung left out of the score.)
 - **Shown** (Rinat, 2026-10-15) on the Practice view's lines (`src/app/lines.ts`): each
   reading is placed on its beat (from the beats scheduled, moved back by the delay) and drawn
-  on that line's pitch strip over the note bars, green within 15 cents of the note expected,
+  on that line's pitch strip over the note bars (every line of a song the same strip, its
+  lowest note to its highest with a semitone beyond each, so a note sits at the same height
+  in every line: Rinat, 2026-10-19), green within 15 cents of the note expected,
   amber within 35, red beyond, grey where no note is expected; with any octave counting it is
   drawn at the expected note's octave. Each beat sung gets a mark under its words; each line,
   when it finishes, its score in its number box, which is tinted from red (50 or less) through
@@ -288,29 +298,30 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   cents, amber within 35, red to 50, the marker held at the end beyond), a marker that slides
   up when sharp and down when flat, as on the strip, and the cents (`centsText`; not on a
   phone, where the column is 22 px). The marker is the median of the last ~100 ms of this
-  note's readings (five; ~200 ms until 2026-10-19, which made it slow to answer), gliding
-  60 ms to each new place, so a wobble does not shake it; with no note expected it shows "Rest", and
-  outside a section the distance to the nearest note. It follows the voice, so it is a
-  delay behind the lit beat.
+  note's readings from its start (five; ~200 ms until 2026-10-19, which made it slow to
+  answer), gliding 60 ms to each new place, so a wobble does not shake it; a voice still on
+  the last note shows as off. With no note expected it shows "Rest", and outside a section
+  the distance to the nearest note.
 - **Looking back** (Rinat, 2026-10-19: "the experience of inspecting my performance after
   finish singing is not great"): a tap or click on any line (not its number box, which plays
   from it) opens it to the size of the line being sung: the words big, the tall strip with
   its semitone lines, the voice drawn thick, and under each beat the cents of its mark's note
   (the worst note in the beat, as the mark; nothing for a note not sung), in the mark's
-  colour. Again closes it; a button shown only when focused does the same from the keyboard.
+  colour, and under that how late the voice reached it when 0.1 s or more ("265 ms late";
+  "0.27s" on a phone; "never reached"). Again closes it; a button shown only when focused does the same from the keyboard.
   Opened lines stay open through a pause or stop and close when a new run starts. *Why a tap,
   not hover:* lines opening under a moving pointer would push the rest about, and a phone has
   no hover. After a run the text under the lines says so.
-- **Not yet:** timing (early or late) in the score. The true round trip can now be measured
-  (above), so the singer's lateness is known once it is; scoring it is not built.
 - **End to end:** `tests/unit/pitch-track.test.ts` drives the real transport, synthesises a
-  singer (150 ms behind, vibrato, a scoop into each note, noise) and runs the detector on it:
-  in tune scores 100 with the delay found at 140 ms; 40 cents flat scores 43. In headless
-  Edge with a WAV as the microphone: in tune 100 on every line, 35 cents flat 50, the delay
-  found within the first line.
+  singer (a 150 ms round trip, vibrato, a scoop into each note, noise) and runs the detector
+  on it: with the round trip given, 90 or more and "with the guide"; given 40 ms instead (the
+  voice 110 ms behind), over 10 points lower and "110 ms behind"; 40 cents flat near 40. In
+  headless Edge with a WAV singer 240 ms behind the guide and the device's delay measured:
+  line scores 57, 45, 22, 58 (it was about 80 when the lag was fitted), each beat "~265 ms
+  late" with its cents as sung.
 - Works in any browser with AudioWorklet and a microphone (Chrome, Edge, Firefox, Safari
-  14.1+), on https or localhost. The first seconds of a first run on a new device may compare
-  against the wrong note until the delay is found.
+  14.1+), on https or localhost. Until the device's delay is measured, the device's own
+  figure is used; a wrong one (Bluetooth) makes a voice look late or early.
 
 ## The Voice tab
 
