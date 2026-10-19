@@ -821,7 +821,8 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .pll.open .plbeats{cursor:zoom-out}
 @media (hover:hover){.pll:not(.cur,.open):hover{background:color-mix(in srgb,var(--ink) 4%,var(--sheet))}}
 .pll.open:not(.cur){background:color-mix(in srgb,var(--ink) 2.5%,var(--sheet))}
-.pll.open .plb[data-c]::after{content:attr(data-c);font-size:12px;font-weight:700;line-height:1.5;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pll.open .plb[data-c]::after{content:attr(data-c);font-size:12px;font-weight:700;line-height:1.5;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:pre;text-align:center}
+.pll.open .plb[data-c][data-late]::after{content:attr(data-c) "\A" attr(data-late)}
 .pll.open .plb.pg-good::after{color:var(--good)}
 .pll.open .plb.pg-ok::after{color:var(--warn)}
 .pll.open .plb.pg-off::after{color:var(--red-ink)}
@@ -903,6 +904,8 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
   .pll:is(.cur,.open) .plsw{--sh:clamp(72px,12vh,110px)}
   .plhd{padding-left:calc(var(--numw) + 8px)}
   .pl.gauged{--gw:22px}
+  .pll.open .plb[data-c]::after{font-size:11px}
+  .pll.open .plb[data-c][data-late]::after{content:attr(data-c) "\A" attr(data-ls)}
   .pgauge{gap:3px;padding:6px 0 8px}
   .pgn{font-size:13px}
   .pgs{width:10px}

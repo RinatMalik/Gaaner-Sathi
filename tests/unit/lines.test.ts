@@ -1,7 +1,7 @@
 // The Practice view's lines (src/app/lines.ts): the layout, each line's strip and cells, and
 // the taal figure (Rinat, 2026-10-15).
 import { describe, expect, it } from 'vitest';
-import { centsText, closeness, columnsFor, figureProgress, gaugeHTML, gaugeY, linesHTML, ragColour, shapeCorners, shapePath, stripRange, stripY, taalFigureHTML } from '../../src/app/lines';
+import { centsText, closeness, columnsFor, figureProgress, gaugeHTML, gaugeY, linesHTML, ragColour, shapeCorners, shapePath, songRange, stripY, taalFigureHTML } from '../../src/app/lines';
 import { parseSong } from '../../src/core/notation/parse';
 import { taalMap } from '../../src/core/notation/taalmap';
 import { taalInfo } from '../../src/core/taal/taals';
@@ -28,15 +28,13 @@ describe('the lines’ layout', () => {
     expect(columnsFor(0, 300, 34)).toBe(1);
   });
 
-  it('gives each line a strip two semitones beyond its notes, at least ten tall', () => {
-    const P = parseSong('S R G M P\nS\nS\' R\' G\'\nx x');
-    expect(stripRange(P, 0)).toEqual({ lo: -200, hi: 900 });
-    // One note: centred in ten semitones.
-    expect(stripRange(P, 1)).toEqual({ lo: -500, hi: 500 });
-    // Upper Sa to Ga: widened a semitone below first, then above.
-    expect(stripRange(P, 2)).toEqual({ lo: 900, hi: 1900 });
-    // No notes: Sa to Pa's room.
-    expect(stripRange(P, 3)).toEqual({ lo: -200, hi: 900 });
+  it('gives every line of a song the same strip: its lowest note to its highest, a semitone beyond (Rinat, 2026-10-19)', () => {
+    // Sa to upper Ga.
+    expect(songRange(parseSong('S R G M P\nS\nS\' R\' G\'\nx x'))).toEqual({ lo: -100, hi: 1700 });
+    // Lower Dha to Ma; one note; no notes (Sa to Pa).
+    expect(songRange(parseSong('.D S\nM'))).toEqual({ lo: -400, hi: 600 });
+    expect(songRange(parseSong('P'))).toEqual({ lo: 600, hi: 800 });
+    expect(songRange(parseSong('x x'))).toEqual({ lo: -100, hi: 800 });
   });
 
   it('draws higher notes higher, inside the strip', () => {
@@ -57,7 +55,7 @@ describe('the lines', () => {
   it('shows the headings and each line with its number box, a button that plays from it', () => {
     expect(html.startsWith('<div class="plhd">স্থায়ী</div><div class="pll words" data-n="0"')).toBe(true);
     expect(html).toContain('<div class="plhd">অন্তরা · tempo 90</div>');
-    expect(html).toContain('<div class="pll words" data-n="0" data-lo="-200" data-hi="900"><button type="button" class="pln" data-n="0" aria-label="Play from line 1"><span class="plnum">1</span><span class="plst"></span><span class="plsc"></span></button><div class="plbeats">');
+    expect(html).toContain('<div class="pll words" data-n="0" data-lo="-100" data-hi="800"><button type="button" class="pln" data-n="0" aria-label="Play from line 1"><span class="plnum">1</span><span class="plst"></span><span class="plsc"></span></button><div class="plbeats">');
     expect(html).toContain('<button type="button" class="pln" data-n="2" aria-label="Play from line 3"><span class="plnum">3</span>');
   });
 
@@ -96,7 +94,7 @@ describe('the lines', () => {
   });
 
   it('draws a bar for each note at its height: inset where it starts and ends, carried across a held beat', () => {
-    const r = stripRange(P, 0);
+    const r = songRange(P);
     // সা at the bottom, পা held over two beats.
     expect(bars(html, 0)).toEqual([[5, 95, +stripY(0, r).toFixed(1)]]);
     expect(bars(html, 4)).toEqual([[5, 100, +stripY(700, r).toFixed(1)]]);
@@ -104,8 +102,9 @@ describe('the lines', () => {
     // Two notes in a beat; a silence has none; the same note twice shows as two bars.
     expect(bars(html, 11).map((b) => [b[0], b[1]])).toEqual([[5, 45], [55, 100]]);
     expect(bars(html, 10)).toEqual([]);
-    expect(bars(html, 8)).toEqual([[5, 95, +stripY(0, stripRange(P, 1)).toFixed(1)]]);
-    expect(html).toContain('data-n="0" data-lo="' + r.lo + '" data-hi="' + r.hi + '"');
+    expect(bars(html, 8)).toEqual([[5, 95, +stripY(0, r).toFixed(1)]]);
+    // Every line the same range: Sa to Pa, a semitone beyond.
+    expect(html.match(/data-lo="-100" data-hi="800"/g)).toHaveLength(P.noteLines.length);
   });
 
   it('says what to do when there are no notes yet', () => {

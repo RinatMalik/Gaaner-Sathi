@@ -36,31 +36,23 @@ export function columnsFor(maxBeats: number, width: number, minCol: number): num
   return c;
 }
 
-/** A line's pitch strip, in cents from Sa: two semitones above and below its notes, and at
- * least ten semitones tall, so a line of two notes is not drawn as a leap. */
-export function stripRange(P: ParsedSong, n: number): { lo: number; hi: number } {
-  const L = P.noteLines[n];
+/** The song's pitch strip, in cents from Sa, the same for every line so a note is always at
+ * the same height (Rinat, 2026-10-19): its grid runs from the song's lowest note to its
+ * highest, with a semitone's room beyond each for a voice above or below them. (Until then
+ * each line had its own, two semitones beyond its notes.) No notes: Sa to Pa. */
+export function songRange(P: ParsedSong): { lo: number; hi: number } {
   let min = Infinity;
   let max = -Infinity;
-  if (L) {
-    for (const e of P.events) {
-      if (e.start + e.dur <= L.start + 1e-9 || e.start >= L.end - 1e-9) continue;
-      const c = 100 * (e.semi + 12 * e.oct);
-      min = Math.min(min, c);
-      max = Math.max(max, c);
-    }
+  for (const e of P.events) {
+    const c = 100 * (e.semi + 12 * e.oct);
+    min = Math.min(min, c);
+    max = Math.max(max, c);
   }
   if (!Number.isFinite(min)) {
     min = 0;
     max = 700;
   }
-  let a = Math.floor(min / 100) - 2;
-  let b = Math.ceil(max / 100) + 2;
-  while (b - a < 10) {
-    a--;
-    if (b - a < 10) b++;
-  }
-  return { lo: 100 * a, hi: 100 * b };
+  return { lo: min - 100, hi: max + 100 };
 }
 
 /** Where a pitch is drawn in a strip (SVG units: 0 at the top, 100 at the bottom). */
@@ -98,7 +90,7 @@ export function linesHTML(P: ParsedSong, taals: TaalInfo | Taals, off: number, s
       html += '<div class="plhd">' + esc(it.text) + '</div>';
       continue;
     }
-    const r = stripRange(P, it.n);
+    const r = songRange(P);
     const run = M.line(it.n);
     const words = hasWords(it);
     let cells = '';

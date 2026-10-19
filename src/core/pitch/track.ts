@@ -4,9 +4,13 @@
  * and line. Pure (no DOM, no audio), so it is tested in Node.
  *
  * Times are AudioContext seconds, the clock that schedules the guide. A reading reaches the
- * app `lag` seconds after the beat it belongs to was scheduled (the sound out, the singer,
- * the sound back in), so it is compared with the note expected at `t − lag`. The lag
- * starts from the device's own latency figures and is refined from the singing itself.
+ * app `lag` seconds after the moment it was sung was heard: the device's delay, sound out and
+ * back in (measured with clicks, else the device's own figure). So each reading is compared
+ * with the note that was playing then, `t − lag`, as the singer heard it. Nothing is fitted
+ * to the singing (Rinat, 2026-10-19: "trying to make it too clever that it misrepresents is
+ * not the way to go"): a voice behind the guide is judged against the notes it was behind.
+ * How far behind it comes is measured from the singing and reported (`behind`), never used to
+ * judge. (Until 2026-10-19 the lag was fitted to the singing, which forgave lateness.)
  */
 import type { NoteEvent, ParsedSong } from '../notation/types';
 
@@ -37,20 +41,24 @@ export type NoteStatus = 'sung' | 'unsung' | 'short';
 
 export interface NoteResult {
   note: ExpectedNote;
-  /** sung: scored; unsung: hardly any voice; short: too short to judge. */
+  /** sung: some voice; unsung: no voice at all (scores 0); short: too short to judge. */
   status: NoteStatus;
-  /** Median distance from the note, cents (sharp is positive), and 0–100; NaN unless sung. */
+  /** The median distance of the voice from the note once it reached it, cents (sharp is
+   * positive); NaN unless sung. The score, 0–100: the average of every reading's, from the
+   * note's start (no voice scores 0); NaN when short. */
   cents: number;
   score: number;
   /** How much the pitch moved on the note (standard deviation, cents); NaN unless sung. */
   wobble: number;
+  /** Seconds from the note's start to the voice first within 50 cents of it; NaN if never. */
+  arrive: number;
 }
 
 export interface LineResult {
   line: number;
   pass: number;
-  /** Pitch score of the sung notes, 0–100 (NaN if none were sung), and the share of the
-   * judged notes that were sung, 0–1. */
+  /** Pitch score of the judged notes, by their time, unsung ones 0; 0–100 (NaN if none were
+   * judged); and the share of the judged notes with voice, 0–1. */
   score: number;
   sung: number;
 }
@@ -129,7 +137,7 @@ export function beatNotes(P: ParsedSong, byBeat: readonly number[][], q: PlacedB
 // ── The tracker ──────────────────────────────────────────────────────────────
 
 export interface TrackerOptions {
-  /** Seconds from a note's scheduled time to its reading, at first. */
+  /** The device's delay, sound out and back in, seconds: a reading belongs to `t − lag`. */
   lag: number;
   /** Any octave counts as the right note. */
   anyOctave: boolean;
@@ -137,22 +145,28 @@ export interface TrackerOptions {
   saHz: number;
 }
 
-/** How far the lag may be refined, seconds. */
-export const LAG_RANGE: readonly [number, number] = [0, 0.6];
+/** How far behind (or ahead of) the guide the voice is looked for, seconds. */
+export const BEHIND_RANGE: readonly [number, number] = [-0.2, 0.6];
+
+/** Left out at each end of a note: half the detector's window, where a reading also holds the
+ * note before or after. */
+export const EDGE = 0.025;
 
 export class PitchTracker {
+  /** Set once the microphone's own figure is known, when the delay was not measured. */
   lag: number;
+  /** How far behind the guide the voice comes, seconds (negative: ahead), from the last 10 s of
+   * singing; null until there is enough to say. Reported only. */
+  behind: number | null = null;
   /** Can change while singing: later notes follow it. */
   anyOctave: boolean;
   readonly saHz: number;
   /** Expected notes not yet scored, in time order. */
   private pending: ExpectedNote[] = [];
-  /** Recent notes (scored or not), for lookups and refining the lag. */
+  /** Recent notes (scored or not), for lookups and measuring how far behind the voice is. */
   private recent: ExpectedNote[] = [];
   private readings: Reading[] = [];
   private lastAlign = -Infinity;
-  /** Whether the singing has confirmed the lag yet; until then it is checked more often. */
-  private confirmed = false;
   /** Every note scored so far, and each line as it finishes. */
   readonly results: NoteResult[] = [];
   readonly lines: LineResult[] = [];
@@ -178,7 +192,7 @@ export class PitchTracker {
     }
   }
 
-  /** The note expected at a time (already moved back by the lag), if any. */
+  /** The note playing at a time (a reading's, moved back by the lag), if any. */
   expectedAt(t: number, notes: readonly ExpectedNote[] = this.recent): ExpectedNote | null {
     let lo = 0;
     let hi = notes.length - 1;
@@ -228,9 +242,9 @@ export class PitchTracker {
    * that has finished. `final` scores the rest as well (playing stopped). */
   settle(final = false): { notes: NoteResult[]; lines: LineResult[] } {
     const latest = this.readings.length ? this.readings[this.readings.length - 1]!.t - this.lag : -Infinity;
-    if (!final && latest - this.lastAlign >= (this.confirmed ? 1.5 : 0.5)) {
+    if (!final && latest - this.lastAlign >= 1) {
       this.lastAlign = latest;
-      this.refineLag(latest);
+      this.measureBehind(latest);
     }
     const notes: NoteResult[] = [];
     while (this.pending.length && (final || this.pending[0]!.t1 + 0.03 <= latest)) {
@@ -258,8 +272,8 @@ export class PitchTracker {
     return { notes, lines };
   }
 
-  /** The score of everything sung so far: by note time, and by line (each line's rounds
-   * together). Null until enough was sung to say. */
+  /** The score of everything judged so far, unsung notes 0: by note time, and by line (each
+   * line's rounds together). Null until something was sung. */
   summary(): { score: number; sung: number; lines: [number, number][] } | null {
     const sung = this.results.filter((r) => r.status === 'sung');
     if (sung.length < 4) return null;
@@ -267,68 +281,80 @@ export class PitchTracker {
     const w = (rs: NoteResult[]) => rs.reduce((a, r) => a + (r.note.t1 - r.note.t0), 0);
     const mean = (rs: NoteResult[]) => rs.reduce((a, r) => a + r.score * (r.note.t1 - r.note.t0), 0) / w(rs);
     const byLine = new Map<number, NoteResult[]>();
-    for (const r of sung) {
+    for (const r of judged) {
       if (!byLine.has(r.note.line)) byLine.set(r.note.line, []);
       byLine.get(r.note.line)!.push(r);
     }
     const lines = Array.from(byLine, ([line, rs]) => [line, Math.round(mean(rs))] as [number, number]).sort((a, b) => a[0] - b[0]);
-    return { score: Math.round(mean(sung)), sung: w(sung) / Math.max(1e-9, w(judged)), lines };
+    return { score: Math.round(mean(judged)), sung: w(sung) / Math.max(1e-9, w(judged)), lines };
   }
 
-  /** A note's score from its steady part: from 100 ms in (30 % of a short note), so a late or
-   * scooped start does not count, to its last 10 %, so moving early to the next note does not
-   * either (Rinat, 2026-10-15; it was the last 30 ms). */
+  /** A note's score: every reading while it played, each scored by how close it is (full
+   * marks within 10 cents, nothing from 60 off) and nothing where there is no voice, averaged.
+   * So a late, scooped or early-leaving voice counts against the note, as silence does (Rinat,
+   * 2026-10-19; until then its first 100 ms and last 10 % were left out and the median
+   * taken). Only `EDGE` at each end is left out, where a reading holds the next note too. */
   private scoreNote(n: ExpectedNote): NoteResult {
-    const dur = n.t1 - n.t0;
-    const a = n.t0 + Math.min(0.1, 0.3 * dur);
-    const b = n.t1 - 0.1 * dur;
-
-    const none = { note: n, cents: NaN, score: NaN, wobble: NaN };
-    if (b - a < 0.05) return { ...none, status: 'short' };
-    const errs: number[] = [];
+    const a = n.t0 + EDGE;
+    const b = n.t1 - EDGE;
+    const none = { note: n, cents: NaN, score: NaN, wobble: NaN, arrive: NaN };
+    if (b - a < 0.03) return { ...none, status: 'short' };
+    let errs: number[] = [];
     let count = 0;
+    let total = 0;
+    let arrive = NaN;
+    let from = 0;
     for (const r of this.readings) {
       const t = r.t - this.lag;
       if (t < a || t > b) continue;
       count++;
-      if (r.hz > 0) errs.push(this.errorFor(r.hz, n));
+      if (r.hz <= 0) continue;
+      const e = this.errorFor(r.hz, n);
+      total += noteScore(e);
+      if (Number.isNaN(arrive) && Math.abs(e) <= 50) {
+        arrive = t - n.t0;
+        from = errs.length;
+      }
+      errs.push(e);
     }
     if (count < 2) return { ...none, status: 'short' };
-    if (errs.length < Math.max(2, 0.5 * count)) return { ...none, status: 'unsung' };
+    if (!errs.length) return { ...none, status: 'unsung', score: 0 };
+    // The pitch it held: from when the voice reached the note (all of it, if it never did), so
+    // a late start shows as late, not as off pitch.
+    errs = errs.slice(from);
     const c = median(errs);
     const sd = Math.sqrt(errs.reduce((s, e) => s + (e - c) ** 2, 0) / errs.length);
-    return { note: n, status: 'sung', cents: c, score: noteScore(c), wobble: sd };
+    return { note: n, status: 'sung', cents: c, score: Math.round(total / count), wobble: sd, arrive };
   }
 
   /**
-   * Refine the lag from the last 10 s of singing: the delay at which the most readings land
-   * within half a semitone of the note expected. It moves only when another delay is
-   * clearly better, so a held note (which fits many delays) leaves it alone.
+   * How far behind the guide the voice comes, from the last 10 s of singing: the shift at
+   * which the most readings land within half a semitone of the note playing. Where several fit
+   * as well (held notes), the one nearest none. Reported, never used to judge.
    */
-  private refineLag(latest: number): void {
+  private measureBehind(latest: number): void {
     const from = latest - 10;
     const rs = this.readings.filter((r) => r.hz > 0 && r.t - this.lag >= from);
     if (rs.length < 60) return;
-    const fit = (lag: number) => {
+    const fit = (d: number) => {
       let hit = 0;
       for (const r of rs) {
-        const n = this.expectedAt(r.t - lag);
+        const n = this.expectedAt(r.t - this.lag - d);
         if (n && Math.abs(this.errorFor(r.hz, n)) < 50) hit++;
       }
       return hit / rs.length;
     };
-    let best = this.lag;
-    let bestFit = fit(this.lag);
-    const now = bestFit;
-    for (let lag = LAG_RANGE[0]; lag <= LAG_RANGE[1] + 1e-9; lag += 0.01) {
-      const f = fit(lag);
-      if (f > bestFit + 1e-9) {
+    let best = 0;
+    let bestFit = -1;
+    for (let k = Math.round(BEHIND_RANGE[0] * 100); k <= Math.round(BEHIND_RANGE[1] * 100); k++) {
+      const d = k / 100;
+      const f = fit(d);
+      if (f > bestFit + 1e-9 || (Math.abs(f - bestFit) <= 1e-9 && Math.abs(d) < Math.abs(best))) {
         bestFit = f;
-        best = lag;
+        best = d;
       }
     }
-    if (bestFit >= 0.4 && bestFit >= now + 0.05) this.lag = Math.round(best * 1000) / 1000;
-    if (Math.max(now, bestFit) >= 0.6) this.confirmed = true;
+    if (bestFit >= 0.4) this.behind = best;
   }
 
   /** Forget readings and notes more than 20 s old (scores are kept). */
@@ -343,6 +369,6 @@ function lineResult(line: number, pass: number, rs: readonly NoteResult[]): Line
   const judged = rs.filter((r) => r.status !== 'short');
   const sung = judged.filter((r) => r.status === 'sung');
   const w = (x: readonly NoteResult[]) => x.reduce((a, r) => a + (r.note.t1 - r.note.t0), 0);
-  const score = sung.length ? Math.round(sung.reduce((a, r) => a + r.score * (r.note.t1 - r.note.t0), 0) / w(sung)) : NaN;
+  const score = judged.length ? Math.round(judged.reduce((a, r) => a + r.score * (r.note.t1 - r.note.t0), 0) / w(judged)) : NaN;
   return { line, pass, score, sung: judged.length ? w(sung) / w(judged) : 0 };
 }

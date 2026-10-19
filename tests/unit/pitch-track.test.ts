@@ -1,5 +1,6 @@
-// Pitch feedback: expected notes from the schedule, scores per note and line, the lag found
-// from the singing, and the whole chain from a synthetic singer through the detector.
+// Pitch feedback: expected notes from the schedule, scores per note and line judged when the
+// voice was sung, how far behind the guide it comes, and the whole chain from a synthetic
+// singer through the detector.
 import { describe, expect, it } from 'vitest';
 import { saFreq } from '../../src/audio/dsp/pitch';
 import { PitchDetector, windowSize } from '../../src/audio/dsp/mpm';
@@ -77,7 +78,7 @@ describe('expected notes', () => {
 describe('scores', () => {
   const P = parseSong('সা রা গা মা\nপা ধা না র্সা');
 
-  it('scores each note on its steady part: in tune, sharp, an octave away, or not sung', () => {
+  it('scores each note by its readings: in tune, sharp, an octave away, or not sung', () => {
     const run = (hzAt: (n: ExpectedNote | null) => number, anyOctave = true) => {
       const tr = new PitchTracker({ lag: 0, anyOctave, saHz: SA });
       tr.addNotes(place(P, { spb: 0.6 }));
@@ -97,31 +98,46 @@ describe('scores', () => {
     expect(quiet.summary()).toBeNull();
   });
 
-  it('ignores a late or scooped start of each note', () => {
+  it('counts a late start against the note, and says how late it was (Rinat, 2026-10-19)', () => {
     const tr = new PitchTracker({ lag: 0, anyOctave: true, saHz: SA });
     tr.addNotes(place(P, { spb: 0.6 }));
-    // Each note starts 80 ms on the previous pitch (sliding in), then lands in tune.
+    // Each note starts 150 ms on the previous pitch, then lands in tune.
     readings(tr, 0, 4.9, (t) => {
       const n = tr.expectedAt(t);
       if (!n) return 0;
       const prev = tr.expectedAt(n.t0 - 0.01);
-      return t - n.t0 < 0.08 && prev ? hzOf(prev) : hzOf(n);
+      return t - n.t0 < 0.15 && prev ? hzOf(prev) : hzOf(n);
     });
     tr.settle(true);
-    expect(tr.results.every((r) => r.score === 100)).toBe(true);
+    const [first, ...rest] = tr.results;
+    expect([first!.score, first!.arrive < 0.05]).toEqual([100, true]);
+    // About a fifth of each note's readings on the wrong pitch: about 80, not 100.
+    expect(rest.every((r) => r.score >= 72 && r.score <= 85)).toBe(true);
+    expect(rest.every((r) => Math.abs(r.arrive - 0.15) < 0.025)).toBe(true);
+    // The pitch it held is still right.
+    expect(rest.every((r) => Math.abs(r.cents) < 1)).toBe(true);
   });
 
-  it('ignores the last 10 % of each note, where the voice may already be moving to the next', () => {
+  it('counts the end of a note too, and silence as nothing', () => {
     const tr = new PitchTracker({ lag: 0, anyOctave: true, saHz: SA });
     tr.addNotes(place(P, { spb: 0.6 }));
-    // In tune, then 50 cents sharp for the last 9 % (54 ms of 600): the steady part is steady.
+    // In tune, then 50 cents sharp for the last 15 % (90 ms of 600).
     readings(tr, 0, 4.9, (t) => {
       const n = tr.expectedAt(t);
       if (!n) return 0;
-      return hzOf(n, t > n.t1 - 0.09 * (n.t1 - n.t0) ? 50 : 0);
+      return hzOf(n, t > n.t1 - 0.15 * (n.t1 - n.t0) ? 50 : 0);
     });
     tr.settle(true);
-    expect(tr.results.map((r) => [r.score, r.wobble])).toEqual(Array(8).fill([100, 0]));
+    expect(tr.results.every((r) => r.score >= 85 && r.score < 100 && r.wobble > 0)).toBe(true);
+    // Half of each note silent: about half marks, and the notes still sung.
+    const half = new PitchTracker({ lag: 0, anyOctave: true, saHz: SA });
+    half.addNotes(place(P, { spb: 0.6 }));
+    readings(half, 0, 4.9, (t) => {
+      const n = half.expectedAt(t);
+      return n && t - n.t0 < 0.3 ? hzOf(n) : 0;
+    });
+    half.settle(true);
+    expect(half.results.every((r) => r.status === 'sung' && r.score >= 40 && r.score <= 60)).toBe(true);
   });
 
 
@@ -140,36 +156,42 @@ describe('scores', () => {
     expect(tr.summary()!.lines).toEqual([[0, 90], [1, 90]]);
   });
 
-  it('works out the delay from the singing, and leaves it alone on held notes', () => {
+  it('measures how far behind the guide the voice comes, and judges it where it was sung', () => {
+    // The device's delay 30 ms; the singer a further 150 ms behind the guide.
     const tr = new PitchTracker({ lag: 0.03, anyOctave: true, saHz: SA });
     const Q = parseSong(Array.from({ length: 6 }, () => 'সা রা গা মা পা ধা না র্সা').join('\n'));
     tr.addNotes(place(Q, { spb: 0.4 }));
-    const truth = 0.18;
     for (let t = 0; t < 19.5; t += 0.022) {
-      const n = tr.expectedAt(t - truth);
+      const n = tr.expectedAt(t - 0.18);
       tr.addReading({ t, hz: n ? hzOf(n, 3) : 0 });
       tr.settle();
     }
-    expect(Math.abs(tr.lag - truth)).toBeLessThanOrEqual(0.02);
-    // Long held notes fit many delays, so the delay stays put.
+    tr.settle(true);
+    expect(tr.lag).toBe(0.03);
+    expect(Math.abs(tr.behind! - 0.15)).toBeLessThanOrEqual(0.02);
+    // In tune, but over a third of each note late: not near 100.
+    expect(tr.summary()!.score).toBeLessThan(70);
+    // Long held notes fit any delay: none is said.
     const held = new PitchTracker({ lag: 0.05, anyOctave: true, saHz: SA });
     held.addNotes(place(parseSong('সা -া -া -া -া -া -া -া -া -া -া -া'), { spb: 0.8 }));
-    for (let t = 0; t < 9.5; t += 0.022) {
+    // Sung from when it was heard (the device's 50 ms on).
+    for (let t = 0.05; t < 9.5; t += 0.022) {
       held.addReading({ t, hz: SA });
       held.settle();
     }
-    expect(held.lag).toBe(0.05);
+    expect([held.lag, held.behind]).toEqual([0.05, 0]);
   });
 });
 
 describe('the whole chain: transport → expected notes, synthetic singer → detector → scores', () => {
-  function sing(detune: number, seed: number) {
+  /** `lag`: the device's delay given to the tracker (the singer's is 150 ms). */
+  function sing(detune: number, seed: number, lag = 0.15) {
     const ex = EXERCISES[2]!;
     const P = parseSong(ex.text);
     const rec = new RecordingContext();
     const T = new Transport(createEngine(rec as unknown as BaseAudioContext, seeded(seed)), () => {});
     const saHz = saFreq(ex);
-    const tr = new PitchTracker({ lag: 0.04, anyOctave: true, saHz });
+    const tr = new PitchTracker({ lag, anyOctave: true, saHz });
     const by = eventsByBeat(P);
     T.onBeat = (q, spb) => {
       if (q.pass >= 0) tr.addNotes(beatNotes(P, by, { time: q.time, s: q.s, pass: q.pass, spb }, T, true));
@@ -209,13 +231,20 @@ describe('the whole chain: transport → expected notes, synthetic singer → de
     return tr;
   }
 
-  it('scores a good singer near 100 and finds the round trip', () => {
+  it('scores a good singer near 100, with the guide', () => {
     const tr = sing(6, 1);
     const s = tr.summary()!;
-    expect(s.score).toBeGreaterThanOrEqual(95);
+    expect(s.score).toBeGreaterThanOrEqual(90);
     expect(s.sung).toBeGreaterThan(0.95);
-    expect(Math.abs(tr.lag - 0.15)).toBeLessThanOrEqual(0.03);
+    expect(Math.abs(tr.behind!)).toBeLessThanOrEqual(0.03);
     expect(s.lines.length).toBe(parseSong(EXERCISES[2]!.text).noteLines.length);
+  });
+
+  it('scores the same singer lower when 110 ms behind the guide, and says so', () => {
+    const on = sing(6, 1).summary()!.score;
+    const tr = sing(6, 1, 0.04);
+    expect(tr.summary()!.score).toBeLessThan(on - 10);
+    expect(Math.abs(tr.behind! - 0.11)).toBeLessThanOrEqual(0.03);
   });
 
   it('scores a singer 40 cents flat near 40', () => {

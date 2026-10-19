@@ -5,9 +5,11 @@
  * a gauge at the end of the line being sung showing the note sung and how close it is (Rinat,
  * 2026-10-19: in place of a line of text under the lines).
  * Readings, expected notes and scores come from src/core/pitch/track.ts; the microphone from
- * src/audio/mic.ts. The device's own delay can be measured with clicks (src/audio/latency.ts;
- * Rinat, 2026-10-19): the voice is then drawn when it was sung, and the delay under the lines
- * says how much is the device's and how much the voice's.
+ * src/audio/mic.ts. Everything is judged when it was sung, moved back only by the device's
+ * delay (measured with clicks, src/audio/latency.ts, else the device's own figure): the voice
+ * drawn, its colours, the gauge and the scores (Rinat, 2026-10-19: "i should see the real time
+ * true feedback so i can work on my delay/lateness"). How far behind the guide the voice comes
+ * is said under the lines.
  * "Check my pitch" switches it on; the microphone then listens only while a
  * song plays (Rinat, 2026-10-12): it comes on when playing starts or goes on after a pause, and
  * goes off when it stops or pauses.
@@ -31,9 +33,8 @@ export interface PitchHost {
   /** The section playing, or null; `listen`: rounds with the guide are for listening
    * (call and response), so they are not scored. */
   section(): (Section & { listen: boolean }) | null;
-  /** Whether the octave must match, and the delay found last time (seconds). */
+  /** Whether the octave must match. */
   octave: { get(): boolean; set(v: boolean): void };
-  lag: { get(): number | undefined; set(v: number): void };
   /** The device's own delay (sound out and back in) as last measured, seconds. */
   devLag: { get(): number | undefined; set(v: number): void };
   /** The Practice view's lines: the voice is drawn on their strips, each line's score beside it. */
@@ -136,7 +137,7 @@ export function initPitch(host: PitchHost): PitchUI {
         return;
       }
       mic = m;
-      if (tracker && host.lag.get() == null) tracker.lag = m.latency();
+      if (tracker && host.devLag.get() == null) tracker.lag = m.latency();
       setButton(true, 'Listening');
       message('');
       raf = requestAnimationFrame(draw);
@@ -177,7 +178,11 @@ export function initPitch(host: PitchHost): PitchUI {
 
   function clearMarks(): void {
     for (const el of document.querySelectorAll('.pg-good,.pg-ok,.pg-off,.pg-miss')) el.classList.remove('pg-good', 'pg-ok', 'pg-off', 'pg-miss');
-    for (const el of document.querySelectorAll<HTMLElement>('[data-c]')) delete el.dataset.c;
+    for (const el of document.querySelectorAll<HTMLElement>('[data-c],[data-late]')) {
+      delete el.dataset.c;
+      delete el.dataset.late;
+      delete el.dataset.ls;
+    }
     marks.clear();
   }
 
@@ -191,9 +196,19 @@ export function initPitch(host: PitchHost): PitchUI {
     for (const el of host.beatEls(g)) {
       el.classList.remove('pg-good', 'pg-ok', 'pg-off', 'pg-miss');
       el.classList.add('pg-' + cls);
-      // The cents, shown when the line is opened to look back at it.
+      // Shown when the line is opened to look back at it: the cents, and how late the voice
+      // reached the note when it was 0.1 s or more.
       if (r.status === 'sung') el.dataset.c = centsText(r.cents);
       else delete el.dataset.c;
+      if (r.status === 'sung' && !(r.arrive < 0.1)) {
+        const never = Number.isNaN(r.arrive);
+        el.dataset.late = never ? 'never reached' : (r.arrive >= 0.995 ? r.arrive.toFixed(1) + ' s' : Math.round(r.arrive * 1000) + ' ms') + ' late';
+        // Short, for a phone's narrow beats.
+        el.dataset.ls = never ? 'never' : r.arrive.toFixed(2) + 's';
+      } else {
+        delete el.dataset.late;
+        delete el.dataset.ls;
+      }
     }
   }
 
@@ -230,7 +245,7 @@ export function initPitch(host: PitchHost): PitchUI {
     drawnT = -Infinity;
     parsedAt = host.parsed();
     byBeat = eventsByBeat(parsedAt);
-    tracker = new PitchTracker({ lag: host.lag.get() ?? mic?.latency() ?? 0.15, anyOctave: !host.octave.get(), saHz: host.saHz() });
+    tracker = new PitchTracker({ lag: host.devLag.get() ?? mic?.latency() ?? 0.05, anyOctave: !host.octave.get(), saHz: host.saHz() });
     void listen();
   }
 
@@ -269,17 +284,15 @@ export function initPitch(host: PitchHost): PitchUI {
       const note = live?.note ?? null;
       if (!note) showGauge(null, latest && latest.hz ? 'Rest' : '', sungAbs);
       else {
-        // Only this note's readings, past its first moments (as when scoring), so a note
-        // change never shows the last note's pitch against the new one.
-        const from = note.t0 + Math.min(0.08, 0.3 * (note.t1 - note.t0));
-        const c = steady((r) => (r.t - tracker!.lag >= from && r.t - tracker!.lag < note.t1 ? tracker!.errorFor(r.hz, note) : null));
+        // This note's readings, from its start: a voice still on the last note shows so.
+        const c = steady((r) => (r.t - tracker!.lag >= note.t0 && r.t - tracker!.lag < note.t1 ? tracker!.errorFor(r.hz, note) : null));
         if (c != null || !latest?.hz) showGauge(c, '', sungAbs);
       }
-      // The delay found from the singing, and the device's part (sound out and back in):
-      // measured, the rest is how far behind (or ahead of) the guide the voice comes; else
-      // the device's own figure.
-      const dev = host.devLag.get();
-      const lag = 'Delay ' + ms(tracker.lag) + (dev != null ? ': the device ' + ms(dev) + ', your voice ' + ms(Math.abs(tracker.lag - dev)) + (tracker.lag >= dev ? ' behind' : ' ahead of') + ' the guide' : ' · the device says ' + ms(mic.latency()));
+      // The device's delay, measured or as it says; and how far behind the guide the voice
+      // has been coming (measured from the singing, not taken off anything).
+      const b = tracker.behind;
+      const lag = (host.devLag.get() != null ? 'Device delay ' + ms(tracker.lag) + ' (measured)' : 'Device delay ' + ms(tracker.lag) + ', as it says: measure it in Practice settings') +
+        (b == null ? '' : ' · your voice ' + (Math.abs(b) < 0.02 ? 'with the guide' : ms(Math.abs(b)) + (b > 0 ? ' behind' : ' ahead of') + ' the guide'));
       if (lagEl.textContent !== lag) lagEl.textContent = lag;
       drawVoice(sa);
     } else {
@@ -314,12 +327,9 @@ export function initPitch(host: PitchHost): PitchUI {
     for (const r of recent) {
       if (r.t <= drawnT) continue;
       drawnT = r.t;
+      // When it was sung, against the note playing then.
       const t = r.t - tracker.lag;
-      // Where it goes: when it was sung, once the device's own delay is measured (so the line
-      // keeps up with the playhead, and a voice behind the guide shows behind its notes); else
-      // lined up with its notes. Its colour is always against the note being sung.
-      const dev = host.devLag.get();
-      const at = placeOf(dev != null ? r.t - dev : t);
+      const at = placeOf(t);
       if (!at) continue;
       if (!r.hz) {
         host.lines.voice(at.s, at.pass, at.f, null, false, '');
@@ -412,7 +422,6 @@ export function initPitch(host: PitchHost): PitchUI {
       const s = tracker.summary();
       showAverage(true);
       if (s) message(REVIEW);
-      host.lag.set(tracker.lag);
       tracker = null;
       return s ? { score: s.score, lines: s.lines } : null;
 

@@ -1015,7 +1015,7 @@ function startTakeRun(from: number, loop: boolean): void {
   takeRun = {
     song: current.id, title: current.title, at: Date.now() + (runFirst - recorder.ctx.currentTime) * 1000, from, loop,
     tempo: current.tempo, countIn: !!s.countIn, ramp: !!s.ramp, rampStep: s.rampStep, rampMax: s.rampMax,
-    lag: prefs.pitchLag ?? recorder.latency(), sig: textSig(current.text),
+    lag: prefs.deviceLag ?? recorder.latency(), sig: textSig(current.text),
   };
   if (itemOverride?.tempo) takeRun.flat = itemOverride.tempo;
   recorder.begin(runFirst);
@@ -2073,13 +2073,6 @@ export function init(): void {
       set: (v) => {
         if (v) prefs.pitchOctave = true;
         else delete prefs.pitchOctave;
-        savePrefs();
-      },
-    },
-    lag: {
-      get: () => prefs.pitchLag,
-      set: (v) => {
-        prefs.pitchLag = v;
         savePrefs();
       },
     },
