@@ -786,8 +786,10 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .plv2{font-size:.7em;opacity:.85}
 .ply .held{opacity:.55}
 .pll:not(.words) .pnt{color:var(--ink);font-size:calc(clamp(13px,100cqi / var(--cols) * .3,21px) * var(--ts))}
-.pll.cur .pnt{font-size:calc(clamp(12px,100cqi / var(--cols) * .24,19px) * var(--ts))}
-.pll.cur .ply,.pll.cur:not(.words) .pnt{font-size:calc(clamp(17px,100cqi / var(--cols) * .46,46px) * var(--ts))}
+/* The line being sung and the next one, to read ahead (Rinat, 2026-10-19): words and notes as
+   big; only the one being sung has the tall strip, the tint and the figure. */
+.pll:is(.cur,.nxt) .pnt{font-size:calc(clamp(12px,100cqi / var(--cols) * .24,19px) * var(--ts))}
+.pll:is(.cur,.nxt) .ply,.pll:is(.cur,.nxt):not(.words) .pnt{font-size:calc(clamp(17px,100cqi / var(--cols) * .46,46px) * var(--ts))}
 .plb.bad .pnt{text-decoration:underline wavy var(--red-ink);text-underline-offset:.2em}
 .plg{flex:none;width:56%;height:3px;border-radius:2px;margin:2px 0}
 .plb.pg-good .plg{background:var(--good)}
@@ -797,8 +799,8 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .plsw{position:relative;align-self:stretch;flex:none;height:22px;transition:height .25s}
 .pll.cur .plsw{--sh:clamp(84px,15vh,140px);height:calc(var(--sh) * (1 + .3 * (var(--r,1) - 1)) / var(--r,1));background:color-mix(in srgb,var(--ink) 3%,transparent)}
 /* Twelve or nine lines: the lines not being sung a little smaller, so more fit. */
-.plview.dense .pll:not(.cur) .pnt{font-size:calc(clamp(10px,100cqi / var(--cols) * .18,12px) * var(--ts))}
-.plview.dense .pll:not(.cur) .ply,.plview.dense .pll:not(.cur):not(.words) .pnt{font-size:calc(clamp(12px,100cqi / var(--cols) * .26,18px) * var(--ts))}
+.plview.dense .pll:not(.cur,.nxt) .pnt{font-size:calc(clamp(10px,100cqi / var(--cols) * .18,12px) * var(--ts))}
+.plview.dense .pll:not(.cur,.nxt) .ply,.plview.dense .pll:not(.cur,.nxt):not(.words) .pnt{font-size:calc(clamp(12px,100cqi / var(--cols) * .26,18px) * var(--ts))}
 .plview.dense .pll:not(.cur) .plsw{height:14px}
 .plview.dense .pll:not(.cur) .pln{padding-top:4px;padding-bottom:4px}
 .pls{display:block;width:100%;height:100%;overflow:hidden}

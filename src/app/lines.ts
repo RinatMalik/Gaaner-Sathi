@@ -4,8 +4,10 @@
  * beat, each line shows its words big with the notes small above them (a line without words
  * shows its notes big), and under them a pitch strip: a bar for each note at its height and,
  * while "Check my pitch" listens, the voice drawn over it. The line being sung is large, with a
- * tall strip, the beat sounding lit and a playhead moving through it; the lines around it are
- * small; which place it takes, and how many lines show, are Practice settings. Each line's
+ * tall strip, the beat sounding lit and a playhead moving through it; the line after it has
+ * words and notes as big, to read ahead (Rinat, 2026-10-19), but keeps its small strip; the
+ * lines around them are small; which place it takes, and how many lines show, are Practice
+ * settings. Each line's
  * number box plays from that line; once sung it is tinted red, amber or green by the line's
  * score. Beside the line being sung, a taal figure draws each vibhag as a shape with a corner
  * for each beat (a square for four beats, a triangle for three, a lens for two), the edges
@@ -304,8 +306,9 @@ export function initLines(host: LinesHost): LinesUI {
     if (g >= 0) beat(g);
   }
 
-  /** Columns and the view's height: the line playing at its full size and the rest small. A
-   * line over more than one row (`--r`) shares the strip height of one among its rows. */
+  /** Columns and the view's height: the line playing at its full size, the next with its words
+   * as big, and the rest small. A line over more than one row (`--r`) shares the strip height
+   * of one among its rows. */
   let shownCols = 0;
   function layout(): void {
     if (!host.shown() || !view.clientWidth) return;
@@ -320,13 +323,14 @@ export function initLines(host: LinesHost): LinesUI {
         else l.style.removeProperty('--r');
       });
     }
-    const small = lines.filter((_, i) => i !== cur).map((l) => l.offsetHeight).sort((a, b) => a - b);
+    const small = lines.filter((_, i) => i !== cur && i !== cur + 1).map((l) => l.offsetHeight).sort((a, b) => a - b);
     const hc = small.length ? small[small.length >> 1]! : 64;
     smallH = hc;
     const hx = lines[cur]?.offsetHeight ?? hc;
+    const hn = lines[cur + 1]?.offsetHeight ?? hc;
     const rows = host.rows();
     view.classList.toggle('dense', rows >= 9);
-    view.style.setProperty('--plh', Math.round(hx + (rows - 1) * hc + 6) + 'px');
+    view.style.setProperty('--plh', Math.round(hx + (rows > 1 ? hn + (rows - 2) * hc : 0) + 6) + 'px');
     view.style.setProperty('--pltail', Math.round(Math.max(0, rows - place() - 1) * hc) + 'px');
   }
 
@@ -383,6 +387,8 @@ export function initLines(host: LinesHost): LinesUI {
     if (n !== was) {
       cur = n;
       lines[was]?.classList.remove('cur');
+      lines[was + 1]?.classList.remove('nxt');
+      lines[n + 1]?.classList.add('nxt');
       lines.forEach((l, i) => l.classList.toggle('past', playing && i < n));
       const L = lines[n];
       if (L) {
