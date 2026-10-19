@@ -121,6 +121,7 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `libOrder` | The Music library's sections in the order dragged, `["mine", "ex"]`; absent: the exercises first. The song pickers follow it |
 | `pitchOctave` | `true` when pitch feedback counts the octave too |
 | `pitchLag` | The delay from a beat to the voice, found last time, seconds (0–0.6) |
+| `deviceLag` | The device's own delay, sound out and back in, as last measured with clicks, seconds (0–0.6); absent until measured. Once set, the voice is drawn when it was sung |
 | `rewazOpen` | The ids of the rewaz routines unfolded on the Rewaz view; absent: all folded. (`rewazId`, the routine last chosen, is no longer read) |
 | `theme` | `light` (Day) or `dark` (Night); absent: Auto, as the device says. Read by a line in the page's head before the app runs, so a reload never flashes the other colours |
 | `editMode` | `text` when the editor shows free text; absent: beat boxes |

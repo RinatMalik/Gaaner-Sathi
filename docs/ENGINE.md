@@ -245,13 +245,24 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   within half a semitone of their note. It only moves when another delay fits clearly better
   (5 points), so long held notes leave it alone. *Why:* it works with headphones (Bluetooth
   included) and needs no setup; a click-and-listen calibration through the speakers cannot
-  hear headphones. Under the lines it reads "Delay 260 ms · device 60 ms": the second figure
-  is the device's own (output, base and input latency), the rest is how far behind the
-  guide the voice comes, plus any latency the device does not report (Bluetooth headphones
-  often add 150–250 ms that Windows does not). The scores and the lines are not hurt by it
-  (each reading is moved back by it); what shows it is the voice drawn, which trails the
-  playhead by about the delay less the output latency, and the gauge, which follows the
-  voice (Rinat, 2026-10-19: "the delay is quite significant. why is that?").
+  hear headphones. The scores are not hurt by it (each reading is judged against the note
+  sung `lag` earlier). (Rinat, 2026-10-19: "the delay is quite significant. why is that?")
+- **The device's delay, measured** (Rinat, 2026-10-19, a Scarlett 2i2: "let's solve it in
+  desktop for now"): "Measure the delay" in Practice settings (Pitch) plays eight clicks
+  (4 ms of falling noise, 0.6 s apart, the first 0.7 s after the microphone opens) and
+  records the microphone on the AudioContext clock (`src/audio/latency.ts`). Each click is
+  found in the recording differenced (hum and voice fall away): heard when its window's
+  loudest sample is twice the quiet's (its 99.5th percentile, before the first click), at the
+  first sample a third as loud (`src/audio/dsp/clicks.ts`). The median of five or more heard,
+  the middle ones within 10 ms, is the device's delay, sound out and back in (`deviceLag`);
+  else it says how many were heard and to hold an earphone closer. The singer's part is then
+  `lag − deviceLag`. Under the lines: "Delay 280 ms: the device 50 ms, your voice 230 ms
+  behind the guide" (unmeasured: "· the device says 62 ms", its own figure, which Bluetooth
+  often under-reports). Once measured, the voice is drawn when it was sung (each reading at
+  `t − deviceLag`), not lined up with its notes: the line keeps up with the playhead, and a
+  voice behind the guide shows behind its notes; its colour, the gauge and the scores still
+  follow the note being sung (`t − lag`). *Why clicks through an earphone held to the
+  microphone:* with headphones the microphone cannot otherwise hear the app.
 - **Scores:** each note on its steady part (from 100 ms or 30 % in, to its last 10 %), so a
   late or scooped start, or moving early to the next note, does not count against it (the
   last 10 %: Rinat, 2026-10-15; it was the last 30 ms): the median distance in cents gives
@@ -290,8 +301,8 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   Opened lines stay open through a pause or stop and close when a new run starts. *Why a tap,
   not hover:* lines opening under a moving pointer would push the rest about, and a phone has
   no hover. After a run the text under the lines says so.
-- **Not yet:** timing (early or late) in the score. It needs the true round-trip delay, and
-  the delay found from the singing includes the singer's own lateness.
+- **Not yet:** timing (early or late) in the score. The true round trip can now be measured
+  (above), so the singer's lateness is known once it is; scoring it is not built.
 - **End to end:** `tests/unit/pitch-track.test.ts` drives the real transport, synthesises a
   singer (150 ms behind, vibrato, a scoop into each note, noise) and runs the detector on it:
   in tune scores 100 with the delay found at 140 ms; 40 cents flat scores 43. In headless

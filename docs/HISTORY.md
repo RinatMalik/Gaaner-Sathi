@@ -49,6 +49,44 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-19 BST — Claude (Opus 5.5) — PH2-20 the pitch gauge
+
+- **Goal:** Rinat, to Claude's proposal and mock-up: "Yes, build the vertical pitch gauge at
+  the end of the line being sung, as in the mock-up."
+- **Inspected:** pitch.ts `draw`, `showMeter`, `steady`, the messages; lines.ts `layout`
+  (columns from the view's width), `current`, how the taal figure moves with the line being
+  sung; the WAV-microphone recipe (Environment gotchas).
+- **Changed:** `b385997` (feat(practice)): lines.ts: `closeness` (moved from pitch.ts, with
+  `IN_TUNE`, `CLOSE`), `GAUGE_REACH`, `gaugeY`, `centsText`, `gaugeHTML`; `gaugeOn` (the
+  `.gauged` class, the column counted in the layout, a 30 px beat allowed on a phone while
+  on), `gauge` (only changes touch the page), the gauge moved with the line being sung;
+  pitch.ts: `showGauge` in place of `showMeter`, the gauge on and off with the pitch check,
+  cleared when the microphone goes off, a message saying what the gauge shows; index.html:
+  `#pNote` gone; styles: the column (`--gw`), the gauge, its phone form; tests (lines: the
+  gauge). This commit (docs): ENGINE (Pitch → The gauge), ROADMAP (Phase 2 row 20), this file
+  (the PH2-18 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`, real clicks; the microphone a WAV synthesised from the
+  Keherwa test song at 100 bpm, Sa C4, harmonics and ±10-cent vibrato, its lines sung +5,
+  +25, −45, 0, +10 cents, through `--use-file-for-fake-audio-capture`; the count-in off):
+  - `npm run typecheck` → 0; `npx vitest run` → 36 files, 383 passed. `npm run build` →
+    231.2 kB JS (81.9 kB gzip), 56.5 kB CSS; `bash reference/tests/run-all.sh` →
+    31/11/10/12/5 passed, 12 exercises valid.
+  - 1280 × 900, day: the pitch check on: the lines' columns 104 · 972 · 60 px, the gauge in
+    line 1 (60 × 230 px, its scale 158 px), idle; playing, the gauge's median by line +4,
+    +25, −44, +1, +10 (sampled every 250 ms); seen: ধা +13 green in line 1, মা +25 amber in
+    line 2 (marker 25 % from the top), পা −42 red in line 3, পা +8 green in line 5; a note
+    sung over 50 cents flat named as the note below (হ্মা −54, marker at the foot). Night
+    checked. Off again: no gauge, the columns 104 · 1032 · 0.
+  - 360 × 780 touch phone, night: the gauge 22 × 150 px, eight beats still across (60 · 244 ·
+    22 px), medians +4, +25, −44, 0.
+  - CI run `39236624080` (`b385997`): core, reference and deploy jobs green. Live: bundle index-CECLiwzI.js; the synthesised singer read +5, +25, −44 on lines 1–3 (medians), ধা −43 red in line 3.
+- **Decisions made:** see Decisions (the pitch gauge).
+- **Risks or disagreements:** the gauge follows the voice, so it is the microphone's delay
+  (about 270 ms here) behind the lit beat: just after a beat changes it still shows the last
+  note. On a phone each beat gives up 3 px to the gauge while the pitch check is on.
+- **Next handoff:** Rinat sings with the gauge.
+
 ### 2026-10-19 BST — Claude (Opus 5.5) — PH2-19 the next line readable ahead; the pitch readout proposed
 
 - **Goal:** Rinat, on the Practice view while singing: "The line coming up next is also

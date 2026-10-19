@@ -60,18 +60,20 @@ wins, except a later explicit decision by Rinat, which always wins.
   New line's keyboard, the beat boxes centred), seventeen (PH2-17: the tools kept in view
   at the foot of the screen), eighteen (PH2-18: the note pad's keys in that dock),
   nineteen (PH2-19: the next Practice line's words as big as the line being sung's),
-  twenty (PH2-20: a vertical pitch gauge at the end of the line being sung) and twenty-one
-  (PH2-21: a line opened to look back at a run, each beat's cents; the delay explained) are
-  built and live. Phase 1, features, was closed by Rinat ("That's it for features",
+  twenty (PH2-20: a vertical pitch gauge at the end of the line being sung), twenty-one
+  (PH2-21: a line opened to look back at a run, each beat's cents) and twenty-two (PH2-22:
+  the device's delay measured with clicks, the voice then drawn when it was sung) are built
+  and live. Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
 - **Next single action:** Rinat enters a song in the beat boxes again (rounds sixteen and
   eighteen: Join, Split, Higher, Lower and New line; the lines centred; the dock of notes
   and tools at the foot of the screen), sings with rounds nineteen to twenty-one (the next
-  line as big; the pitch gauge; opening lines after a run), says what headphones or speakers
-  the delay was seen with (Claude asked, 2026-10-19) and tries round nine;
+  line as big; the pitch gauge; opening lines after a run), measures the delay with the
+  Scarlett 2i2 (round twenty-two) and says what the line under the song reads, and tries
+  round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `6440f30` (CI run `39240691532`: core, reference and deploy jobs green; checked live).
+- **Last known-good commit:** `e2cc5bd` (CI run `39242268816`: core, reference and deploy jobs green; checked live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -382,6 +384,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-02 | Claude | Review | Design, round two: Pause and a separate Stop; nothing that plays changes the Lines to practise (play from here, sheet line numbers, sections, rewaz, takes); "Check my pitch" listens only while playing; beat box rows with the number and buttons (play this line, play from here, ×) full height, vibhag starts coloured instead of X/0, a tap anywhere on a row selects it, hover | 5 unit tests and the boxes' HTML tests; Edge scenarios `round6` (42 checks) and `rewaz6` (5), with a WAV microphone (Work log 2026-10-12 16:43) | Waiting for Rinat's use and two answers |
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
+| PH2-22 | Claude | Review | The device's delay measured: "Measure the delay" (Practice settings, Pitch) plays eight clicks and times them through the microphone; kept as `deviceLag`; the delay under the lines split into the device's and the voice's; once measured the voice drawn when it was sung | 4 new unit tests (clicks: delays of 12–420 ms to within 0.5 ms, quiet and lost clicks, too few or disagreeing; store: the delays kept or dropped); headless Edge: a WAV of clicks as the microphone, 8 of 8 heard, 91 ms kept; the synthesised singer with 50 ms measured: "Delay 280 ms: the device 50 ms, your voice 230 ms behind the guide", the voice drawn ~0.38 of a beat behind its notes and its head at the playhead; 360 px phone (Work log 2026-10-19, round twenty-two) | Waiting for Rinat to measure with the Scarlett |
 | PH2-21 | Claude | Review | Looking back at a run: a tap or click opens a line to full size with each beat's cents (a focus-only button for the keyboard), closed on a new run; sung lines no longer stay faded; the footer without "Listening", the average first, after a run how to look back, the delay with the device's part; the gauge's median ~100 ms (was ~200) and a 60 ms glide | 1 new unit test (lines: the open button); headless Edge with the synthesised singer: 1280 px day and night (lines 2 and 3 opened while playing and after Stop, cents +22…+29 and −43…−48 against +25 and −45 sung; Enter on the focused button), 360 px phone night (Work log 2026-10-19, round twenty-one) | Waiting for Rinat's use and their headphones or speakers |
 | PH2-20 | Claude | Review | The pitch gauge: in place of the text under the lines, a column at the end of every line while the pitch check is on, filled in the line being sung: the note sung, a scale (green within 15 cents, amber within 35, red to 50) with the note expected across its middle, a marker sliding up when sharp and down when flat, the cents (not on a phone) | 3 new unit tests (lines: `gaugeY`, `centsText`, `gaugeHTML`, `closeness`); headless Edge with a synthesised singer as the microphone (lines sung +5, +25, −45, 0, +10 cents read +4, +25, −44, +1, +10), 1280 px day and night, 360 px phone night (Work log 2026-10-19, round twenty) | Waiting for Rinat to sing with it |
 | PH2-19 | Claude | Review | The next line readable ahead: in Practice the line after the one being sung has its words and notes as big (its strip, tint and figure stay small or absent); the view's height counts it at that size. The pitch readout's new place and form proposed in chat, not built | Headless Edge, a Keherwa song playing: 1280 px (7 and 12 lines shown) and a 360 px phone, night (Work log 2026-10-19, round nineteen) | Waiting for Rinat's use |
@@ -469,6 +472,7 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-15 | **The Practice view is the song line by line:** one window of about seven lines (5, 7 or 9, in its settings), the line being sung third (the first two lines start at the top) and large, sliding on a line as each plays; a line number plays from there and the section chips stay above. Each beat: the words big with the notes small above (a line without words shows its notes big), a mark for how it was sung, and a pitch strip with a bar for each note at its height; while the pitch check listens the voice is drawn over the bars (green, amber, red), and each line's score shows by its number. The beat sounding is lit, with a playhead through it. It replaces the Now singing panel, the coming-up notes, the pitch meter and its trace box, and the Practice sheet; the ruled lines, the red margin and the red-ink words stay. | Rinat, chat 2026-10-15, with a mockup ("combining the section where it shows the current and upcoming notes, pitch checker with the lyrics section", "a vertical carousel where about 7 lines are visible. The currently playing line is the 3rd one", "The lyrics part is bigger, full width pitch performance strip. When the microphone is off it still shows the strip with lines representing the notes"); the details (a strip under every line, the colours, the first lines at the top, long lines over two rows on a phone, the scores by the numbers, the last line kept at the end) are Claude's | src/app/lines.ts; ENGINE.md → Pitch feedback → Shown. The editor's preview and the printed sheet are unchanged. |
 | 2026-10-15 | **The taal as a figure,** beside the line being sung: a shape per vibhag with a corner per beat (four beats a square, three a triangle, two a stroke: Keherwa two squares, Dadra two triangles, Teentaal four squares), the first corner of each in its kind's colour (sam, tali, khali, as in the beat boxes), khali's shape dashed; the cycle traced round as it goes, the beat's corner lit. The strip of bols is gone. | Rinat, chat 2026-10-15 ("a square where the corners light up for 8 beat taals. but not sure where to put it … seeing the bol's of the taal doesn't really do much for me"); generalising the square to a shape per vibhag, and its place (where Rinat's mockup drew it), are Claude's | The taal's name and structure stay over the lines ("Keherwa · 4 + 4"). |
 | 2026-10-15 | **A settings button over the lines:** lines shown (5, 7, 9), the size of the words and notes (smaller, normal, bigger), the keys to press and the pitch check's octave rule (both moved here). The Practice settings bar is left as it was. | Rinat, chat 2026-10-15 ("There could be a settings button to adjust a few relevant things", "Leave the settings section alone - we'll come back to it later"); the choice of settings is Claude's | Settings `plRows`, `plSize` (DATA.md). |
+| 2026-10-19 | **The device's delay, measured; the voice drawn when it was sung:** "Measure the delay" in Practice settings (Pitch) plays eight clicks through the speakers or earphones and times them through the microphone (an earphone held to it); the median, when five or more agree, is the device's delay, kept until measured again. The delay under the lines then reads "Delay 280 ms: the device 50 ms, your voice 230 ms behind the guide". Once measured, the voice on the strips is drawn when it was sung, so it keeps up with the playhead and a voice behind the guide shows behind its notes; colours, the gauge and the scores still follow the note being sung. Unmeasured, nothing changes but the device's own figure beside the delay. | Rinat, chat 2026-10-19 ("the delay is quite significant. why is that? what can be done to reduce it?"; "wired through scarlett 2i2 … let's solve it in desktop for now"); the clicks, the split and drawing at the sung time are Claude's | src/audio/dsp/clicks.ts, src/audio/latency.ts, pitch.ts; docs/ENGINE.md → The device's delay, measured. Timing in the score still not built. |
 | 2026-10-19 | **Looking back at a run:** any line opens to the size of the line being sung with a tap or click (not on its number box, which plays from it), and closes with another: big words, the tall strip with its semitone lines, the voice drawn thick, and under each beat its cents (the beat's worst note, as its mark) in the mark's colour; opened lines stay through a pause or stop and close when a new run starts. A tap rather than hover, so lines do not jump under the pointer and it works on a phone. The footer loses "Listening…", shows the average first and, after a run, "Tap a line to open it and see how you sang each beat."; the delay reads "Delay 260 ms · device 60 ms". | Rinat, chat 2026-10-19 ("would be good if i could expand the lines on mouse hover to the same view and size as when a line is being sung currently. maybe on hover or maybe on click"; "remove that. Also have the chip with the average score on the left"); click over hover, the cents under each beat and the device's figure are Claude's | src/app/lines.ts (`setOpen`, `.plopen`), pitch.ts (`mark`, `REVIEW`), styles.css. docs/ENGINE.md → Looking back, Delay. |
 | 2026-10-19 | **The pitch gauge:** how close the voice is shows as a vertical gauge at the end of the line being sung, in place of the text under the lines ("In tune", "12 cents sharp", "You: সা"). While the pitch check is on every line has the gauge's column (60 px, 22 px on a phone), so beats stay one under another; on a phone a beat may be 30 px wide so eight still go across. The gauge: the note sung on top, coloured by how close; a scale with the note expected across its middle, green within 15 cents, amber within 35, red to 50, the marker held at the end beyond; the marker slides up when sharp and down when flat, as on the strip; the cents under it (not on a phone). The text under the lines keeps the status, the average and the hints. | Rinat, chat 2026-10-19 ("This is not a very good visual representation … maybe showing the cents vertically. tell me where can it go"; to Claude's proposal and mock-up: "Yes, build the vertical pitch gauge at the end of the line being sung, as in the mock-up"); the place, the bands and the phone form are Claude's | src/app/lines.ts (`gaugeHTML`, `gaugeOn`, `gauge`), pitch.ts (`showGauge`). docs/ENGINE.md → The gauge. |
 | 2026-10-19 | **The next line readable ahead:** in the Practice view the line after the one being sung (marked Next) has its words, and its notes, as big as the line being sung's, in every lines-shown setting; only the font grows: its pitch strip stays small, and the tint, the tall strip, the playhead and the taal figure stay with the line being sung. | Rinat, chat 2026-10-19 ("The line coming up next is also important to see. so make the upcoming line font as big as the current line font (don't make everything as big as current line as that will defeat the purpose)") | src/app/lines.ts (`nxt`), styles.css. |
@@ -523,6 +527,47 @@ Template:
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
 
+### 2026-10-19 BST — Claude (Opus 5.5) — PH2-22 the device's delay measured
+
+- **Goal:** Rinat: "wired through scarlett 2i2. in future i want to use it on phone
+  occasionally with bluetooth speakers but let's solve it in desktop for now" (on "the delay
+  is quite significant … what can be done to reduce it?").
+- **Inspected:** mic.ts (`captureStream`, `openStream`, `latency`), pitch.ts `drawVoice`,
+  `placeOf`, the delay text; how readings and beats are timed (the context clock: a reading
+  is sound out + the singer + sound in after its beat; the playhead is moved back by the
+  output latency, so the voice lined up with its notes trails it by the rest).
+- **Changed:** `e2cc5bd` (feat(practice)): src/audio/dsp/clicks.ts (`clickSamples`,
+  `clickDelays`, `roundTrip`), src/audio/latency.ts (`measureDelay`); pitch.ts: the Measure
+  button and its messages, `devLag`, the delay text split, the voice placed at `t −
+  deviceLag` once measured; store.ts: `deviceLag` (0–0.6 s); app.ts: its host; index.html:
+  the button and its message in Practice settings → Pitch; styles: that row; tests (clicks,
+  store). This commit (docs): ENGINE (the device's delay, measured; Not yet), DATA
+  (`deviceLag`), ROADMAP (Phase 2 row 22), this file (the PH2-20 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`, real clicks):
+  - `npm run typecheck` → 0; `npx vitest run` → 37 files, 388 passed. `npm run build` →
+    235.5 kB JS (83.5 kB gzip), 57.7 kB CSS; `bash reference/tests/run-all.sh` →
+    31/11/10/12/5 passed, 12 exercises valid.
+  - A WAV of eight clicks (0.6 s apart, from 0.8 s) as the microphone: Measure → "Listening
+    for the clicks: keep quiet for six seconds…", the button off; then "Your device’s delay:
+    91 ms, sound out and back in. …", `deviceLag` 0.0907 kept (the WAV starts as the
+    microphone opens, so the figure is the test's own; what matters is 8 of 8 found and
+    agreeing).
+  - The synthesised singer (round twenty) with `deviceLag` 0.05: "Delay 280 ms: the device 50
+    ms, your voice 230 ms behind the guide"; the voice drawn about 0.38 of a beat (230 ms at
+    100 bpm) behind each note's start, its head at the playhead; line 2 opened after Stop the
+    same, the cents unchanged (+21…+27 against +25 sung).
+  - 360 × 780 phone, night: the Measure row 298 px wide, its text under the button, no
+    sideways scrolling.
+  - CI run `39242268816` (`e2cc5bd`): core, reference and deploy jobs green. Live: bundle index-CL2sS9_s.js; Measure with the clicks WAV: 8 of 8 heard, 91 ms kept.
+- **Decisions made:** see Decisions (the device's delay, measured).
+- **Risks or disagreements:** the measurement needs the microphone to hear the clicks (an
+  earphone held to it): through a Scarlett with closed headphones that is the way. A voice
+  drawn when it was sung looks untidier when the singer is behind the guide; that is the
+  point, but Rinat may prefer it lined up (measuring is what turns it on). Not checked with a
+  real device's sound out and back in (headless Edge has none).
+- **Next handoff:** Rinat measures with the Scarlett and sings.
+
 ### 2026-10-19 BST — Claude (Opus 5.5) — PH2-21 looking back at a run; the delay
 
 - **Goal:** Rinat: remove "Listening. The gauge …" and put the average's chip on the left;
@@ -572,43 +617,5 @@ Template:
   under-report. Many lines opened make the view scroll more. The cents under a beat are its
   worst note's when it has two.
 - **Next handoff:** Rinat looks back at a run, and says what headphones or speakers they use.
-
-### 2026-10-19 BST — Claude (Opus 5.5) — PH2-20 the pitch gauge
-
-- **Goal:** Rinat, to Claude's proposal and mock-up: "Yes, build the vertical pitch gauge at
-  the end of the line being sung, as in the mock-up."
-- **Inspected:** pitch.ts `draw`, `showMeter`, `steady`, the messages; lines.ts `layout`
-  (columns from the view's width), `current`, how the taal figure moves with the line being
-  sung; the WAV-microphone recipe (Environment gotchas).
-- **Changed:** `b385997` (feat(practice)): lines.ts: `closeness` (moved from pitch.ts, with
-  `IN_TUNE`, `CLOSE`), `GAUGE_REACH`, `gaugeY`, `centsText`, `gaugeHTML`; `gaugeOn` (the
-  `.gauged` class, the column counted in the layout, a 30 px beat allowed on a phone while
-  on), `gauge` (only changes touch the page), the gauge moved with the line being sung;
-  pitch.ts: `showGauge` in place of `showMeter`, the gauge on and off with the pitch check,
-  cleared when the microphone goes off, a message saying what the gauge shows; index.html:
-  `#pNote` gone; styles: the column (`--gw`), the gauge, its phone form; tests (lines: the
-  gauge). This commit (docs): ENGINE (Pitch → The gauge), ROADMAP (Phase 2 row 20), this file
-  (the PH2-18 entry moved to HISTORY).
-- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
-  DevTools protocol on `npm run dev`, real clicks; the microphone a WAV synthesised from the
-  Keherwa test song at 100 bpm, Sa C4, harmonics and ±10-cent vibrato, its lines sung +5,
-  +25, −45, 0, +10 cents, through `--use-file-for-fake-audio-capture`; the count-in off):
-  - `npm run typecheck` → 0; `npx vitest run` → 36 files, 383 passed. `npm run build` →
-    231.2 kB JS (81.9 kB gzip), 56.5 kB CSS; `bash reference/tests/run-all.sh` →
-    31/11/10/12/5 passed, 12 exercises valid.
-  - 1280 × 900, day: the pitch check on: the lines' columns 104 · 972 · 60 px, the gauge in
-    line 1 (60 × 230 px, its scale 158 px), idle; playing, the gauge's median by line +4,
-    +25, −44, +1, +10 (sampled every 250 ms); seen: ধা +13 green in line 1, মা +25 amber in
-    line 2 (marker 25 % from the top), পা −42 red in line 3, পা +8 green in line 5; a note
-    sung over 50 cents flat named as the note below (হ্মা −54, marker at the foot). Night
-    checked. Off again: no gauge, the columns 104 · 1032 · 0.
-  - 360 × 780 touch phone, night: the gauge 22 × 150 px, eight beats still across (60 · 244 ·
-    22 px), medians +4, +25, −44, 0.
-  - CI run `39236624080` (`b385997`): core, reference and deploy jobs green. Live: bundle index-CECLiwzI.js; the synthesised singer read +5, +25, −44 on lines 1–3 (medians), ধা −43 red in line 3.
-- **Decisions made:** see Decisions (the pitch gauge).
-- **Risks or disagreements:** the gauge follows the voice, so it is the microphone's delay
-  (about 270 ms here) behind the lit beat: just after a beat changes it still shows the last
-  note. On a phone each beat gives up 3 px to the gauge while the pitch check is on.
-- **Next handoff:** Rinat sings with the gauge.
 
 Older entries: `docs/HISTORY.md`.
