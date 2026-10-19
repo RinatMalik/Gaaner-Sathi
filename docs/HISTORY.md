@@ -49,6 +49,43 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-19 BST — Claude (Opus 5.5) — PH2-19 the next line readable ahead; the pitch readout proposed
+
+- **Goal:** Rinat, on the Practice view while singing: "The line coming up next is also
+  important to see. so make the upcoming line font as big as the current line font (don't
+  make everything as big as current line as that will defeat the purpose)"; and the pitch
+  text under the lines ("This is not a very good visual representation … maybe showing the
+  cents vertically. tell me where can it go and how to best visually represent it").
+- **Inspected:** lines.ts `current`, `layout` (the view's height from the line being sung and
+  the median small line), `scrollTo`; the Practice styles; pitch.ts `showMeter`, `draw`.
+- **Changed:** `b285292` (feat(practice)): lines.ts: the line after the one being sung gets
+  `nxt`; `layout` counts it at its height (the median small line now leaves both out);
+  styles: `.pll:is(.cur,.nxt)` for the words' and notes' sizes, `.dense` leaving it out.
+  This commit (docs): ROADMAP (Phase 2 row 19), this file (the PH2-17 entry moved to
+  HISTORY). The pitch readout: a proposal in chat with a mock-up, nothing built.
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`, the Keherwa test song playing):
+  - `npm run typecheck` → 0; `npx vitest run` → 36 files, 380 passed. `npm run build` →
+    229.9 kB JS (81.4 kB gzip), 54.9 kB CSS; `bash reference/tests/run-all.sh` →
+    31/11/10/12/5 passed, 12 exercises valid.
+  - 1280 × 900, day: before playing, line 1 (Start) and line 2 (Next) at 46 px words, the
+    rest 21 px; playing, line 2 Now and line 3 Next at 46 px, line 1 back to 21 px. Twelve
+    lines shown (dense): Now and Next 46 px, the rest 18 px; line 5 being sung sat 3rd (lines
+    3 and 4 above it), and with seven lines line 6 sat 3rd; the view 857 and 711 px tall.
+  - 360 × 780 touch phone, night: Now and Next at 17 px, the rest 13 px, as lines advanced.
+  - CI run `39225032521` (`b285292`): core, reference and deploy jobs green. Live: bundle index-lQJoedBc.js; the test song playing, line 1 Now and line 2 Next both at 46 px, the rest 21 px.
+- **Decisions made:** see Decisions (the next line readable ahead).
+- **Risks or disagreements:** on a phone the difference is small (17 px against 13), as the
+  line being sung's own words are held small there by the beat's width. The next line makes
+  the view taller on a laptop (about 50 px more with seven lines), within the screen.
+- **Proposed, not built:** the pitch readout as a vertical gauge at the right end of the line
+  being sung, as tall as its pitch strip (up is sharp, as on the strip): the note sung above
+  it, a marker sliding on bands (green within 15 cents, amber to 35, red to 50, pinned
+  beyond), the cents under it; slimmer on a phone with the note only. The text under the
+  lines would then keep the average only.
+- **Next handoff:** Rinat sings with the next line as big and chooses the pitch readout's
+  place.
+
 ### 2026-10-16 BST — Claude (Opus 5.5) — PH2-18 the note pad in the dock
 
 - **Goal:** Rinat: "please also add the buttons for the notes at the bottom. even on desktop,

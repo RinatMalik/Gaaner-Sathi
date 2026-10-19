@@ -245,7 +245,13 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   within half a semitone of their note. It only moves when another delay fits clearly better
   (5 points), so long held notes leave it alone. *Why:* it works with headphones (Bluetooth
   included) and needs no setup; a click-and-listen calibration through the speakers cannot
-  hear headphones.
+  hear headphones. Under the lines it reads "Delay 260 ms · device 60 ms": the second figure
+  is the device's own (output, base and input latency), the rest is how far behind the
+  guide the voice comes, plus any latency the device does not report (Bluetooth headphones
+  often add 150–250 ms that Windows does not). The scores and the lines are not hurt by it
+  (each reading is moved back by it); what shows it is the voice drawn, which trails the
+  playhead by about the delay less the output latency, and the gauge, which follows the
+  voice (Rinat, 2026-10-19: "the delay is quite significant. why is that?").
 - **Scores:** each note on its steady part (from 100 ms or 30 % in, to its last 10 %), so a
   late or scooped start, or moving early to the next note, does not count against it (the
   last 10 %: Rinat, 2026-10-15; it was the last 30 ms): the median distance in cents gives
@@ -270,10 +276,20 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   nearest to the voice), a scale with the note expected across its middle (green within 15
   cents, amber within 35, red to 50, the marker held at the end beyond), a marker that slides
   up when sharp and down when flat, as on the strip, and the cents (`centsText`; not on a
-  phone, where the column is 22 px). The marker is the median of the last ~200 ms of this
-  note's readings, so vibrato does not swing it; with no note expected it shows "Rest", and
+  phone, where the column is 22 px). The marker is the median of the last ~100 ms of this
+  note's readings (five; ~200 ms until 2026-10-19, which made it slow to answer), gliding
+  60 ms to each new place, so a wobble does not shake it; with no note expected it shows "Rest", and
   outside a section the distance to the nearest note. It follows the voice, so it is a
   delay behind the lit beat.
+- **Looking back** (Rinat, 2026-10-19: "the experience of inspecting my performance after
+  finish singing is not great"): a tap or click on any line (not its number box, which plays
+  from it) opens it to the size of the line being sung: the words big, the tall strip with
+  its semitone lines, the voice drawn thick, and under each beat the cents of its mark's note
+  (the worst note in the beat, as the mark; nothing for a note not sung), in the mark's
+  colour. Again closes it; a button shown only when focused does the same from the keyboard.
+  Opened lines stay open through a pause or stop and close when a new run starts. *Why a tap,
+  not hover:* lines opening under a moving pointer would push the rest about, and a phone has
+  no hover. After a run the text under the lines says so.
 - **Not yet:** timing (early or late) in the score. It needs the true round-trip delay, and
   the delay found from the singing includes the singer's own lateness.
 - **End to end:** `tests/unit/pitch-track.test.ts` drives the real transport, synthesises a
