@@ -49,6 +49,59 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-20 BST — Claude (Opus 5.5) — PH2-25 session reports, the file for AI, songs' lengths
+
+- **Goal:** Rinat: "are all the data from all previous sessions saved in the browser?"; in
+  Progress, "two buttons for each session": "a human friendly report with nice dashboard ...
+  what were good, what needs improving, whether i kept to the note well but came in too late"
+  and "exporting for AI analysis ... there should be clea direction for the llm"; "Practice
+  page, music library and edit notation page should show how long each of the song is at its
+  current settings".
+- **Inspected:** the practice log (localStorage: only each session's summary: when, how long,
+  lines, rounds, tempo, score, line scores); pitch.ts (the run's notes and readings were only
+  offered as a download after the run, never kept); the takes' IndexedDB; the transport's
+  timing and section tempos; the dataviz guidance (the status colours run through its
+  validator: the app's own amber and red fail colour-blind separation, so the report has its
+  own passing set, with labels everywhere).
+- **Changed:** `6ed2c7a` (feat(progress)): src/core/practice/session.ts (the detail, checked
+  when read), insights.ts (`analyse`, `bestShift`, findings, headline), src/app/db.ts (one
+  IndexedDB connection, version 2, store `sessions`, the newest 1,000; takes.ts on it),
+  report.ts (the page), aifile.ts (the file and its brief), progress.ts (the buttons),
+  pitch.ts (`runDetail` in place of `runFile`), app.ts (the run keeps the song and settings as
+  played; endRun keeps the detail; openReport, saveForAI; `renderLength`, `songLength`),
+  songs.ts (length in each row), index.html (`#songLen`, `#pAfter`, the scoring note's last
+  row, Progress's line), styles.css; `playSeconds`, `sectionTempoAt` (sections.ts),
+  `lengthText` (log.ts); tests/unit/session.test.ts (new), sections.test.ts. This commit:
+  docs/ENGINE.md (How long a song plays; Session reports), DATA.md (the table, Storage,
+  Session detail, reports and the file for AI), ROADMAP row 25, this file (the older PH2-24
+  entry moved to HISTORY).
+- **Tests / verification:** `npm run typecheck` clean; `npx vitest run` → 38 files, 407
+  passed; `npm run build` → 288.2 kB JS (102.8 kB gzipped; the report's styles and the AI
+  brief are most of the 50 kB added), 58.1 kB CSS. Headless Edge on `npm run dev`, 1280 px
+  day, a WAV singer as the microphone (gauge.wav, about 230 ms behind): after Stop, "Report"
+  and "For AI" under the lines; IndexedDB version 2 with `sessions` holding 1; the report in
+  a new tab (a blob page): "You were often off the notes and came in late.", 45/100, 7
+  sections, 4 lines drawn, "You come in late: about 230 ms behind the music", "Ga is usually
+  flat: −36 cents (5 times)"; the AI file `Untitled song session 2026-10-20 11-43 for AI.json`
+  (31.7 kB: 26 notes, 717 readings, 26 beats, behind 230 ms); Progress: one session with both
+  buttons, its Report opening a second tab; lengths: library rows ("Keherwa · 96 per min · 10
+  s"), Edit Settings ("Untitled song · Keherwa · 38 s long"), Practice "38 s long · from line
+  3: 29 s", "lines 3–5: 14 s a round", and at tempo 120 "32 s long · lines 3–5: 12 s a
+  round". 360 px phone at night with two seeded older sessions: Progress rows with their
+  buttons, an older session's report ("Your score: 78.", what the log knows, its note that
+  details began on 20 October), Practice, library and Edit; no sideways scrolling. A sample
+  report (synthetic singer, 150 ms late) checked at 1200 px day and 360 px night: charts
+  readable on the phone after drawing them narrow. CI run `39410606511` (`6ed2c7a`): green. Live:
+  the page has the Report and For AI buttons.
+- **Decisions made:** one row (session reports, the file for AI, the detail kept, lengths).
+- **Risks or disagreements:** The report and file have only been made from synthetic singers
+  here, not Rinat's voice. Sessions before today have no detail. A browser can evict
+  IndexedDB under storage pressure, and clearing site data deletes it with the log. The report
+  page loads the app's fonts from Google Fonts when opened (as the app does). A long-open tab
+  on version 1 of the database (before this deploy) loses its takes connection until reloaded.
+- **Next handoff:** Rinat sings a song with the pitch check, opens its Report, and gives its
+  For AI file to an AI (or to Claude in `feedback/`).
+
 ### 2026-10-20 BST — Claude (Opus 5.5) — PH2-24 real leaps checked; the scoring note in plain words
 
 - **Goal:** Rinat: "what about when there is actual big leaps in the song, or even when i am

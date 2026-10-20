@@ -16,8 +16,8 @@ Clearing a browser's site data ("cookies and site data") deletes it all.
 | Your songs: notation, title, taal, tempo, Sa, start beat, section tempos and taals, tags, star, notes, the song's own sound, whether it is listed under Exercises | `localStorage` | Yes: **Export this song** (one) or **Back up all my songs** (all), then **Import** there |
 | The built-in exercises and the starter rewaz | The app itself | Everyone has them |
 | Your settings: your usual sound, your Sa, the practice settings, script, theme, the editor view, the MIDI choice | `localStorage` | No |
-| Practice log (Progress): each session's summary | `localStorage` | Downloadable as a file from Progress, but not importable |
-| Each session's detail: the song as played, every note's result, the pitch heard (since 2026-10-20) | IndexedDB, the newest 1,000 sessions | **Report** opens a page on it, **For AI** saves it as a file (below); not importable |
+| Practice log (Progress): each session's summary | `localStorage` | **Download all practice data** (foot of Progress) saves it, with each session's detail, as one file (below); not importable. **Start afresh** there deletes both |
+| Each session's detail: the song as played, every note's result, the pitch heard (since 2026-10-20) | IndexedDB, the newest 1,000 sessions | **Report** opens a page on it, **For AI** saves it as a file (below), and the download above holds them all; not importable |
 | Rewaz routines | `localStorage` | No |
 | Takes (recordings) | IndexedDB | Each downloads as a WAV file; not importable |
 | The microphone | Not kept: analysed as it arrives | Never leaves the device |
@@ -190,7 +190,7 @@ not logged.
 ```json
 { "at": 1791655308398, "secs": 312, "song": "song-mv2pb608-a4kmn", "title": "Purano sei diner kotha",
   "from": 0, "to": 3, "loop": true, "rounds": 4, "tempo": 100, "top": 116,
-  "score": 82, "lines": [[0, 88], [1, 76]], "routine": "Daily rewaz" }
+  "score": 82, "lines": [[0, 88], [1, 76]], "notes": [[0, 12, 90, -3], [12, 4, 61, -22]], "routine": "Daily rewaz" }
 ```
 
 | Field | Meaning |
@@ -202,11 +202,28 @@ not logged.
 | `rounds` | Rounds begun; 1 without a loop |
 | `tempo`, `top` | Tempo at the start, and the highest reached (the tempo trainer) |
 | `score`, `lines` | Pitch score 0–100 for the session and per line, when pitch feedback was on (optional) |
+| `notes` | Each note of the scale sung, with pitch feedback (optional, from 2026-10-20): `[semitones from middle Sa, times sung, average score, median cents off]`, lowest first; upper Sa is 12, lower Pa −5. Progress's **Note by note** sums them. Sessions logged earlier that day, before the field, get it from their detail when the app opens |
 | `routine` | The rewaz routine it was part of (optional) |
 
 Entries are checked when read (damaged ones skipped, numbers clamped). About 150 bytes each,
-so years fit. Progress downloads the log as
-`{ "format": "gaaner-sathi-log", "version": 1, "exported": "YYYY-MM-DD", "entries": [...] }`.
+400 with `notes`, so years fit.
+
+**Download all practice data** (the foot of Progress, Rinat 2026-10-20: "I assume download log
+button exports all data as one file") saves `gaaner-sathi-practice-<yyyy-mm-dd>.json`:
+`{ "format": "gaaner-sathi-log", "version": 2, "exported", "about_this_file", "file",
+"songs_as_played", "sessions" }`. The brief (`PRACTICE_BRIEF`) tells any AI what the app is and
+how to read the file (its notation, time and scoring parts are the For AI file's). Each of
+`sessions`, oldest first, is the log entry in words (when, seconds, song, lines from 1, rounds,
+tempo, routine, score, `line_scores`, `notes_of_the_scale`) and its `detail` (null when not
+kept): the version of the song played (`song_as_played`, in `songs_as_played`, so a song's
+notation is in the file once per version), settings, equipment, and the `notes`, `beats` and
+`pitch_readings` tables of the For AI file. Built in pieces into a Blob, as a long history runs
+to megabytes. Version 1 (until 2026-10-20) was the log's summaries only, as `entries`.
+
+**Start afresh** (beside it, Rinat 2026-10-20: "have a button somewhere to delete all current
+data and start fresh") asks in place, saying what goes and what stays, offers the download
+first, and then deletes the practice log and every session's detail. Songs, exercises, rewaz
+routines, takes and settings stay.
 
 ## Rewaz routines
 
