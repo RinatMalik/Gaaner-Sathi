@@ -196,7 +196,7 @@ describe('the report', () => {
 
 describe('Progress', () => {
   it('has a Report and a For AI button for each session', () => {
-    const html = progressHTML([entry({ score: 80 })], T0 + 60_000, () => null);
+    const html = progressHTML([entry({ score: 80 })], T0 + 60_000, { song: () => null });
     expect(html).toContain('data-report="' + T0 + '"');
     expect(html).toContain('data-ai="' + T0 + '"');
   });

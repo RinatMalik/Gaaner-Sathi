@@ -293,8 +293,8 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .lgrip{flex:none;align-self:center;width:28px;height:38px;display:grid;place-items:center;padding:0;border:0;border-radius:8px;background:none;color:var(--ink-2);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
 .lgrip svg{width:18px;height:18px}
 .lgrip:hover{background:var(--chip);color:var(--ink)}
-#libList{position:relative}
-#libList.sorting [id^="lsec-"]{display:none}
+#libList,#pgBody{position:relative}
+.sorting .lsecbody{display:none}
 .lsec.dragging{position:relative;z-index:3;background:var(--paper);border-radius:10px;box-shadow:0 6px 18px var(--shadow);cursor:grabbing}
 .lsec.dragging .lgrip{cursor:grabbing}
 .ldrop{position:absolute;left:0;right:0;height:3px;border-radius:2px;background:var(--brass);pointer-events:none;z-index:4}
@@ -445,31 +445,68 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .rbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:9px 12px;border:1px solid var(--brass);border-left:4px solid var(--brass);border-radius:10px;background:var(--sheet)}
 .rbar .spacer{flex:1 1 auto}
 .rbtext{font-weight:600;min-width:0}
-.pgtop{display:flex;flex-wrap:wrap;gap:10px}
-.pgstat{flex:1 1 140px;display:grid;padding:10px 14px;background:var(--sheet);border:1px solid var(--line);border-radius:12px}
-.pgstat b{font-size:24px;font-variant-numeric:tabular-nums}
-.pgstat span{font-size:13px;color:var(--ink-2)}
-.pgweek{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;padding:12px;background:var(--sheet);border:1px solid var(--line);border-radius:12px}
-.pgday{display:grid;justify-items:center;gap:2px;font-size:12px;color:var(--ink-2)}
-.pgday b{font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
-.pgbar{display:flex;align-items:flex-end;width:100%;max-width:36px;height:80px;background:var(--chip);border-radius:6px;overflow:hidden}
-.pgbar span{display:block;width:100%;background:var(--brass)}
-.pgtable{overflow-x:auto;background:var(--sheet);border:1px solid var(--line);border-radius:12px}
-.pgtable table{width:100%;border-collapse:collapse;font-size:14px}
-.pgtable th{text-align:left;font-size:12px;color:var(--ink-2);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line)}
-.pgtable td{padding:7px 10px;border-top:1px solid var(--rule);white-space:nowrap}
-.pgsong{font-family:var(--f-note);font-size:15px;white-space:normal}
-.pgscore{display:inline-block;min-width:2.2em;text-align:center;font-weight:700;border-radius:999px;padding:0 6px;border:1px solid currentColor}
+.pgintro{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px}
+#pgBody{display:grid;gap:14px;min-width:0}
+.lsecbody{min-width:0}
+#pgBody .lsecbody{display:grid;gap:10px}
+#pgBody .lsecbody[hidden]{display:none}
+.pgsub{margin:0;font-size:13.5px;color:var(--ink-2)}
+/* This week: four tiles, then the last seven days. */
+.pgtop{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+#pgBody .lheadrow{flex-wrap:wrap}
+#pgBody .lnew{margin-left:auto}
+.pgstat{display:grid;align-content:start;gap:1px;padding:10px 14px;background:var(--sheet);border:1px solid var(--line);border-radius:12px;min-width:0}
+.pgstat .pgtl{font-size:13px;color:var(--ink-2)}
+.pgstat b{font-size:26px;font-weight:600;line-height:1.2}
+.pgstat .pgts{font-size:12.5px;color:var(--ink-2)}
+.pgchg.up{color:var(--good)}.pgchg.down{color:var(--red-ink)}
+.pgweek{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;padding:12px 10px 10px;background:var(--sheet);border:1px solid var(--line);border-radius:12px}
+.pgday{display:grid;justify-items:center;gap:4px;font-size:12px;color:var(--ink-2);min-width:0}
+.pgday b{font-weight:600;color:var(--ink);white-space:nowrap}
+.pgday.now>span:last-child{color:var(--ink);font-weight:600}
+.pgbar{display:flex;align-items:flex-end;width:24px;height:84px;background:var(--chip);border-radius:6px;overflow:hidden}
+.pgbar span{display:block;width:100%;background:var(--brass);border-radius:4px 4px 0 0}
+/* Pitch over time: the report's line, in the app's colours, drawn narrow on a phone. */
+.pgcard{display:grid;gap:8px;padding:12px 14px;background:var(--sheet);border:1px solid var(--line);border-radius:12px;min-width:0}
+.pgchart{--card:var(--sheet)}
+.pgchart svg{display:block;width:100%;max-width:760px}
+.pgchart .ax{fill:var(--ink-2);font-size:11px;font-family:var(--f-ui)}
+.pgchart .gl{stroke:var(--rule);stroke-width:1}
+.pgchart svg.narrow{display:none}
+@media (max-width:560px){.pgchart svg.wide{display:none}.pgchart svg.narrow{display:block}.pgchart .narrow .ax{font-size:12px}}
+/* Songs and exercises: Music library rows with their scores' trend and a Practise button. */
+.pgmain{padding-left:14px}
+.pgtrend{flex:none;display:inline-flex;align-items:center;gap:8px;margin-left:auto}
+.pgnone{font-size:13px;color:var(--ink-2)}
+.pgspark polyline{fill:none;stroke:var(--brass);stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round}
+.pgspark circle{fill:var(--brass)}
+.pgweak{font-size:13px;color:var(--warn)}
+.lact.pgact{width:9.5em}
+.lact.pggone{font-weight:500;cursor:default}
+.lact.pggone:hover{background:transparent;color:var(--ink-2)}
+@media (max-width:720px){.lacts.pggonebox{display:none}}
+.pgscore{display:inline-block;min-width:2.2em;text-align:center;font-weight:700;border-radius:999px;padding:0 6px;border:1px solid currentColor;font-variant-numeric:tabular-nums}
 .pgscore.good{color:var(--good)}.pgscore.ok{color:var(--warn)}.pgscore.off{color:var(--red-ink)}
 .pgbest{font-size:12px;color:var(--ink-2)}
-.pgdayl{background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
-.pgdayl summary{cursor:pointer}
-.pgdayl ul{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px}
-.pgdayl li{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;padding-top:4px;border-top:1px solid var(--rule)}
+/* History: each day folds; its sessions are rows with Report and For AI at their end. */
+.pgdayl{background:var(--sheet);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:0}
+.pgdayl summary{display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px;padding:10px 14px 10px 10px;cursor:pointer;list-style:none}
+.pgdayl summary::-webkit-details-marker{display:none}
+.pgdayl summary:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.pgdayl summary svg{flex:none;width:20px;height:20px;color:var(--ink-2);transition:transform .15s}
+.pgdayl:not([open]) summary svg{transform:rotate(-90deg)}
+.pgdayl summary b{font-weight:600}
+.pgdaymeta{font-size:13px;color:var(--ink-2)}
+.pgses{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule)}
+.pgsrow{display:flex;align-items:stretch;min-width:0;border-top:1px solid var(--rule)}
+.pgsrow:first-child{border-top:0}
+.pgsrow:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.pgsmain{flex:1 1 auto;display:flex;flex-wrap:wrap;align-items:center;gap:2px 10px;min-width:0;padding:9px 12px 9px 14px}
 .pgclock{font-variant-numeric:tabular-nums;color:var(--ink-2);font-size:13px}
+.pgsong{font-family:var(--f-note);font-size:16px;overflow-wrap:anywhere}
 .pgdet{font-size:13px;color:var(--ink-2)}
-/* A session's Report and For AI (Rinat, 2026-10-20). */
-.pgacts{display:inline-flex;gap:6px;margin-left:auto;align-self:center}
+.pgrw{font-size:12px}
+@media (max-width:720px){.pgsrow{flex-direction:column}.pgsrow .lacts{border-top:1px solid var(--rule)}.pgsrow .lact{flex:1 1 0;width:auto;min-height:40px;font-size:13px}.pgsrow .lact:first-child{border-left:0}}
 .tabbtns{flex-wrap:wrap}
 @media (max-width:520px){.tabbtns button{padding:8px 9px}}
 

@@ -1,6 +1,7 @@
 // Rewaz routines: the model, rounds in the transport, the views' HTML, storage.
 import { describe, expect, it } from 'vitest';
 import { entryDetail, progressHTML } from '../../src/app/progress';
+import { dailyScores, periodSummary, songScores, weakLine } from '../../src/core/practice/log';
 import { itemRowHTML, pickedButton, pickerHTML, routineHTML, type ItemSong } from '../../src/app/rewaz';
 import { RoutineStore, STORE_KEYS, type KeyValueStore } from '../../src/app/store';
 import { createEngine } from '../../src/audio/engine';
@@ -211,27 +212,65 @@ describe('the Progress view', () => {
   const e = (song: string, when: number, x: Partial<LogEntry> = {}): LogEntry =>
     ({ at: when, secs: 300, song, title: 'Old ' + song, from: 0, to: 1, loop: true, rounds: 3, tempo: 100, top: 100, ...x });
 
+  const song = (id: string) => (id === 'a' ? { title: 'Song <A>', exercise: false } : id === 'x' ? { title: 'Ex', exercise: true } : null);
+
   it('invites practice when nothing is logged', () => {
-    expect(progressHTML([], at(10), () => null)).toContain('Nothing logged yet');
+    expect(progressHTML([], at(10), { song: () => null })).toContain('Nothing logged yet');
   });
 
-  it('shows the run of days, the week, each song and the history', () => {
+  it('shows four sections that fold and move: the week, pitch over time, each song and the history', () => {
     const log = [e('a', at(8), { score: 72 }), e('b', at(9), { secs: 120, routine: 'Daily <warm-up>' }), e('a', at(10), { score: 90, top: 116 })];
-    const html = progressHTML(log, at(10, 20), (id) => (id === 'a' ? 'Song <A>' : null));
-    expect(html).toContain('<b>3</b><span>days in a row</span>');
-    expect(html).toContain('<b>12 min</b><span>in the last 7 days</span>');
-    expect(html).toContain('Song &lt;A&gt;');
-    expect(html).toContain('Old b');
-    expect(html).toContain('<span class="pgscore good">90</span>');
+    const html = progressHTML(log, at(10, 20), { song });
+    expect(Array.from(html.matchAll(/<section class="lsec" data-sec="(\w+)">/g), (m) => m[1])).toEqual(['week', 'pitch', 'songs', 'history']);
+    for (const id of ['week', 'pitch', 'songs', 'history']) expect(html).toContain('data-grip="' + id + '"');
+    expect(html).toContain('<span class="pgtl">Days in a row</span><b>3</b>');
+    expect(html).toContain('<span class="pgtl">Last 7 days</span><b>12 min</b><span class="pgts">3 sessions</span>');
+    expect(html).toContain('<span class="pgtl">Pitch, last 7 days</span><b>81</b>');
+    expect(html).toContain('Songs and exercises <span class="n">2</span>');
+    expect(html).toContain('History <span class="n">3 days</span>');
+    expect(html).toContain('data-act="export"');
+    // A song still there opens to practise; one deleted since shows its logged title.
+    expect(html).toContain('<button type="button" class="lopen" data-open="a"><span class="ltitle">Song &lt;A&gt;</span>');
+    expect(html).toContain('<span class="lopen"><span class="ltitle">Old b</span><span class="lmeta">1 time · 2 min in all · practised yesterday · deleted since</span>');
+    expect(html).toContain('<span class="pgscore good" title="Pitch score">90</span>');
+    expect(html).toContain('<svg class="pgspark"');
     expect(html).not.toContain('best 90');
-    expect(html).toContain('Today, Sat 10 Oct');
-    expect(html).toContain('Daily &lt;warm-up&gt;');
-    expect((html.match(/class="pgday"/g) || []).length).toBe(7);
+    expect(html).toContain('<b>Today, Sat 10 Oct</b><span class="pgdaymeta">5 min · 1 session · pitch 90</span>');
+    expect(html).toContain('Rewaz: Daily &lt;warm-up&gt;');
+    expect(html).toContain('data-report="' + at(10) + '"');
+    expect((html.match(/class="pgday( now)?"/g) || []).length).toBe(7);
+    // Pitch over time: two days with a score draw the line.
+    expect(html).toContain('<div class="pgchart"><svg class="chart wide"');
+  });
+
+  it('keeps the order and the folds asked for', () => {
+    const log = [e('a', at(10), { score: 80 })];
+    const html = progressHTML(log, at(10, 20), { song, order: ['history', 'songs', 'week', 'pitch'], folded: { songs: true } });
+    expect(Array.from(html.matchAll(/data-sec="(\w+)"/g), (m) => m[1])).toEqual(['history', 'songs', 'week', 'pitch']);
+    expect(html).toContain('data-fold="songs" aria-expanded="false"');
+    expect(html).toContain('<div class="lsecbody" id="pgsec-songs" hidden>');
+    expect(html).toContain('One day with a pitch score so far (80).');
   });
 
   it('describes one practice', () => {
-    expect(entryDetail(e('a', 0, { top: 116, routine: 'R' }))).toBe('lines 1–2 × 3 rounds · 100→116 per min · 5 min · R');
+    expect(entryDetail(e('a', 0, { top: 116, routine: 'R' }))).toBe('lines 1–2 × 3 rounds · 100→116 per min · 5 min');
     expect(entryDetail(e('a', 0, { from: 2, to: 2, loop: false, rounds: 1, secs: 45 }))).toBe('line 3 · 100 per min · 45 s');
+  });
+
+  it('sums up a week against the one before, each day’s pitch, a song’s trend and its weakest line', () => {
+    const log = [
+      e('a', at(1), { secs: 600, score: 60, lines: [[0, 50], [1, 70]] }),
+      e('a', at(4), { secs: 300, score: 70, lines: [[0, 60], [1, 80], [2, 75]] }),
+      e('b', at(9), { secs: 120 }),
+      e('a', at(10), { secs: 300, score: 80, lines: [[0, 70], [1, 90]] }),
+      e('a', at(10, 12), { secs: 100, score: 100 }),
+    ];
+    expect(periodSummary(log, at(10, 20), 7)).toEqual({ secs: 820, sessions: 4, score: Math.round((70 * 300 + 80 * 300 + 100 * 100) / 700) });
+    expect(periodSummary(log, at(10, 20), 7, 7)).toEqual({ secs: 600, sessions: 1, score: 60 });
+    expect(dailyScores(log, at(10, 20), 30).map((d) => d.score)).toEqual([60, 70, 85]);
+    expect(songScores(log, 'a', 3)).toEqual([70, 80, 100]);
+    expect(weakLine(log, 'a')).toEqual({ line: 0, score: 60 });
+    expect(weakLine(log, 'b')).toBeNull();
   });
 });
 

@@ -182,7 +182,7 @@ function centsChart(cents: readonly number[], median: number, W: number): string
 
 /** Scores over time (or rounds): one line, 0 to 100, the in-tune and close marks as hairlines,
  * the last point named. */
-function scoreLine(points: { label: string; score: number; at?: string }[], what: string, W: number): string {
+export function scoreLine(points: { label: string; score: number; at?: string }[], what: string, W: number): string {
   const H = 180;
   const L = 34;
   const R = 60;

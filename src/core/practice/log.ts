@@ -195,3 +195,55 @@ export function lengthText(secs: number): string {
   const m = Math.round(s / 60);
   return Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '');
 }
+
+/** Practice over `days` days ending `back` days before today (0: ending today): its time, its
+ * sessions, and its pitch score, the scored sessions' average weighted by their length (null:
+ * none scored). */
+export function periodSummary(log: readonly LogEntry[], now: number, days: number, back = 0): { secs: number; sessions: number; score: number | null } {
+  const last = dayNumber(now) - back;
+  const first = last - days + 1;
+  const es = log.filter((e) => {
+    const d = dayNumber(e.at);
+    return d >= first && d <= last;
+  });
+  return { secs: es.reduce((a, e) => a + e.secs, 0), sessions: es.length, score: meanScore(es) };
+}
+
+/** Scored sessions' average score, weighted by their length; null when none was scored. */
+export function meanScore(es: readonly LogEntry[]): number | null {
+  const s = es.filter((e) => e.score != null);
+  const w = s.reduce((a, e) => a + Math.max(1, e.secs), 0);
+  return w ? Math.round(s.reduce((a, e) => a + e.score! * Math.max(1, e.secs), 0) / w) : null;
+}
+
+/** Each day of the last `days` with a pitch score, oldest first: its average score. */
+export function dailyScores(log: readonly LogEntry[], now: number, days: number): { day: number; score: number }[] {
+  const from = dayNumber(now) - days + 1;
+  const by = new Map<number, LogEntry[]>();
+  for (const e of log) {
+    const d = dayNumber(e.at);
+    if (d < from || e.score == null) continue;
+    if (!by.has(d)) by.set(d, []);
+    by.get(d)!.push(e);
+  }
+  return Array.from(by, ([day, es]) => ({ day, score: meanScore(es)! })).sort((a, b) => a.day - b.day);
+}
+
+/** A song's last `n` pitch scores, oldest first. */
+export const songScores = (log: readonly LogEntry[], song: string, n = 12): number[] =>
+  log.filter((e) => e.song === song && e.score != null).slice(-n).map((e) => e.score!);
+
+/**
+ * The line of a song that most needs work: over its last five scored sessions, the line with
+ * the lowest average score, when it is 10 or more below the best line's; null otherwise.
+ */
+export function weakLine(log: readonly LogEntry[], song: string): { line: number; score: number } | null {
+  const es = log.filter((e) => e.song === song && e.lines && e.lines.length).slice(-5);
+  const by = new Map<number, number[]>();
+  for (const e of es) for (const [l, s] of e.lines!) (by.get(l) ?? by.set(l, []).get(l)!).push(s);
+  if (by.size < 2) return null;
+  const avg = Array.from(by, ([line, s]) => ({ line, score: Math.round(s.reduce((a, b) => a + b, 0) / s.length) }));
+  const worst = avg.reduce((a, b) => (b.score < a.score || (b.score === a.score && b.line < a.line) ? b : a));
+  const best = Math.max(...avg.map((x) => x.score));
+  return best - worst.score >= 10 ? worst : null;
+}

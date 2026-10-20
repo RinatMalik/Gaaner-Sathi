@@ -176,8 +176,8 @@ describe('the Music library', () => {
     expect(open).not.toMatch(/id="lsec-(mine|ex)" hidden/);
     const folded = songsListHTML(own, EXERCISES, opts({ folded: { ex: true } }));
     expect(folded.html).toContain('data-fold="ex" aria-expanded="false"');
-    expect(folded.html).toContain('<div id="lsec-ex" hidden>');
-    expect(folded.html).toContain('<div id="lsec-mine">');
+    expect(folded.html).toContain('<div class="lsecbody" id="lsec-ex" hidden>');
+    expect(folded.html).toContain('<div class="lsecbody" id="lsec-mine">');
     expect(folded.shown).toBe(2 + EXERCISES.length);
     // A search shows what matches in every section, with plain headings.
     const found = songsListHTML(own, EXERCISES, opts({ query: 'সা', folded: { mine: true, ex: true } })).html;

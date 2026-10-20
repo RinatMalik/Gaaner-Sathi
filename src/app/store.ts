@@ -82,6 +82,9 @@ export interface Prefs extends SoundSettings {
   /** The Music library's sections in the order the user dragged them; absent: the exercises
    * first. */
   libOrder?: ('mine' | 'ex')[];
+  /** Progress's sections folded away, and their order as dragged (absent: as PG_ORDER). */
+  pgFold?: { week?: true; pitch?: true; songs?: true; history?: true };
+  pgOrder?: ('week' | 'pitch' | 'songs' | 'history')[];
   /** Pitch feedback: the octave must match too (unset: any octave counts). */
   pitchOctave?: boolean;
   /** Pitch feedback: the delay from the beat to the voice found last time, seconds. */
@@ -176,6 +179,15 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
     p.libFold = {};
     if (lf.mine === true) p.libFold.mine = true;
     if (lf.ex === true) p.libFold.ex = true;
+  }
+  const PG = ['week', 'pitch', 'songs', 'history'] as const;
+  const po = r.pgOrder;
+  if (Array.isArray(po) && po.length === PG.length && PG.every((x) => po.includes(x))) p.pgOrder = po as typeof p.pgOrder;
+  const pf = r.pgFold as Record<string, unknown> | undefined;
+  if (pf && typeof pf === 'object') {
+    const f: NonNullable<Prefs['pgFold']> = {};
+    for (const k of PG) if (pf[k] === true) f[k] = true;
+    if (Object.keys(f).length) p.pgFold = f;
   }
   if (r.pitchOctave === true) p.pitchOctave = true;
   if (typeof r.pitchLag === 'number' && r.pitchLag >= 0 && r.pitchLag <= 0.6) p.pitchLag = r.pitchLag;

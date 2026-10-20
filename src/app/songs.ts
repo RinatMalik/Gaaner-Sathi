@@ -7,6 +7,7 @@ import { entryFor, isExercise, matchesFilter, matchesQuery, sortEntries, tagCoun
 import { foldText } from '../core/song/model';
 import { lengthText } from '../core/practice/log';
 import { TAALS } from '../core/taal/taals';
+import { foldSectionHTML, initSectionDrag } from './fold';
 import { esc, KEYS } from './view';
 
 /** The library's two sections. */
@@ -32,7 +33,6 @@ export interface ListOptions {
   confirmDel?: string;
 }
 
-const GRIP_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></g></svg>';
 
 const tight = (s: string) => foldText(s).replace(/[\s|।॥‖০\-–—~]+/g, '');
 
@@ -40,7 +40,6 @@ const PLAY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v1
 const EDIT_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
 const PRINT_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V3.5h10V9M7 17H4.5V10.5a1.5 1.5 0 0 1 1.5-1.5h12a1.5 1.5 0 0 1 1.5 1.5V17H17M7 14h10v6.5H7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
 const DEL_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 13h8l1-13M10.5 11v5.5M13.5 11v5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-const FOLD_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 /** One song, laid out like a line in the beat boxes: a favourite star (own songs only), the
  * title with its first lyric and details (opens it to practise), its tags (each one filters
@@ -92,16 +91,11 @@ export function songsListHTML(own: readonly LibrarySong[], exercises: readonly L
     : o.sort === 'title'
       ? [...pick(ownEx, 'title'), ...pick(exercises, 'changed')]
       : pick([...ownEx, ...exercises], o.sort === 'practised' ? 'practised' : 'changed');
-  const section = (id: LibSection, title: string, n: number, body: string) => {
-    const folded = !searching && !!o.folded?.[id];
-    const label = title + ' <span class="n">' + n + '</span>';
-    const head = searching
-      ? '<h3 class="lhead"><span class="lfold">' + label + '</span></h3>'
-      : '<h3 class="lhead"><button type="button" class="lfold" data-fold="' + id + '" aria-expanded="' + !folded + '" aria-controls="lsec-' + id + '">' + FOLD_ICON + label + '</button></h3>';
-    const make = id === 'mine' ? '<button type="button" class="btn lnew" data-new="song">+ New song</button>' : '<button type="button" class="btn lnew" data-new="exercise">+ New exercise</button>';
-    const grip = '<button type="button" class="lgrip" data-grip="' + id + '" aria-label="Move ' + title + ': drag, or press the up or down arrow" title="Drag to move this section">' + GRIP_ICON + '</button>';
-    return '<section class="lsec" data-sec="' + id + '"><div class="lheadrow">' + grip + head + make + '</div><div id="lsec-' + id + '"' + (folded ? ' hidden' : '') + '>' + body + '</div></section>';
-  };
+  const section = (id: LibSection, title: string, n: number, body: string) =>
+    foldSectionHTML({
+      id, prefix: 'lsec-', title, n, body, folded: !!o.folded?.[id], fixed: searching,
+      action: id === 'mine' ? '<button type="button" class="btn lnew" data-new="song">+ New song</button>' : '<button type="button" class="btn lnew" data-new="exercise">+ New exercise</button>',
+    });
   const rows = (list: LibraryEntry[]) => '<ul class="llist">' + list.map((e) => songRowHTML(e, o)).join('') + '</ul>';
   const parts: Partial<Record<LibSection, string>> = {};
   if (k !== 'ex') {
@@ -233,88 +227,8 @@ export function initSongs(host: SongsHost): { render(): void } {
       render();
     }
   });
-  // ── Moving a section: drag its handle (mouse or touch), or ↑ ↓ on it ──────────
-  const list = $('#libList');
-  const sectionsShown = () => Array.from(list.querySelectorAll<HTMLElement>('.lsec'));
-  /** Put `id` at `at` among the sections shown; the stored order keeps any not shown. */
-  function moveTo(id: LibSection, at: number): void {
-    const shown = sectionsShown().map((s) => s.dataset.sec as LibSection).filter((s) => s !== id);
-    shown.splice(Math.max(0, Math.min(shown.length, at)), 0, id);
-    const rest = host.order().filter((s) => !shown.includes(s));
-    const next = [...shown, ...rest];
-    if (next.join() !== host.order().join()) host.setOrder(next);
-    render();
-    list.querySelector<HTMLElement>('[data-grip="' + id + '"]')?.focus();
-  }
-  let drag: { id: LibSection; pointer: number; y0: number; grab: number; on: boolean; at: number } | null = null;
-  let dropLine: HTMLElement | null = null;
-  function endDrag(): void {
-    list.classList.remove('sorting');
-    list.style.minHeight = '';
-    for (const s of sectionsShown()) {
-      s.classList.remove('dragging');
-      s.style.transform = '';
-    }
-    dropLine?.remove();
-    dropLine = null;
-    drag = null;
-  }
-  list.addEventListener('pointerdown', (e) => {
-    const g = (e.target as Element).closest<HTMLElement>('[data-grip]');
-    if (!g || e.button !== 0) return;
-    e.preventDefault();
-    g.setPointerCapture(e.pointerId);
-    const head = g.closest<HTMLElement>('.lheadrow')!;
-    drag = { id: g.dataset.grip as LibSection, pointer: e.pointerId, y0: e.clientY, grab: e.clientY - head.getBoundingClientRect().top, on: false, at: -1 };
-  });
-  list.addEventListener('pointermove', (e) => {
-    if (!drag || e.pointerId !== drag.pointer) return;
-    if (!drag.on) {
-      if (Math.abs(e.clientY - drag.y0) < 5) return;
-      // While moving, the sections show only their headings, so a long one is easy to move;
-      // the list keeps its height, so the page does not scroll from under the pointer.
-      drag.on = true;
-      list.style.minHeight = list.offsetHeight + 'px';
-      list.classList.add('sorting');
-      sectionsShown().find((s) => s.dataset.sec === drag!.id)?.classList.add('dragging');
-      dropLine = document.createElement('div');
-      dropLine.className = 'ldrop';
-      list.appendChild(dropLine);
-    }
-    const secs = sectionsShown();
-    const me = secs.find((s) => s.dataset.sec === drag!.id);
-    if (!me) return;
-    me.style.transform = '';
-    const top = me.getBoundingClientRect().top;
-    me.style.transform = 'translateY(' + (e.clientY - drag.grab - top) + 'px)';
-    // Where it would go: before the first other section whose middle is below the pointer.
-    const others = secs.filter((s) => s !== me);
-    let at = others.findIndex((s) => {
-      const r = s.getBoundingClientRect();
-      return e.clientY < r.top + r.height / 2;
-    });
-    if (at < 0) at = others.length;
-    drag.at = at;
-    const box = list.getBoundingClientRect();
-    const ref = others[at];
-    const y = ref ? ref.getBoundingClientRect().top - 6 : (others.at(-1)?.getBoundingClientRect().bottom ?? box.top) + 6;
-    dropLine!.style.top = y - box.top + 'px';
-  });
-  list.addEventListener('pointerup', (e) => {
-    if (!drag || e.pointerId !== drag.pointer) return;
-    const { id, on, at } = drag;
-    endDrag();
-    if (on && at >= 0) moveTo(id, at);
-  });
-  list.addEventListener('pointercancel', endDrag);
-  list.addEventListener('keydown', (e) => {
-    const g = (e.target as Element).closest<HTMLElement>('[data-grip]');
-    if (!g || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
-    e.preventDefault();
-    const id = g.dataset.grip as LibSection;
-    const i = sectionsShown().findIndex((s) => s.dataset.sec === id);
-    moveTo(id, i + (e.key === 'ArrowUp' ? -1 : 1));
-  });
+  // Moving a section: drag its handle (mouse or touch), or ↑ ↓ on it (fold.ts).
+  initSectionDrag($('#libList'), { order: host.order, move: (next) => host.setOrder(next as LibSection[]) });
 
   return { render };
 }

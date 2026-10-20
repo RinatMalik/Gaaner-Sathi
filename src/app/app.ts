@@ -52,7 +52,7 @@ import { initBoxes, withNewHeading, type Boxes } from './boxes';
 import { initKeyboard, keyboardHTML, keyName, keyRange, keysToFill, type KeyboardUI } from './keyboard';
 import { initLines, type LinesUI } from './lines';
 import { initPrint } from './print';
-import { initProgress } from './progress';
+import { initProgress, PG_ORDER } from './progress';
 import { reportHTML } from './report';
 import { initRewaz, type ItemSong, type Rewaz } from './rewaz';
 import { takeBuffer, takeFileName, takesHTML, TakeStore } from './takes';
@@ -2316,7 +2316,32 @@ export function init(): void {
   });
   progressView = initProgress({
     log: () => logStore.load(),
-    title: (id) => (songs.get(id) || EXERCISES.find((x) => x.id === id))?.title ?? null,
+    song: (id) => {
+      const s = id === current?.id ? current : songs.get(id) || EXERCISES.find((x) => x.id === id);
+      return s ? { title: s.title, exercise: !!(s.example || s.exercise) } : null;
+    },
+    open: (id) => {
+      const s = songs.get(id) || EXERCISES.find((x) => x.id === id);
+      if (!s) return;
+      userPicked = true;
+      if (s.id !== current.id) loadSong(s);
+      switchTab('practice');
+    },
+    folded: () => prefs.pgFold ?? {},
+    setFolded: (id, fold) => {
+      const f = { ...prefs.pgFold };
+      if (fold) f[id] = true;
+      else delete f[id];
+      if (Object.keys(f).length) prefs.pgFold = f;
+      else delete prefs.pgFold;
+      savePrefs();
+    },
+    order: () => prefs.pgOrder ?? PG_ORDER,
+    setOrder: (o) => {
+      if (o.join() === PG_ORDER.join()) delete prefs.pgOrder;
+      else prefs.pgOrder = o;
+      savePrefs();
+    },
     exportLog: () => {
       const d = today();
       void offerFile('gaaner-sathi-practice-log-' + d + '.json', logFileText(logStore.load(), d), (t) => setFileStatus(t, '#pgStatus'));

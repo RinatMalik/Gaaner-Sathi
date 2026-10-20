@@ -99,6 +99,18 @@ describe('preferences', () => {
     expect(loadPrefs(S).tab).toBe('songs');
   });
 
+  it('keep Progress’s folded sections and their order, when whole and valid', () => {
+    const S = new Memory();
+    expect(loadPrefs(S)).not.toHaveProperty('pgFold');
+    expect(loadPrefs(S)).not.toHaveProperty('pgOrder');
+    S.setItem(STORE_KEYS.prefs, JSON.stringify({ pgFold: { songs: true, week: 'yes', other: true }, pgOrder: ['history', 'week', 'pitch', 'songs'] }));
+    expect(loadPrefs(S).pgFold).toEqual({ songs: true });
+    expect(loadPrefs(S).pgOrder).toEqual(['history', 'week', 'pitch', 'songs']);
+    S.setItem(STORE_KEYS.prefs, JSON.stringify({ pgFold: { week: false }, pgOrder: ['history', 'week'] }));
+    expect(loadPrefs(S)).not.toHaveProperty('pgFold');
+    expect(loadPrefs(S)).not.toHaveProperty('pgOrder');
+  });
+
   it('keep the rewaz routines unfolded, by id; the old "routine last chosen" is dropped', () => {
     const S = new Memory();
     S.setItem(STORE_KEYS.prefs, JSON.stringify({ rewazOpen: ['routine-a', 7, '', 'routine-starter'], rewazId: 'routine-a' }));
