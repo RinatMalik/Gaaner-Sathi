@@ -32,10 +32,12 @@ import { EXERCISES } from '../core/exercises';
 import type { Exercise } from '../core/exercises/types';
 import { joinBeats, notesInRange, noteToken, shiftOctaves, splitBeats, type TextEdit } from '../core/notation/edit';
 import { parseSong } from '../core/notation/parse';
-import { sectionOfLine, setHeadingTempo, songSections, type SongSection } from '../core/notation/sections';
+import { playSeconds, sectionOfLine, sectionTempoAt, setHeadingTempo, songSections, type SongSection } from '../core/notation/sections';
 import { oneTaal, taalMap, type Taals } from '../core/notation/taalmap';
 import type { Beat, ParsedSong, Unit } from '../core/notation/types';
-import { lastPractised, logFileText, MIN_LOG_SECS, type LogEntry } from '../core/practice/log';
+import { analyse } from '../core/practice/insights';
+import { lastPractised, lengthText, logFileText, MIN_LOG_SECS, type LogEntry } from '../core/practice/log';
+import type { PitchDetail, PlayedSettings, PlayedSong, SessionDetail } from '../core/practice/session';
 import { songSpan } from '../core/pitch/voice';
 import { itemLines, type RoutineItem } from '../core/practice/routine';
 import { clockText, MIN_TAKE_SECS, newTakeId, textSig, type Take } from '../core/practice/take';
@@ -43,12 +45,15 @@ import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefi
 import { cleanDismissed, cleanNotes, newId, normalize, parseTags, type Song } from '../core/song/model';
 import { SONG_SOUND_KEYS, soundOf, type SongSound } from '../core/song/sound';
 import { isTaalId, taalInfo, TAALS, type TaalInfo } from '../core/taal/taals';
+import { aiFileName, aiFileText, type SessionFileInput } from './aifile';
+import { SessionStore } from './db';
 import { initPitch, type PitchUI } from './pitch';
 import { initBoxes, withNewHeading, type Boxes } from './boxes';
 import { initKeyboard, keyboardHTML, keyName, keyRange, keysToFill, type KeyboardUI } from './keyboard';
 import { initLines, type LinesUI } from './lines';
 import { initPrint } from './print';
 import { initProgress } from './progress';
+import { reportHTML } from './report';
 import { initRewaz, type ItemSong, type Rewaz } from './rewaz';
 import { takeBuffer, takeFileName, takesHTML, TakeStore } from './takes';
 import { initVoice, type SaChoice, type VoiceUI } from './voice';
@@ -463,6 +468,7 @@ function userPlay(n: number): void {
 function showTempo(t: number): void {
   input('#tempoNum').value = String(t);
   input('#tempoRange').value = String(t);
+  renderLength();
 }
 function clearOverride(): void {
   if (!itemOverride) return;
@@ -588,12 +594,27 @@ interface Run {
   pass: number;
   line: number;
   end: number;
+  /** The song and settings as played, for the session's detail. */
+  played: PlayedSong;
+  settings: PlayedSettings;
 }
 let run: Run | null = null;
 
 function startRun(from: number, to: number, loop: boolean): void {
   const t = baseTempoAt(parsed.noteLines[from]?.start ?? 0);
-  run = { song: current.id, title: current.title, from, to, loop, tempo: t, top: t, first: 0, wall: 0, seg: 0, done: 0, pass: 0, line: from, end: 0 };
+  const s = soundSource;
+  run = {
+    song: current.id, title: current.title, from, to, loop, tempo: t, top: t, first: 0, wall: 0, seg: 0, done: 0, pass: 0, line: from, end: 0,
+    played: { title: current.title, taal: current.taal, tempo: current.tempo, text: current.text, saHz: saFreq(songSource), sa: saWords(songSource) },
+    settings: { guide: s.guide, guideLoop: s.guideLoop, countIn: !!s.countIn, ramp: !!s.ramp, rampStep: s.rampStep, rampMax: s.rampMax },
+  };
+  $('#pAfter').hidden = true;
+}
+
+/** Sa in words: "C♯ (Black 1), middle octave". */
+function saWords(k: { saKey: number; saOct: number }): string {
+  const key = V.KEYS[k.saKey];
+  return (key ? key[0] + ' (' + key[1] + ')' : '?') + ', ' + (V.OCTS.find((o) => o[0] === k.saOct)?.[1] ?? '').toLowerCase() + ' octave';
 }
 
 /** A beat is showing: note how far the practice has got. */
@@ -611,7 +632,7 @@ function trackRun(q: BeatEntry, ctxNow: number): void {
 
 /** Playing stopped at AudioContext time `at`: log it, with any pitch scores, unless it was
  * only a quick listen. */
-function endRun(at: number, pitch: { score: number; lines: [number, number][] } | null): void {
+function endRun(at: number, pitch: { score: number; lines: [number, number][]; detail: PitchDetail | null } | null): void {
   const r = run;
   run = null;
   if (!r || !r.first || takePlay) return;
@@ -621,7 +642,7 @@ function endRun(at: number, pitch: { score: number; lines: [number, number][] } 
     at: Math.round(r.wall), secs: Math.round(secs), song: r.song, title: r.title,
     from: r.from, to: r.loop ? r.to : r.line, loop: r.loop, rounds: r.loop ? r.pass + 1 : 1, tempo: r.tempo, top: r.top,
   };
-  if (pitch) {
+  if (pitch && Number.isFinite(pitch.score)) {
     e.score = pitch.score;
     e.lines = pitch.lines;
   }
@@ -630,7 +651,90 @@ function endRun(at: number, pitch: { score: number; lines: [number, number][] } 
     practised.set(e.song, e.at);
     songsView.render();
     progressView.render();
+    const d: SessionDetail = { at: e.at, song: e.song, played: r.played, settings: r.settings };
+    if (pitch?.detail) d.pitch = pitch.detail;
+    void keepSession(d);
+    if (d.pitch) {
+      lastSession = e.at;
+      $('#pAfter').hidden = false;
+    }
   }
+}
+
+// ── Sessions: each one's detail, its report and its file for AI ──────────────
+
+let sessionStore: SessionStore | null = null;
+let sessionStoreTried = false;
+/** The session last logged with the pitch check, for the buttons under the lines. */
+let lastSession = 0;
+
+async function sessionsDB(): Promise<SessionStore | null> {
+  if (!sessionStoreTried) {
+    sessionStoreTried = true;
+    sessionStore = typeof indexedDB === 'undefined' ? null : await SessionStore.open();
+  }
+  return sessionStore;
+}
+
+/** Keep a session's detail (Rinat, 2026-10-20); if the browser's storage is full, the log still
+ * has its summary. */
+async function keepSession(d: SessionDetail): Promise<void> {
+  try {
+    await (await sessionsDB())?.add(d);
+  } catch {
+    // Nothing more to do: the report says the detail is missing.
+  }
+}
+
+/** All a session's report and file for AI need, by its log entry's `at`. */
+async function sessionInput(at: number): Promise<SessionFileInput | null> {
+  const log = logStore.load();
+  const e = log.find((x) => x.at === at);
+  if (!e) return null;
+  let detail: SessionDetail | null = null;
+  try {
+    detail = (await (await sessionsDB())?.get(at)) ?? null;
+  } catch {
+    detail = null;
+  }
+  const s = e.song === current.id ? current : songs.get(e.song) || EXERCISES.find((x) => x.id === e.song);
+  const songNow = s ? { title: s.title, taal: s.taal, tempo: s.tempo, text: s.text, saHz: saFreq(s), sa: saWords(s) } : null;
+  return { e, detail, ins: analyse(e, detail, log), songNow, earlier: log.filter((x) => x.song === e.song && x.at < e.at), made: Date.now() };
+}
+
+/** A session's report, in a new tab (opened at once, inside the tap, so it is not blocked);
+ * where tabs cannot be opened, saved as a file. */
+async function openReport(at: number, say: (t: string) => void): Promise<void> {
+  let w: Window | null = null;
+  try {
+    w = window.open('', '_blank');
+  } catch {
+    w = null;
+  }
+  say('Making the report…');
+  const o = await sessionInput(at);
+  if (!o) {
+    w?.close();
+    say('That session is no longer in the practice log.');
+    return;
+  }
+  const html = reportHTML({ ...o, script: prefs.script });
+  if (w) {
+    w.location.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+    say('The report is open in a new tab.');
+  } else {
+    void offerFile(aiFileName(o.e).replace(/ for AI\.json$/, ' report.html'), new Blob([html], { type: 'text/html' }), say);
+  }
+}
+
+/** A session's file for AI, saved. */
+async function saveForAI(at: number, say: (t: string) => void): Promise<void> {
+  const o = await sessionInput(at);
+  if (!o) {
+    say('That session is no longer in the practice log.');
+    return;
+  }
+  void offerFile(aiFileName(o.e), aiFileText(o), say);
 }
 
 // ── Rendering ────────────────────────────────────────────────────────────────
@@ -1313,8 +1417,42 @@ function renderEditSummary(): void {
   $('#edSum').textContent = [
     current.title,
     T.name + (current.startOn > 1 ? ', from beat ' + current.startOn : ''),
+    ...(parsed.noteLines.length ? [lengthText(playSeconds(parsed, sectionTempoAt(parsed, sections, current.tempo))) + ' long'] : []),
     ...(current.tags && current.tags.length ? [current.tags.join(', ')] : []),
   ].join(' · ');
+}
+
+/** How long the song plays at its tempo, its sections' own included and the count-in not
+ * (Rinat, 2026-10-20: "show how long each of the song is at its current settings"): beside the
+ * Practice view's title, with the lines to practise when they are not the whole song; in Edit
+ * notation's Settings; and in the Music library (songLength). */
+function renderLength(): void {
+  if (!current) return;
+  renderEditSummary();
+  const el = $('#songLen');
+  if (!parsed.noteLines.length) {
+    el.textContent = '';
+    return;
+  }
+  const { from, to, loop } = pickedLines();
+  let t = lengthText(playSeconds(parsed, baseTempoAt)) + ' long';
+  if (loop) t += ' · line' + (to > from ? 's ' + (from + 1) + '–' + (to + 1) : ' ' + (from + 1)) + ': ' + lengthText(playSeconds(parsed, baseTempoAt, from, to)) + ' a round';
+  else if (from > 0) t += ' · from line ' + (from + 1) + ': ' + lengthText(playSeconds(parsed, baseTempoAt, from));
+  el.textContent = t;
+}
+
+/** A song's length at its tempo, worked out once per version, for the Music library. */
+const lengths = new Map<string, { key: string; secs: number }>();
+function songLength(id: string): number | null {
+  const s = id === current?.id ? current : songs.get(id) || EXERCISES.find((x) => x.id === id);
+  if (!s) return null;
+  const key = s.tempo + '\u0000' + s.text;
+  const had = lengths.get(id);
+  if (had && had.key === key) return had.secs;
+  const P = parseSong(s.text);
+  const secs = playSeconds(P, sectionTempoAt(P, songSections(s.text, P), s.tempo));
+  lengths.set(id, { key, secs });
+  return secs;
 }
 /** "Change this song's sound" in the Practice settings: Edit notation, with the song's sound open. */
 function showSongSound(): void {
@@ -1334,6 +1472,7 @@ function reparse(keepLines: boolean): void {
   taals = taalMap(current.text, parsed, current.taal, current.startOn, sections);
   renderSheets();
   renderLineSelects(keepLines);
+  renderLength();
   renderIssues();
   renderTaal();
   renderSections();
@@ -1956,14 +2095,13 @@ function setTempo(v: number | string): void {
   showTempo(t);
   if (itemOverride && rewaz.active) {
     itemOverride.tempo = t;
-    return;
+  } else {
+    const sec = deckSection();
+    if (sec && sec.tempo != null && sec.tempoLine) {
+      if (t !== sec.tempo) setText(setHeadingTempo(current.text, sec.tempoLine, t));
+    } else if (t !== current.tempo) changed('tempo', t);
   }
-  const sec = deckSection();
-  if (sec && sec.tempo != null && sec.tempoLine) {
-    if (t !== sec.tempo) setText(setHeadingTempo(current.text, sec.tempoLine, t));
-    return;
-  }
-  if (t !== current.tempo) changed('tempo', t);
+  renderLength();
 }
 /** The clicked button inside a segmented control. */
 const segButton = (e: Event) => (e.target as Element).closest<HTMLElement>('button');
@@ -2014,6 +2152,7 @@ export function init(): void {
     exercises: EXERCISES,
     currentId: () => current.id,
     practisedAt: (id) => practised.get(id) ?? 0,
+    lengthOf: songLength,
     sort: () => prefs.libSort,
     setSort: (s) => {
       prefs.libSort = s;
@@ -2083,8 +2222,6 @@ export function init(): void {
         savePrefs();
       },
     },
-    song: () => ({ title: current.title, taal: current.taal, tempo: current.tempo, text: current.text }),
-    save: (name, text, say) => void offerFile(name, text, say),
   });
   rewaz = initRewaz({
     choices: pickerGroups,
@@ -2184,6 +2321,15 @@ export function init(): void {
       const d = today();
       void offerFile('gaaner-sathi-practice-log-' + d + '.json', logFileText(logStore.load(), d), (t) => setFileStatus(t, '#pgStatus'));
     },
+    report: (at) => void openReport(at, (t) => setFileStatus(t, '#pgStatus')),
+    forAI: (at) => void saveForAI(at, (t) => setFileStatus(t, '#pgStatus')),
+  });
+  // After a run with the pitch check: its report and its file for AI, as in Progress.
+  $('#pReport').addEventListener('click', () => {
+    if (lastSession) void openReport(lastSession, (t) => setFileStatus(t, '#pMsg'));
+  });
+  $('#pForAI').addEventListener('click', () => {
+    if (lastSession) void saveForAI(lastSession, (t) => setFileStatus(t, '#pMsg'));
   });
   boxes = initBoxes({
     text: () => current.text,
@@ -2231,6 +2377,7 @@ export function init(): void {
   });
   // Changing the Lines to practise while they play plays the new ones; a pause ends.
   const linesChanged = () => {
+    renderLength();
     if (playing() && lineCheck < 0 && fromHere < 0 && !rewaz.active) play();
     else if (paused) stop();
     else if (!playing()) showIdle();

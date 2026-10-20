@@ -1,7 +1,9 @@
 /**
  * The Progress view (docs/ROADMAP.md → Rewaz routine and practice log): days in a row,
  * time practised this week and in all, each song's totals and scores, the history by day,
- * and the log as a file. The HTML builder is pure and tested in Node.
+ * and the log as a file. Each session in the history has a Report (a page to read, save or
+ * print) and For AI (a file for any AI to analyse), Rinat, 2026-10-20 (report.ts, aifile.ts).
+ * The HTML builder is pure and tested in Node.
  */
 import { byDay, durationText, lastDays, songTotals, streaks, type LogEntry } from '../core/practice/log';
 import { whenText } from '../core/song/library';
@@ -68,7 +70,8 @@ export function progressHTML(log: readonly LogEntry[], now: number, title: (id: 
     const when = whenText(date.getTime(), now);
     const label = (when === 'today' || when === 'yesterday' ? when[0]!.toUpperCase() + when.slice(1) + ', ' : '') + DAY_NAMES[date.getDay()] + ' ' + date.getDate() + ' ' + MONTHS[date.getMonth()] + (date.getFullYear() === new Date(now).getFullYear() ? '' : ' ' + date.getFullYear());
     html += '<details class="pgdayl"' + (i < 3 ? ' open' : '') + '><summary><b>' + label + '</b> · ' + durationText(d.secs) + '</summary><ul>' +
-      d.entries.map((e) => '<li><span class="pgclock">' + clock(e.at) + '</span><span class="pgsong">' + esc(title(e.song) ?? e.title) + '</span><span class="pgdet">' + esc(entryDetail(e)) + '</span>' + scoreHTML(e.score) + '</li>').join('') +
+      d.entries.map((e) => '<li><span class="pgclock">' + clock(e.at) + '</span><span class="pgsong">' + esc(title(e.song) ?? e.title) + '</span><span class="pgdet">' + esc(entryDetail(e)) + '</span>' + scoreHTML(e.score) +
+        '<span class="pgacts"><button type="button" class="ibtn" data-report="' + e.at + '">Report</button><button type="button" class="ibtn" data-ai="' + e.at + '" title="A file with everything about this session, for an AI such as Claude or ChatGPT to analyse">For AI</button></span></li>').join('') +
       '</ul></details>';
   });
   if (days.length > 60) html += '<p class="lab2">The download has every day; this shows the latest 60.</p>';
@@ -80,6 +83,9 @@ export interface ProgressHost {
   title(id: string): string | null;
   /** Save the log as a file (or copy it), reporting in the view. */
   exportLog(): void;
+  /** A session's report, opened in a new tab; its file for AI, saved. By its log entry's `at`. */
+  report(at: number): void;
+  forAI(at: number): void;
 }
 
 export function initProgress(host: ProgressHost): { render(): void } {
@@ -90,5 +96,11 @@ export function initProgress(host: ProgressHost): { render(): void } {
     body.innerHTML = progressHTML(host.log(), Date.now(), host.title);
   }
   (document.querySelector('#pgExport') as HTMLElement).addEventListener('click', () => host.exportLog());
+  body.addEventListener('click', (ev) => {
+    const b = (ev.target as Element).closest<HTMLElement>('[data-report],[data-ai]');
+    if (!b) return;
+    if (b.dataset.report) host.report(+b.dataset.report);
+    else host.forAI(+b.dataset.ai!);
+  });
   return { render };
 }

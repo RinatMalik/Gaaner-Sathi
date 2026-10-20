@@ -186,3 +186,12 @@ export function durationText(secs: number): string {
   const m = Math.round(s / 60);
   return m < 60 ? m + ' min' : Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '');
 }
+
+/** A song's length to the second: "3 min 20 s", "45 s", "1 h 2 min". */
+export function lengthText(secs: number): string {
+  const s = Math.round(secs);
+  if (s < 60) return s + ' s';
+  if (s < 3600) return Math.floor(s / 60) + ' min' + (s % 60 ? ' ' + (s % 60) + ' s' : '');
+  const m = Math.round(s / 60);
+  return Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '');
+}

@@ -5,6 +5,7 @@
  */
 import { entryFor, isExercise, matchesFilter, matchesQuery, sortEntries, tagCounts, whenText, type LibraryEntry, type LibraryFilter, type LibrarySong, type LibrarySort } from '../core/song/library';
 import { foldText } from '../core/song/model';
+import { lengthText } from '../core/practice/log';
 import { TAALS } from '../core/taal/taals';
 import { esc, KEYS } from './view';
 
@@ -20,6 +21,8 @@ export interface ListOptions {
   currentId: string;
   /** When a song was last practised (ms), 0 if never. */
   practisedAt: (id: string) => number;
+  /** How long a song plays at its tempo, seconds (Rinat, 2026-10-20). */
+  lengthOf?: (id: string) => number | null;
   now: number;
   /** The sections folded away (a search shows them all). */
   folded?: Partial<Record<LibSection, boolean>>;
@@ -48,7 +51,8 @@ export function songRowHTML(e: LibraryEntry, o: ListOptions): string {
   const s = e.song;
   const at = o.practisedAt(s.id);
   const what = isExercise(s) ? 'exercise' : 'song';
-  const meta = [TAALS[s.taal]?.name ?? s.taal, s.tempo + ' per min', 'Sa ' + (KEYS[s.saKey]?.[0] ?? '?'), at ? 'practised ' + whenText(at, o.now) : 'not practised yet'].join(' · ');
+  const secs = o.lengthOf?.(s.id);
+  const meta = [TAALS[s.taal]?.name ?? s.taal, s.tempo + ' per min', ...(secs ? [lengthText(secs)] : []), 'Sa ' + (KEYS[s.saKey]?.[0] ?? '?'), at ? 'practised ' + whenText(at, o.now) : 'not practised yet'].join(' · ');
   const star = s.example
     ? '<span class="lfav" aria-hidden="true"></span>'
     : '<button type="button" class="lfav" data-fav="' + esc(s.id) + '" aria-pressed="' + !!s.fav + '" aria-label="Favourite">' + (s.fav ? '★' : '☆') + '</button>';
@@ -140,6 +144,8 @@ export interface SongsHost {
   exercises: readonly LibrarySong[];
   currentId(): string;
   practisedAt(id: string): number;
+  /** How long a song plays at its tempo, seconds. */
+  lengthOf?(id: string): number | null;
   sort(): LibrarySort;
   setSort(s: LibrarySort): void;
   /** Open a song in the practice or edit view. */
@@ -176,7 +182,7 @@ export function initSongs(host: SongsHost): { render(): void } {
       if (!own.some((s) => (s.tags || []).some((x) => foldText(x) === t))) filter = { kind: 'all' };
     }
     if (filter.kind === 'fav' && !own.some((s) => s.fav)) filter = { kind: 'all' };
-    const o: ListOptions = { query: query.value, filter, sort: host.sort(), currentId: host.currentId(), practisedAt: host.practisedAt, now: Date.now(), folded: host.folded(), order: host.order(), confirmDel };
+    const o: ListOptions = { query: query.value, filter, sort: host.sort(), currentId: host.currentId(), practisedAt: host.practisedAt, lengthOf: host.lengthOf, now: Date.now(), folded: host.folded(), order: host.order(), confirmDel };
     const r = songsListHTML(own, host.exercises, o);
     $('#libChips').innerHTML = filterChipsHTML(own, host.exercises.length, filter);
     $('#libList').innerHTML = r.html;

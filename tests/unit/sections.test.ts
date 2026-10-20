@@ -6,7 +6,7 @@ import { DEFAULT_SOUND } from '../../src/audio/sound';
 import { Transport, type BeatEntry } from '../../src/audio/transport';
 import { EXERCISES } from '../../src/core/exercises';
 import { parseSong } from '../../src/core/notation/parse';
-import { headingLabel, headingTempo, sectionOfLine, setHeadingTempo, songSections } from '../../src/core/notation/sections';
+import { headingLabel, headingTempo, playSeconds, sectionOfLine, sectionTempoAt, setHeadingTempo, songSections } from '../../src/core/notation/sections';
 import { taalInfo } from '../../src/core/taal/taals';
 import { RecordingContext } from '../differential/webaudio-recorder';
 import { seeded } from '../helpers';
@@ -120,6 +120,18 @@ describe('a tempo per section in the transport', () => {
     expect(b.filter((x) => x.q.pass < 0).every((x) => x.q.tempo === 60)).toBe(true);
     const byRound = [0, 1, 2].map((r) => Array.from(new Set(b.filter((x) => x.q.pass === r).map((x) => x.q.tempo))));
     expect(byRound).toEqual([[60], [70], [80]]);
+  });
+
+  it('takes as long as the song’s length says, from a line to the end or round by round', () => {
+    const P = parseSong(TEXT);
+    const at = sectionTempoAt(P, songSections(TEXT, P), 120);
+    const span = (b: { q: BeatEntry; spb: number }[]) => {
+      const p = b.filter((x) => x.q.pass >= 0);
+      return p[p.length - 1]!.q.time + p[p.length - 1]!.spb - p[0]!.q.time;
+    };
+    expect(span(play(TEXT, { from: 0, to: 2, loop: false }))).toBeCloseTo(playSeconds(P, at), 9);
+    expect(span(play(TEXT, { from: 1, to: 2, loop: false }))).toBeCloseTo(playSeconds(P, at, 1), 9);
+    expect(span(play(TEXT, { from: 1, to: 1, loop: true, rounds: 2 }))).toBeCloseTo(2 * playSeconds(P, at, 1, 1), 9);
   });
 
   it('without section tempos plays exactly as before', () => {

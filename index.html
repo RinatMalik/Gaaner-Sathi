@@ -162,7 +162,7 @@
       </section>
       </div>
 
-      <div class="sheetHead"><h2 id="songTitle"></h2><span class="hint">Tap a section or a line number to play from there · Space bar plays and pauses</span></div>
+      <div class="sheetHead"><h2 id="songTitle"></h2><span class="songlen" id="songLen" title="How long it plays at this tempo, without the count-in"></span><span class="hint">Tap a section or a line number to play from there · Space bar plays and pauses</span></div>
       <div class="chips secs" id="secChips" role="group" aria-label="Sections: tap one to play from there" hidden></div>
       <details class="about" id="aboutBox" hidden><summary>About this song</summary><div class="abouttext" id="aboutText"></div></details>
       <!-- The song line by line (Rinat, 2026-10-15): about seven lines in view, the line being sung
@@ -173,7 +173,7 @@
         <div class="plfoot" id="pitchBox" hidden>
           <span class="pscores" id="pScores" aria-live="polite"></span>
           <span class="pmsg" id="pMsg"></span>
-          <button type="button" class="btn pexport" id="pExport" hidden>Download the pitch data</button>
+          <span class="pafter" id="pAfter" hidden><button type="button" class="btn" id="pReport">Report</button><button type="button" class="btn" id="pForAI" title="A file with everything about this run, for an AI such as Claude or ChatGPT to analyse">For AI</button></span>
           <span class="spacer"></span>
           <span class="phint">Headphones help: otherwise the microphone also hears the harmonium.</span>
           <span class="phint" id="pLag"></span>
@@ -204,7 +204,7 @@
           <tr><td>Your equipment</td><td>Headphones and microphones take a moment to pass sound along. Measure it once in Practice settings → Pitch → <b>Measure the delay</b>, so you are not marked late for it.</td></tr>
           <tr><td>Octaves</td><td>The right note in a higher or lower octave counts, unless you turn on <b>The octave must match too</b> (Practice settings → Pitch).</td></tr>
           <tr><td>Not scored</td><td>Rounds where the guide plays for you to listen first.</td></tr>
-          <tr><td>Your data</td><td><b>Download the pitch data</b>, after a run, saves the tune the app heard (not a recording of you), so you can share it.</td></tr>
+          <tr><td>Afterwards</td><td><b>Report</b>, under the song after a run and beside each session in Progress, opens a page on how it went: what went well, what to work on, your timing and each note. <b>For AI</b> saves everything about it as a file an AI such as Claude or ChatGPT can analyse: the tune the app heard, not a recording of you.</td></tr>
         </table>
       </details>
     </div>
@@ -252,7 +252,7 @@
 
   <main id="progress" role="tabpanel" aria-labelledby="tabProgress" hidden>
     <div class="pg">
-      <div class="toolbar"><span class="lab2">Your practice, logged in this browser.</span><span class="spacer"></span><span id="pgStatus" class="fstatus" aria-live="polite"></span><button id="pgExport" class="btn" type="button">Download my practice log</button></div>
+      <div class="toolbar"><span class="lab2">Your practice, logged in this browser. <b>Report</b> on a session opens a page on how it went; <b>For AI</b> saves a file an AI can analyse.</span><span class="spacer"></span><span id="pgStatus" class="fstatus" aria-live="polite"></span><button id="pgExport" class="btn" type="button">Download my practice log</button></div>
       <div id="pgBody"></div>
     </div>
   </main>

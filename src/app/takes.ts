@@ -8,50 +8,20 @@
 import { fromInt16 } from '../audio/dsp/pcm';
 import { cleanTake, takeDetail, type Take } from '../core/practice/take';
 import { whenText } from '../core/song/library';
+import { inTx, openDB } from './db';
 import { esc } from './view';
 
-const DB = 'gaanersathi';
-const DB_VERSION = 1;
-
-/** The takes and their samples in IndexedDB; null where IndexedDB is not available. */
+/** The takes and their samples in IndexedDB (db.ts); null where IndexedDB is not available. */
 export class TakeStore {
   private constructor(private readonly db: IDBDatabase) {}
 
-  static open(): Promise<TakeStore | null> {
-    return new Promise((resolve) => {
-      let req: IDBOpenDBRequest;
-      try {
-        req = indexedDB.open(DB, DB_VERSION);
-      } catch {
-        resolve(null);
-        return;
-      }
-      req.onupgradeneeded = () => {
-        const db = req.result;
-        if (!db.objectStoreNames.contains('takes')) db.createObjectStore('takes', { keyPath: 'id' }).createIndex('song', 'song');
-        if (!db.objectStoreNames.contains('audio')) db.createObjectStore('audio', { keyPath: 'id' });
-      };
-      req.onsuccess = () => {
-        const db = req.result;
-        // Another tab needs to upgrade or delete the database: let it, rather than block it.
-        db.onversionchange = () => db.close();
-        resolve(new TakeStore(db));
-      };
-      req.onerror = () => resolve(null);
-      // Blocked by another tab's older connection: wait for it (it closes on versionchange).
-    });
+  static async open(): Promise<TakeStore | null> {
+    const db = await openDB();
+    return db ? new TakeStore(db) : null;
   }
 
   private run<T>(stores: string[], mode: IDBTransactionMode, fn: (tx: IDBTransaction) => IDBRequest<T> | void): Promise<T | undefined> {
-    return new Promise((resolve, reject) => {
-      const tx = this.db.transaction(stores, mode);
-      let out: T | undefined;
-      const r = fn(tx);
-      if (r) r.onsuccess = () => (out = r.result);
-      tx.oncomplete = () => resolve(out);
-      tx.onerror = () => reject(tx.error);
-      tx.onabort = () => reject(tx.error);
-    });
+    return inTx(this.db, stores, mode, fn);
   }
 
   /** A song's takes, newest first (only their details). */

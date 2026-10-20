@@ -150,6 +150,8 @@ button{cursor:pointer}
 /* diary sheet */
 .sheetHead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 16px}
 .sheetHead h2{font-family:var(--f-note);font-weight:400;font-size:22px;margin:0;text-wrap:balance;min-width:0}
+/* How long the song plays at its tempo (Rinat, 2026-10-20), after the title. */
+.songlen{margin-right:auto;font-size:13px;color:var(--ink-2)}
 .tag{font-family:var(--f-ui);font-size:11px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:1px 8px;margin-left:8px;color:var(--ink-2);vertical-align:middle}
 .hint{font-size:13px;color:var(--ink-2)}
 .sheet{position:relative;background:var(--sheet);border:1px solid var(--line);border-radius:14px;overflow:auto;max-height:56vh;overscroll-behavior:contain}
@@ -466,6 +468,8 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .pgdayl li{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;padding-top:4px;border-top:1px solid var(--rule)}
 .pgclock{font-variant-numeric:tabular-nums;color:var(--ink-2);font-size:13px}
 .pgdet{font-size:13px;color:var(--ink-2)}
+/* A session's Report and For AI (Rinat, 2026-10-20). */
+.pgacts{display:inline-flex;gap:6px;margin-left:auto;align-self:center}
 .tabbtns{flex-wrap:wrap}
 @media (max-width:520px){.tabbtns button{padding:8px 9px}}
 
@@ -885,6 +889,7 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
    with the run's average as it goes, tinted by it. */
 .plfoot{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:8px 14px;border-top:1px solid var(--rule)}
 .plfoot .spacer{flex:1 1 auto}
+.pafter{display:inline-flex;gap:6px}
 .pmsg.good{color:var(--good)}.pmsg.ok{color:var(--warn)}.pmsg.off{color:var(--red-ink)}
 .pavg{display:inline-flex;align-items:center;gap:10px;padding:3px 14px 3px 4px;border-radius:999px;background:color-mix(in srgb,var(--lc) 18%,transparent);border:1.5px solid var(--lc);font-size:13px;font-weight:600;color:var(--ink)}
 .pavg b{display:grid;place-items:center;min-width:42px;height:34px;padding:0 6px;border-radius:999px;background:var(--lc);color:var(--sheet);font-size:19px;font-variant-numeric:tabular-nums}

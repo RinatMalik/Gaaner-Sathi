@@ -11,8 +11,9 @@
  * true feedback so i can work on my delay/lateness"). How far behind the guide the voice comes
  * is said under the lines. A reading the detector most likely got wrong is read as no voice;
  * the voice is drawn in the octave it sings in, all of it the same; a slide into a note is drawn
- * grey and not scored (Rinat, 2026-10-20). After a run its readings, notes and scores can be
- * downloaded ("Download the pitch data").
+ * grey and not scored (Rinat, 2026-10-20). After a run its detail (every note's result, each
+ * line's score, the readings and the beats) is kept with the session in the practice log, for
+ * its report and its file for AI (src/core/practice/session.ts).
  * "Check my pitch" switches it on; the microphone then listens only while a
  * song plays (Rinat, 2026-10-12): it comes on when playing starts or goes on after a pause, and
  * goes off when it stops or pauses.
@@ -21,6 +22,7 @@ import { measureDelay } from '../audio/latency';
 import { Mic, MicError, micProblemText, type MicReading } from '../audio/mic';
 import type { BeatEntry } from '../audio/transport';
 import type { ParsedSong } from '../core/notation/types';
+import type { PitchDetail } from '../core/practice/session';
 import { beatNotes, centsFromSa, eventsByBeat, isGlitch, nearestNote, PitchTracker, sliding, type ExpectedNote, type LineResult, type NoteResult, type Section } from '../core/pitch/track';
 import { centsText, closeness, ragColour, type LinesUI } from './lines';
 import { beatNoteHTML, type Script } from './view';
@@ -40,10 +42,6 @@ export interface PitchHost {
   octave: { get(): boolean; set(v: boolean): void };
   /** The device's own delay (sound out and back in) as last measured, seconds. */
   devLag: { get(): number | undefined; set(v: number): void };
-  /** The song, for the pitch data downloaded: its title, taal, tempo and notation. */
-  song(): { title: string; taal: string; tempo: number; text: string };
-  /** Offer a file to save, saying how it went. */
-  save(name: string, text: string, say: (t: string) => void): void;
   /** The Practice view's lines: the voice is drawn on their strips, each line's score beside it. */
   lines: Pick<LinesUI, 'voice' | 'voiceOff' | 'lineScore' | 'clearRun' | 'gaugeOn' | 'gauge'>;
 }
@@ -61,8 +59,8 @@ export interface PitchUI {
   /** A beat has been scheduled. */
   beat(q: BeatEntry, spb: number): void;
   /** Playing stopped (the microphone goes off): the scores, for the practice log (null
-   * without enough singing). */
-  endRun(): { score: number; lines: [number, number][] } | null;
+   * without enough singing), and the run's detail (null when nothing was heard). */
+  endRun(): { score: number; lines: [number, number][]; detail: PitchDetail | null } | null;
 }
 
 /** A score's colour class: in tune, close, or off; and a note not sung. */
@@ -79,7 +77,6 @@ export function initPitch(host: PitchHost): PitchUI {
   const lagEl = $('#pLag');
   const measureBtn = $<HTMLButtonElement>('#pMeasure');
   const measureMsg = $('#pMeasureMsg');
-  const exportBtn = $<HTMLButtonElement>('#pExport');
 
   /** "Check my pitch" is on; the microphone is wanted now (playing); it is open; opening. */
   let armed = false;
@@ -108,10 +105,9 @@ export function initPitch(host: PitchHost): PitchUI {
   let slideSettled = false;
   let slidePrev: number | null = null;
   let lastHz = 0;
-  /** This run, for "Download the pitch data": the beats and notes scheduled and every reading
-   * ([t, Hz] and, for one read as a glitch, what the detector said); and the last run's file. */
-  let log: { beats: number[][]; notes: ExpectedNote[]; readings: number[][] } | null = null;
-  let lastFile: { name: string; text: string } | null = null;
+  /** This run, for its detail: the beats scheduled ([time, song beat, round, seconds a beat])
+   * and every reading ([t, Hz], a glitch as no voice). */
+  let log: { beats: number[][]; readings: number[] } | null = null;
 
   function setButton(on: boolean, label: string): void {
     btn.setAttribute('aria-pressed', String(on));
@@ -204,7 +200,7 @@ export function initPitch(host: PitchHost): PitchUI {
     recent.push(c);
     if (recent.length > 400) recent = recent.slice(-300);
     tracker?.addReading({ t: c.t, hz: c.hz });
-    if (log && log.readings.length < 60000) log.readings.push(glitch ? [round(c.t, 4), 0, round(h.hz, 2)] : [round(c.t, 4), round(c.hz, 2)]);
+    if (log && log.readings.length < 120000) log.readings.push(c.t, c.hz);
   }
   const round = (v: number, d: number) => (Number.isFinite(v) ? Math.round(v * 10 ** d) / 10 ** d : null) as number;
 
@@ -275,11 +271,10 @@ export function initPitch(host: PitchHost): PitchUI {
     clearMarks();
     host.lines.clearRun();
     scoresEl.innerHTML = '';
-    exportBtn.hidden = true;
     sched = [];
     drawnT = -Infinity;
     slideNote = null;
-    log = { beats: [], notes: [], readings: [] };
+    log = { beats: [], readings: [] };
     parsedAt = host.parsed();
     byBeat = eventsByBeat(parsedAt);
     tracker = new PitchTracker({ lag: host.devLag.get() ?? mic?.latency() ?? 0.05, anyOctave: !host.octave.get(), saHz: host.saHz() });
@@ -393,43 +388,31 @@ export function initPitch(host: PitchHost): PitchUI {
     }
   }
 
-  // ── The pitch data, downloaded ─────────────────────────────────────────────
+  // ── The run's detail ───────────────────────────────────────────────────────
 
-  /** The run as a file (Rinat, 2026-10-20: "you could have a better understanding of how I am
-   * experiencing scoring if you knew data from singing a song"): what the microphone heard
-   * (pitch only, no sound), the notes expected, the beats, and the scores. */
-  function runFile(tr: PitchTracker, s: ReturnType<PitchTracker['summary']>): { name: string; text: string } | null {
+  /** The run as the session's detail keeps it (Rinat, 2026-10-20: "Have two buttons for each
+   * session"): times in seconds from its first beat; NaN as null. */
+  function runDetail(tr: PitchTracker): PitchDetail | null {
     if (!log || !log.readings.length) return null;
-    const song = host.song();
-    const r3 = (v: number) => round(v, 3);
-    const data = {
-      kind: 'Gaaner Sathi pitch data',
-      version: 1,
-      at: new Date().toISOString(),
-      song,
-      settings: { saHz: round(host.saHz(), 2), deviceDelay: r3(tr.lag), delayMeasured: host.devLag.get() != null, anyOctave: tr.anyOctave },
-      behindTheGuide: tr.behind,
-      octaveSung: tr.octave,
-      summary: s,
-      lines: tr.lines.map((l) => [l.line + 1, l.pass, l.score, r3(l.sung)]),
-      linesFields: ['line', 'round', 'score', 'share sung'],
-      results: tr.results.map((x) => [r3(x.note.t0), r3(x.note.t1), x.note.semi, x.note.oct, x.note.g, x.note.line + 1, x.note.pass, x.status, x.score, round(x.cents, 1), r3(x.arrive), round(x.wobble, 1)]),
-      resultsFields: ['t0', 't1', 'semitones above Sa', 'octave', 'song beat', 'line', 'round', 'status', 'score', 'cents', 'reached after s', 'wobble cents'],
-      notes: log.notes.map((n) => [r3(n.t0), r3(n.t1), n.semi, n.oct, n.g, n.line + 1, n.pass, n.judged ? 1 : 0]),
-      notesFields: ['t0', 't1', 'semitones above Sa', 'octave', 'song beat', 'line', 'round', 'judged'],
-      beats: log.beats,
-      beatsFields: ['time', 'song beat', 'round', 'seconds a beat'],
-      readings: log.readings,
-      readingsFields: ['t (a note at t0 is heard by the singer at t0 + 0; a reading at t was sung at t − deviceDelay)', 'Hz (0: no voice)', 'what the detector said, for a reading taken as a glitch'],
+    const base = log.beats[0]?.[0] ?? log.readings[0]!;
+    const r3 = (v: number) => (Number.isFinite(v) ? Math.round(v * 1000) / 1000 : null);
+    const r1 = (v: number) => (Number.isFinite(v) ? Math.round(v * 10) / 10 : null);
+    const readings: number[] = [];
+    for (let i = 0; i + 1 < log.readings.length; i += 2) readings.push(r3(log.readings[i]! - base) ?? 0, r1(log.readings[i + 1]!) ?? 0);
+    return {
+      lag: r3(tr.lag) ?? 0,
+      measured: host.devLag.get() != null,
+      anyOctave: tr.anyOctave,
+      octave: tr.octave,
+      notes: tr.results.map((x) => ({
+        t0: r3(x.note.t0 - base)!, t1: r3(x.note.t1 - base)!, semi: x.note.semi, oct: x.note.oct, g: x.note.g, line: x.note.line, pass: x.note.pass,
+        status: x.status, score: Number.isFinite(x.score) ? x.score : null, cents: r1(x.cents), arrive: r3(x.arrive), wobble: r1(x.wobble),
+      })),
+      lines: tr.lines.map((l) => [l.line, l.pass, Number.isFinite(l.score) ? l.score : null, Math.round(l.sung * 1000) / 1000] as [number, number, number | null, number]),
+      readings,
+      beats: log.beats.map((b) => [r3(b[0]! - base)!, b[1]!, b[2]!, b[3]!] as [number, number, number, number]),
     };
-    const day = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
-    const title = song.title.replace(/[\\/:*?"<>|]+/g, ' ').trim().slice(0, 60) || 'song';
-    return { name: 'pitch ' + title + ' ' + day + '.json', text: JSON.stringify(data) };
   }
-
-  exportBtn.addEventListener('click', () => {
-    if (lastFile) host.save(lastFile.name, lastFile.text, message);
-  });
 
   // ── Measuring the device's delay ───────────────────────────────────────────
 
@@ -503,10 +486,7 @@ export function initPitch(host: PitchHost): PitchUI {
       if (sched.length > 600) sched = sched.slice(-400);
       const pieces = beatNotes(parsedAt, byBeat, { time: q.time, s: q.s, pass: q.pass, spb }, sec, !(sec.listen && q.guide));
       tracker.addNotes(pieces);
-      if (log && log.beats.length < 20000) {
-        log.beats.push([round(q.time, 4), q.s, q.pass, round(spb, 4)]);
-        log.notes.push(...pieces);
-      }
+      if (log && log.beats.length < 20000) log.beats.push([q.time, q.s, q.pass, round(spb, 4)]);
     },
     endRun() {
       quiet();
@@ -515,12 +495,10 @@ export function initPitch(host: PitchHost): PitchUI {
       const s = tracker.summary();
       showAverage(true);
       if (s) message(REVIEW);
-      lastFile = runFile(tracker, s);
-      exportBtn.hidden = !lastFile;
+      const detail = runDetail(tracker);
       log = null;
       tracker = null;
-      return s ? { score: s.score, lines: s.lines } : null;
-
+      return s || detail ? { score: s?.score ?? NaN, lines: s?.lines ?? [], detail } : null;
     },
   };
 }

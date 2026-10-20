@@ -236,3 +236,24 @@ export function setHeadingTaal(text: string, line: number, id: TaalId | null): s
   lines[i] = body + cr;
   return lines.join('\n');
 }
+
+/** The tempo of each song beat before the tempo trainer: its section's own, else the song's. */
+export const sectionTempoAt = (P: ParsedSong, S: readonly SongSection[], tempo: number) => (s: number): number =>
+  S[sectionOfLine(S, P.lineOfBeat[s] ?? -1)]?.tempo ?? tempo;
+
+/**
+ * How long notes lines `from` to `to` take to play once, seconds, each beat at its tempo
+ * (`tempoAt`, matras a minute); without `to`, from line `from` to the end of the song, as
+ * playing without a loop does. The count-in is not counted (Rinat, 2026-10-20: "how long
+ * each of the song is at its current settings").
+ */
+export function playSeconds(P: ParsedSong, tempoAt: (s: number) => number, from = 0, to?: number): number {
+  const L = P.noteLines;
+  if (!L.length) return 0;
+  const line = (n: number) => L[Math.max(0, Math.min(n, L.length - 1))]!;
+  const a = line(from).start;
+  const b = to == null ? P.total : Math.max(a, line(to).end);
+  let t = 0;
+  for (let s = a; s < b; s++) t += 60 / Math.max(1, tempoAt(s));
+  return t;
+}
