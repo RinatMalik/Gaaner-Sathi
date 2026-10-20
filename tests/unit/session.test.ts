@@ -1,14 +1,14 @@
 // A session's detail, what it shows, its report and its file for AI (src/core/practice/session.ts,
 // insights.ts; src/app/report.ts, aifile.ts), and how long a song plays.
 import { describe, expect, it } from 'vitest';
-import { aiFile, aiFileName, aiFileText, AI_BRIEF, type SessionFileInput } from '../../src/app/aifile';
+import { aiFile, aiFileName, aiFileText, AI_BRIEF, practiceFileParts, PRACTICE_BRIEF, type SessionFileInput } from '../../src/app/aifile';
 import { progressHTML } from '../../src/app/progress';
 import { reportHTML } from '../../src/app/report';
 import { songRowHTML } from '../../src/app/songs';
 import { parseSong } from '../../src/core/notation/parse';
 import { playSeconds, sectionTempoAt, songSections } from '../../src/core/notation/sections';
 import { analyse, noteWords } from '../../src/core/practice/insights';
-import { lengthText, type LogEntry } from '../../src/core/practice/log';
+import { lengthText, noteTally, type LogEntry } from '../../src/core/practice/log';
 import { cleanSession, type NoteRow, type SessionDetail } from '../../src/core/practice/session';
 import { PitchTracker, type ExpectedNote } from '../../src/core/pitch/track';
 import { entryFor, type LibrarySong } from '../../src/core/song/library';
@@ -171,6 +171,36 @@ describe('the file for AI', () => {
     expect(f.session.detail_kept).toBe(false);
     expect(f.notes).toBeNull();
     expect(f.lines).toEqual([{ line: 1, score: 70, rounds: null, share_sung: 1, behind_the_music_ms: null, notes: null, words: null }]);
+  });
+});
+
+describe('all practice as one file', () => {
+  it('has the brief, every session oldest first with its notes of the scale, and the detail kept, each song as played once', () => {
+    const d1 = sing({ late: 0.2 });
+    const d2 = { ...sing(), at: T0 + 60_000 };
+    const log = [
+      entry({ at: T0 - 86_400_000, score: 55, lines: [[0, 55]] }),
+      entry({ score: 80, notes: noteTally(d1.pitch!.notes) }),
+      entry({ at: T0 + 60_000, score: 90, routine: 'Morning' }),
+    ];
+    const f = JSON.parse(practiceFileParts(log, [d1, d2], '2026-10-20', T0 + 120_000).join(''));
+    expect(Object.keys(f)).toEqual(['format', 'version', 'exported', 'about_this_file', 'file', 'songs_as_played', 'sessions']);
+    expect(f).toMatchObject({ format: 'gaaner-sathi-log', version: 2, exported: '2026-10-20' });
+    expect(f.about_this_file).toEqual(JSON.parse(JSON.stringify(PRACTICE_BRIEF)));
+    expect(f.file).toMatchObject({ sessions: 3, sessions_with_detail: 2 });
+    // Both sessions played the same song the same way: one version.
+    expect(f.songs_as_played).toHaveLength(1);
+    expect(f.songs_as_played[0]).toMatchObject({ song_as_played: 'v1', song_id: 's1', sa_hz: 261.63, notation: TEXT });
+    const [old, s1, s2] = f.sessions;
+    expect(old).toMatchObject({ score: 55, line_scores: [{ line: 1, score: 55 }], notes_of_the_scale: null, detail: null });
+    expect(s1.detail.song_as_played).toBe('v1');
+    expect(s1.detail.notes.rows).toHaveLength(d1.pitch!.notes.length);
+    expect(s1.detail.pitch_readings.rows).toHaveLength(d1.pitch!.readings.length / 2);
+    // The notes of the scale as the log keeps them, and as the session's own file says.
+    const fileOfOne = aiFile(input(d1, [log[1]!])) as Record<string, any>;
+    expect(s1.notes_of_the_scale).toEqual(fileOfOne.notes_of_the_scale);
+    expect(s2).toMatchObject({ rewaz_routine: 'Morning', notes_of_the_scale: null });
+    expect(s2.detail.equipment).toEqual({ device_delay_s: 0.05, delay_measured: true, any_octave_counts: true, octave_sung_against_the_notes: 0 });
   });
 });
 

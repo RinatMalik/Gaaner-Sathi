@@ -325,6 +325,28 @@ export class LogStore {
     return writeJSON(this.S, STORE_KEYS.log, list);
   }
 
+  /** Give entries their notes of the scale (for sessions logged before the log kept them),
+   * re-reading the stored log so another tab's entries survive. By `at`. */
+  setNotes(notes: ReadonlyMap<number, NonNullable<LogEntry['notes']>>): WriteResult {
+    const raw = readJSON(this.S, STORE_KEYS.log);
+    if (!Array.isArray(raw)) return 'ok';
+    for (const x of raw) {
+      const at = x && typeof x === 'object' ? (x as { at?: unknown }).at : null;
+      if (typeof at === 'number' && notes.has(at)) (x as { notes?: unknown }).notes = notes.get(at);
+    }
+    return writeJSON(this.S, STORE_KEYS.log, raw);
+  }
+
+  /** Delete the whole log (Start afresh, in Progress). */
+  clear(): WriteResult {
+    try {
+      this.S?.removeItem(STORE_KEYS.log);
+      return 'ok';
+    } catch {
+      return 'blocked';
+    }
+  }
+
   /** Whether a storage change made in another tab concerns the log. */
   static isLogKey(key: string | null): boolean {
     return key === null || key === STORE_KEYS.log;

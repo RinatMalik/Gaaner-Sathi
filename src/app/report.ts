@@ -182,13 +182,18 @@ function centsChart(cents: readonly number[], median: number, W: number): string
 
 /** Scores over time (or rounds): one line, 0 to 100, the in-tune and close marks as hairlines,
  * the last point named. */
-export function scoreLine(points: { label: string; score: number; at?: string }[], what: string, W: number): string {
+export function scoreLine(points: { label: string; score: number; at?: string; x?: number }[], what: string, W: number): string {
   const H = 180;
   const L = 34;
   const R = 60;
   const T = 14;
   const B = 26;
-  const x = (i: number) => (points.length === 1 ? (L + W - R) / 2 : L + ((W - L - R) * i) / (points.length - 1));
+  // Evenly spaced, or by `x` (a day, so that gaps between days show) when every point has one.
+  const xs = points.map((p) => p.x ?? NaN);
+  const x0 = Math.min(...xs);
+  const x1 = Math.max(...xs);
+  const timed = xs.every(Number.isFinite) && x1 > x0;
+  const x = (i: number) => (points.length === 1 ? (L + W - R) / 2 : timed ? L + ((W - L - R) * (xs[i]! - x0)) / (x1 - x0) : L + ((W - L - R) * i) / (points.length - 1));
   const y = (s: number) => T + ((H - T - B) * (100 - s)) / 100;
   let svg = '<svg class="chart ' + (W < 500 ? 'narrow' : 'wide') + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(what + ': ' + points.map((p) => p.label + ' ' + p.score).join(', ')) + '">';
   for (const [s, word] of [[0, '0'], [60, '60 close'], [85, '85 in tune'], [100, '100']] as const) {

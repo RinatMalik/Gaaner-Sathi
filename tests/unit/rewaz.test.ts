@@ -228,19 +228,74 @@ describe('the Progress view', () => {
     expect(html).toContain('<span class="pgtl">Pitch, last 7 days</span><b>81</b>');
     expect(html).toContain('Songs and exercises <span class="n">2</span>');
     expect(html).toContain('History <span class="n">3 days</span>');
+    // Below the sections: the data, to download or start afresh.
+    expect(html).toContain('<b>Your practice data:</b> 3 sessions since 8 Oct, kept only in this browser.');
     expect(html).toContain('data-act="export"');
+    expect(html).toContain('data-act="wipe"');
+    expect(html).not.toContain('data-act="wipe-yes"');
     // A song still there opens to practise; one deleted since shows its logged title.
     expect(html).toContain('<button type="button" class="lopen" data-open="a"><span class="ltitle">Song &lt;A&gt;</span>');
     expect(html).toContain('<span class="lopen"><span class="ltitle">Old b</span><span class="lmeta">1 time · 2 min in all · practised yesterday · deleted since</span>');
     expect(html).toContain('<span class="pgscore good" title="Pitch score">90</span>');
     expect(html).toContain('<svg class="pgspark"');
+    // A song's scores open its pitch charts.
+    expect(html).toContain('<button type="button" class="pgtrend" data-pitch="a"');
     expect(html).not.toContain('best 90');
     expect(html).toContain('<b>Today, Sat 10 Oct</b><span class="pgdaymeta">5 min · 1 session · pitch 90</span>');
     expect(html).toContain('Rewaz: Daily &lt;warm-up&gt;');
     expect(html).toContain('data-report="' + at(10) + '"');
     expect((html.match(/class="pgday( now)?"/g) || []).length).toBe(7);
-    // Pitch over time: two days with a score draw the line.
+    // Pitch: two days with a score draw the line, by date.
+    expect(html).toContain('Pitch</button></h3>');
     expect(html).toContain('<div class="pgchart"><svg class="chart wide"');
+    expect(html).toContain('<option value="" selected>All songs and exercises</option><optgroup label="Songs"><option value="a">Song &lt;A&gt;</option></optgroup>');
+  });
+
+  it('shows pitch for one song or all, over a time, and each note of the scale from the highest', () => {
+    const notes: [number, number, number, number][] = [[-5, 8, 92, 3], [0, 20, 90, 0], [5, 12, 94, -4], [7, 10, 91, 2], [12, 6, 58, -24], [14, 2, 40, -30]];
+    const log = [
+      e('a', at(1), { score: 60 }),
+      e('a', at(3), { score: 70, notes }),
+      e('x', at(5), { score: 95, notes: [[0, 4, 96, 1]] }),
+      e('a', at(10), { score: 80, notes }),
+    ];
+    const all = progressHTML(log, at(10, 20), { song });
+    // All of it: both songs' notes; the session before notes were kept said.
+    expect(all).toContain('1 session with a pitch score is not counted');
+    expect(all).toContain('<b>Best:</b> Ma (94), lower Pa (92) and Sa (91). <b>Needs the most work:</b> upper Sa (58, usually flat).');
+    const rows = Array.from(all.matchAll(/<span class="pgnw">([^<]+)<\/span>/g), (m) => m[1]);
+    expect(rows).toEqual(['upper Re', 'upper Sa', 'Pa', 'Ma', 'Sa', 'lower Pa']);
+    expect(all).toContain('<tr class="pgnoct"><th colspan="3" scope="rowgroup">Upper octave · তার</th></tr>');
+    expect(all).toContain('<tr class="pgnrow few"');
+    expect(all).toContain('<td class="pgnc far">24 flat</td>');
+    expect(all).toContain('<span class="pgnbar"><span class="off" style="width:58%"></span></span><b>58</b>');
+    // One exercise: its own day and notes only.
+    const one = progressHTML(log, at(10, 20), { song, pitchSong: 'x' });
+    expect(one).toContain('<optgroup label="Exercises"><option value="x" selected>Ex</option></optgroup>');
+    expect(one).toContain('<option value="30" selected>The last 30 days</option>');
+    expect(one).toContain('One day with a pitch score for ‘Ex’ over the last 30 days: 95 on 5 Oct.');
+    expect(one).not.toContain('upper Sa');
+    expect(one).toContain('Paler notes were sung fewer than 5 times');
+    // One song over 90 days: the line from its first day to its last, by date.
+    const song90 = progressHTML(log, at(10, 20), { song, pitchSong: 'a', pitchDays: 90 });
+    expect(song90).toContain('up from 60 to 80.');
+    expect(song90).toContain('aria-label="Pitch score by day: Thu 1 Oct 60, Sat 3 Oct 70, Sat 10 Oct 80"');
+    expect(song90).toContain('<b>Needs the most work:</b> upper Sa (58, usually flat).');
+    expect(song90).not.toContain('(96)');
+    // A time not offered: the last 30 days.
+    expect(progressHTML(log, at(10, 20), { song, pitchDays: 7 })).toContain('<option value="30" selected>');
+    // A song no longer in the log: all of them.
+    expect(progressHTML(log, at(10, 20), { song, pitchSong: 'gone' })).toContain('<option value="" selected>');
+  });
+
+  it('asks before starting afresh, saying what goes and what stays', () => {
+    const html = progressHTML([e('a', at(10), { score: 80 })], at(10, 20), { song, wipe: true });
+    expect(html).toContain('Delete all your practice history?');
+    expect(html).toContain('Your one session, on 10 Oct, goes');
+    expect(progressHTML([e('a', at(9)), e('a', at(10))], at(10, 20), { song, wipe: true })).toContain('All 2 sessions since 9 Oct go');
+    expect(html).toContain('Your songs, exercises, rewaz routines, recordings and settings stay.');
+    for (const a of ['export', 'wipe-yes', 'wipe-no']) expect(html).toContain('data-act="' + a + '"');
+    expect(html).not.toContain('data-act="wipe"');
   });
 
   it('keeps the order and the folds asked for', () => {
@@ -249,7 +304,7 @@ describe('the Progress view', () => {
     expect(Array.from(html.matchAll(/data-sec="(\w+)"/g), (m) => m[1])).toEqual(['history', 'songs', 'week', 'pitch']);
     expect(html).toContain('data-fold="songs" aria-expanded="false"');
     expect(html).toContain('<div class="lsecbody" id="pgsec-songs" hidden>');
-    expect(html).toContain('One day with a pitch score so far (80).');
+    expect(html).toContain('One day with a pitch score for your songs and exercises over the last 30 days: 80 on 10 Oct.');
   });
 
   it('describes one practice', () => {

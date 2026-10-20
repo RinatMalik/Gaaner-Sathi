@@ -6,7 +6,7 @@
  * is re-scored: the notes' scores are the ones shown while singing. Pure, so tested in Node.
  */
 import { centsFromSa, foldOctave } from '../pitch/track';
-import type { LogEntry } from './log';
+import { noteTally, type LogEntry } from './log';
 import type { NoteRow, SessionDetail } from './session';
 
 /** A note's score: in tune from 85, close from 60 (as the Practice view colours them). */
@@ -223,18 +223,8 @@ export function analyse(e: LogEntry, detail: SessionDetail | null, log: readonly
       leap: leapA.length >= 3 ? median(leapA) : null,
       step: stepA.length >= 3 ? median(stepA) : null,
     };
-    // Each note of the scale.
-    const by = new Map<number, NoteRow[]>();
-    for (const r of sungRows) {
-      const k = pitchOf(r);
-      if (!by.has(k)) by.set(k, []);
-      by.get(k)!.push(r);
-    }
-    ins.swaras = Array.from(by, ([, rs]) => ({
-      semi: rs[0]!.semi, oct: rs[0]!.oct, n: rs.length,
-      score: Math.round(rs.reduce((a, r) => a + r.score!, 0) / rs.length),
-      cents: Math.round(median(rs.map((r) => r.cents ?? 0))),
-    })).sort((a, b) => a.semi + 12 * a.oct - (b.semi + 12 * b.oct));
+    // Each note of the scale (as the practice log keeps it).
+    ins.swaras = noteTally(rows).map(([k, n, score, cents]) => ({ semi: ((k % 12) + 12) % 12, oct: Math.floor(k / 12), n, score, cents }));
     // Each line, its rounds together; and each round.
     const lineIds = Array.from(new Set(rows.map((r) => r.line))).sort((a, b) => a - b);
     ins.lines = lineIds.map((line) => {

@@ -340,9 +340,9 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .lempty{margin:0;padding:18px;color:var(--ink-2);background:var(--sheet);border:1px dashed var(--line);border-radius:14px}
 
 /* Pitch feedback (new): the microphone button, meter, trace, line scores and beat marks. */
-:root{--good:#2e7d32;--warn:#a15c00}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--good:#7cc47f;--warn:#f0b35a}}
-:root[data-theme="dark"]{--good:#7cc47f;--warn:#f0b35a}
+:root{--good:#2e7d32;--warn:#a15c00;--fill-good:#1f7a3a;--fill-ok:#d9a21f;--fill-off:#b4261e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--good:#7cc47f;--warn:#f0b35a;--fill-good:#45a058;--fill-ok:#dba838;--fill-off:#ec4d40}}
+:root[data-theme="dark"]{--good:#7cc47f;--warn:#f0b35a;--fill-good:#45a058;--fill-ok:#dba838;--fill-off:#ec4d40}
 .micbtn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 13px 0 9px;border-radius:999px;border:1px solid var(--deck-line);background:var(--deck-field);color:var(--on-wood);font-size:14px;font-weight:600;white-space:nowrap}
 .micbtn svg{width:18px;height:18px;flex:none}
 .micbtn[aria-pressed="true"]{background:var(--brass);border-color:var(--brass);color:var(--brass-ink)}
@@ -474,9 +474,41 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .pgchart .gl{stroke:var(--rule);stroke-width:1}
 .pgchart svg.narrow{display:none}
 @media (max-width:560px){.pgchart svg.wide{display:none}.pgchart svg.narrow{display:block}.pgchart .narrow .ax{font-size:12px}}
+/* Pitch: the song and the time chosen, the line, and each note of the scale (the report's colours). */
+.pgpick{display:flex;flex-wrap:wrap;gap:8px 16px}
+.pgsel{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-2);min-width:0}
+.pgsel select{max-width:min(24em,72vw)}
+.pgh{margin:0;font-size:15px;font-weight:600}
+.pgnsum{margin:0;font-size:14px}
+.pgnt{width:100%;max-width:680px;border-collapse:collapse;font-size:14px}
+.pgnt thead th{text-align:left;font-size:12px;font-weight:600;color:var(--ink-2);padding:0 10px 4px 0}
+.pgnoct th{text-align:left;font-size:12px;font-weight:600;color:var(--ink-2);padding:10px 0 3px;border-bottom:1px solid var(--rule)}
+.pgnrow th,.pgnrow td{padding:3px 10px 3px 0;border-bottom:1px solid var(--rule);vertical-align:middle}
+.pgnrow th{font-weight:400;text-align:left;white-space:nowrap}
+.pgnrow td:first-of-type{width:100%}
+.pgnn{display:inline-block;min-width:2.6em;font-family:var(--f-note);font-size:17px}
+.pgnw{font-size:12.5px;color:var(--ink-2)}
+.pgnsc{display:flex;align-items:center;gap:8px}
+.pgnbar{flex:1 1 auto;height:12px;min-width:48px;background:var(--chip);border-radius:6px;overflow:hidden}
+.pgnbar span{display:block;height:100%;border-radius:0 6px 6px 0}
+.pgnbar .good{background:var(--fill-good)}.pgnbar .ok{background:var(--fill-ok)}.pgnbar .off{background:var(--fill-off)}
+.pgnsc b{min-width:2ch;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.pgnc{font-size:13px;color:var(--ink-2);white-space:nowrap}
+.pgnc.far{color:var(--ink);font-weight:600}
+.pgnrow.few{opacity:.5}
+@media (max-width:560px){.pgnn{display:block;min-width:0;line-height:1.75}.pgnw{display:block;line-height:1.2;padding-bottom:2px}.pgnc{font-size:12.5px}}
+/* Below the sections: the practice data, to download or start afresh (asked in place). */
+.pgdata{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:12px 14px;border:1px dashed var(--line);border-radius:14px}
+.pgdatat{flex:1 1 280px;display:grid;gap:4px;min-width:0}
+.pgdatab{display:flex;flex-wrap:wrap;gap:8px}
+.pgwipe{border:1px solid color-mix(in srgb,var(--red-ink) 45%,var(--line));background:color-mix(in srgb,var(--red-ink) 6%,var(--sheet))}
+.pgwq{margin:0;font-weight:600;color:var(--red-ink)}
+.btn.pgdel{background:var(--red-ink);border-color:var(--red-ink);color:var(--sheet)}
 /* Songs and exercises: Music library rows with their scores' trend and a Practise button. */
 .pgmain{padding-left:14px}
 .pgtrend{flex:none;display:inline-flex;align-items:center;gap:8px;margin-left:auto}
+button.pgtrend{font:inherit;color:inherit;background:none;border:0;border-radius:10px;padding:4px 6px;cursor:pointer}
+button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .pgnone{font-size:13px;color:var(--ink-2)}
 .pgspark polyline{fill:none;stroke:var(--brass);stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round}
 .pgspark circle{fill:var(--brass)}

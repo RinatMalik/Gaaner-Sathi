@@ -72,6 +72,24 @@ export class SessionStore {
     return cleanSession(await inTx<unknown>(this.db, ['sessions'], 'readonly', (tx) => tx.objectStore('sessions').get(at)));
   }
 
+  /** Every session kept, oldest first. */
+  async all(): Promise<SessionDetail[]> {
+    const rows = (await inTx<unknown[]>(this.db, ['sessions'], 'readonly', (tx) => tx.objectStore('sessions').getAll())) ?? [];
+    return rows.map(cleanSession).filter((d): d is SessionDetail => !!d);
+  }
+
+  /** The `at` of every session kept. */
+  async keys(): Promise<number[]> {
+    return ((await inTx<IDBValidKey[]>(this.db, ['sessions'], 'readonly', (tx) => tx.objectStore('sessions').getAllKeys())) ?? []).filter((k): k is number => typeof k === 'number');
+  }
+
+  /** Delete every session kept (Start afresh, in Progress). */
+  async clear(): Promise<void> {
+    await inTx(this.db, ['sessions'], 'readwrite', (tx) => {
+      tx.objectStore('sessions').clear();
+    });
+  }
+
   /** Keep a session's detail (the readings as 32-bit floats, half the size), and let the oldest
    * go past KEEP_SESSIONS. */
   async add(d: SessionDetail): Promise<void> {

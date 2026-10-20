@@ -36,7 +36,7 @@ import { playSeconds, sectionOfLine, sectionTempoAt, setHeadingTempo, songSectio
 import { oneTaal, taalMap, type Taals } from '../core/notation/taalmap';
 import type { Beat, ParsedSong, Unit } from '../core/notation/types';
 import { analyse } from '../core/practice/insights';
-import { lastPractised, lengthText, logFileText, MIN_LOG_SECS, type LogEntry } from '../core/practice/log';
+import { lastPractised, lengthText, MIN_LOG_SECS, noteTally, type LogEntry } from '../core/practice/log';
 import type { PitchDetail, PlayedSettings, PlayedSong, SessionDetail } from '../core/practice/session';
 import { songSpan } from '../core/pitch/voice';
 import { itemLines, type RoutineItem } from '../core/practice/routine';
@@ -45,7 +45,7 @@ import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefi
 import { cleanDismissed, cleanNotes, newId, normalize, parseTags, type Song } from '../core/song/model';
 import { SONG_SOUND_KEYS, soundOf, type SongSound } from '../core/song/sound';
 import { isTaalId, taalInfo, TAALS, type TaalInfo } from '../core/taal/taals';
-import { aiFileName, aiFileText, type SessionFileInput } from './aifile';
+import { aiFileName, aiFileText, practiceFileParts, type SessionFileInput } from './aifile';
 import { SessionStore } from './db';
 import { initPitch, type PitchUI } from './pitch';
 import { initBoxes, withNewHeading, type Boxes } from './boxes';
@@ -645,6 +645,8 @@ function endRun(at: number, pitch: { score: number; lines: [number, number][]; d
   if (pitch && Number.isFinite(pitch.score)) {
     e.score = pitch.score;
     e.lines = pitch.lines;
+    const notes = pitch.detail ? noteTally(pitch.detail.notes) : [];
+    if (notes.length) e.notes = notes;
   }
   if (rewaz.active) e.routine = rewaz.name;
   if (logStore.add(e) === 'ok') {
@@ -725,6 +727,64 @@ async function openReport(at: number, say: (t: string) => void): Promise<void> {
   } else {
     void offerFile(aiFileName(o.e).replace(/ for AI\.json$/, ' report.html'), new Blob([html], { type: 'text/html' }), say);
   }
+}
+
+/** Sessions logged before the log kept their notes of the scale (2026-10-20) get them from
+ * their detail, so that Pitch's note by note counts them. */
+async function backfillNotes(): Promise<void> {
+  try {
+    const want = logStore.load().filter((e) => e.score != null && !e.notes);
+    if (!want.length) return;
+    const db = await sessionsDB();
+    if (!db) return;
+    const kept = new Set(await db.keys());
+    const found = new Map<number, NonNullable<LogEntry['notes']>>();
+    for (const e of want) {
+      if (!kept.has(e.at)) continue;
+      const d = await db.get(e.at);
+      const notes = d?.pitch ? noteTally(d.pitch.notes) : [];
+      if (notes.length) found.set(e.at, notes);
+    }
+    if (found.size && logStore.setNotes(found) === 'ok') progressView.render();
+  } catch {
+    // Nothing lost: note by note leaves those sessions out, and says so.
+  }
+}
+
+/** All the practice data as one file (Progress): every session's summary, with the detail
+ * kept, and a brief for an AI. */
+async function exportAll(): Promise<void> {
+  const say = (t: string) => setFileStatus(t, '#pgStatus');
+  say('Gathering your practice data…');
+  const log = logStore.load();
+  let sessions: SessionDetail[] = [];
+  try {
+    sessions = (await (await sessionsDB())?.all()) ?? [];
+  } catch {
+    sessions = [];
+  }
+  const d = today();
+  void offerFile('gaaner-sathi-practice-' + d + '.json', new Blob(practiceFileParts(log, sessions, d, Date.now()), { type: 'application/json' }), say);
+}
+
+/** Start afresh (Progress, asked first): the practice log and every session's detail deleted.
+ * Songs, routines, takes and settings stay. */
+async function wipePractice(): Promise<void> {
+  const say = (t: string) => setFileStatus(t, '#pgStatus');
+  if (logStore.clear() !== 'ok') {
+    say('The practice history could not be deleted: this browser blocked it. Nothing has changed.');
+    return;
+  }
+  try {
+    await (await sessionsDB())?.clear();
+  } catch {
+    // The log is gone, so nothing shows a detail left behind; the oldest go past 1,000 anyway.
+  }
+  practised = lastPractised([]);
+  lastSession = 0;
+  $('#pAfter').hidden = true;
+  songsView.render();
+  say('Your practice history is deleted: Progress starts afresh with your next practice.');
 }
 
 /** A session's file for AI, saved. */
@@ -2342,13 +2402,13 @@ export function init(): void {
       else prefs.pgOrder = o;
       savePrefs();
     },
-    exportLog: () => {
-      const d = today();
-      void offerFile('gaaner-sathi-practice-log-' + d + '.json', logFileText(logStore.load(), d), (t) => setFileStatus(t, '#pgStatus'));
-    },
+    exportLog: () => void exportAll(),
+    wipe: wipePractice,
+    script: () => prefs.script,
     report: (at) => void openReport(at, (t) => setFileStatus(t, '#pgStatus')),
     forAI: (at) => void saveForAI(at, (t) => setFileStatus(t, '#pgStatus')),
   });
+  void backfillNotes();
   // After a run with the pitch check: its report and its file for AI, as in Progress.
   $('#pReport').addEventListener('click', () => {
     if (lastSession) void openReport(lastSession, (t) => setFileStatus(t, '#pMsg'));

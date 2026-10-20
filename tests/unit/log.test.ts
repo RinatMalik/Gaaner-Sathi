@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LogStore, STORE_KEYS, type KeyValueStore } from '../../src/app/store';
-import { byDay, cleanEntry, cleanLog, dayNumber, durationText, lastDays, lastPractised, logFileText, songTotals, streaks, type LogEntry } from '../../src/core/practice/log';
+import { byDay, cleanEntry, cleanLog, dailyScores, dayNumber, durationText, lastDays, lastPractised, noteScores, noteTally, songTotals, streaks, type LogEntry } from '../../src/core/practice/log';
 
 const at = (d: number, h = 9, m = 0) => new Date(2026, 9, d, h, m).getTime();
 const entry = (song: string, when: number, extra: Partial<LogEntry> = {}): LogEntry =>
@@ -65,11 +65,40 @@ describe('progress from the log', () => {
     ]);
   });
 
-  it('exports to a file that reads back', () => {
-    const log = [entry('a', at(1)), entry('b', at(2), { score: 81, lines: [[0, 81]] })];
-    const f = JSON.parse(logFileText(log, '2026-10-10'));
-    expect(f).toMatchObject({ format: 'gaaner-sathi-log', version: 1, exported: '2026-10-10' });
-    expect(cleanLog(f.entries)).toEqual(log);
+  it('keeps each note of the scale sung, checked when read', () => {
+    const rows = [
+      { semi: 0, oct: 1, status: 'sung', score: 60, cents: -20 },
+      { semi: 0, oct: 1, status: 'sung', score: 70, cents: -30 },
+      { semi: 0, oct: 1, status: 'sung', score: 80, cents: -10 },
+      { semi: 7, oct: -1, status: 'sung', score: 95, cents: 2 },
+      { semi: 4, oct: 0, status: 'unsung', score: null, cents: null },
+      { semi: 5, oct: 0, status: 'short', score: 90, cents: 0 },
+    ];
+    // Upper Sa 12 semitones up, lower Pa 5 down; the unsung and the too short left out.
+    expect(noteTally(rows)).toEqual([[-5, 1, 95, 2], [12, 3, 70, -20]]);
+    const e = cleanEntry({ ...entry('a', 1), notes: [[12, 3, 70, -20], [-5, 1, 95, 2], ['x', 1, 2, 3], [0, 0, 50, 0], [7, 2, 140, 5000]] })!;
+    // Numbers clamped, as everywhere in the log; a row that is not numbers dropped.
+    expect(e.notes).toEqual([[12, 3, 70, -20], [-5, 1, 95, 2], [0, 1, 50, 0], [7, 2, 100, 1200]]);
+    expect(cleanEntry({ ...entry('a', 1), notes: 'x' })).not.toHaveProperty('notes');
+  });
+
+  it('sums the notes over sessions, weighted by the times sung', () => {
+    const ns = noteScores([
+      entry('a', 1, { notes: [[12, 3, 70, -20], [7, 1, 90, 0]] }),
+      entry('b', 2, { notes: [[12, 1, 90, 0]] }),
+      entry('c', 3),
+    ]);
+    expect(ns).toEqual([
+      { semi: 7, oct: 0, n: 1, score: 90, cents: 0 },
+      { semi: 0, oct: 1, n: 4, score: 75, cents: -15 },
+    ]);
+  });
+
+  it('gives each day’s score for one song or all, over a time or all time', () => {
+    const log = [entry('a', at(1), { score: 60 }), entry('b', at(5), { score: 90 }), entry('a', at(5, 12), { score: 70 }), entry('a', at(10), { score: 80 })];
+    expect(dailyScores(log, at(10, 20), 7).map((d) => [d.score, d.n])).toEqual([[80, 2], [80, 1]]);
+    expect(dailyScores(log, at(10, 20), 0, 'a').map((d) => d.score)).toEqual([60, 70, 80]);
+    expect(dailyScores(log, at(10, 20), 7, 'b').map((d) => d.score)).toEqual([90]);
   });
 
   it('writes durations the short way', () => {
@@ -78,6 +107,18 @@ describe('progress from the log', () => {
 });
 
 describe('the log in storage', () => {
+  it('gives older entries their notes, and starts afresh', () => {
+    const S = new Memory();
+    const a = new LogStore(S);
+    a.add(entry('a', 1, { score: 70 }));
+    a.add(entry('b', 2, { score: 80 }));
+    expect(a.setNotes(new Map<number, [number, number, number, number][]>([[2, [[0, 3, 80, -5]]]]))).toBe('ok');
+    expect(a.load().map((e) => e.notes ?? null)).toEqual([null, [[0, 3, 80, -5]]]);
+    expect(a.clear()).toBe('ok');
+    expect(a.load()).toEqual([]);
+    expect(S.m.has(STORE_KEYS.log)).toBe(false);
+  });
+
   it('appends to what is stored, so another tab’s entries survive', () => {
     const S = new Memory();
     const a = new LogStore(S);

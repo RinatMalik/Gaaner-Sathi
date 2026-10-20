@@ -25,6 +25,10 @@ export interface LogEntry {
   score?: number;
   /** Pitch score per line sung: [line, score]. */
   lines?: [number, number][];
+  /** Each note of the scale sung, when pitch feedback was on (kept from 2026-10-20): [semitones
+   * from middle Sa (upper Sa 12, lower Pa −5), times sung, average score, median cents off
+   * (+ sharp, − flat)], lowest first (noteTally). */
+  notes?: [number, number, number, number][];
   /** The rewaz routine this was part of. */
   routine?: string;
 }
@@ -32,8 +36,8 @@ export interface LogEntry {
 /** Shorter practice is not logged: a quick listen is not practice. */
 export const MIN_LOG_SECS = 10;
 
+/** The practice data's file (Progress → Download all practice data; aifile.ts). */
 export const LOG_FILE_FORMAT = 'gaaner-sathi-log';
-export const LOG_FILE_VERSION = 1;
 
 const num = (v: unknown, lo: number, hi: number): number | null =>
   typeof v === 'number' && Number.isFinite(v) ? Math.max(lo, Math.min(hi, v)) : null;
@@ -70,6 +74,12 @@ export function cleanEntry(v: unknown): LogEntry | null {
       .filter((x): x is [number, number] => Array.isArray(x) && int(x[0], 0, 10_000) != null && int(x[1], 0, 100) != null)
       .map((x) => [int(x[0], 0, 10_000)!, int(x[1], 0, 100)!] as [number, number]);
     if (lines.length) e.lines = lines;
+  }
+  if (Array.isArray(o.notes)) {
+    const notes = o.notes
+      .map((x) => (Array.isArray(x) ? [int(x[0], -36, 48), int(x[1], 1, 1_000_000), int(x[2], 0, 100), int(x[3], -1200, 1200)] : []))
+      .filter((x): x is [number, number, number, number] => x.length === 4 && x.every((v) => v != null));
+    if (notes.length) e.notes = notes;
   }
   if (typeof o.routine === 'string' && o.routine) e.routine = o.routine.slice(0, 200);
   return e;
@@ -174,11 +184,6 @@ export function songTotals(log: readonly LogEntry[]): SongTotal[] {
   return Array.from(m.values()).sort((a, b) => b.secs - a.secs || b.last - a.last);
 }
 
-/** The text of an exported log file. `exported` is YYYY-MM-DD. */
-export function logFileText(log: readonly LogEntry[], exported: string): string {
-  return JSON.stringify({ format: LOG_FILE_FORMAT, version: LOG_FILE_VERSION, exported, entries: log }, null, 2);
-}
-
 /** "1 h 5 min", "12 min", "40 s". */
 export function durationText(secs: number): string {
   const s = Math.round(secs);
@@ -216,17 +221,70 @@ export function meanScore(es: readonly LogEntry[]): number | null {
   return w ? Math.round(s.reduce((a, e) => a + e.score! * Math.max(1, e.secs), 0) / w) : null;
 }
 
-/** Each day of the last `days` with a pitch score, oldest first: its average score. */
-export function dailyScores(log: readonly LogEntry[], now: number, days: number): { day: number; score: number }[] {
-  const from = dayNumber(now) - days + 1;
+/** The entries of the last `days` days, today included (0: all of them). */
+export const lastDaysOf = (log: readonly LogEntry[], now: number, days: number): LogEntry[] =>
+  days > 0 ? log.filter((e) => dayNumber(e.at) > dayNumber(now) - days) : [...log];
+
+/** Each day of the last `days` (0: all time) with a pitch score, oldest first: its average
+ * score and how many scored sessions it had; one song's only, when `song` is given. */
+export function dailyScores(log: readonly LogEntry[], now: number, days: number, song?: string): { day: number; score: number; n: number }[] {
   const by = new Map<number, LogEntry[]>();
-  for (const e of log) {
+  for (const e of lastDaysOf(log, now, days)) {
+    if (e.score == null || (song && e.song !== song)) continue;
     const d = dayNumber(e.at);
-    if (d < from || e.score == null) continue;
     if (!by.has(d)) by.set(d, []);
     by.get(d)!.push(e);
   }
-  return Array.from(by, ([day, es]) => ({ day, score: meanScore(es)! })).sort((a, b) => a.day - b.day);
+  return Array.from(by, ([day, es]) => ({ day, score: meanScore(es)!, n: es.length })).sort((a, b) => a.day - b.day);
+}
+
+const median = (v: readonly number[]): number => {
+  const s = [...v].sort((a, b) => a - b);
+  const m = s.length >> 1;
+  return s.length % 2 ? s[m]! : (s[m - 1]! + s[m]!) / 2;
+};
+
+/** A session's notes sung, by note of the scale, for its entry's `notes`: each note's times
+ * sung, average score and median cents off, lowest note first. Notes not sung are left out,
+ * as they are of the scores. */
+export function noteTally(rows: readonly { semi: number; oct: number; status: string; score: number | null; cents: number | null }[]): [number, number, number, number][] {
+  const by = new Map<number, { s: number[]; c: number[] }>();
+  for (const r of rows) {
+    if (r.status !== 'sung' || r.score == null) continue;
+    const k = r.semi + 12 * r.oct;
+    let b = by.get(k);
+    if (!b) by.set(k, (b = { s: [], c: [] }));
+    b.s.push(r.score);
+    b.c.push(r.cents ?? 0);
+  }
+  return Array.from(by, ([k, b]) => [k, b.s.length, Math.round(b.s.reduce((a, x) => a + x, 0) / b.s.length), Math.round(median(b.c)) || 0] as [number, number, number, number]).sort((a, b) => a[0] - b[0]);
+}
+
+export interface NoteScore {
+  /** Semitones above Sa (0–11) and octave (0 middle, −1 lower, 1 upper). */
+  semi: number;
+  oct: number;
+  /** Times sung, the average score, and the cents off (+ sharp, − flat), over the sessions. */
+  n: number;
+  score: number;
+  cents: number;
+}
+
+/** How each note of the scale went over several sessions (those with their notes kept): the
+ * times sung, and the sessions' scores and cents off weighted by the times each sang it;
+ * lowest note first. */
+export function noteScores(es: readonly LogEntry[]): NoteScore[] {
+  const by = new Map<number, { n: number; s: number; c: number }>();
+  for (const e of es) {
+    for (const [k, n, s, c] of e.notes ?? []) {
+      let b = by.get(k);
+      if (!b) by.set(k, (b = { n: 0, s: 0, c: 0 }));
+      b.n += n;
+      b.s += s * n;
+      b.c += c * n;
+    }
+  }
+  return Array.from(by, ([k, b]) => ({ semi: ((k % 12) + 12) % 12, oct: Math.floor(k / 12), n: b.n, score: Math.round(b.s / b.n), cents: Math.round(b.c / b.n) || 0 })).sort((a, b) => a.semi + 12 * a.oct - (b.semi + 12 * b.oct));
 }
 
 /** A song's last `n` pitch scores, oldest first. */

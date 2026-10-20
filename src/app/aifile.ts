@@ -7,8 +7,8 @@
  */
 import { parseSong } from '../core/notation/parse';
 import { noteWords, type Insights } from '../core/practice/insights';
-import type { LogEntry } from '../core/practice/log';
-import type { SessionDetail } from '../core/practice/session';
+import { LOG_FILE_FORMAT, type LogEntry } from '../core/practice/log';
+import type { PitchDetail, SessionDetail } from '../core/practice/session';
 import { centsFromSa } from '../core/pitch/track';
 import { taalInfo } from '../core/taal/taals';
 import { AKAR, BN_LETTER, REPH } from '../core/notation/symbols';
@@ -198,24 +198,24 @@ export function aiFile(o: SessionFileInput): Record<string, unknown> {
     })),
     rounds: ins.rounds.map((x) => ({ round: x.round + 1, score: x.score })),
     notes_of_the_scale: ins.swaras.map((s) => ({ note: noteWords(s.semi, s.oct), bengali: bengali(s.semi, s.oct), times_sung: s.n, average_score: s.score, median_cents_off: s.cents })),
-    notes: p
-      ? {
-          columns: ['line', 'round', 'song_beat', 'note', 'bengali', 'octave', 'cents_above_sa', 'start_s', 'end_s', 'status', 'score', 'cents_off', 'reached_after_s', 'wobble_cents'],
-          rows: p.notes.map((n) => [n.line + 1, n.pass + 1, n.g + 1, noteWords(n.semi, 0), bengali(n.semi, n.oct), n.oct, 100 * n.semi + 1200 * n.oct, r(n.t0, 3), r(n.t1, 3), n.status, n.score, r(n.cents, 1), r(n.arrive, 3), r(n.wobble, 1)]),
-        }
-      : null,
-    beats: p ? { columns: ['start_s', 'song_beat', 'round', 'seconds_a_beat'], rows: p.beats.map((b) => [r(b[0], 3), b[1] + 1, b[2] + 1, r(b[3], 4)]) } : null,
-    pitch_readings: p && song
-      ? {
-          columns: ['time_s', 'cents_above_sa'],
-          about: 'Every reading, when it was sung. cents_above_sa is null where there was no voice; Hz = sa_hz × 2^(cents/1200).',
-          rows: readingRows(p.readings, p.lag, song.saHz),
-        }
-      : null,
+    notes: p ? notesTable(p) : null,
+    beats: p ? beatsTable(p) : null,
+    pitch_readings: p && song ? readingsTable(p, song.saHz) : null,
     earlier_sessions_of_this_song: o.earlier.map((x) => ({ started: iso(x.at), seconds_practised: x.secs, lines_practised: x.from === x.to ? String(x.from + 1) : x.from + 1 + '–' + (x.to + 1), rounds: x.rounds, tempo: x.tempo, score: x.score ?? null })),
   };
   return out;
 }
+
+const notesTable = (p: PitchDetail) => ({
+  columns: ['line', 'round', 'song_beat', 'note', 'bengali', 'octave', 'cents_above_sa', 'start_s', 'end_s', 'status', 'score', 'cents_off', 'reached_after_s', 'wobble_cents'],
+  rows: p.notes.map((n) => [n.line + 1, n.pass + 1, n.g + 1, noteWords(n.semi, 0), bengali(n.semi, n.oct), n.oct, 100 * n.semi + 1200 * n.oct, r(n.t0, 3), r(n.t1, 3), n.status, n.score, r(n.cents, 1), r(n.arrive, 3), r(n.wobble, 1)]),
+});
+const beatsTable = (p: PitchDetail) => ({ columns: ['start_s', 'song_beat', 'round', 'seconds_a_beat'], rows: p.beats.map((b) => [r(b[0], 3), b[1] + 1, b[2] + 1, r(b[3], 4)]) });
+const readingsTable = (p: PitchDetail, saHz: number) => ({
+  columns: ['time_s', 'cents_above_sa'],
+  about: 'Every reading, when it was sung. cents_above_sa is null where there was no voice; Hz = sa_hz × 2^(cents/1200).',
+  rows: readingRows(p.readings, p.lag, saHz),
+});
 
 function readingRows(readings: readonly number[], lag: number, saHz: number): (number | null)[][] {
   const out: (number | null)[][] = [];
@@ -226,11 +226,123 @@ function readingRows(readings: readonly number[], lag: number, saHz: number): (n
   return out;
 }
 
+/** Two-space JSON, but each row of a table on one line, so a file stays readable and small. */
+const tableJSON = (data: unknown): string =>
+  JSON.stringify(data, null, 2).replace(/\[\n\s+([^[\]{}]*?)\n\s+\]/g, (_, body: string) => '[' + body.replace(/\n\s+/g, ' ') + ']');
+
 /** The file's text: the brief and summaries readable, the long tables one row to a line. */
 export function aiFileText(o: SessionFileInput): string {
-  const data = aiFile(o);
-  // Two-space JSON, but each row of a table on one line, so the file stays readable and small.
-  return JSON.stringify(data, null, 2).replace(/\[\n\s+([^[\]{}]*?)\n\s+\]/g, (_, body: string) => '[' + body.replace(/\n\s+/g, ' ') + ']');
+  return tableJSON(aiFile(o));
+}
+
+// ── All practice, as one file (Progress → Download all practice data) ─────────
+
+export const PRACTICE_FILE_VERSION = 2;
+
+/** What an AI reading the whole practice history needs to know first. */
+export const PRACTICE_BRIEF = {
+  read_this_first:
+    'This file is a singer\'s whole practice history from Gaaner Sathi (গানের সাথী, "singing companion"), a web app for practising ' +
+    'Bengali songs from swaralipi, the Bengali akarmatrik notation, exported from the browser that kept it. Read this brief first: it ' +
+    'explains the app, the notation, how the app judged the singing, and every part of the file. Then help the singer see how they are ' +
+    'getting on: which songs and which notes are improving, what keeps going wrong, how their practice is spread, and what to practise ' +
+    'next. The singer is not technical: write in plain words, name songs by title, lines by number ("line 3") and notes by name ("upper ' +
+    'Sa"), and give cents and milliseconds only with what they mean.',
+  the_app: AI_BRIEF.the_app,
+  notation: AI_BRIEF.notation,
+  time: AI_BRIEF.time,
+  scoring: AI_BRIEF.scoring,
+  the_parts_of_this_file:
+    'sessions: every practice session, oldest first, one for each time a song or exercise was practised for 10 seconds or more (count-in ' +
+    'excluded): when, how long, which lines (numbered from 1), the rounds, the tempo, and, with the pitch check on, the score, each ' +
+    'line\'s score and each note of the scale\'s (notes_of_the_scale: times sung, average score, median cents off). From 20 October 2026 ' +
+    'the newest 1,000 sessions also have detail: the settings, the equipment, every note the singer was asked to sing (notes), every ' +
+    'beat (beats) and every pitch reading (pitch_readings), laid out as in the app\'s file for AI of one session, with the song as ' +
+    'played named by song_as_played. Older sessions have only their summary. songs_as_played: each song as it was played (its ' +
+    'notation, Sa, taal and tempo), once for each version the sessions used.',
+  how_to_analyse: [
+    'Look at progress over time: each song\'s scores session by session, and how often and how long the singer practised.',
+    'Compare the notes of the scale across sessions: notes steadily flat, sharp or low-scoring (for example the upper octave, or komal notes).',
+    'Within a session with detail, tell pitch from timing: a note can score low because it was reached late (reached_after_s) or because it was held off the note (cents_off).',
+    'Suggest three to five things to practise next, concretely: a song or line to loop, a slower tempo, the guide on Soft, a note to hold with the tanpura.',
+    'Do not over-read small numbers: a song sung once or twice, or a note sung a few times, says little.',
+  ],
+  caveats: AI_BRIEF.caveats,
+};
+
+const linesText = (e: LogEntry) => (e.from === e.to ? String(e.from + 1) : e.from + 1 + '–' + (e.to + 1));
+
+/** The text of the whole practice history, in pieces to join (a long history is tens of
+ * megabytes, so it is never one string or one pass of a regular expression). */
+export function practiceFileParts(log: readonly LogEntry[], sessions: readonly SessionDetail[], exported: string, made: number): string[] {
+  const byAt = new Map(sessions.map((d) => [d.at, d]));
+  // Each song as played, once for each version the sessions used.
+  const versions = new Map<string, Record<string, unknown>>();
+  const versionOf = new Map<number, string>();
+  for (const e of log) {
+    const d = byAt.get(e.at);
+    if (!d) continue;
+    const s = d.played;
+    const key = [d.song, s.title, s.taal, s.tempo, s.saHz, s.sa, s.text].join('\u0001');
+    let v = versions.get(key);
+    if (!v) {
+      const T = taalInfo(s.taal);
+      v = {
+        song_as_played: 'v' + (versions.size + 1),
+        song_id: d.song,
+        title: s.title,
+        taal: T ? T.name + ' (' + T.bn + '), ' + T.cycle + ' beats a cycle, divided ' + T.vib.join(' + ') : s.taal,
+        tempo: s.tempo,
+        sa: s.sa,
+        sa_hz: r(s.saHz, 2),
+        notation: s.text,
+        lines: lineTexts(s.text).map((t, i) => ({ line: i + 1, notes: t.notes, words: t.words })),
+      };
+      versions.set(key, v);
+    }
+    versionOf.set(e.at, v.song_as_played as string);
+  }
+  const head = tableJSON({
+    format: LOG_FILE_FORMAT,
+    version: PRACTICE_FILE_VERSION,
+    exported,
+    about_this_file: PRACTICE_BRIEF,
+    file: { kind: 'Gaaner Sathi practice history, to keep and for AI analysis', made: iso(made), sessions: log.length, sessions_with_detail: versionOf.size },
+    songs_as_played: Array.from(versions.values()),
+  });
+  const parts = [head.slice(0, head.lastIndexOf('}')).trimEnd() + ',\n  "sessions": ['];
+  log.forEach((e, i) => {
+    const d = byAt.get(e.at);
+    const p = d?.pitch ?? null;
+    const one = {
+      started: iso(e.at),
+      seconds_practised: e.secs,
+      song_id: e.song,
+      song_title: e.title,
+      lines_practised: linesText(e),
+      looped: e.loop,
+      rounds: e.rounds,
+      tempo: e.tempo,
+      tempo_reached: e.top,
+      rewaz_routine: e.routine ?? null,
+      score: e.score ?? null,
+      line_scores: e.lines ? e.lines.map(([l, s]) => ({ line: l + 1, score: s })) : null,
+      notes_of_the_scale: e.notes ? e.notes.map(([k, n, s, c]) => ({ note: noteWords(((k % 12) + 12) % 12, Math.floor(k / 12)), bengali: bengali(((k % 12) + 12) % 12, Math.floor(k / 12)), times_sung: n, average_score: s, median_cents_off: c })) : null,
+      detail: d
+        ? {
+            song_as_played: versionOf.get(e.at) ?? null,
+            settings: { guide: d.settings.guide, guide_when_looping: d.settings.guideLoop, count_in: d.settings.countIn, speed_up_each_round: d.settings.ramp ? { by: d.settings.rampStep, up_to: d.settings.rampMax } : false },
+            equipment: p ? { device_delay_s: r(p.lag, 3), delay_measured: p.measured, any_octave_counts: p.anyOctave, octave_sung_against_the_notes: p.octave } : null,
+            notes: p ? notesTable(p) : null,
+            beats: p ? beatsTable(p) : null,
+            pitch_readings: p ? readingsTable(p, d.played.saHz) : null,
+          }
+        : null,
+    };
+    parts.push((i ? ',' : '') + '\n' + tableJSON(one).replace(/^/gm, '    '));
+  });
+  parts.push('\n  ]\n}\n');
+  return parts;
 }
 
 /** The file's name: the song, the date and time. */
