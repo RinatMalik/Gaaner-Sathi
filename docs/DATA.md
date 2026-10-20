@@ -120,6 +120,8 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `libSort` | How the Music library sorts: `practised`, `changed` or `title` |
 | `libFold` | The Music library's sections folded away, `{ mine?: true, ex?: true }`; absent: both open. A search shows every section |
 | `libOrder` | The Music library's sections in the order dragged, `["mine", "ex"]`; absent: the exercises first. The song pickers follow it |
+| `pgFold` | Progress's sections folded away, `{ week?, pitch?, songs?, history?: true }`; absent: all open (2026-10-20) |
+| `pgOrder` | Progress's sections in the order dragged, all four of `"week"`, `"pitch"`, `"songs"`, `"history"`; absent: that order |
 | `pitchOctave` | `true` when pitch feedback counts the octave too |
 | `pitchLag` | No longer read (2026-10-19): the delay from a beat to the voice, fitted to the singing, which forgave lateness. The voice is judged at `deviceLag` |
 | `deviceLag` | The device's own delay, sound out and back in, as last measured with clicks, seconds (0–0.6); absent until measured (the device's own figure is used then). The voice is judged and drawn at it, when it was sung |

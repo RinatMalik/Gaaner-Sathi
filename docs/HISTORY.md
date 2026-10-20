@@ -49,6 +49,31 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-20 BST — Claude (Opus 5.5) — PH2-24 real leaps checked; the scoring note in plain words
+
+- **Goal:** Rinat: "what about when there is actual big leaps in the song, or even when i am
+  practicing there is a built in exercise sa theke shor laaf etc"; then "the helpful guide on
+  how scoring is calculated has used complex language, not very easy to understand for an
+  average user".
+- **Checked (no code change for leaps):** a one-off Vitest (deleted) sang `ex-leaps` (সা থেকে
+  স্বর-লাফ, 90 bpm) with ±8-cent vibrato, on time and 0.2 s late, as written and an octave
+  down: `isGlitch` flagged 0 readings; `octave` found 0 and −1; drawn at the true pitch every
+  time (0 off); the old per-reading fold had put 218 of 1,687 readings (13 %) in the wrong
+  octave when late, all at the leaps; scores 100 on time, 82 late. With any octave counting,
+  a voice late on Sa against upper Sa counts as right (an octave away): "The octave must
+  match too" makes that leap count.
+- **Changed:** `2d94aed` (docs(practice)): index.html: "How your singing is scored" rewritten
+  in short plain sentences (what is checked, each note, what lowers it, what doesn't, the
+  colours, the numbers, where it went wrong, being late, your equipment, octaves, not scored,
+  your data); the exact rules stay in docs/ENGINE.md → Scores. This commit: this file (the
+  PH2-23 entry moved to HISTORY).
+- **Tests / verification:** `npx vitest run` → 37 files, 392 passed; `npm run build` → 238.6
+  kB JS, 57.9 kB CSS. Headless Edge: the note at 1280 px (day) and a 360 px phone (night), 12
+  rows, no sideways scrolling. CI run `39361033651` (`2d94aed`): green. Live: the page has
+  the new wording.
+- **Decisions made:** none new (the note's wording is Rinat's ask; the rules are unchanged).
+- **Next handoff:** Rinat sings a song and puts its pitch data in `feedback/`.
+
 ### 2026-10-20 BST — Claude (Opus 5.5) — PH2-24 fair scoring, the scoring note, the pitch data
 
 - **Goal:** Rinat, after singing with round twenty-three: consonant gaps scored as silence
