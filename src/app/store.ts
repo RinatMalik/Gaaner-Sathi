@@ -337,6 +337,13 @@ export class LogStore {
     return writeJSON(this.S, STORE_KEYS.log, raw);
   }
 
+  /** Delete one entry, by its `at`, re-reading the stored log so another tab's entries survive. */
+  remove(at: number): WriteResult {
+    const raw = readJSON(this.S, STORE_KEYS.log);
+    if (!Array.isArray(raw)) return 'ok';
+    return writeJSON(this.S, STORE_KEYS.log, raw.filter((x) => !(x && typeof x === 'object' && (x as { at?: unknown }).at === at)));
+  }
+
   /** Delete the whole log (Start afresh, in Progress). */
   clear(): WriteResult {
     try {

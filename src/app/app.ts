@@ -769,6 +769,31 @@ async function exportAll(): Promise<void> {
   void offerFile('gaaner-sathi-practice-' + d + '.json', new Blob(practiceFileParts(log, sessions, d, Date.now()), { type: 'application/json' }), say);
 }
 
+/** One session deleted (its bin in Progress's History, asked first): its log entry and its
+ * detail, for a session that was interrupted. */
+async function removeSession(at: number): Promise<void> {
+  const say = (t: string) => setFileStatus(t, '#pgStatus');
+  const e = logStore.load().find((x) => x.at === at);
+  if (!e) return;
+  if (logStore.remove(at) !== 'ok') {
+    say('That session could not be deleted: this browser blocked it. Nothing has changed.');
+    return;
+  }
+  try {
+    await (await sessionsDB())?.remove(at);
+  } catch {
+    // The log entry is gone, so nothing shows the detail left behind.
+  }
+  practised = lastPractised(logStore.load());
+  if (lastSession === at) {
+    lastSession = 0;
+    $('#pAfter').hidden = true;
+  }
+  songsView.render();
+  const d = new Date(at);
+  say('Deleted the session of ‘' + e.title + '’ at ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + '.');
+}
+
 /** Start afresh (Progress, asked first): the practice log and every session's detail deleted.
  * Songs, routines, takes and settings stay. */
 async function wipePractice(): Promise<void> {
@@ -2496,6 +2521,7 @@ export function init(): void {
     },
     exportLog: () => void exportAll(),
     wipe: wipePractice,
+    removeSession,
     songReport: (id) => void openSongReport(id),
     songForAI: (id) => void saveSongForAI(id),
     script: () => prefs.script,

@@ -114,6 +114,8 @@ describe('the log in storage', () => {
     a.add(entry('b', 2, { score: 80 }));
     expect(a.setNotes(new Map<number, [number, number, number, number][]>([[2, [[0, 3, 80, -5]]]]))).toBe('ok');
     expect(a.load().map((e) => e.notes ?? null)).toEqual([null, [[0, 3, 80, -5]]]);
+    expect(a.remove(1)).toBe('ok');
+    expect(a.load().map((e) => e.at)).toEqual([2]);
     expect(a.clear()).toBe('ok');
     expect(a.load()).toEqual([]);
     expect(S.m.has(STORE_KEYS.log)).toBe(false);

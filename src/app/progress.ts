@@ -12,7 +12,8 @@
  * - Songs and exercises: each one practised, as a Music library row (tapped, it opens to
  *   practise), its time, its scores' trend and the line that most needs work;
  * - History: each day's sessions, each with Report (a page to read, save or print) and For AI
- *   (a file for any AI to analyse), Rinat, 2026-10-20 (report.ts, aifile.ts).
+ *   (a file for any AI to analyse), Rinat, 2026-10-20 (report.ts, aifile.ts); and a bin to
+ *   delete one, asked in its row ("sometimes i might click play and inturrupted by a call").
  * Below them, all the practice data as one file, and Start afresh (Rinat, 2026-10-20: "have a
  * button somewhere to delete all current data and start fresh"), asked in place.
  * The HTML builder is pure and tested in Node.
@@ -53,6 +54,7 @@ const listText = (v: readonly string[]) => (v.length < 2 ? v.join('') : v.slice(
 
 const PLAY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/></svg>';
 const REPORT_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.5h7.5l4 4v13h-11.5zM14 3.5v4h4M9.5 16.5v-3M12.25 16.5v-5M15 16.5v-2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const DEL_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 13h8l1-13M10.5 11v5.5M13.5 11v5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const AI_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3.5l1.6 4.4 4.4 1.6-4.4 1.6L10 15.5l-1.6-4.4L4 9.5l4.4-1.6zM17 13.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 
 /** What one practice was: lines, rounds, tempo and how long. */
@@ -76,6 +78,10 @@ export interface ProgressOptions {
   /** Start afresh was pressed: ask to confirm; Delete it all waits this many seconds more. */
   wipe?: boolean;
   wipeWait?: number;
+  /** The session (its `at`) whose bin was pressed: asking to confirm in its row. */
+  confirmDel?: number;
+  /** History's days opened or closed by the user, by day (absent: the latest three open). */
+  dayOpen?: ReadonlyMap<number, boolean>;
 }
 
 /** Start afresh's Delete it all can be pressed this long after it is asked (Rinat, 2026-10-20:
@@ -216,20 +222,24 @@ function songsHTML(log: readonly LogEntry[], now: number, o: ProgressOptions): s
 /** History: each day's sessions, newest day first, the latest three days unfolded. */
 function historyHTML(log: readonly LogEntry[], now: number, o: ProgressOptions): string {
   const days = byDay(log);
-  let html = '<p class="pgsub"><b>Report</b> opens a page on how a session went; <b>For AI</b> saves everything about it as a file for an AI such as Claude or ChatGPT to analyse.</p>';
+  let html = '<p class="pgsub"><b>Report</b> opens a page on how a session went; <b>For AI</b> saves everything about it as a file for an AI such as Claude or ChatGPT to analyse; the bin deletes it, for one that was interrupted.</p>';
   days.slice(0, 60).forEach((d, i) => {
     const date = dateOf(d.day);
     const when = whenText(date.getTime(), now);
     const label = (when === 'today' || when === 'yesterday' ? when[0]!.toUpperCase() + when.slice(1) + ', ' : '') + DAY_NAMES[date.getDay()] + ' ' + date.getDate() + ' ' + MONTHS[date.getMonth()] + (date.getFullYear() === new Date(now).getFullYear() ? '' : ' ' + date.getFullYear());
     const score = meanScore(d.entries);
     const meta = [durationText(d.secs), plural(d.entries.length, 'session'), score != null ? 'pitch ' + score : ''].filter(Boolean).join(' · ');
-    html += '<details class="pgdayl"' + (i < 3 ? ' open' : '') + '><summary><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><b>' + label + '</b><span class="pgdaymeta">' + esc(meta) + '</span></summary><ul class="pgses">' +
+    html += '<details class="pgdayl" data-day="' + d.day + '"' + (o.dayOpen?.get(d.day) ?? i < 3 ? ' open' : '') + '><summary><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><b>' + label + '</b><span class="pgdaymeta">' + esc(meta) + '</span></summary><ul class="pgses">' +
       d.entries.map((e) => {
         const s = o.song(e.song);
-        return '<li class="pgsrow"><div class="pgsmain"><span class="pgclock">' + clock(e.at) + '</span><span class="pgsong">' + esc(s?.title ?? e.title) + '</span>' + scoreHTML(e.score) +
-          '<span class="pgdet">' + esc(entryDetail(e)) + '</span>' + (e.routine ? '<span class="ltag pgrw">Rewaz: ' + esc(e.routine) + '</span>' : '') + '</div>' +
-          '<div class="lacts"><button type="button" class="lact pgact" data-report="' + e.at + '">' + REPORT_ICON + '<span>Report</span></button>' +
-          '<button type="button" class="lact pgact" data-ai="' + e.at + '" title="A file with everything about this session, for an AI such as Claude or ChatGPT to analyse">' + AI_ICON + '<span>For AI</span></button></div></li>';
+        const sure = o.confirmDel === e.at;
+        const acts = sure
+          ? '<div class="lacts lsure"><span class="lsuret">Delete this session?</span><button type="button" class="lact ldelyes" data-sdelyes="' + e.at + '">Delete</button><button type="button" class="lact" data-sdelno="' + e.at + '">Keep</button></div>'
+          : '<div class="lacts"><button type="button" class="lact pgact" data-report="' + e.at + '">' + REPORT_ICON + '<span>Report</span></button>' +
+            '<button type="button" class="lact pgact" data-ai="' + e.at + '" title="A file with everything about this session, for an AI such as Claude or ChatGPT to analyse">' + AI_ICON + '<span>For AI</span></button>' +
+            '<button type="button" class="lact ldel" data-sdel="' + e.at + '" aria-label="Delete this session" title="Delete this session: its time, score, report and file for AI">' + DEL_ICON + '</button></div>';
+        return '<li class="pgsrow' + (sure ? ' sure' : '') + '"><div class="pgsmain"><span class="pgclock">' + clock(e.at) + '</span><span class="pgsong">' + esc(s?.title ?? e.title) + '</span>' + scoreHTML(e.score) +
+          '<span class="pgdet">' + esc(entryDetail(e)) + '</span>' + (e.routine ? '<span class="ltag pgrw">Rewaz: ' + esc(e.routine) + '</span>' : '') + '</div>' + acts + '</li>';
       }).join('') + '</ul></details>';
   });
   if (days.length > 60) html += '<p class="pgsub">The download below has every day; this shows the latest 60.</p>';
@@ -277,6 +287,8 @@ export interface ProgressHost {
   exportLog(): void;
   /** Delete the practice log and every session's detail, reporting in the view. */
   wipe(): Promise<void>;
+  /** Delete one session: its log entry and its detail, reporting in the view. */
+  removeSession(at: number): Promise<void>;
   /** A song's report, opened in a new tab; its sessions as a file for AI, saved. */
   songReport(id: string): void;
   songForAI(id: string): void;
@@ -302,6 +314,8 @@ export function initProgress(host: ProgressHost): { render(): void } {
   let pitchSong = '';
   let pitchDays = 30;
   let wipe = false;
+  // The session whose bin was pressed, asking in its row.
+  let confirmDel = 0;
   // Delete it all waits WIPE_WAIT seconds from when Start afresh is pressed, counting down.
   let wipeFrom = 0;
   let wipeTick = 0;
@@ -329,7 +343,9 @@ export function initProgress(host: ProgressHost): { render(): void } {
     if (view.hidden) return;
     const log = host.log();
     if (!log.length && wipe) askWipe(false);
-    body.innerHTML = progressHTML(log, Date.now(), { song: host.song, order: host.order(), folded: host.folded(), script: host.script(), pitchSong, pitchDays, wipe, wipeWait: wipeWait() });
+    // The days the user opened or closed stay so when the view is drawn again.
+    const dayOpen = new Map(Array.from(body.querySelectorAll<HTMLDetailsElement>('details.pgdayl[data-day]'), (d) => [+d.dataset.day!, d.open] as [number, boolean]));
+    body.innerHTML = progressHTML(log, Date.now(), { song: host.song, order: host.order(), folded: host.folded(), script: host.script(), pitchSong, pitchDays, wipe, wipeWait: wipeWait(), confirmDel, dayOpen });
   }
   const focus = (sel: string) => body.querySelector<HTMLElement>(sel)?.focus();
   body.addEventListener('change', (ev) => {
@@ -341,7 +357,12 @@ export function initProgress(host: ProgressHost): { render(): void } {
     focus('select[data-pick="' + s.dataset.pick + '"]');
   });
   body.addEventListener('keydown', (ev) => {
-    if (ev.key === 'Escape' && wipe) {
+    if (ev.key === 'Escape' && confirmDel) {
+      const at = confirmDel;
+      confirmDel = 0;
+      render();
+      focus('button[data-sdel="' + at + '"]');
+    } else if (ev.key === 'Escape' && wipe) {
       askWipe(false);
       render();
       focus('button[data-act="wipe"]');
@@ -372,6 +393,14 @@ export function initProgress(host: ProgressHost): { render(): void } {
       b.setAttribute('aria-pressed', 'true');
       const info = body.querySelector('.nkinfo');
       if (info) info.textContent = b.getAttribute('aria-label') ?? '';
+    } else if (b.dataset.sdel || b.dataset.sdelno) {
+      // Asked in the row; Keep (or Escape) puts it back, with the keyboard on its bin.
+      confirmDel = b.dataset.sdel ? +b.dataset.sdel : 0;
+      render();
+      focus(confirmDel ? 'button[data-sdelno="' + confirmDel + '"]' : 'button[data-sdel="' + b.dataset.sdelno + '"]');
+    } else if (b.dataset.sdelyes) {
+      confirmDel = 0;
+      void host.removeSession(+b.dataset.sdelyes).then(render);
     } else if (b.dataset.sreport) host.songReport(b.dataset.sreport);
     else if (b.dataset.sai) host.songForAI(b.dataset.sai);
     else if (b.dataset.pitch) {

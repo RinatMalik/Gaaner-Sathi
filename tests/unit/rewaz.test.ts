@@ -248,6 +248,7 @@ describe('the Progress view', () => {
     expect(html).toContain('<b>Today, Sat 10 Oct</b><span class="pgdaymeta">5 min · 1 session · pitch 90</span>');
     expect(html).toContain('Rewaz: Daily &lt;warm-up&gt;');
     expect(html).toContain('data-report="' + at(10) + '"');
+    expect(html).toContain('data-sdel="' + at(10) + '" aria-label="Delete this session"');
     expect((html.match(/class="pgday( now)?"/g) || []).length).toBe(7);
     // Pitch: two days with a score draw the line, by date.
     expect(html).toContain('Pitch</button></h3>');
@@ -291,6 +292,21 @@ describe('the Progress view', () => {
     expect(progressHTML(log, at(10, 20), { song, pitchDays: 7 })).toContain('<option value="30" selected>');
     // A song no longer in the log: all of them.
     expect(progressHTML(log, at(10, 20), { song, pitchSong: 'gone' })).toContain('<option value="" selected>');
+  });
+
+  it('asks in its row before deleting a session, and keeps the days opened as they were', () => {
+    const log = [e('a', at(1)), e('a', at(5)), e('a', at(8)), e('a', at(9)), e('a', at(10), { score: 80 })];
+    const html = progressHTML(log, at(10, 20), { song, confirmDel: at(9) });
+    expect(html).toContain('<li class="pgsrow sure">');
+    expect(html).toContain('<span class="lsuret">Delete this session?</span><button type="button" class="lact ldelyes" data-sdelyes="' + at(9) + '">Delete</button><button type="button" class="lact" data-sdelno="' + at(9) + '">Keep</button>');
+    expect(html).not.toContain('data-sdel="' + at(9) + '"');
+    expect(html).toContain('data-sdel="' + at(10) + '"');
+    // The latest three days open; then as the user left them.
+    const open = (h: string) => Array.from(h.matchAll(/<details class="pgdayl" data-day="(\d+)" open>/g), (m) => +m[1]!);
+    expect(open(html).length).toBe(3);
+    const days = Array.from(html.matchAll(/data-day="(\d+)"/g), (m) => +m[1]!);
+    const kept = progressHTML(log, at(10, 20), { song, dayOpen: new Map([[days[0]!, false], [days[4]!, true]]) });
+    expect(open(kept)).toEqual([days[1]!, days[2]!, days[4]!]);
   });
 
   it('asks before starting afresh, saying what goes and what stays', () => {

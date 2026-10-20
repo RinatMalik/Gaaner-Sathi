@@ -83,6 +83,13 @@ export class SessionStore {
     return ((await inTx<IDBValidKey[]>(this.db, ['sessions'], 'readonly', (tx) => tx.objectStore('sessions').getAllKeys())) ?? []).filter((k): k is number => typeof k === 'number');
   }
 
+  /** Delete one session's detail (its bin, in Progress's History). */
+  async remove(at: number): Promise<void> {
+    await inTx(this.db, ['sessions'], 'readwrite', (tx) => {
+      tx.objectStore('sessions').delete(at);
+    });
+  }
+
   /** Delete every session kept (Start afresh, in Progress). */
   async clear(): Promise<void> {
     await inTx(this.db, ['sessions'], 'readwrite', (tx) => {
