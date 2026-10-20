@@ -49,6 +49,51 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-20 BST — Claude (Opus 5.5) — PH2-27 pitch by song and note; all data in one file; Start afresh
+
+- **Goal:** Rinat: "have a button somewhere to delete all current data and start fresh. I
+  assume download log button exports all data as one file which is fine. Have pitch over time
+  chart for each songs as well ... If there is no data for today then no point including today
+  in pitch over time. add another visual where it shows how did for each note ... good at the
+  middle notes like ma pa dha and bad in upper sa, upper re".
+- **Inspected:** the download held only the log's summaries (not each session's detail); the
+  pitch line was spaced by session day, not by date, labelled "today" only when today had a
+  score; the log kept no notes, so a note chart over many sessions would have read every
+  session's detail (readings included) from IndexedDB.
+- **Changed:** `058def9` (feat(progress)): log.ts (`notes` on an entry, `noteTally`,
+  `noteScores`, `lastDaysOf`, `dailyScores` for one song and all time; the old `logFileText`
+  removed), insights.ts (its notes of the scale from `noteTally`), aifile.ts
+  (`practiceFileParts`, `PRACTICE_BRIEF`; the For AI file's tables shared), db.ts (`all`,
+  `keys`, `clear`), store.ts (`LogStore.setNotes`, `clear`), progress.ts (Pitch with its
+  pickers, Note by note, the songs' scores as a button, the data card and its question),
+  report.ts (`scoreLine` placed by date), app.ts (notes logged; `backfillNotes` on start;
+  `exportAll`; `wipePractice`), styles.css; tests (log, rewaz, session). This commit:
+  docs/DATA.md (the log's `notes`, the file, Start afresh), ROADMAP row 27, this file (the
+  older PH2-25 entry moved to HISTORY).
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 38 files, 416
+  passed; `npm run build` → 308.3 kB JS, 62.6 kB CSS. Headless Edge on `npm run dev` with 42
+  seeded sessions over 34 days (notes on those after 25 days ago, two of yesterday's without
+  notes but with detail put in IndexedDB): after a reload both had 9 notes from their detail;
+  Pitch: "Best: Ma (95), Pa (95) and Dha (94). Needs the most work: upper Re (57, usually
+  flat), upper Sa (66, usually flat) and lower Ni (76)", rows upper Re down to lower Pa, the
+  line ending 19 Oct (nothing today); a song and all time chosen (focus kept on the picker);
+  a song's scores button chose it; the download `gaaner-sathi-practice-2026-10-20.json`, 81 KB,
+  version 2, 42 sessions, 2 with detail, 24 with notes; Start afresh asked (keyboard on Keep
+  it), Escape put it back, Delete it all left the log key gone, 0 sessions in IndexedDB, both
+  songs, "Nothing logged yet" also after a reload. 360 px night: no sideways scrolling, the
+  note names under their notes. CI run `39438372555` (`058def9`): green. Live: the page
+  has the new section.
+- **Decisions made:** one row (pitch by song and by note; the file; what Start afresh deletes).
+- **Risks or disagreements:** Rinat asked to "delete all current data": Start afresh deletes
+  the practice history only (log and sessions' detail), not songs, routines, takes or
+  settings; say if everything was meant. "Today" in the old line: it was drawn only with a
+  score today, so what Rinat saw may have been a session sung today; the line now ends on the
+  last day with a score in any case. No session's notes were kept before 20 Oct, so Note by
+  note counts sessions from 20 Oct on. A very long history makes a large file (about 1 KB a
+  second of singing). Not tried on a real phone.
+- **Next handoff:** Rinat looks at Pitch by song and note, and says whether Start afresh
+  should also clear songs.
+
 ### 2026-10-20 BST — Claude (Opus 5.5) — PH2-26 Progress redone
 
 - **Goal:** Rinat: "progress page needs a bit design TLC, make the songs and exercises and

@@ -229,6 +229,11 @@ notation is in the file once per version), settings, equipment, and the `notes`,
 `pitch_readings` tables of the For AI file. Built in pieces into a Blob, as a long history runs
 to megabytes. Version 1 (until 2026-10-20) was the log's summaries only, as `entries`.
 
+**One session** goes with the bin at the end of its row in History (Rinat, 2026-10-20: "have a
+button next to each session line to delete that particular session data. as sometimes i might
+click play and inturrupted by a call"): asked in the row, it deletes that log entry and that
+session's detail; everything else stays.
+
 **Start afresh** (beside it, Rinat 2026-10-20: "have a button somewhere to delete all current
 data and start fresh") asks in place, saying what goes and what stays, offers the download
 first, and then deletes the practice log and every session's detail. Songs, exercises, rewaz
