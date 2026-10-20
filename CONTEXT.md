@@ -76,7 +76,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   Claude to read; tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `645dab3` (CI run `39358708772`: core, reference and deploy jobs green; checked live).
+- **Last known-good commit:** `2d94aed` (CI run `39361033651`: core, reference and deploy jobs green; checked live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -387,7 +387,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-02 | Claude | Review | Design, round two: Pause and a separate Stop; nothing that plays changes the Lines to practise (play from here, sheet line numbers, sections, rewaz, takes); "Check my pitch" listens only while playing; beat box rows with the number and buttons (play this line, play from here, ×) full height, vibhag starts coloured instead of X/0, a tap anywhere on a row selects it, hover | 5 unit tests and the boxes' HTML tests; Edge scenarios `round6` (42 checks) and `rewaz6` (5), with a WAV microphone (Work log 2026-10-12 16:43) | Waiting for Rinat's use and two answers |
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
-| PH2-24 | Claude | Review | Fair scoring: readings without voice and slides into a note left out (`sliding`), notes with voice under half their length not sung and left out of scores; glitches read as no voice (`isGlitch`, one reading held back); the voice drawn in the octave it sings in (`octave`), no flips; a slide drawn grey; "How your singing is scored" (a folding note at the foot of Practice); "Download the pitch data" (JSON) after a run; `feedback/` ignored by git | Unit tests (pitch-track: silence and a consonant gap left out, under half not sung, a slide left out and its arrival kept, glitches, the octave sung); headless Edge: the WAV singer, the file (718 readings, 26 notes, 26 results, 26 beats for 16 s, 15 KB), the note's 12 rows; 360 px phone (Work log 2026-10-20, round twenty-four) | Waiting for Rinat's pitch data |
+| PH2-24 | Claude | Review | Fair scoring: readings without voice and slides into a note left out (`sliding`), notes with voice under half their length not sung and left out of scores; glitches read as no voice (`isGlitch`, one reading held back); the voice drawn in the octave it sings in (`octave`), no flips; a slide drawn grey; "How your singing is scored" (a folding note at the foot of Practice, in plain words since `2d94aed`); "Download the pitch data" (JSON) after a run; `feedback/` ignored by git | Unit tests (pitch-track: silence and a consonant gap left out, under half not sung, a slide left out and its arrival kept, glitches, the octave sung); headless Edge: the WAV singer, the file (718 readings, 26 notes, 26 results, 26 beats for 16 s, 15 KB), the note's 12 rows; 360 px phone (Work log 2026-10-20, round twenty-four) | Waiting for Rinat's pitch data |
 | PH2-23 | Claude | Review | Judged when it was sung: nothing fitted to the singing; voice, colours, gauge, marks and scores at `t − deviceLag` (else the device's figure); a note scored on all its readings (25 ms edges), silence 0, unsung notes 0 in lines and runs; its cents once reached, its lateness kept and shown; how far behind the guide said; takes at the device's delay. One pitch strip per song, lowest note to highest, a semitone beyond | Unit tests rewritten and added (pitch-track: late start ~80 and 150 ms late, the end and silence counted, behind 150 ms measured and not taken off, the chain 110 ms behind over 10 points lower; lines: `songRange`); headless Edge with the WAV singer 240 ms behind: lines 57, 45, 22, 58, each beat ~265 ms late with its cents as sung; 360 px phone (Work log 2026-10-19, round twenty-three) | Waiting for Rinat to sing with it |
 | PH2-22 | Claude | Review | The device's delay measured: "Measure the delay" (Practice settings, Pitch) plays eight clicks and times them through the microphone; kept as `deviceLag`; the delay under the lines split into the device's and the voice's; once measured the voice drawn when it was sung | 4 new unit tests (clicks: delays of 12–420 ms to within 0.5 ms, quiet and lost clicks, too few or disagreeing; store: the delays kept or dropped); headless Edge: a WAV of clicks as the microphone, 8 of 8 heard, 91 ms kept; the synthesised singer with 50 ms measured: "Delay 280 ms: the device 50 ms, your voice 230 ms behind the guide", the voice drawn ~0.38 of a beat behind its notes and its head at the playhead; 360 px phone (Work log 2026-10-19, round twenty-two) | Waiting for Rinat to measure with the Scarlett |
 | PH2-21 | Claude | Review | Looking back at a run: a tap or click opens a line to full size with each beat's cents (a focus-only button for the keyboard), closed on a new run; sung lines no longer stay faded; the footer without "Listening", the average first, after a run how to look back, the delay with the device's part; the gauge's median ~100 ms (was ~200) and a 60 ms glide | 1 new unit test (lines: the open button); headless Edge with the synthesised singer: 1280 px day and night (lines 2 and 3 opened while playing and after Stop, cents +22…+29 and −43…−48 against +25 and −45 sung; Enter on the focused button), 360 px phone night (Work log 2026-10-19, round twenty-one) | Waiting for Rinat's use and their headphones or speakers |
@@ -534,6 +534,31 @@ Template:
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
 
+### 2026-10-20 BST — Claude (Opus 5.5) — PH2-24 real leaps checked; the scoring note in plain words
+
+- **Goal:** Rinat: "what about when there is actual big leaps in the song, or even when i am
+  practicing there is a built in exercise sa theke shor laaf etc"; then "the helpful guide on
+  how scoring is calculated has used complex language, not very easy to understand for an
+  average user".
+- **Checked (no code change for leaps):** a one-off Vitest (deleted) sang `ex-leaps` (সা থেকে
+  স্বর-লাফ, 90 bpm) with ±8-cent vibrato, on time and 0.2 s late, as written and an octave
+  down: `isGlitch` flagged 0 readings; `octave` found 0 and −1; drawn at the true pitch every
+  time (0 off); the old per-reading fold had put 218 of 1,687 readings (13 %) in the wrong
+  octave when late, all at the leaps; scores 100 on time, 82 late. With any octave counting,
+  a voice late on Sa against upper Sa counts as right (an octave away): "The octave must
+  match too" makes that leap count.
+- **Changed:** `2d94aed` (docs(practice)): index.html: "How your singing is scored" rewritten
+  in short plain sentences (what is checked, each note, what lowers it, what doesn't, the
+  colours, the numbers, where it went wrong, being late, your equipment, octaves, not scored,
+  your data); the exact rules stay in docs/ENGINE.md → Scores. This commit: this file (the
+  PH2-23 entry moved to HISTORY).
+- **Tests / verification:** `npx vitest run` → 37 files, 392 passed; `npm run build` → 238.6
+  kB JS, 57.9 kB CSS. Headless Edge: the note at 1280 px (day) and a 360 px phone (night), 12
+  rows, no sideways scrolling. CI run `39361033651` (`2d94aed`): green. Live: the page has
+  the new wording.
+- **Decisions made:** none new (the note's wording is Rinat's ask; the rules are unchanged).
+- **Next handoff:** Rinat sings a song and puts its pitch data in `feedback/`.
+
 ### 2026-10-20 BST — Claude (Opus 5.5) — PH2-24 fair scoring, the scoring note, the pitch data
 
 - **Goal:** Rinat, after singing with round twenty-three: consonant gaps scored as silence
@@ -575,48 +600,5 @@ Template:
   a glitch two readings long still draws. 100 ms for the Scarlett on Windows in a browser is
   usual (the browser's own buffers both ways), not the interface.
 - **Next handoff:** Rinat sings a song and puts its pitch data in `feedback/`.
-
-### 2026-10-19 BST — Claude (Opus 5.5) — PH2-23 judged when it was sung; one grid per song
-
-- **Goal:** Rinat: "i should see the real time true feedback so i can work on my
-  delay/lateness … the colours, gauge, scores are still judging my notes, how? how does it
-  even know whether i was talking to someone instead of singing? trying to make it too clever
-  that it misrepresents is not the way to go"; the grid "same for different lines in the same
-  song", the song's highest and lowest notes its top and bottom.
-- **Inspected:** track.ts (`refineLag`, `scoreNote`, `lineResult`, `summary`), pitch.ts
-  (`draw`, `steady`, `drawVoice`, `mark`, the delay text, `endRun`), app.ts (the takes'
-  `lag`), lines.ts (`stripRange`, `gridFor`), the tests.
-- **Changed:** `3c641dc` (feat(pitch)): track.ts: `lag` is the device's delay only, no
-  fitting; `behind` measured (`BEHIND_RANGE`, nearest none on ties), reported only;
-  `scoreNote` over all readings from `EDGE` to `EDGE` (25 ms), silence 0, unsung 0, cents
-  once reached, `arrive`; lines and summary over judged notes; pitch.ts: the tracker at
-  `deviceLag` (else the microphone's figure), the gauge from the note's start, one time for
-  drawing and judging, "Device delay … (measured) · your voice … behind the guide", the
-  lateness under beats (`data-late`, `data-ls` on a phone), no `lag` host; app.ts: takes at
-  `deviceLag`; lines.ts: `songRange` for every line; styles: the two-line label; tests
-  (pitch-track rewritten for true time, lines for `songRange`). This commit (docs): ENGINE
-  (When it was sung, How far behind, Scores, Shown, the gauge, Looking back, End to end),
-  DATA (`pitchLag` no longer read, `deviceLag`, the takes' `lag`), ROADMAP (Phase 2 row 23),
-  this file (the PH2-21 entry moved to HISTORY).
-- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
-  DevTools protocol on `npm run dev`, the WAV singer of round twenty, which comes in about
-  240 ms behind the guide, with `deviceLag` 0.05 set):
-  - `npm run typecheck` → 0; `npx vitest run` → 37 files, 389 passed. `npm run build` →
-    235.7 kB JS (83.5 kB gzip), 57.9 kB CSS; `bash reference/tests/run-all.sh` →
-    31/11/10/12/5 passed, 12 exercises valid.
-  - 1280 × 900: "Device delay 50 ms (measured) · your voice 240 ms behind the guide"; every
-    line's strip −100…1500 cents (Sa to upper Re, a semitone beyond), 15 semitone lines on
-    the line being sung; each note drawn red until the voice reaches it, then green or amber;
-    line scores 57, 45, 22, 58, the average 42 (about 80 when the lag was fitted); lines 1
-    and 2 opened: "+4 … +10" and "+22 … +29" (sung +5 and +25), each "~260–275 ms late"
-    (the first of line 2 on the same pitch as the line before, so not late).
-  - 360 × 780 phone, night: an opened line's beats "+26 / 0.27s", no sideways scrolling.
-  - CI run `39245126135` (`3c641dc`): core, reference and deploy jobs green. Live: bundle index-CarPYobl.js; the WAV singer 230 ms behind: lines 60, 47, 23, 47, each beat ~240–260 ms late with its cents as sung.
-- **Decisions made:** see Decisions (judged when it was sung).
-- **Risks or disagreements:** scores now fall with lateness and silence, as asked; unvoiced
-  consonants (স, ত, ক, প) read as no voice for a few hundredths of a second and cost a little.
-  Until the delay is measured the device's own figure is used, which Bluetooth under-reports.
-  Practice log scores from before today were made the old, forgiving way.
-- **Next handoff:** Rinat measures the delay and sings.
 
 Older entries: `docs/HISTORY.md`.

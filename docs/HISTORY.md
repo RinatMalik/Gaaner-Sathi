@@ -49,6 +49,49 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-19 BST — Claude (Opus 5.5) — PH2-23 judged when it was sung; one grid per song
+
+- **Goal:** Rinat: "i should see the real time true feedback so i can work on my
+  delay/lateness … the colours, gauge, scores are still judging my notes, how? how does it
+  even know whether i was talking to someone instead of singing? trying to make it too clever
+  that it misrepresents is not the way to go"; the grid "same for different lines in the same
+  song", the song's highest and lowest notes its top and bottom.
+- **Inspected:** track.ts (`refineLag`, `scoreNote`, `lineResult`, `summary`), pitch.ts
+  (`draw`, `steady`, `drawVoice`, `mark`, the delay text, `endRun`), app.ts (the takes'
+  `lag`), lines.ts (`stripRange`, `gridFor`), the tests.
+- **Changed:** `3c641dc` (feat(pitch)): track.ts: `lag` is the device's delay only, no
+  fitting; `behind` measured (`BEHIND_RANGE`, nearest none on ties), reported only;
+  `scoreNote` over all readings from `EDGE` to `EDGE` (25 ms), silence 0, unsung 0, cents
+  once reached, `arrive`; lines and summary over judged notes; pitch.ts: the tracker at
+  `deviceLag` (else the microphone's figure), the gauge from the note's start, one time for
+  drawing and judging, "Device delay … (measured) · your voice … behind the guide", the
+  lateness under beats (`data-late`, `data-ls` on a phone), no `lag` host; app.ts: takes at
+  `deviceLag`; lines.ts: `songRange` for every line; styles: the two-line label; tests
+  (pitch-track rewritten for true time, lines for `songRange`). This commit (docs): ENGINE
+  (When it was sung, How far behind, Scores, Shown, the gauge, Looking back, End to end),
+  DATA (`pitchLag` no longer read, `deviceLag`, the takes' `lag`), ROADMAP (Phase 2 row 23),
+  this file (the PH2-21 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`, the WAV singer of round twenty, which comes in about
+  240 ms behind the guide, with `deviceLag` 0.05 set):
+  - `npm run typecheck` → 0; `npx vitest run` → 37 files, 389 passed. `npm run build` →
+    235.7 kB JS (83.5 kB gzip), 57.9 kB CSS; `bash reference/tests/run-all.sh` →
+    31/11/10/12/5 passed, 12 exercises valid.
+  - 1280 × 900: "Device delay 50 ms (measured) · your voice 240 ms behind the guide"; every
+    line's strip −100…1500 cents (Sa to upper Re, a semitone beyond), 15 semitone lines on
+    the line being sung; each note drawn red until the voice reaches it, then green or amber;
+    line scores 57, 45, 22, 58, the average 42 (about 80 when the lag was fitted); lines 1
+    and 2 opened: "+4 … +10" and "+22 … +29" (sung +5 and +25), each "~260–275 ms late"
+    (the first of line 2 on the same pitch as the line before, so not late).
+  - 360 × 780 phone, night: an opened line's beats "+26 / 0.27s", no sideways scrolling.
+  - CI run `39245126135` (`3c641dc`): core, reference and deploy jobs green. Live: bundle index-CarPYobl.js; the WAV singer 230 ms behind: lines 60, 47, 23, 47, each beat ~240–260 ms late with its cents as sung.
+- **Decisions made:** see Decisions (judged when it was sung).
+- **Risks or disagreements:** scores now fall with lateness and silence, as asked; unvoiced
+  consonants (স, ত, ক, প) read as no voice for a few hundredths of a second and cost a little.
+  Until the delay is measured the device's own figure is used, which Bluetooth under-reports.
+  Practice log scores from before today were made the old, forgiving way.
+- **Next handoff:** Rinat measures the delay and sings.
+
 ### 2026-10-19 BST — Claude (Opus 5.5) — PH2-22 the device's delay measured
 
 - **Goal:** Rinat: "wired through scarlett 2i2. in future i want to use it on phone
