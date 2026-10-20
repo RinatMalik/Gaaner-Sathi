@@ -3,7 +3,7 @@
 > The project's shared state, for Rinat, Claude, Codex and any other LLM: what the app is
 > for, how we work, where things stand, the decisions in force and the newest work log.
 >
-> **Last updated:** 2026-10-15 (BST) by Claude (Opus 5.5)
+> **Last updated:** 2026-10-20 (BST) by Claude (Opus 5.5)
 
 ## How to use this file
 
@@ -65,18 +65,19 @@ wins, except a later explicit decision by Rinat, which always wins.
   the device's delay measured with clicks), twenty-three (PH2-23: everything judged when it
   was sung, nothing fitted; one pitch grid per song) and twenty-four (PH2-24: silence and
   slides left out, unsung notes left out again, no glitch spikes, the scoring note, the pitch
-  data download) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
+  data download) and twenty-five (PH2-25: a Report and a file For AI for each session, each
+  session's detail kept, songs' lengths) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
 - **Next single action:** Rinat enters a song in the beat boxes again (rounds sixteen and
   eighteen: Join, Split, Higher, Lower and New line; the lines centred; the dock of notes
   and tools at the foot of the screen), sings with rounds nineteen to twenty-one (the next
   line as big; the pitch gauge; opening lines after a run), measures the delay with the
   Scarlett 2i2 (done: 100 ms, wired Rhode mic, 2026-10-20), sings with rounds twenty-three
-  and twenty-four, and puts a run's pitch data (Download the pitch data) in `feedback/` for
-  Claude to read; tries round nine;
+  and twenty-four, opens a session's Report (round twenty-five) and gives its For AI file to an
+  AI or puts it in `feedback/` for Claude to read; tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `2d94aed` (CI run `39361033651`: core, reference and deploy jobs green; checked live).
+- **Last known-good commit:** `6ed2c7a` (CI run `39410606511`: core, reference and deploy jobs green; checked live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -311,7 +312,7 @@ decision.
 ### Commands
 
 - `npm install` once.
-- `npm test`: every Vitest suite (319 tests, about 10 s). Read the "Test Files" line: a
+- `npm test`: every Vitest suite (407 tests, about 10 s). Read the "Test Files" line: a
   file that fails to load is not counted as a failed test.
 - `npm run typecheck`: the whole project, then `src/core` and `src/audio/dsp` with no DOM
   library (a DOM call there fails).
@@ -387,6 +388,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-02 | Claude | Review | Design, round two: Pause and a separate Stop; nothing that plays changes the Lines to practise (play from here, sheet line numbers, sections, rewaz, takes); "Check my pitch" listens only while playing; beat box rows with the number and buttons (play this line, play from here, ×) full height, vibhag starts coloured instead of X/0, a tap anywhere on a row selects it, hover | 5 unit tests and the boxes' HTML tests; Edge scenarios `round6` (42 checks) and `rewaz6` (5), with a WAV microphone (Work log 2026-10-12 16:43) | Waiting for Rinat's use and two answers |
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
+| PH2-25 | Claude | Review | Session reports and songs' lengths: **Report** (a page in a new tab: the score and a sentence, tiles, what went well and what to work on, timing, how close to the notes, note by note, each line drawn, rounds, the song over time; Save and Print) and **For AI** (JSON, a brief for any AI first, then the session, the song as played, the app's findings, every note, beat and reading) beside each Progress session and under the lines after a run, replacing "Download the pitch data"; each session's detail kept in IndexedDB (`sessions`, version 2, newest 1,000); how long a song plays at its tempo after the Practice title (with the lines to practise), in Edit notation's Settings and in each library row | 15 new unit tests (session.test.ts: lengths, the detail read back, findings for a singer in tune but 200 ms late, in time, flat on Ga, earlier sessions, no detail; the AI file and the report; Progress buttons) and 1 in sections.test.ts (the transport's beats take exactly the length said); headless Edge on `npm run dev` with a WAV singer: a run logged with its detail, its report in a new tab (7 sections, 4 lines drawn), its AI file (26 notes, 717 readings), Progress's buttons, lengths changing with lines and tempo; 360 px night: Progress, an old session's report, Practice, library, Edit (Work log 2026-10-20, round twenty-five) | Waiting for Rinat's use |
 | PH2-24 | Claude | Review | Fair scoring: readings without voice and slides into a note left out (`sliding`), notes with voice under half their length not sung and left out of scores; glitches read as no voice (`isGlitch`, one reading held back); the voice drawn in the octave it sings in (`octave`), no flips; a slide drawn grey; "How your singing is scored" (a folding note at the foot of Practice, in plain words since `2d94aed`); "Download the pitch data" (JSON) after a run; `feedback/` ignored by git | Unit tests (pitch-track: silence and a consonant gap left out, under half not sung, a slide left out and its arrival kept, glitches, the octave sung); headless Edge: the WAV singer, the file (718 readings, 26 notes, 26 results, 26 beats for 16 s, 15 KB), the note's 12 rows; 360 px phone (Work log 2026-10-20, round twenty-four) | Waiting for Rinat's pitch data |
 | PH2-23 | Claude | Review | Judged when it was sung: nothing fitted to the singing; voice, colours, gauge, marks and scores at `t − deviceLag` (else the device's figure); a note scored on all its readings (25 ms edges), silence 0, unsung notes 0 in lines and runs; its cents once reached, its lateness kept and shown; how far behind the guide said; takes at the device's delay. One pitch strip per song, lowest note to highest, a semitone beyond | Unit tests rewritten and added (pitch-track: late start ~80 and 150 ms late, the end and silence counted, behind 150 ms measured and not taken off, the chain 110 ms behind over 10 points lower; lines: `songRange`); headless Edge with the WAV singer 240 ms behind: lines 57, 45, 22, 58, each beat ~265 ms late with its cents as sung; 360 px phone (Work log 2026-10-19, round twenty-three) | Waiting for Rinat to sing with it |
 | PH2-22 | Claude | Review | The device's delay measured: "Measure the delay" (Practice settings, Pitch) plays eight clicks and times them through the microphone; kept as `deviceLag`; the delay under the lines split into the device's and the voice's; once measured the voice drawn when it was sung | 4 new unit tests (clicks: delays of 12–420 ms to within 0.5 ms, quiet and lost clicks, too few or disagreeing; store: the delays kept or dropped); headless Edge: a WAV of clicks as the microphone, 8 of 8 heard, 91 ms kept; the synthesised singer with 50 ms measured: "Delay 280 ms: the device 50 ms, your voice 230 ms behind the guide", the voice drawn ~0.38 of a beat behind its notes and its head at the playhead; 360 px phone (Work log 2026-10-19, round twenty-two) | Waiting for Rinat to measure with the Scarlett |
@@ -477,6 +479,7 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-15 | **The Practice view is the song line by line:** one window of about seven lines (5, 7 or 9, in its settings), the line being sung third (the first two lines start at the top) and large, sliding on a line as each plays; a line number plays from there and the section chips stay above. Each beat: the words big with the notes small above (a line without words shows its notes big), a mark for how it was sung, and a pitch strip with a bar for each note at its height; while the pitch check listens the voice is drawn over the bars (green, amber, red), and each line's score shows by its number. The beat sounding is lit, with a playhead through it. It replaces the Now singing panel, the coming-up notes, the pitch meter and its trace box, and the Practice sheet; the ruled lines, the red margin and the red-ink words stay. | Rinat, chat 2026-10-15, with a mockup ("combining the section where it shows the current and upcoming notes, pitch checker with the lyrics section", "a vertical carousel where about 7 lines are visible. The currently playing line is the 3rd one", "The lyrics part is bigger, full width pitch performance strip. When the microphone is off it still shows the strip with lines representing the notes"); the details (a strip under every line, the colours, the first lines at the top, long lines over two rows on a phone, the scores by the numbers, the last line kept at the end) are Claude's | src/app/lines.ts; ENGINE.md → Pitch feedback → Shown. The editor's preview and the printed sheet are unchanged. |
 | 2026-10-15 | **The taal as a figure,** beside the line being sung: a shape per vibhag with a corner per beat (four beats a square, three a triangle, two a stroke: Keherwa two squares, Dadra two triangles, Teentaal four squares), the first corner of each in its kind's colour (sam, tali, khali, as in the beat boxes), khali's shape dashed; the cycle traced round as it goes, the beat's corner lit. The strip of bols is gone. | Rinat, chat 2026-10-15 ("a square where the corners light up for 8 beat taals. but not sure where to put it … seeing the bol's of the taal doesn't really do much for me"); generalising the square to a shape per vibhag, and its place (where Rinat's mockup drew it), are Claude's | The taal's name and structure stay over the lines ("Keherwa · 4 + 4"). |
 | 2026-10-15 | **A settings button over the lines:** lines shown (5, 7, 9), the size of the words and notes (smaller, normal, bigger), the keys to press and the pitch check's octave rule (both moved here). The Practice settings bar is left as it was. | Rinat, chat 2026-10-15 ("There could be a settings button to adjust a few relevant things", "Leave the settings section alone - we'll come back to it later"); the choice of settings is Claude's | Settings `plRows`, `plSize` (DATA.md). |
+| 2026-10-20 | **Session reports, the file for AI, each session's detail kept, songs' lengths:** each session in Progress (and a run just sung, under the lines) has **Report**, an HTML page opened in a new tab (save or print it there), and **For AI**, a JSON file starting with a brief for an AI that knows nothing of the app; they replace "Download the pitch data". To make them, each logged session keeps its detail (the song as played, the settings, and with the pitch check every note's result, line scores, readings and beats) in IndexedDB, the newest 1,000; sessions before 2026-10-20 have only the log's summary. The findings are sums of the scores shown while singing, by fixed rules, never a re-scoring. A song's length is its beats at its tempo and its sections' own, without the count-in, shown in Practice (with the lines to practise), Edit notation and the Music library. | Rinat, chat 2026-10-20 ("Have two buttons for each session. one is to generate a human friendly report with nice dashboard etc, maybe saved/downloaded as html ot whatever you see fit … Another button would be for exporting for AI analysis. I think json file would be better but you decide what format … a brief of how it all works should be included"; "Practice page, music library and edit notation page should show how long each of the song is at its current settings"); opening in a tab, keeping 1,000 sessions, the findings' rules, replacing the pitch data download and leaving out the count-in are Claude's | src/core/practice/session.ts, insights.ts; src/app/db.ts, report.ts, aifile.ts, progress.ts, app.ts; `playSeconds` in src/core/notation/sections.ts; docs/ENGINE.md → Session reports, How long a song plays; docs/DATA.md → Session detail, reports and the file for AI. |
 | 2026-10-20 | **Fair scoring, explained, and the data:** moments with no voice (consonants, breaths, stopping early) are left out of a note's score, not scored 0; a slide into a note, while the voice moves towards it until in tune, is left out and drawn grey (a voice holding the last note still counts, as does leaving early for the next); a note sung for under half its length is not sung and left out of the scores, as before 2026-10-19. A reading the detector most likely got wrong is read as no voice. The voice is drawn in the octave it sings in, the same for all of it. "How your singing is scored" folds open at the foot of Practice. After a run, "Download the pitch data" saves its readings, notes, beats and scores as JSON; Rinat puts such files in `feedback/` (git-ignored) for Claude. | Rinat, chat 2026-10-20 ("this is causing micro spikes at random points which is not accurate representation of what is being sung"; "sliding in can be part of the singing, right? should that be penalised? … if there is no elegant solution to this then just leave it"; "i think the previous setup of not counting the unsung notes is fine"; "please also add a helpful note in the bottom of the practice page (collapsible) explaining how the scoring is done"; "you could have a better understanding of how I am experiencing scoring if you knew data from singing a song"); the slide rule, the glitch rule, the octave drawing and the file are Claude's | Amends the row below. src/core/pitch/track.ts (`sliding`, `isGlitch`, `octave`), pitch.ts (`runFile`), index.html (`#scoreHelp`); docs/ENGINE.md → Glitches, Scores, The pitch data; docs/DATA.md → Pitch data. |
 | 2026-10-19 | **Judged when it was sung, nothing fitted; one grid per song:** every reading is compared with the note playing when it was sung, moved back only by the device's delay; the voice drawn, its colours, the gauge, the marks and the scores all agree. A note's score is the average of all its readings from its start to its end (25 ms edges for the detector's window), silence 0; a note not sung scores 0 and counts. Its cents are the pitch held once the voice reached it; how late it reached it shows under the beat in an opened line. How far behind the guide the voice comes is measured and said under the lines, never taken off. Takes play back at the device's delay. Every line of a song has the same pitch strip: its lowest note to its highest, a semitone beyond each. | Rinat, chat 2026-10-19 ("i should see the real time true feedback so i can work on my delay/lateness"; "trying to make it too clever that it misrepresents is not the way to go. i don't care if scores drop if they are supposed"; the grid: "when a song is being played, it should see what is the highest and lowest note in that song, have a grid where those to are the top and bottom of the grid in all the lines of that song"); the 25 ms edges, cents once reached, the lateness label and the semitone beyond are Claude's | Replaces the lag fitted to the singing (2026-10-10) and the steady-part score (2026-10-15). src/core/pitch/track.ts, pitch.ts, lines.ts (`songRange`); docs/ENGINE.md → When it was sung, Scores. |
 | 2026-10-19 | **The device's delay, measured; the voice drawn when it was sung:** "Measure the delay" in Practice settings (Pitch) plays eight clicks through the speakers or earphones and times them through the microphone (an earphone held to it); the median, when five or more agree, is the device's delay, kept until measured again. The delay under the lines then reads "Delay 280 ms: the device 50 ms, your voice 230 ms behind the guide". Once measured, the voice on the strips is drawn when it was sung, so it keeps up with the playhead and a voice behind the guide shows behind its notes; colours, the gauge and the scores still follow the note being sung. Unmeasured, nothing changes but the device's own figure beside the delay. | Rinat, chat 2026-10-19 ("the delay is quite significant. why is that? what can be done to reduce it?"; "wired through scarlett 2i2 … let's solve it in desktop for now"); the clicks, the split and drawing at the sung time are Claude's | src/audio/dsp/clicks.ts, src/audio/latency.ts, pitch.ts; docs/ENGINE.md → The device's delay, measured. Timing in the score still not built. |
@@ -534,6 +537,59 @@ Template:
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
 
+### 2026-10-20 BST — Claude (Opus 5.5) — PH2-25 session reports, the file for AI, songs' lengths
+
+- **Goal:** Rinat: "are all the data from all previous sessions saved in the browser?"; in
+  Progress, "two buttons for each session": "a human friendly report with nice dashboard ...
+  what were good, what needs improving, whether i kept to the note well but came in too late"
+  and "exporting for AI analysis ... there should be clea direction for the llm"; "Practice
+  page, music library and edit notation page should show how long each of the song is at its
+  current settings".
+- **Inspected:** the practice log (localStorage: only each session's summary: when, how long,
+  lines, rounds, tempo, score, line scores); pitch.ts (the run's notes and readings were only
+  offered as a download after the run, never kept); the takes' IndexedDB; the transport's
+  timing and section tempos; the dataviz guidance (the status colours run through its
+  validator: the app's own amber and red fail colour-blind separation, so the report has its
+  own passing set, with labels everywhere).
+- **Changed:** `6ed2c7a` (feat(progress)): src/core/practice/session.ts (the detail, checked
+  when read), insights.ts (`analyse`, `bestShift`, findings, headline), src/app/db.ts (one
+  IndexedDB connection, version 2, store `sessions`, the newest 1,000; takes.ts on it),
+  report.ts (the page), aifile.ts (the file and its brief), progress.ts (the buttons),
+  pitch.ts (`runDetail` in place of `runFile`), app.ts (the run keeps the song and settings as
+  played; endRun keeps the detail; openReport, saveForAI; `renderLength`, `songLength`),
+  songs.ts (length in each row), index.html (`#songLen`, `#pAfter`, the scoring note's last
+  row, Progress's line), styles.css; `playSeconds`, `sectionTempoAt` (sections.ts),
+  `lengthText` (log.ts); tests/unit/session.test.ts (new), sections.test.ts. This commit:
+  docs/ENGINE.md (How long a song plays; Session reports), DATA.md (the table, Storage,
+  Session detail, reports and the file for AI), ROADMAP row 25, this file (the older PH2-24
+  entry moved to HISTORY).
+- **Tests / verification:** `npm run typecheck` clean; `npx vitest run` → 38 files, 407
+  passed; `npm run build` → 288.2 kB JS (102.8 kB gzipped; the report's styles and the AI
+  brief are most of the 50 kB added), 58.1 kB CSS. Headless Edge on `npm run dev`, 1280 px
+  day, a WAV singer as the microphone (gauge.wav, about 230 ms behind): after Stop, "Report"
+  and "For AI" under the lines; IndexedDB version 2 with `sessions` holding 1; the report in
+  a new tab (a blob page): "You were often off the notes and came in late.", 45/100, 7
+  sections, 4 lines drawn, "You come in late: about 230 ms behind the music", "Ga is usually
+  flat: −36 cents (5 times)"; the AI file `Untitled song session 2026-10-20 11-43 for AI.json`
+  (31.7 kB: 26 notes, 717 readings, 26 beats, behind 230 ms); Progress: one session with both
+  buttons, its Report opening a second tab; lengths: library rows ("Keherwa · 96 per min · 10
+  s"), Edit Settings ("Untitled song · Keherwa · 38 s long"), Practice "38 s long · from line
+  3: 29 s", "lines 3–5: 14 s a round", and at tempo 120 "32 s long · lines 3–5: 12 s a
+  round". 360 px phone at night with two seeded older sessions: Progress rows with their
+  buttons, an older session's report ("Your score: 78.", what the log knows, its note that
+  details began on 20 October), Practice, library and Edit; no sideways scrolling. A sample
+  report (synthetic singer, 150 ms late) checked at 1200 px day and 360 px night: charts
+  readable on the phone after drawing them narrow. CI run `39410606511` (`6ed2c7a`): green. Live:
+  the page has the Report and For AI buttons.
+- **Decisions made:** one row (session reports, the file for AI, the detail kept, lengths).
+- **Risks or disagreements:** The report and file have only been made from synthetic singers
+  here, not Rinat's voice. Sessions before today have no detail. A browser can evict
+  IndexedDB under storage pressure, and clearing site data deletes it with the log. The report
+  page loads the app's fonts from Google Fonts when opened (as the app does). A long-open tab
+  on version 1 of the database (before this deploy) loses its takes connection until reloaded.
+- **Next handoff:** Rinat sings a song with the pitch check, opens its Report, and gives its
+  For AI file to an AI (or to Claude in `feedback/`).
+
 ### 2026-10-20 BST — Claude (Opus 5.5) — PH2-24 real leaps checked; the scoring note in plain words
 
 - **Goal:** Rinat: "what about when there is actual big leaps in the song, or even when i am
@@ -557,48 +613,6 @@ Template:
   rows, no sideways scrolling. CI run `39361033651` (`2d94aed`): green. Live: the page has
   the new wording.
 - **Decisions made:** none new (the note's wording is Rinat's ask; the rules are unchanged).
-- **Next handoff:** Rinat sings a song and puts its pitch data in `feedback/`.
-
-### 2026-10-20 BST — Claude (Opus 5.5) — PH2-24 fair scoring, the scoring note, the pitch data
-
-- **Goal:** Rinat, after singing with round twenty-three: consonant gaps scored as silence
-  cause "micro spikes at random points"; "sliding in can be part of the singing … if there is
-  no elegant solution to this then just leave it"; "the previous setup of not counting the
-  unsung notes is fine"; Scarlett measured at 100 ms; a folding note on how scoring works,
-  like "How to type your diary notation"; "you could have a better understanding of how I am
-  experiencing scoring if you knew data from singing a song".
-- **Found:** besides silence scored 0, the voice was drawn folded reading by reading to the
-  octave nearest its note: a voice still on a note more than six semitones from the new one
-  (a late Sa to Pa) flipped to the other side for a reading or two, a spike, wherever the
-  tune leapt. Lone or out-of-line detector readings drew spikes too.
-- **Changed:** `645dab3` (feat(pitch)): track.ts: `isGlitch`, `sliding`, `octave` (in
-  `measureBehind`), `scoreNote` (voiced readings only, slides left out, under half voiced not
-  sung, all counted if it never settles), lines and summary over sung notes; pitch.ts: one
-  reading held back for glitches, the voice drawn at its pitch less `1200 × octave`, slides
-  grey, the run logged and `runFile`, "Download the pitch data" (`#pExport`), host `song`
-  and `save`; app.ts: those hosts (`offerFile`); index.html: the button, "How your singing is
-  scored" (`#scoreHelp`, 12 rows); .gitignore: `feedback/`; tests (pitch-track). This commit
-  (docs): ENGINE (Glitches, Scores, Shown, The pitch data), DATA (Pitch data, the overview
-  table), ROADMAP (Phase 2 row 24), this file (the PH2-22 entry moved to HISTORY).
-- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
-  DevTools protocol on `npm run dev`, the WAV singer of round twenty with `deviceLag` 0.05):
-  - `npm run typecheck` → 0; `npx vitest run` → 37 files, 392 passed. `npm run build` →
-    238.6 kB JS (84.8 kB gzip), 57.9 kB CSS; `bash reference/tests/run-all.sh` →
-    31/11/10/12/5 passed, 12 exercises valid.
-  - Unit: 70 % of each note sung then a breath, with a 40 ms gap: every note 100; voice for
-    a third: not sung, no summary; a 150 ms slide up from the note below: every note 100,
-    arriving 0.08–0.15 s; a voice held on the last note for 150 ms: ~80; an octave below:
-    `octave` −1, 100.
-  - Edge 1280 × 900: stopped after 16 s: the average chip, "Tap a line …", **Download the
-    pitch data**; the file `pitch Untitled song 2026-10-20-02-22.json`, 14.8 KB: 718
-    readings, 26 notes, results and beats, the summary 45, behind 0.23 s; "How your singing
-    is scored" opens with its 12 rows. 360 × 780 phone, night: the footer wraps, no sideways
-    scrolling.
-  - CI run `39358708772` (`645dab3`): core, reference and deploy jobs green. Live: bundle index-cNxSc6wc.js; the WAV singer stopped after 16 s, Download the pitch data: 14.9 KB, 723 readings, 26 notes.
-- **Decisions made:** see Decisions (fair scoring, explained, and the data).
-- **Risks or disagreements:** a slow slide (under ~450 cents a second) counts as off pitch;
-  a glitch two readings long still draws. 100 ms for the Scarlett on Windows in a browser is
-  usual (the browser's own buffers both ways), not the interface.
 - **Next handoff:** Rinat sings a song and puts its pitch data in `feedback/`.
 
 Older entries: `docs/HISTORY.md`.

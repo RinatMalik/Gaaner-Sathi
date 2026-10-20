@@ -26,6 +26,13 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
 ## Transport
 
 - Play from any line; optional loop from line A to line B; rounds counted from 0.
+- **How long a song plays** (Rinat, 2026-10-20: "show how long each of the song is at its
+  current settings"): `playSeconds` (src/core/notation/sections.ts) adds each beat at its own
+  tempo, its section's or the song's (`sectionTempoAt`), without the count-in or the tempo
+  trainer. Shown after the title on the Practice view ("3 min 20 s long", with "lines 3–5:
+  40 s a round" when looping, or "from line 3: …"), in Edit notation's Settings bar, and in each
+  Music library row. A test plays a song through the transport and checks its beats take
+  exactly that long.
 - **What plays** (Rinat, 2026-10-12): the deck's Play plays the Lines to practise; a line
   number on the sheet and the editor's "play from here" play from that line to the end of the
   song, once; a section button plays its section (looping it when "loop" is ticked); a rewaz
@@ -327,12 +334,10 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   Opened lines stay open through a pause or stop and close when a new run starts. *Why a tap,
   not hover:* lines opening under a moving pointer would push the rest about, and a phone has
   no hover. After a run the text under the lines says so.
-- **The pitch data** (Rinat, 2026-10-20: "you could have a better understanding of how I am
-  experiencing scoring if you knew data from singing a song"): after a run, "Download the
-  pitch data" saves a JSON file of it (docs/DATA.md → Pitch data): what the microphone heard
-  (pitch only, no sound), the notes expected, the beats, and every note's and line's result.
-  Rinat puts the files in the project's `feedback/` folder (ignored by git, so never
-  published) for Claude to read.
+- **Each session's detail** (Rinat, 2026-10-20): when a run ends, its notes' results, lines,
+  readings and beats go with its log entry (docs/DATA.md → Session detail), for its report and
+  its file for AI (Session reports, below). It replaced "Download the pitch data", one day
+  old; Rinat's files for Claude still go in `feedback/` (ignored by git).
 - **End to end:** `tests/unit/pitch-track.test.ts` drives the real transport, synthesises a
   singer (a 150 ms round trip, vibrato, a scoop into each note, noise) and runs the detector
   on it: with the round trip given, 90 or more and "with the guide"; given 40 ms instead (the
@@ -343,6 +348,43 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
 - Works in any browser with AudioWorklet and a microphone (Chrome, Edge, Firefox, Safari
   14.1+), on https or localhost. Until the device's delay is measured, the device's own
   figure is used; a wrong one (Bluetooth) makes a voice look late or early.
+
+## Session reports
+
+Rinat, 2026-10-20: "generate a human friendly report with nice dashboard ... what were good,
+what needs improving, whether i kept to the note well but came in too late" and "Another
+button would be for exporting for AI analysis". **Report** and **For AI** sit beside each
+session in Progress and under the lines after a run (docs/DATA.md → Session detail).
+
+- **Nothing is scored again.** The notes' scores, cents and arrival are the ones shown while
+  singing; src/core/practice/insights.ts (`analyse`) only sums them up, by fixed rules.
+- **Timing:** how far behind the music the voice came, over the session and per line
+  (`bestShift`: the tracker's own measure, over all the readings or the line's); and for each
+  *new* note (a change of note, or after a rest; a repeated note is not one) how soon the
+  voice reached it: on time under 0.1 s, a little late to 0.25 s, late, never. Leaps (5
+  semitones or more) against steps (1 or 2), when there are three of each.
+- **Pitch:** of the notes sung, the median distance from the note once reached (signed: the
+  tendency; and not), the share within 15 cents, the median wobble; each note of the scale
+  (three times or more) usually sharp or flat by 20 cents or more, or spot on (within 8,
+  scoring 90).
+- **Findings,** in plain words: in tune within 12 cents and 100 ms or more behind is said as
+  one ("You keep to the notes well" / "You come in late: about 150 ms behind the music"),
+  as Rinat put it; slow to settle is said only beyond the lateness; lines (best named only 5
+  points clear, the weakest 10 below), rounds getting better or worse by 5, against the last
+  session of the song. What to bear in mind: no detail kept (before 2026-10-20), the pitch
+  check off, the delay not measured, another octave, few notes, a short session. A headline
+  puts pitch and timing in one sentence ("You kept to the notes well, but came in late.").
+- **The report page** (src/app/report.ts) draws with the app's tokens in its own copy (day,
+  night, and day when printed); in tune, close and off as green, amber and red, checked for
+  colour-blind readers with the dataviz validator (light `#1f7a3a #d9a21f #b4261e`, dark
+  `#45a058 #dba838 #ec4d40`) and always with a label beside them. Charts are drawn twice, wide
+  and narrow, so their text stays readable on a phone. Each line's strip is the Practice
+  view's: the notes as bars at their pitch, the voice over them coloured by how close.
+- **The file for AI** (src/app/aifile.ts) starts with a brief for an AI that knows nothing
+  of the app (`AI_BRIEF`: the app, the notation, time, scoring, being behind, the parts of the
+  file, how to analyse, caveats), then the session, the song as played, the app's findings
+  and every note, beat and reading, the readings in cents above Sa with the device's delay
+  taken off.
 
 ## The Voice tab
 

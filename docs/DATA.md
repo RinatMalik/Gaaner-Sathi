@@ -16,10 +16,10 @@ Clearing a browser's site data ("cookies and site data") deletes it all.
 | Your songs: notation, title, taal, tempo, Sa, start beat, section tempos and taals, tags, star, notes, the song's own sound, whether it is listed under Exercises | `localStorage` | Yes: **Export this song** (one) or **Back up all my songs** (all), then **Import** there |
 | The built-in exercises and the starter rewaz | The app itself | Everyone has them |
 | Your settings: your usual sound, your Sa, the practice settings, script, theme, the editor view, the MIDI choice | `localStorage` | No |
-| Practice log (Progress) | `localStorage` | Downloadable as a file from Progress, but not importable |
+| Practice log (Progress): each session's summary | `localStorage` | Downloadable as a file from Progress, but not importable |
+| Each session's detail: the song as played, every note's result, the pitch heard (since 2026-10-20) | IndexedDB, the newest 1,000 sessions | **Report** opens a page on it, **For AI** saves it as a file (below); not importable |
 | Rewaz routines | `localStorage` | No |
 | Takes (recordings) | IndexedDB | Each downloads as a WAV file; not importable |
-| A run's pitch data | Not kept: made when a run with the pitch check ends | **Download the pitch data** saves it as a file (below); not importable |
 | The microphone | Not kept: analysed as it arrives | Never leaves the device |
 
 So a friend opening the link sees the app as it is for everyone: the exercises, the starter
@@ -155,7 +155,7 @@ all of these while it plays.
 | `gaanersathi.log.v1` | The practice log, `[entry, …]`, oldest first; each entry is appended to what is stored, so another tab's entries survive |
 | `gaanersathi.routines.v1` | Rewaz routines, `{ [id]: routine }`; each save changes only its own routine |
 | `swaralipi.songs.v1`, `swaralipi.prefs.v1` | The prototype's songs and settings: read, never written |
-| IndexedDB `gaanersathi` | Takes: store `takes` (their details, indexed by `song`) and store `audio` (`{ id, pcm }`, the samples), so listing never loads sound |
+| IndexedDB `gaanersathi` (version 2) | Takes: store `takes` (their details, indexed by `song`) and store `audio` (`{ id, pcm }`, the samples), so listing never loads sound. Sessions: store `sessions` (version 2, 2026-10-20), each session's detail keyed by its log entry's `at` (src/app/db.ts) |
 
 - Songs are saved on edit with a 900 ms pause, flushed when the page is hidden or another song
   opens. Changes saved in another tab are taken in as they happen; a song open and untouched
@@ -168,8 +168,10 @@ all of these while it plays.
   changing the prototype would change the reference. So neither page can overwrite the
   other's work, and nothing in the prototype's storage changes.
 - *Why localStorage for songs:* songs are small text, and the prototype already used it.
-  Takes are the exception: sound is large, so they went to IndexedDB (2026-10-11), the app's
-  only use of it.
+  Takes are the exception: sound is large, so they went to IndexedDB (2026-10-11); each
+  session's detail followed (2026-10-20), as a long run's readings would soon fill
+  localStorage's few megabytes. One connection serves both (db.ts); a tab still on version 1
+  closes its connection when a newer tab upgrades.
 - A full browser refuses writes; the status line says so ("Not saved: song storage is
   full…"). IndexedDB can be evicted under storage pressure; Download is the safe copy of a
   take. In a private window, or with site data off, recording is refused with a message.
@@ -252,28 +254,67 @@ The samples are 16-bit, at `rate`, starting at the run's first scheduled beat (c
 included). Takes are checked when read; damaged ones are skipped. Takes shorter than 3 s are
 not kept.
 
-## Pitch data
+## Session detail, reports and the file for AI
 
-After a run with **Check my pitch** on, **Download the pitch data** (under the lines) saves
-`pitch <song title> <yyyy-mm-dd-hh-mm>.json` (Rinat, 2026-10-20), for the singer to look at or
-give to Claude (put it in the project's `feedback/` folder, which git ignores). It holds the
-song's title, taal, tempo and notation, so treat it like a song file; no sound. One object:
+Rinat, 2026-10-20: "Have two buttons for each session": **Report** and **For AI** beside each
+session in Progress (and under the lines after a run with the pitch check). They need more
+than the log's summary, so from 2026-10-20 each logged session also keeps its detail in
+IndexedDB (store `sessions`), written when the log entry is. Sessions logged before then have
+only the summary: their report and file say so, and show what the log has (score, lines).
+
+```json
+{ "at": 1791655308398, "song": "song-mv2pb608-a4kmn",
+  "played": { "title": "…", "taal": "keherwa", "tempo": 100, "text": "…", "saHz": 261.63, "sa": "C (White 1), middle octave" },
+  "settings": { "guide": "full", "guideLoop": "all", "countIn": true, "ramp": false, "rampStep": 4, "rampMax": 160 },
+  "pitch": { "lag": 0.1, "measured": true, "anyOctave": true, "octave": 0,
+    "notes": [{ "t0": 0, "t1": 0.6, "semi": 0, "oct": 0, "g": 0, "line": 0, "pass": 0, "status": "sung",
+      "score": 88, "cents": -6.2, "arrive": 0.21, "wobble": 7.5 }],
+    "lines": [[0, 0, 82, 1]], "readings": [0.031, 262.4, …], "beats": [[0, 0, 0, 0.6]] } }
+```
 
 | Field | What |
 |---|---|
-| `kind`, `version`, `at` | `"Gaaner Sathi pitch data"`, `1`, when saved (ISO) |
-| `song` | `{ title, taal, tempo, text }` |
-| `settings` | `{ saHz, deviceDelay (s), delayMeasured, anyOctave }` |
-| `behindTheGuide`, `octaveSung` | How far behind the guide the voice came (s; negative ahead; null if unknown), and the octave it sang in against the notes |
-| `summary` | `{ score, sung, lines: [[line, score]] }` (lines from 0), or null |
-| `lines` | `[line, round, score, share sung]` per line and round (lines from 1) |
-| `results` | Per judged note: `[t0, t1, semitones above Sa, octave, song beat, line, round, status, score, cents, reached after (s), wobble (cents)]` |
-| `notes` | Every note scheduled: `[t0, t1, semitones above Sa, octave, song beat, line, round, judged (1/0)]` |
-| `beats` | Every beat scheduled: `[time, song beat, round, seconds a beat]` |
-| `readings` | Every reading: `[t, Hz]` (0: no voice), or `[t, 0, Hz]` for one taken as a glitch |
+| `at`, `song` | The log entry's `at` (the key) and the song's id |
+| `played` | The song as it was played (it may change later): title, taal, tempo, notation, Sa |
+| `settings` | The guide, the guide when looping, the count-in and the tempo trainer |
+| `pitch` | Only with **Check my pitch**: the device's delay and whether it was measured; whether any octave counted and the octave sung in; every judged note's result (the scores shown while singing, never worked out again); each line's score per round; every reading as `[t, Hz]` pairs (0: no voice; a glitch is 0); every beat `[t, song beat, round, seconds a beat]` |
 
-Times are AudioContext seconds. A note at `t0` is heard at `t0`; a reading at `t` was sung at
-`t − deviceDelay`. Each array has a `…Fields` list naming its columns.
+Times are seconds from the first beat after the count-in. A note at `t0` is heard at `t0`; a
+reading at `t` was sung at `t − lag`. Readings are stored as 32-bit floats: a session with the
+pitch check is about half a kilobyte a second of singing. The newest 1,000 sessions' detail is
+kept; an older one's goes, and its summary stays in the log. Details are checked when read
+(`cleanSession`).
+
+- **Report** (src/app/report.ts) is one HTML page, built in the browser and opened in a new
+  tab (where a tab cannot open, saved as `<title> session <date> <time> report.html`). It has
+  the score and the session in a sentence, tiles, what went well and what to work on
+  (src/core/practice/insights.ts, docs/ENGINE.md → Session reports), when new notes were
+  reached, how far off the notes were, note by note, each line with the voice drawn over its
+  notes, the rounds, the song's earlier scores, and what to bear in mind. **Save this report**
+  and **Print or save as PDF** are on the page. It loads the app's two fonts from Google
+  Fonts, as the app does; nothing else leaves the device.
+- **For AI** (src/app/aifile.ts) saves `<title> session <yyyy-mm-dd> <hh-mm> for AI.json`
+  ("it should be AI friendly so any llm can read and analyse them better ... a brief of how it
+  all works should be included"). One object, the brief first:
+
+| Field | What |
+|---|---|
+| `about_this_file` | The brief (`AI_BRIEF`): what to do, the app, the notation, time, scoring, being behind the music, the parts of the file, how to analyse, caveats |
+| `file` | `{ kind: "Gaaner Sathi practice session, for AI analysis", version: 1, made }` |
+| `session` | When (ISO with the offset), seconds, title, lines, looped, rounds, tempo, tempo reached, routine, whether the pitch check was on, score, share sung, whether detail was kept |
+| `song` | Title, taal in words, tempo, Sa and its Hz, whether as played, the notation, and each line's notes and words as text |
+| `settings`, `equipment` | As played; the device's delay, measured or not, any octave, octave sung |
+| `findings_by_the_app` | The headline, what went well, what to work on, what to bear in mind, and the numbers behind them |
+| `lines`, `rounds`, `notes_of_the_scale` | Summaries (lines and rounds from 1) |
+| `notes` | `{ columns, rows }`: each judged note: line, round, song beat, note, Bengali, octave, cents above Sa, start, end, status, score, cents off, reached after, wobble |
+| `beats` | `{ columns, rows }`: start, song beat, round, seconds a beat |
+| `pitch_readings` | `{ columns: [time_s, cents_above_sa], rows }`: when sung (the delay taken off); null with no voice |
+| `earlier_sessions_of_this_song` | Each earlier log entry of the song: when, seconds, lines, rounds, tempo, score |
+
+Long tables have one row to a line. The file holds the notation, so treat it like a song file;
+no sound is in it. It replaced "Download the pitch data" (2026-10-20, one day old), whose
+contents it holds in a form an AI can read without the app; Rinat's files for Claude still go
+in `feedback/`, which git ignores.
 
 ## Built-in exercises
 

@@ -49,6 +49,48 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-20 BST — Claude (Opus 5.5) — PH2-24 fair scoring, the scoring note, the pitch data
+
+- **Goal:** Rinat, after singing with round twenty-three: consonant gaps scored as silence
+  cause "micro spikes at random points"; "sliding in can be part of the singing … if there is
+  no elegant solution to this then just leave it"; "the previous setup of not counting the
+  unsung notes is fine"; Scarlett measured at 100 ms; a folding note on how scoring works,
+  like "How to type your diary notation"; "you could have a better understanding of how I am
+  experiencing scoring if you knew data from singing a song".
+- **Found:** besides silence scored 0, the voice was drawn folded reading by reading to the
+  octave nearest its note: a voice still on a note more than six semitones from the new one
+  (a late Sa to Pa) flipped to the other side for a reading or two, a spike, wherever the
+  tune leapt. Lone or out-of-line detector readings drew spikes too.
+- **Changed:** `645dab3` (feat(pitch)): track.ts: `isGlitch`, `sliding`, `octave` (in
+  `measureBehind`), `scoreNote` (voiced readings only, slides left out, under half voiced not
+  sung, all counted if it never settles), lines and summary over sung notes; pitch.ts: one
+  reading held back for glitches, the voice drawn at its pitch less `1200 × octave`, slides
+  grey, the run logged and `runFile`, "Download the pitch data" (`#pExport`), host `song`
+  and `save`; app.ts: those hosts (`offerFile`); index.html: the button, "How your singing is
+  scored" (`#scoreHelp`, 12 rows); .gitignore: `feedback/`; tests (pitch-track). This commit
+  (docs): ENGINE (Glitches, Scores, Shown, The pitch data), DATA (Pitch data, the overview
+  table), ROADMAP (Phase 2 row 24), this file (the PH2-22 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`, the WAV singer of round twenty with `deviceLag` 0.05):
+  - `npm run typecheck` → 0; `npx vitest run` → 37 files, 392 passed. `npm run build` →
+    238.6 kB JS (84.8 kB gzip), 57.9 kB CSS; `bash reference/tests/run-all.sh` →
+    31/11/10/12/5 passed, 12 exercises valid.
+  - Unit: 70 % of each note sung then a breath, with a 40 ms gap: every note 100; voice for
+    a third: not sung, no summary; a 150 ms slide up from the note below: every note 100,
+    arriving 0.08–0.15 s; a voice held on the last note for 150 ms: ~80; an octave below:
+    `octave` −1, 100.
+  - Edge 1280 × 900: stopped after 16 s: the average chip, "Tap a line …", **Download the
+    pitch data**; the file `pitch Untitled song 2026-10-20-02-22.json`, 14.8 KB: 718
+    readings, 26 notes, results and beats, the summary 45, behind 0.23 s; "How your singing
+    is scored" opens with its 12 rows. 360 × 780 phone, night: the footer wraps, no sideways
+    scrolling.
+  - CI run `39358708772` (`645dab3`): core, reference and deploy jobs green. Live: bundle index-cNxSc6wc.js; the WAV singer stopped after 16 s, Download the pitch data: 14.9 KB, 723 readings, 26 notes.
+- **Decisions made:** see Decisions (fair scoring, explained, and the data).
+- **Risks or disagreements:** a slow slide (under ~450 cents a second) counts as off pitch;
+  a glitch two readings long still draws. 100 ms for the Scarlett on Windows in a browser is
+  usual (the browser's own buffers both ways), not the interface.
+- **Next handoff:** Rinat sings a song and puts its pitch data in `feedback/`.
+
 ### 2026-10-19 BST — Claude (Opus 5.5) — PH2-23 judged when it was sung; one grid per song
 
 - **Goal:** Rinat: "i should see the real time true feedback so i can work on my
