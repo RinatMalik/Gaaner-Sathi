@@ -49,6 +49,47 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-19 BST — Claude (Opus 5.5) — PH2-22 the device's delay measured
+
+- **Goal:** Rinat: "wired through scarlett 2i2. in future i want to use it on phone
+  occasionally with bluetooth speakers but let's solve it in desktop for now" (on "the delay
+  is quite significant … what can be done to reduce it?").
+- **Inspected:** mic.ts (`captureStream`, `openStream`, `latency`), pitch.ts `drawVoice`,
+  `placeOf`, the delay text; how readings and beats are timed (the context clock: a reading
+  is sound out + the singer + sound in after its beat; the playhead is moved back by the
+  output latency, so the voice lined up with its notes trails it by the rest).
+- **Changed:** `e2cc5bd` (feat(practice)): src/audio/dsp/clicks.ts (`clickSamples`,
+  `clickDelays`, `roundTrip`), src/audio/latency.ts (`measureDelay`); pitch.ts: the Measure
+  button and its messages, `devLag`, the delay text split, the voice placed at `t −
+  deviceLag` once measured; store.ts: `deviceLag` (0–0.6 s); app.ts: its host; index.html:
+  the button and its message in Practice settings → Pitch; styles: that row; tests (clicks,
+  store). This commit (docs): ENGINE (the device's delay, measured; Not yet), DATA
+  (`deviceLag`), ROADMAP (Phase 2 row 22), this file (the PH2-20 entry moved to HISTORY).
+- **Tests / verification** (Git Bash, Node 24.20.0, Windows 10; headless Edge through the
+  DevTools protocol on `npm run dev`, real clicks):
+  - `npm run typecheck` → 0; `npx vitest run` → 37 files, 388 passed. `npm run build` →
+    235.5 kB JS (83.5 kB gzip), 57.7 kB CSS; `bash reference/tests/run-all.sh` →
+    31/11/10/12/5 passed, 12 exercises valid.
+  - A WAV of eight clicks (0.6 s apart, from 0.8 s) as the microphone: Measure → "Listening
+    for the clicks: keep quiet for six seconds…", the button off; then "Your device’s delay:
+    91 ms, sound out and back in. …", `deviceLag` 0.0907 kept (the WAV starts as the
+    microphone opens, so the figure is the test's own; what matters is 8 of 8 found and
+    agreeing).
+  - The synthesised singer (round twenty) with `deviceLag` 0.05: "Delay 280 ms: the device 50
+    ms, your voice 230 ms behind the guide"; the voice drawn about 0.38 of a beat (230 ms at
+    100 bpm) behind each note's start, its head at the playhead; line 2 opened after Stop the
+    same, the cents unchanged (+21…+27 against +25 sung).
+  - 360 × 780 phone, night: the Measure row 298 px wide, its text under the button, no
+    sideways scrolling.
+  - CI run `39242268816` (`e2cc5bd`): core, reference and deploy jobs green. Live: bundle index-CL2sS9_s.js; Measure with the clicks WAV: 8 of 8 heard, 91 ms kept.
+- **Decisions made:** see Decisions (the device's delay, measured).
+- **Risks or disagreements:** the measurement needs the microphone to hear the clicks (an
+  earphone held to it): through a Scarlett with closed headphones that is the way. A voice
+  drawn when it was sung looks untidier when the singer is behind the guide; that is the
+  point, but Rinat may prefer it lined up (measuring is what turns it on). Not checked with a
+  real device's sound out and back in (headless Edge has none).
+- **Next handoff:** Rinat measures with the Scarlett and sings.
+
 ### 2026-10-19 BST — Claude (Opus 5.5) — PH2-21 looking back at a run; the delay
 
 - **Goal:** Rinat: remove "Listening. The gauge …" and put the average's chip on the left;

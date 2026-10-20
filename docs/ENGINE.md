@@ -248,6 +248,11 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   2026-10-19* the lag was fitted to the singing (the delay, 0–600 ms, at which most readings
   landed on their notes), which took the singer's lateness off without saying so, and each
   note was scored on its middle only.
+- **Glitches** (Rinat, 2026-10-20: "micro spikes at random points"): each reading is held
+  back one (about 20 ms) and read as no voice when the detector most likely got it wrong
+  (`isGlitch`): voice alone between two readings without, or more than a semitone from both
+  neighbours while they agree within one. Lasting one reading, it is shorter than anything
+  sung.
 - **How far behind the guide** (`behind`): measured every second from the last 10 s of
   singing, the shift (−200 to +600 ms) at which most readings land within half a semitone of
   the note playing, the nearest to none where several fit as well (held notes). It is said
@@ -267,25 +272,35 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   take plays back skipping the device's delay, so it is heard as it was sung. *Why clicks
   through an earphone held to the microphone:* with headphones the microphone cannot
   otherwise hear the app.
-- **Scores** (Rinat, 2026-10-19): every reading while a note played scores 100 within 10
-  cents of it, then 2 points a cent less, 0 from 60, and 0 with no voice; the note's score is
-  their average, from its start to its end (only 25 ms at each end left out, half the
-  detector's window, where a reading also holds the next note). So a late, scooped or
-  early-leaving voice, and silence, count against the note. Its cents are the median once
-  the voice reached it (within 50 cents), and how late that was is kept (`arrive`). A note
-  with no voice at all is "not sung" and scores 0; one too short to judge (under 30 ms) is
-  skipped. Lines and runs are the duration-weighted mean of the notes judged. Any octave
-  counts unless the singer asks for the octave too. Rounds where the guide plays in "every
-  other round" are for listening, so not scored. The gauge (below) calls a note in tune
-  within 15 cents. (Until 2026-10-19: the median over the note's middle, from 100 ms in to
-  its last 10 %, and notes not sung left out of the score.)
+- **Scores** (Rinat, 2026-10-19 and 20): every reading with voice while a note played scores
+  100 within 10 cents of it, then 2 points a cent less, 0 from 60; the note's score is their
+  average, from its start to its end (only 25 ms at each end left out, half the detector's
+  window, where a reading also holds the next note). A voice still on the last note (late) or
+  already on the next (leaving early) counts against the note. Left out: readings without
+  voice (a breath, a consonant such as স ত ক প, stopping early: 2026-10-20, "this is causing
+  micro spikes … not accurate representation of what is being sung"), and a slide into the
+  note (`sliding`: since the note began every reading has moved at least 10 cents nearer, and
+  is not yet within 15 cents; the first reading that is not ends it; 2026-10-20, "sliding in
+  can be part of the singing"). A slide the whole way, never settling, counts. Its cents are
+  the median once the voice reached it (within 50 cents), and how late that was is kept
+  (`arrive`). A note with voice for under half its length is "not sung": left out of the
+  scores, counted in the share sung ("the previous setup of not counting the unsung notes is
+  fine"); one too short to judge (under 30 ms) is skipped. Lines and runs are the
+  duration-weighted mean of the sung notes. Any octave counts unless the singer asks for the
+  octave too. Rounds where the guide plays in "every other round" are for listening, so not
+  scored. The gauge (below) calls a note in tune within 15 cents. Explained in Practice under
+  "How your singing is scored". (Until 2026-10-19: the median over the note's middle, from
+  100 ms in to its last 10 %.)
 - **Shown** (Rinat, 2026-10-15) on the Practice view's lines (`src/app/lines.ts`): each
   reading is placed on its beat (from the beats scheduled, moved back by the delay) and drawn
   on that line's pitch strip over the note bars (every line of a song the same strip, its
   lowest note to its highest with a semitone beyond each, so a note sits at the same height
   in every line: Rinat, 2026-10-19), green within 15 cents of the note expected,
-  amber within 35, red beyond, grey where no note is expected; with any octave counting it is
-  drawn at the expected note's octave. Each beat sung gets a mark under its words; each line,
+  amber within 35, red beyond, grey while sliding into a note or where no note is expected; at
+  its own pitch, moved by the octave the voice sings in when any octave counts (`octave`, the
+  most common over the last 10 s, so the whole line moves together: until 2026-10-20 each
+  reading was folded to the octave nearest its note, which flipped a voice late on a note
+  over six semitones away to the other side, a spike). Each beat sung gets a mark under its words; each line,
   when it finishes, its score in its number box, which is tinted from red (50 or less) through
   amber (75) to green (95 or more) by it; the run's average (`summary`) shows under the lines
   as each line finishes, tinted the same way, and is the run's score at the end. A line's
@@ -312,6 +327,12 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   Opened lines stay open through a pause or stop and close when a new run starts. *Why a tap,
   not hover:* lines opening under a moving pointer would push the rest about, and a phone has
   no hover. After a run the text under the lines says so.
+- **The pitch data** (Rinat, 2026-10-20: "you could have a better understanding of how I am
+  experiencing scoring if you knew data from singing a song"): after a run, "Download the
+  pitch data" saves a JSON file of it (docs/DATA.md → Pitch data): what the microphone heard
+  (pitch only, no sound), the notes expected, the beats, and every note's and line's result.
+  Rinat puts the files in the project's `feedback/` folder (ignored by git, so never
+  published) for Claude to read.
 - **End to end:** `tests/unit/pitch-track.test.ts` drives the real transport, synthesises a
   singer (a 150 ms round trip, vibrato, a scoop into each note, noise) and runs the detector
   on it: with the round trip given, 90 or more and "with the guide"; given 40 ms instead (the

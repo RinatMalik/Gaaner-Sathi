@@ -19,6 +19,7 @@ Clearing a browser's site data ("cookies and site data") deletes it all.
 | Practice log (Progress) | `localStorage` | Downloadable as a file from Progress, but not importable |
 | Rewaz routines | `localStorage` | No |
 | Takes (recordings) | IndexedDB | Each downloads as a WAV file; not importable |
+| A run's pitch data | Not kept: made when a run with the pitch check ends | **Download the pitch data** saves it as a file (below); not importable |
 | The microphone | Not kept: analysed as it arrives | Never leaves the device |
 
 So a friend opening the link sees the app as it is for everyone: the exercises, the starter
@@ -250,6 +251,29 @@ in IndexedDB, never in song files; Download writes one as a mono 16-bit WAV file
 The samples are 16-bit, at `rate`, starting at the run's first scheduled beat (count-in
 included). Takes are checked when read; damaged ones are skipped. Takes shorter than 3 s are
 not kept.
+
+## Pitch data
+
+After a run with **Check my pitch** on, **Download the pitch data** (under the lines) saves
+`pitch <song title> <yyyy-mm-dd-hh-mm>.json` (Rinat, 2026-10-20), for the singer to look at or
+give to Claude (put it in the project's `feedback/` folder, which git ignores). It holds the
+song's title, taal, tempo and notation, so treat it like a song file; no sound. One object:
+
+| Field | What |
+|---|---|
+| `kind`, `version`, `at` | `"Gaaner Sathi pitch data"`, `1`, when saved (ISO) |
+| `song` | `{ title, taal, tempo, text }` |
+| `settings` | `{ saHz, deviceDelay (s), delayMeasured, anyOctave }` |
+| `behindTheGuide`, `octaveSung` | How far behind the guide the voice came (s; negative ahead; null if unknown), and the octave it sang in against the notes |
+| `summary` | `{ score, sung, lines: [[line, score]] }` (lines from 0), or null |
+| `lines` | `[line, round, score, share sung]` per line and round (lines from 1) |
+| `results` | Per judged note: `[t0, t1, semitones above Sa, octave, song beat, line, round, status, score, cents, reached after (s), wobble (cents)]` |
+| `notes` | Every note scheduled: `[t0, t1, semitones above Sa, octave, song beat, line, round, judged (1/0)]` |
+| `beats` | Every beat scheduled: `[time, song beat, round, seconds a beat]` |
+| `readings` | Every reading: `[t, Hz]` (0: no voice), or `[t, 0, Hz]` for one taken as a glitch |
+
+Times are AudioContext seconds. A note at `t0` is heard at `t0`; a reading at `t` was sung at
+`t − deviceDelay`. Each array has a `…Fields` list naming its columns.
 
 ## Built-in exercises
 
