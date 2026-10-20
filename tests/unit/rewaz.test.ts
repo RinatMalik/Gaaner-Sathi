@@ -231,8 +231,12 @@ describe('the Progress view', () => {
     // Below the sections: the data, to download or start afresh.
     expect(html).toContain('<b>Your practice data:</b> 3 sessions since 8 Oct, kept only in this browser.');
     expect(html).toContain('data-act="export"');
-    expect(html).toContain('data-act="wipe"');
+    expect(html).toContain('data-act="wipe">Start afresh (delete all practice data)…</button>');
     expect(html).not.toContain('data-act="wipe-yes"');
+    // Each song's own report and file for AI, beside Practise; a deleted one keeps them.
+    expect(html).toContain('data-sreport="a"');
+    expect(html).toContain('data-sai="b"');
+    expect(html).not.toContain('data-open="b"');
     // A song still there opens to practise; one deleted since shows its logged title.
     expect(html).toContain('<button type="button" class="lopen" data-open="a"><span class="ltitle">Song &lt;A&gt;</span>');
     expect(html).toContain('<span class="lopen"><span class="ltitle">Old b</span><span class="lmeta">1 time · 2 min in all · practised yesterday · deleted since</span>');
@@ -263,19 +267,20 @@ describe('the Progress view', () => {
     // All of it: both songs' notes; the session before notes were kept said.
     expect(all).toContain('1 session with a pitch score is not counted');
     expect(all).toContain('<b>Best:</b> Ma (94), lower Pa (92) and Sa (91). <b>Needs the most work:</b> upper Sa (58, usually flat).');
-    const rows = Array.from(all.matchAll(/<span class="pgnw">([^<]+)<\/span>/g), (m) => m[1]);
-    expect(rows).toEqual(['upper Re', 'upper Sa', 'Pa', 'Ma', 'Sa', 'lower Pa']);
-    expect(all).toContain('<tr class="pgnoct"><th colspan="3" scope="rowgroup">Upper octave · তার</th></tr>');
-    expect(all).toContain('<tr class="pgnrow few"');
-    expect(all).toContain('<td class="pgnc far">24 flat</td>');
-    expect(all).toContain('<span class="pgnbar"><span class="off" style="width:58%"></span></span><b>58</b>');
+    // On the keys, lower Pa to upper Re: the notes sung are buttons that say their numbers.
+    expect(Array.from(all.matchAll(/<button type="button" aria-pressed="false" class="nk (\w) (\w+)( few)?"[^>]*data-k="(-?\d+)"/g), (m) => m[4] + m[1] + m[2] + (m[3] ?? ''))).toEqual(['-5wgood', '0wgood', '5wgood', '7wgood', '12woff', '14woff few']);
+    expect(all).toContain('aria-label="Upper Sa: sung 12 times, average score 58, usually 24 cents flat."');
+    expect(all).toContain('58<i>▼</i>');
+    expect(all).toContain('<div class="nkoct" style="grid-template-columns:3fr 7fr 2fr"><span>Lower<span class="bn"> · মন্দ্র</span></span>');
+    expect(all).toContain('<p class="nkinfo" aria-live="polite">Tap a key for its numbers.</p>');
+    expect(all).toContain('<summary>The numbers</summary>');
     // One exercise: its own day and notes only.
     const one = progressHTML(log, at(10, 20), { song, pitchSong: 'x' });
     expect(one).toContain('<optgroup label="Exercises"><option value="x" selected>Ex</option></optgroup>');
     expect(one).toContain('<option value="30" selected>The last 30 days</option>');
     expect(one).toContain('One day with a pitch score for ‘Ex’ over the last 30 days: 95 on 5 Oct.');
     expect(one).not.toContain('upper Sa');
-    expect(one).toContain('Paler notes were sung fewer than 5 times');
+    expect(one).toContain('Sung under 5 times');
     // One song over 90 days: the line from its first day to its last, by date.
     const song90 = progressHTML(log, at(10, 20), { song, pitchSong: 'a', pitchDays: 90 });
     expect(song90).toContain('up from 60 to 80.');
@@ -296,6 +301,9 @@ describe('the Progress view', () => {
     expect(html).toContain('Your songs, exercises, rewaz routines, recordings and settings stay.');
     for (const a of ['export', 'wipe-yes', 'wipe-no']) expect(html).toContain('data-act="' + a + '"');
     expect(html).not.toContain('data-act="wipe"');
+    // Delete it all waits 20 seconds, counting down.
+    expect(html).toContain('data-act="wipe-yes" disabled>Delete it all (20)</button>');
+    expect(progressHTML([e('a', at(10))], at(10, 20), { song, wipe: true, wipeWait: 0 })).toContain('data-act="wipe-yes">Delete it all</button>');
   });
 
   it('keeps the order and the folds asked for', () => {

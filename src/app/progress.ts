@@ -17,12 +17,12 @@
  * button somewhere to delete all current data and start fresh"), asked in place.
  * The HTML builder is pure and tested in Node.
  */
-import { noteWords } from '../core/practice/insights';
 import { byDay, dailyScores, dayNumber, durationText, lastDays, lastDaysOf, meanScore, noteScores, periodSummary, songScores, songTotals, streaks, weakLine, type LogEntry, type NoteScore, type SongTotal } from '../core/practice/log';
 import { whenText } from '../core/song/library';
 import { foldSectionHTML, initSectionDrag, inOrder } from './fold';
 import { scoreLine } from './report';
-import { beatNoteHTML, esc, PAD_OCTAVES, type Script } from './view';
+import { noteBrief, noteHighlights, noteKeysHTML, noteKeysLegend, noteTableHTML } from './notekeys';
+import { esc, type Script } from './view';
 
 /** The sections, and their order until the user drags one. */
 export type PgSection = 'week' | 'pitch' | 'songs' | 'history';
@@ -73,15 +73,18 @@ export interface ProgressOptions {
    * time; absent: 30). */
   pitchSong?: string;
   pitchDays?: number;
-  /** Start afresh was pressed: ask to confirm. */
+  /** Start afresh was pressed: ask to confirm; Delete it all waits this many seconds more. */
   wipe?: boolean;
+  wipeWait?: number;
 }
+
+/** Start afresh's Delete it all can be pressed this long after it is asked (Rinat, 2026-10-20:
+ * "Have the delete all button greyed out until 20 seconds have passed"). */
+export const WIPE_WAIT = 20;
 
 /** The times the pitch charts can cover, in days (0: all time). */
 export const PITCH_DAYS: readonly number[] = [30, 90, 365, 0];
 const periodWords = (days: number) => (days === 365 ? 'the last year' : days ? 'the last ' + days + ' days' : 'all time');
-/** A note sung fewer times than this says little: drawn paler, and left out of the summary. */
-const FEW = 5;
 
 /** How one number compares with the one before: "▲ 12 min on the week before". */
 function change(now: number, before: number, text: (d: number) => string, upGood = true): string {
@@ -158,13 +161,10 @@ function pitchHTML(log: readonly LogEntry[], now: number, o: ProgressOptions): s
   const without = es.filter((e) => !e.notes).length;
   html += '<div class="pgcard"><h4 class="pgh">Note by note</h4>';
   if (ns.length) {
-    html += '<p class="pgsub">How each note of the scale went when you sang ' + of + ', over ' + when + ': its average score, and whether you usually sing it sharp (high) or flat (low), in cents (100 to a semitone).</p>' +
-      noteSummaryHTML(ns) + ladderHTML(ns, o.script ?? 'bn');
-    const foot = [
-      ns.some((s) => s.n < FEW) ? 'Paler notes were sung fewer than ' + FEW + ' times, so they say less.' : '',
-      without ? plural(without, 'session') + ' with a pitch score ' + (without === 1 ? 'is' : 'are') + ' not counted: the app has kept each note only since 20 Oct 2026.' : '',
-    ].filter(Boolean).join(' ');
-    if (foot) html += '<p class="pgsub">' + foot + '</p>';
+    html += '<p class="pgsub">Each note you sang ' + (song ? 'in ' : 'across ') + of + ' over ' + when + ', on a harmonium’s keys with Sa as the first white key: komal and tivra notes are the black keys. A key’s colour and number are its average score; ▲ and ▼ say you usually sing it sharp (high) or flat (low).</p>' +
+      noteSummaryHTML(ns) + '<div class="pgkeys">' + noteKeysHTML(ns, o.script ?? 'bn', true) + '<p class="nkinfo" aria-live="polite">Tap a key for its numbers.</p>' + noteKeysLegend(ns) + '</div>' +
+      '<details class="pgnums"><summary>The numbers</summary>' + noteTableHTML(ns, o.script ?? 'bn') + '</details>';
+    if (without) html += '<p class="pgsub">' + plural(without, 'session') + ' with a pitch score ' + (without === 1 ? 'is' : 'are') + ' not counted: the app has kept each note only since 20 Oct 2026.</p>';
   } else {
     html += '<p class="pgsub">' + (es.length ? 'These sessions are from before the app kept each note (it has since 20 Oct 2026): sing with the pitch check to see your notes here.' : 'No session with the pitch check for ' + of + ' over ' + when + '.') + '</p>';
   }
@@ -173,35 +173,10 @@ function pitchHTML(log: readonly LogEntry[], now: number, o: ProgressOptions): s
 
 /** The notes in a sentence: the best, and those well below them. */
 export function noteSummaryHTML(ns: readonly NoteScore[]): string {
-  const sure = ns.filter((s) => s.n >= FEW).sort((a, b) => b.score - a.score || b.n - a.n);
-  if (sure.length < 3) return '';
-  const top = sure[0]!.score;
-  const best = sure.filter((s) => s.score >= top - 5).slice(0, 3);
-  const weak = [...sure].reverse().filter((s) => s.score <= top - 10 && !best.includes(s)).slice(0, 3);
-  const name = (s: NoteScore) => noteWords(s.semi, s.oct) + ' (' + s.score + (Math.abs(s.cents) >= 15 ? ', usually ' + (s.cents < 0 ? 'flat' : 'sharp') : '') + ')';
-  return '<p class="pgnsum"><b>Best:</b> ' + esc(listText(best.map(name))) + '. ' +
-    (weak.length ? '<b>Needs the most work:</b> ' + esc(listText(weak.map(name))) + '.' : 'No note is far behind the rest.') + '</p>';
-}
-
-/** Each note of the scale as a row, the highest at the top, in its octave: its score as a bar
- * coloured as the Practice view's (in tune, close, off) and the number; sharp or flat. */
-function ladderHTML(ns: readonly NoteScore[], script: Script): string {
-  let html = '<table class="pgnt"><thead><tr><th scope="col">Note</th><th scope="col">Score</th><th scope="col">Usually</th></tr></thead><tbody>';
-  let oct: number | null = null;
-  for (const s of [...ns].reverse()) {
-    if (s.oct !== oct) {
-      oct = s.oct;
-      html += '<tr class="pgnoct"><th colspan="3" scope="rowgroup">' + esc(PAD_OCTAVES[oct] ?? '') + '</th></tr>';
-    }
-    const words = noteWords(s.semi, s.oct);
-    const c = Math.abs(s.cents);
-    const lean = c <= 5 ? 'on the note' : c + ' ' + (s.cents < 0 ? 'flat' : 'sharp');
-    html += '<tr class="pgnrow' + (s.n < FEW ? ' few' : '') + '" title="' + esc(cap(words) + ': sung ' + plural(s.n, 'time') + ', average score ' + s.score + ', usually ' + (c <= 5 ? 'on the note' : c + ' cents ' + (s.cents < 0 ? 'flat' : 'sharp'))) + '">' +
-      '<th scope="row"><span class="pgnn">' + beatNoteHTML({ units: [{ k: 'note', semi: s.semi, oct: s.oct }] }, script) + '</span><span class="pgnw">' + esc(words) + '</span></th>' +
-      '<td><span class="pgnsc"><span class="pgnbar"><span class="' + scoreClass(s.score) + '" style="width:' + s.score + '%"></span></span><b>' + s.score + '</b></span></td>' +
-      '<td class="pgnc' + (c >= 15 ? ' far' : '') + '">' + lean + '</td></tr>';
-  }
-  return html + '</tbody></table>';
+  const h = noteHighlights(ns);
+  if (!h) return '';
+  return '<p class="pgnsum"><b>Best:</b> ' + esc(listText(h.best.map(noteBrief))) + '. ' +
+    (h.weak.length ? '<b>Needs the most work:</b> ' + esc(listText(h.weak.map(noteBrief))) + '.' : 'No note is far behind the rest.') + '</p>';
 }
 
 /** A song's last scores as a small line, from the lowest to the highest. */
@@ -232,7 +207,9 @@ function songsHTML(log: readonly LogEntry[], now: number, o: ProgressOptions): s
       ? '<button type="button" class="pgtrend" data-pitch="' + esc(t.song) + '" title="See this one’s pitch over time and note by note">' + sparkHTML(songScores(log, t.song)) + scoreHTML(t.lastScore) + (t.bestScore != null && t.bestScore > t.lastScore ? '<span class="pgbest">best ' + t.bestScore + '</span>' : '') + '</button>'
       : '<span class="pgtrend pgnone">no pitch score yet</span>';
     return '<li class="lrow"><div class="lmain pgmain">' + (s ? '<button type="button" class="lopen" data-open="' + esc(t.song) + '">' + main + '</button>' : '<span class="lopen">' + main + '</span>') + trend + '</div>' +
-      '<div class="lacts' + (s ? '' : ' pggonebox') + '">' + (s ? '<button type="button" class="lact pgact" data-open="' + esc(t.song) + '">' + PLAY_ICON + '<span>Practise</span></button>' : '<span class="lact pgact pggone">Deleted</span>') + '</div></li>';
+      '<div class="lacts">' + (s ? '<button type="button" class="lact pgact" data-open="' + esc(t.song) + '">' + PLAY_ICON + '<span>Practise</span></button>' : '') +
+      '<button type="button" class="lact pgact sm" data-sreport="' + esc(t.song) + '" title="A page on all your practice of this one: how it has gone, line by line and note by note">' + REPORT_ICON + '<span>Report</span></button>' +
+      '<button type="button" class="lact pgact sm" data-sai="' + esc(t.song) + '" title="Every session of this one in a file, for an AI such as Claude or ChatGPT to analyse">' + AI_ICON + '<span>For AI</span></button></div></li>';
   }).join('') + '</ul>';
 }
 
@@ -266,12 +243,16 @@ function dataHTML(log: readonly LogEntry[], now: number, o: ProgressOptions): st
   if (o.wipe) {
     return '<div class="pgdata pgwipe" role="group" aria-labelledby="pgWipeQ"><div class="pgdatat"><p class="pgwq" id="pgWipeQ">Delete all your practice history?</p>' +
       '<p class="pgsub">' + (log.length === 1 ? 'Your one session, on ' + since + ', goes' : 'All ' + log.length + ' sessions since ' + since + ' go') + ' (times, pitch scores, reports and files for AI), and Progress starts again from your next practice. Your songs, exercises, rewaz routines, recordings and settings stay. This cannot be undone, so download it first if you might want it.</p></div>' +
-      '<div class="pgdatab"><button type="button" class="btn" data-act="export">Download it first</button><button type="button" class="btn pgdel" data-act="wipe-yes">Delete it all</button><button type="button" class="btn" data-act="wipe-no">Keep it</button></div></div>';
+      '<div class="pgdatab"><button type="button" class="btn" data-act="export">Download it first</button>' + wipeButtonHTML(o.wipeWait ?? WIPE_WAIT) + '<button type="button" class="btn" data-act="wipe-no">Keep it</button></div></div>';
   }
   return '<div class="pgdata"><div class="pgdatat"><p class="pgsub"><b>Your practice data:</b> ' + plural(log.length, 'session') + ' since ' + since + ', kept only in this browser.</p></div>' +
     '<div class="pgdatab"><button type="button" class="btn" data-act="export" title="Every session, with all its detail, in one file: to keep, or to give to an AI such as Claude or ChatGPT">Download all practice data</button>' +
-    '<button type="button" class="btn danger" data-act="wipe">Start afresh…</button></div></div>';
+    '<button type="button" class="btn danger" data-act="wipe">Start afresh (delete all practice data)…</button></div></div>';
 }
+
+/** Delete it all: greyed out, counting down, until `wait` seconds have passed. */
+export const wipeButtonHTML = (wait: number): string =>
+  '<button type="button" class="btn pgdel" data-act="wipe-yes"' + (wait > 0 ? ' disabled' : '') + '>' + (wait > 0 ? 'Delete it all (' + wait + ')' : 'Delete it all') + '</button>';
 
 /** The whole view. Days are the user's local calendar days. */
 export function progressHTML(log: readonly LogEntry[], now: number, o: ProgressOptions): string {
@@ -296,6 +277,9 @@ export interface ProgressHost {
   exportLog(): void;
   /** Delete the practice log and every session's detail, reporting in the view. */
   wipe(): Promise<void>;
+  /** A song's report, opened in a new tab; its sessions as a file for AI, saved. */
+  songReport(id: string): void;
+  songForAI(id: string): void;
   script(): Script;
   /** A session's report, opened in a new tab; its file for AI, saved. By its log entry's `at`. */
   report(at: number): void;
@@ -318,11 +302,34 @@ export function initProgress(host: ProgressHost): { render(): void } {
   let pitchSong = '';
   let pitchDays = 30;
   let wipe = false;
+  // Delete it all waits WIPE_WAIT seconds from when Start afresh is pressed, counting down.
+  let wipeFrom = 0;
+  let wipeTick = 0;
+  const wipeWait = () => Math.max(0, Math.ceil(WIPE_WAIT - (Date.now() - wipeFrom) / 1000));
+  function askWipe(on: boolean): void {
+    wipe = on;
+    clearInterval(wipeTick);
+    wipeTick = 0;
+    if (!on) return;
+    wipeFrom = Date.now();
+    wipeTick = window.setInterval(() => {
+      const b = body.querySelector<HTMLButtonElement>('button[data-act="wipe-yes"]');
+      const n = wipeWait();
+      if (b) {
+        b.disabled = n > 0;
+        b.textContent = n > 0 ? 'Delete it all (' + n + ')' : 'Delete it all';
+      }
+      if (!n || !b) {
+        clearInterval(wipeTick);
+        wipeTick = 0;
+      }
+    }, 250);
+  }
   function render(): void {
     if (view.hidden) return;
     const log = host.log();
-    if (!log.length) wipe = false;
-    body.innerHTML = progressHTML(log, Date.now(), { song: host.song, order: host.order(), folded: host.folded(), script: host.script(), pitchSong, pitchDays, wipe });
+    if (!log.length && wipe) askWipe(false);
+    body.innerHTML = progressHTML(log, Date.now(), { song: host.song, order: host.order(), folded: host.folded(), script: host.script(), pitchSong, pitchDays, wipe, wipeWait: wipeWait() });
   }
   const focus = (sel: string) => body.querySelector<HTMLElement>(sel)?.focus();
   body.addEventListener('change', (ev) => {
@@ -335,7 +342,7 @@ export function initProgress(host: ProgressHost): { render(): void } {
   });
   body.addEventListener('keydown', (ev) => {
     if (ev.key === 'Escape' && wipe) {
-      wipe = false;
+      askWipe(false);
       render();
       focus('button[data-act="wipe"]');
     }
@@ -351,14 +358,23 @@ export function initProgress(host: ProgressHost): { render(): void } {
     } else if (b.dataset.act === 'export') host.exportLog();
     else if (b.dataset.act === 'wipe' || b.dataset.act === 'wipe-no') {
       // Asked in place; Keep it (or Escape) puts the buttons back, with the keyboard on Start afresh.
-      wipe = b.dataset.act === 'wipe';
+      askWipe(b.dataset.act === 'wipe');
       render();
       focus(wipe ? 'button[data-act="wipe-no"]' : 'button[data-act="wipe"]');
     } else if (b.dataset.act === 'wipe-yes') {
-      wipe = false;
+      if (!wipe || wipeWait() > 0) return;
+      askWipe(false);
       pitchSong = '';
       void host.wipe().then(render);
-    } else if (b.dataset.pitch) {
+    } else if (b.dataset.k && b.classList.contains('nk')) {
+      // A key of Note by note: its numbers under the keys.
+      for (const k of body.querySelectorAll('.nk[aria-pressed="true"]')) k.setAttribute('aria-pressed', 'false');
+      b.setAttribute('aria-pressed', 'true');
+      const info = body.querySelector('.nkinfo');
+      if (info) info.textContent = b.getAttribute('aria-label') ?? '';
+    } else if (b.dataset.sreport) host.songReport(b.dataset.sreport);
+    else if (b.dataset.sai) host.songForAI(b.dataset.sai);
+    else if (b.dataset.pitch) {
       // A song's scores: its pitch over time and note by note, in the Pitch section.
       pitchSong = b.dataset.pitch;
       if (host.folded().pitch) host.setFolded('pitch', false);

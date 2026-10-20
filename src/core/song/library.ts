@@ -148,3 +148,53 @@ export function whenText(at: number, now: number): string {
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   return d1.getDate() + ' ' + MONTHS[d1.getMonth()] + (d1.getFullYear() === d0.getFullYear() ? '' : ' ' + d1.getFullYear());
 }
+
+// ── Titles of their own ──────────────────────────────────────────────────────
+
+/** A title as compared for sameness: spaces squeezed, case and Unicode spelling ignored. */
+export const titleKey = (t: string): string => t.normalize('NFC').trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+
+function freeTitle(title: string, keys: Set<string>): string {
+  if (!keys.has(titleKey(title))) return title;
+  const base = title.trim().replace(/\s+/g, ' ').replace(/\s*\(\d+\)$/, '');
+  for (let n = 2; ; n++) {
+    const t = base + ' (' + n + ')';
+    if (!keys.has(titleKey(t))) return t;
+  }
+}
+
+/**
+ * `title` as it is, or, when another song or exercise has it already, with " (2)", " (3)" …
+ * after it, so that no two share a title in the library, the pickers and Progress (Rinat,
+ * 2026-10-20: "Currently multiple songs with the same title is accepted ... won't those be
+ * confusing? Is it good to have a check and not have the exact same title on multiple songs?").
+ */
+export const uniqueTitle = (title: string, taken: Iterable<string>): string => freeTitle(title, new Set(Array.from(taken, titleKey)));
+
+/** When a song was made: from its id (newId's time), else when it last changed. */
+function madeAt(s: { id: string; updatedAt?: number }): number {
+  const m = /^song-([0-9a-z]+)-/.exec(s.id);
+  const t = m ? parseInt(m[1]!, 36) : NaN;
+  return Number.isFinite(t) ? t : (s.updatedAt ?? 0);
+}
+
+/** Songs that share a title, with each other or with one of `fixed` (the built-in exercises'):
+ * the first made keeps it, the others get one of their own as uniqueTitle gives. New titles by
+ * song id. */
+export function titleFixes(songs: readonly { id: string; title: string; updatedAt?: number }[], fixed: readonly string[]): Map<string, string> {
+  const keys = new Set(fixed.map(titleKey));
+  const order = [...songs].sort((a, b) => madeAt(a) - madeAt(b) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  const clash = order.filter((s) => {
+    const k = titleKey(s.title);
+    if (keys.has(k)) return true;
+    keys.add(k);
+    return false;
+  });
+  const out = new Map<string, string>();
+  for (const s of clash) {
+    const t = freeTitle(s.title, keys);
+    keys.add(titleKey(t));
+    out.set(s.id, t);
+  }
+  return out;
+}

@@ -42,6 +42,7 @@ import { songSpan } from '../core/pitch/voice';
 import { itemLines, type RoutineItem } from '../core/practice/routine';
 import { clockText, MIN_TAKE_SECS, newTakeId, textSig, type Take } from '../core/practice/take';
 import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefix, type ImportedSong } from '../core/song/file';
+import { titleFixes, uniqueTitle } from '../core/song/library';
 import { cleanDismissed, cleanNotes, newId, normalize, parseTags, type Song } from '../core/song/model';
 import { SONG_SOUND_KEYS, soundOf, type SongSound } from '../core/song/sound';
 import { isTaalId, taalInfo, TAALS, type TaalInfo } from '../core/taal/taals';
@@ -54,6 +55,7 @@ import { initLines, type LinesUI } from './lines';
 import { initPrint } from './print';
 import { initProgress, PG_ORDER } from './progress';
 import { reportHTML } from './report';
+import { songReportHTML, type SongReportInput } from './songreport';
 import { initRewaz, type ItemSong, type Rewaz } from './rewaz';
 import { takeBuffer, takeFileName, takesHTML, TakeStore } from './takes';
 import { initVoice, type SaChoice, type VoiceUI } from './voice';
@@ -785,6 +787,69 @@ async function wipePractice(): Promise<void> {
   $('#pAfter').hidden = true;
   songsView.render();
   say('Your practice history is deleted: Progress starts afresh with your next practice.');
+}
+
+/** All a song's report and its file for AI need: its sessions, with the detail kept of the
+ * latest `most`. */
+async function songInput(id: string, most = 60): Promise<SongReportInput | null> {
+  const entries = logStore.load().filter((e) => e.song === id);
+  if (!entries.length) return null;
+  const details = new Map<number, SessionDetail>();
+  try {
+    const db = await sessionsDB();
+    if (db) {
+      const kept = new Set(await db.keys());
+      for (const e of entries.slice(-most)) {
+        if (!kept.has(e.at)) continue;
+        const d = await db.get(e.at);
+        if (d) details.set(e.at, d);
+      }
+    }
+  } catch {
+    // The report and the file say what the log has.
+  }
+  const s = id === current.id ? current : songs.get(id) || EXERCISES.find((x) => x.id === id);
+  return {
+    song: id, title: s?.title ?? entries[entries.length - 1]!.title, exercise: !!(s && (s.example || s.exercise)),
+    songNow: s ? { taal: s.taal, tempo: s.tempo, text: s.text } : null, entries, details, now: Date.now(), script: prefs.script,
+  };
+}
+
+/** A song's report, in a new tab (opened inside the tap, so it is not blocked). */
+async function openSongReport(id: string): Promise<void> {
+  const say = (t: string) => setFileStatus(t, '#pgStatus');
+  let w: Window | null = null;
+  try {
+    w = window.open('', '_blank');
+  } catch {
+    w = null;
+  }
+  say('Making the report…');
+  const o = await songInput(id);
+  if (!o) {
+    w?.close();
+    say('That song is no longer in the practice log.');
+    return;
+  }
+  const html = songReportHTML(o);
+  const name = o.title.replace(/[\\/:*?"<>|\u0000-\u001f]+/g, '-').trim().slice(0, 60) + ' song report.html';
+  if (w) {
+    w.location.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+    say('The report is open in a new tab.');
+  } else void offerFile(name, new Blob([html], { type: 'text/html' }), say);
+}
+
+/** A song's sessions as a file for AI, with the detail of all of them kept. */
+async function saveSongForAI(id: string): Promise<void> {
+  const say = (t: string) => setFileStatus(t, '#pgStatus');
+  const o = await songInput(id, Infinity);
+  if (!o) {
+    say('That song is no longer in the practice log.');
+    return;
+  }
+  const d = today();
+  const name = o.title.replace(/[\\/:*?"<>|\u0000-\u001f]+/g, '-').replace(/\s+/g, ' ').trim().slice(0, 60) + ' all sessions ' + d + ' for AI.json';
+  void offerFile(name, new Blob(practiceFileParts(o.entries, Array.from(o.details.values()), d, Date.now(), o.title), { type: 'application/json' }), say);
 }
 
 /** A session's file for AI, saved. */
@@ -1795,14 +1860,36 @@ function removeSong(id: string): void {
     setStatus(r === 'ok' ? 'Deleted' : saveError(r));
   }
 }
+/** Every title in use, the built-in exercises' too, but the song `except`'s. */
+const titlesBut = (except = ''): string[] => [...Array.from(songs.values()).filter((s) => s.id !== except).map((s) => s.title), ...EXERCISES.map((x) => x.title)];
+
 function createSong(base: Partial<Song>): Song {
-  const s = normalize({ ...base, example: false, id: newId(), updatedAt: Date.now() });
+  // A title of its own: "Untitled song (2)", "… (copy) (2)".
+  const s = normalize({ ...base, title: uniqueTitle(base.title || 'Untitled song', titlesBut()), example: false, id: newId(), updatedAt: Date.now() });
   songs.set(s.id, s);
   writeSongs([s]);
   userPicked = true;
   renderLibrary();
   loadSong(s);
   return s;
+}
+
+/** Songs already sharing a title (from before titles were kept apart, 2026-10-20): the first
+ * made keeps it, the others get " (2)" and so on, saved and said once. */
+function fixSameTitles(): void {
+  const fixes = titleFixes(Array.from(songs.values()), EXERCISES.map((x) => x.title));
+  if (!fixes.size) return;
+  const list: Song[] = [];
+  for (const [id, title] of fixes) {
+    const s = songs.get(id);
+    if (!s) continue;
+    const n: Song = { ...s, title, updatedAt: Date.now() };
+    songs.set(id, n);
+    list.push(n);
+    if (current?.id === id) current.title = title;
+  }
+  writeSongs(list);
+  setLibStatus('Some songs shared a title, so each now has its own: ' + list.map((s) => '‘' + s.title + '’').join(', ') + '.');
 }
 
 /** Star or unstar one of the user's songs (the open one through its usual save). */
@@ -1850,6 +1937,7 @@ function newSong(kind: 'song' | 'exercise' = 'song'): void {
 
 function initStore(): void {
   songs = store.load();
+  fixSameTitles();
   if (!userPicked && songs.has(wanted)) loadSong(songs.get(wanted)!);
   renderLibrary();
   if (store.mode === 'memory') setStatus('Songs you add will last until you close this page.');
@@ -2090,8 +2178,12 @@ async function importFiles(files: File[]): Promise<void> {
     return;
   }
   const list = found.slice(0, IMPORT_LIMITS.songs);
+  // Imports never overwrite, and get titles of their own: a backup imported twice gives "… (2)".
+  const taken = titlesBut();
   const made = list.map((s) => {
     const n = normalize({ ...s, example: false, id: newId(), updatedAt: Date.now() });
+    n.title = uniqueTitle(n.title, taken);
+    taken.push(n.title);
     return n;
   });
   for (const n of made) songs.set(n.id, n);
@@ -2404,6 +2496,8 @@ export function init(): void {
     },
     exportLog: () => void exportAll(),
     wipe: wipePractice,
+    songReport: (id) => void openSongReport(id),
+    songForAI: (id) => void saveSongForAI(id),
     script: () => prefs.script,
     report: (at) => void openReport(at, (t) => setFileStatus(t, '#pgStatus')),
     forAI: (at) => void saveForAI(at, (t) => setFileStatus(t, '#pgStatus')),
@@ -2710,12 +2804,32 @@ export function init(): void {
     deleteSong(current.id);
   });
 
-  input('#titleIn').addEventListener('input', (e) => {
-    const v = (e.target as HTMLInputElement).value;
-    changed('title', v.trim() ? v : 'Untitled ' + what());
+  const titleShown = () => {
     renderEditSummary();
     $('#songTitle').innerHTML = V.esc(current.title) + (what() === 'exercise' ? '<span class="tag">Exercise</span>' : '');
     if (!current.example) renderLibrary();
+  };
+  const titleNote = (t: string) => {
+    $('#titleDup').textContent = t;
+    $('#titleDup').hidden = !t;
+  };
+  input('#titleIn').addEventListener('input', (e) => {
+    const v = (e.target as HTMLInputElement).value;
+    changed('title', v.trim() ? v : 'Untitled ' + what());
+    titleShown();
+    // Another song with this title: said while typing, made its own on leaving the box.
+    const t = current.example ? current.title : uniqueTitle(current.title, titlesBut(current.id));
+    titleNote(t === current.title ? '' : 'You already have one called this. Give it another name, or it becomes ‘' + t + '’ when you leave this box.');
+  });
+  input('#titleIn').addEventListener('change', () => {
+    if (current.example) return;
+    const was = current.title;
+    const t = uniqueTitle(was, titlesBut(current.id));
+    if (t === was) return titleNote('');
+    changed('title', t);
+    input('#titleIn').value = t;
+    titleShown();
+    titleNote('Renamed ‘' + t + '’: another one is called ‘' + was.trim() + '’.');
   });
   $('#notesIn').addEventListener('input', (e) => {
     changed('notes', cleanNotes((e.target as HTMLTextAreaElement).value));

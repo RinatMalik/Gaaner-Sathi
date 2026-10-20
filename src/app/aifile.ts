@@ -242,7 +242,7 @@ export const PRACTICE_FILE_VERSION = 2;
 /** What an AI reading the whole practice history needs to know first. */
 export const PRACTICE_BRIEF = {
   read_this_first:
-    'This file is a singer\'s whole practice history from Gaaner Sathi (গানের সাথী, "singing companion"), a web app for practising ' +
+    'This file is a singer\'s practice history (all of it, or one song\'s: file.kind says which) from Gaaner Sathi (গানের সাথী, "singing companion"), a web app for practising ' +
     'Bengali songs from swaralipi, the Bengali akarmatrik notation, exported from the browser that kept it. Read this brief first: it ' +
     'explains the app, the notation, how the app judged the singing, and every part of the file. Then help the singer see how they are ' +
     'getting on: which songs and which notes are improving, what keeps going wrong, how their practice is spread, and what to practise ' +
@@ -274,7 +274,7 @@ const linesText = (e: LogEntry) => (e.from === e.to ? String(e.from + 1) : e.fro
 
 /** The text of the whole practice history, in pieces to join (a long history is tens of
  * megabytes, so it is never one string or one pass of a regular expression). */
-export function practiceFileParts(log: readonly LogEntry[], sessions: readonly SessionDetail[], exported: string, made: number): string[] {
+export function practiceFileParts(log: readonly LogEntry[], sessions: readonly SessionDetail[], exported: string, made: number, oneSong?: string): string[] {
   const byAt = new Map(sessions.map((d) => [d.at, d]));
   // Each song as played, once for each version the sessions used.
   const versions = new Map<string, Record<string, unknown>>();
@@ -307,7 +307,7 @@ export function practiceFileParts(log: readonly LogEntry[], sessions: readonly S
     version: PRACTICE_FILE_VERSION,
     exported,
     about_this_file: PRACTICE_BRIEF,
-    file: { kind: 'Gaaner Sathi practice history, to keep and for AI analysis', made: iso(made), sessions: log.length, sessions_with_detail: versionOf.size },
+    file: { kind: oneSong ? 'Gaaner Sathi practice history of one song, “' + oneSong + '”, for AI analysis' : 'Gaaner Sathi practice history, to keep and for AI analysis', made: iso(made), sessions: log.length, sessions_with_detail: versionOf.size },
     songs_as_played: Array.from(versions.values()),
   });
   const parts = [head.slice(0, head.lastIndexOf('}')).trimEnd() + ',\n  "sessions": ['];

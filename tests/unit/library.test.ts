@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { countText, filterChipsHTML, songRowHTML, songsListHTML, type ListOptions } from '../../src/app/songs';
 import { EXERCISES } from '../../src/core/exercises';
 import { songFileText, songsFromFile } from '../../src/core/song/file';
-import { entryFor, lyricForDisplay, lyricRows, matchesFilter, matchesQuery, sortEntries, tagCounts, whenText, type LibrarySong } from '../../src/core/song/library';
+import { entryFor, lyricForDisplay, lyricRows, matchesFilter, matchesQuery, sortEntries, tagCounts, titleFixes, titleKey, uniqueTitle, whenText, type LibrarySong } from '../../src/core/song/library';
 import { cleanNotes, cleanTags, foldText, normalize, NOTES_CHARS, parseTags, TAG_LIMITS } from '../../src/core/song/model';
 
 const SONAR = '# স্থায়ী\nআ মার সো নার | বাং লা -\n> আ মার সো নার | বাং লা ০\nসা রা গা মা\n> আ মি তো মায়\n';
@@ -292,5 +292,33 @@ describe('your own exercises', () => {
     const r = songsListHTML(own.slice(1), EXERCISES, opts());
     expect(r.html).toContain('No songs of your own yet');
     expect(r.html).toContain('My songs <span class="n">0</span>');
+  });
+});
+
+describe('titles of their own', () => {
+  it('compares titles without case, extra spaces or Unicode spelling', () => {
+    expect(titleKey('  Amar   Sonar Bangla ')).toBe('amar sonar bangla');
+    expect(titleKey('আমার সোনার বাংলা')).toBe(titleKey('আমার  সোনার বাংলা'));
+  });
+
+  it('keeps a title no one has, and numbers one already taken', () => {
+    expect(uniqueTitle('Purano', ['Amar'])).toBe('Purano');
+    expect(uniqueTitle('purano ', ['Purano'])).toBe('purano (2)');
+    expect(uniqueTitle('Purano', ['Purano', 'Purano (2)'])).toBe('Purano (3)');
+    expect(uniqueTitle('Purano (2)', ['Purano', 'Purano (2)'])).toBe('Purano (3)');
+    expect(uniqueTitle('Untitled song', ['Untitled song'])).toBe('Untitled song (2)');
+  });
+
+  it('gives songs already sharing a title their own, the first made keeping it', () => {
+    const at = (t: number) => 'song-' + t.toString(36) + '-abcde';
+    const fixes = titleFixes([
+      { id: at(3000), title: 'Purano', updatedAt: 1 },
+      { id: at(1000), title: 'Purano', updatedAt: 9 },
+      { id: at(2000), title: 'purano', updatedAt: 5 },
+      { id: at(4000), title: 'Long notes', updatedAt: 1 },
+      { id: at(5000), title: 'Amar', updatedAt: 1 },
+    ], ['Long notes']);
+    expect(Object.fromEntries(fixes)).toEqual({ [at(2000)]: 'purano (2)', [at(3000)]: 'Purano (3)', [at(4000)]: 'Long notes (2)' });
+    expect(titleFixes([{ id: 'a', title: 'A' }, { id: 'b', title: 'B' }], []).size).toBe(0);
   });
 });

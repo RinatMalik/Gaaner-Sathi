@@ -13,6 +13,7 @@ import { lengthText } from '../core/practice/log';
 import { centsFromSa, foldOctave } from '../core/pitch/track';
 import { taalInfo } from '../core/taal/taals';
 import type { SessionFileInput } from './aifile';
+import { noteKeysHTML, noteKeysLegend, NOTEKEYS_CSS } from './notekeys';
 import { beatNoteHTML, esc, lyricHTML, type Script } from './view';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -36,8 +37,8 @@ const signed = (c: number) => (c > 0 ? '+' : c < 0 ? '−' : '') + Math.abs(Math
 const n1 = (v: number) => Math.round(v * 10) / 10;
 
 /** The page's styles: its own colour tokens (day and night, and day when printed), the app's
- * fonts, and the note marks of the app's sheets. */
-const CSS = `
+ * fonts, and the note marks of the app's sheets. The song report uses them too. */
+export const REPORT_CSS = `
 :root{color-scheme:light;--bg:#eceeea;--card:#fbfbf8;--ink:#1b1c24;--ink2:#5c5f6c;--line:#d9dcdf;--grid:#e3e6e9;--wood:#3e1f15;--on-wood:#f6ead8;--on-wood2:#d6c3a8;--brass:#c4952b;
 --good:#1f7a3a;--ok:#d9a21f;--off:#b4261e;--none:#a3a5ae;--lyric:#b3261e;
 --f-note:"Tiro Bangla","Noto Serif Bengali","Kohinoor Bangla",Georgia,serif;--f-ui:"Hind Siliguri","Noto Sans Bengali",system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -131,7 +132,23 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:now
 footer{color:var(--ink2);font-size:13px;margin-top:18px;display:grid;gap:6px}
 footer p{margin:0}
 @media (max-width:560px){.top{grid-template-columns:minmax(0,1fr)}.hero-n{font-size:52px}.strip{height:90px}}
-`;
+` + NOTEKEYS_CSS;
+
+/** The page's head: its title, the app's fonts, the styles (and any of its own). */
+export const reportHead = (title: string, css = ''): string =>
+  '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+  '<title>' + esc(title) + '</title>' +
+  '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600&family=Tiro+Bangla&display=swap">' +
+  '<style>' + REPORT_CSS + css + '</style></head><body>';
+
+/** The page's Print and Save buttons at work; Save keeps the page as `fileName`. */
+export const reportScript = (fileName: string): string =>
+  '<script>(function(){var n=' + JSON.stringify(fileName).replace(/</g, '\\u003c') + ';' +
+  'document.getElementById("print").onclick=function(){window.print()};' +
+  'document.getElementById("save").onclick=function(){var b=new Blob(["<!doctype html>\\n"+document.documentElement.outerHTML],{type:"text/html"});var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},4000)};' +
+  '})();</script></body></html>';
+
+export { dayText, msText, grade, shortDay };
 
 /** A whole bar of segments with a 2px gap, each its share; the legend carries the values. */
 function stackHTML(parts: { cls: string; label: string; share: number }[]): string {
@@ -284,10 +301,7 @@ export function reportHTML(o: SessionFileInput & { script: Script }): string {
   if (e.routine) when.push('rewaz: ' + e.routine);
   const fileName = (e.title || 'session').replace(/[\\/:*?"<>|\u0000-\u001f]+/g, '-').trim().slice(0, 60) + ' report ' + new Date(e.at).toISOString().slice(0, 10) + '.html';
 
-  let html = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
-    '<title>' + esc(e.title + ' · practice report · ' + shortDay(e.at)) + '</title>' +
-    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600&family=Tiro+Bangla&display=swap">' +
-    '<style>' + CSS + '</style></head><body>';
+  let html = reportHead(e.title + ' · practice report · ' + shortDay(e.at));
   html += '<header class="hero"><div class="wrap"><div class="brand">Gaaner Sathi · <b>গানের সাথী</b> · practice report</div><h1>' + esc(e.title || song?.title || 'Practice') + '</h1>' +
     '<div class="when">' + when.map(esc).join(' · ') + '</div>' +
     '<div class="acts"><button type="button" id="print">Print or save as PDF</button><button type="button" id="save">Save this report</button></div></div></header>';
@@ -345,7 +359,8 @@ export function reportHTML(o: SessionFileInput & { script: Script }): string {
       '<p class="sub">' + cents.length + ' notes; point at a column for how many.</p><ul class="legend"><li><span class="sw good"></span>In tune</li><li><span class="sw ok"></span>Close</li><li><span class="sw off"></span>Off</li></ul></section>';
     if (ins.swaras.length) {
       const most = Math.max(30, ...ins.swaras.map((x) => Math.abs(x.cents)));
-      html += '<section class="card"><h2>Note by note</h2><div class="scroll"><table><thead><tr><th>Note</th><th class="num">Times</th><th class="num">Score</th><th>Usually</th><th class="num">Cents</th></tr></thead><tbody>' +
+      html += '<section class="card"><h2>Note by note</h2><p class="sub">Each note you sang on a harmonium’s keys, Sa as the first white key (komal and tivra are the black keys), coloured by its score; ▲ and ▼ mark notes usually sharp or flat.</p>' +
+        noteKeysHTML(ins.swaras, script) + noteKeysLegend(ins.swaras) + '<div class="scroll" style="margin-top:12px"><table><thead><tr><th>Note</th><th class="num">Times</th><th class="num">Score</th><th>Usually</th><th class="num">Cents</th></tr></thead><tbody>' +
         ins.swaras.map((x) => {
           const w = (Math.min(Math.abs(x.cents), most) / most) * 50;
           return '<tr><td><span class="note">' + beatNoteHTML({ units: [{ k: 'note', semi: x.semi, oct: x.oct }] }, script) + '</span><span class="sub nw">' + esc(noteWords(x.semi, x.oct)) + '</span></td><td class="num">' + x.n + '</td>' +
@@ -403,9 +418,5 @@ export function reportHTML(o: SessionFileInput & { script: Script }): string {
   html += '<section class="card"><h2>Bear in mind</h2>' + list(ins.notes, 'note', 'i', 'Nothing to add.') +
     '<p class="sub" style="margin-top:10px">How it is worked out: while each note plays, the app compares your voice with it many times a second. Right on the note gets full marks; the further off, the fewer, and over half a semitone off gets none. Breaths, pauses and sliding into a note are left out, and so are notes you did not sing. The app never moves your singing in time to make it fit, so singing late lowers the score.</p></section>';
   html += '</main><footer><p>Made by Gaaner Sathi (গানের সাথী) in this browser on ' + esc(dayText(o.made)) + '. Nothing was uploaded.</p></footer></div>';
-  html += '<script>(function(){var n=' + JSON.stringify(fileName).replace(/</g, '\\u003c') + ';' +
-    'document.getElementById("print").onclick=function(){window.print()};' +
-    'document.getElementById("save").onclick=function(){var b=new Blob(["<!doctype html>\\n"+document.documentElement.outerHTML],{type:"text/html"});var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},4000)};' +
-    '})();</script></body></html>';
-  return html;
+  return html + reportScript(fileName);
 }

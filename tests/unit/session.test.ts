@@ -3,7 +3,9 @@
 import { describe, expect, it } from 'vitest';
 import { aiFile, aiFileName, aiFileText, AI_BRIEF, practiceFileParts, PRACTICE_BRIEF, type SessionFileInput } from '../../src/app/aifile';
 import { progressHTML } from '../../src/app/progress';
+import { noteKeysHTML, noteKeysLegend } from '../../src/app/notekeys';
 import { reportHTML } from '../../src/app/report';
+import { songFindings, songReportHTML, songSummary, type SongReportInput } from '../../src/app/songreport';
 import { songRowHTML } from '../../src/app/songs';
 import { parseSong } from '../../src/core/notation/parse';
 import { playSeconds, sectionTempoAt, songSections } from '../../src/core/notation/sections';
@@ -184,6 +186,7 @@ describe('all practice as one file', () => {
       entry({ at: T0 + 60_000, score: 90, routine: 'Morning' }),
     ];
     const f = JSON.parse(practiceFileParts(log, [d1, d2], '2026-10-20', T0 + 120_000).join(''));
+    expect(JSON.parse(practiceFileParts(log, [d1], '2026-10-20', T0, 'Amar').join('')).file.kind).toContain('one song, “Amar”');
     expect(Object.keys(f)).toEqual(['format', 'version', 'exported', 'about_this_file', 'file', 'songs_as_played', 'sessions']);
     expect(f).toMatchObject({ format: 'gaaner-sathi-log', version: 2, exported: '2026-10-20' });
     expect(f.about_this_file).toEqual(JSON.parse(JSON.stringify(PRACTICE_BRIEF)));
@@ -201,6 +204,76 @@ describe('all practice as one file', () => {
     expect(s1.notes_of_the_scale).toEqual(fileOfOne.notes_of_the_scale);
     expect(s2).toMatchObject({ rewaz_routine: 'Morning', notes_of_the_scale: null });
     expect(s2.detail.equipment).toEqual({ device_delay_s: 0.05, delay_measured: true, any_octave_counts: true, octave_sung_against_the_notes: 0 });
+  });
+});
+
+describe('note by note on the keys', () => {
+  it('draws the keys from the lowest note sung to the highest, komal and tivra black, each sung one coloured by its score', () => {
+    const html = noteKeysHTML([
+      { semi: 11, oct: -1, n: 6, score: 70, cents: 20 },
+      { semi: 3, oct: 0, n: 9, score: 50, cents: -18 },
+      { semi: 6, oct: 0, n: 2, score: 90, cents: 0 },
+      { semi: 0, oct: 1, n: 12, score: 88, cents: -4 },
+    ], 'lat', false);
+    // White keys lower Ni to upper Sa; the black ones between.
+    expect(Array.from(html.matchAll(/class="nk w[^"]*"/g)).length).toBe(9);
+    expect(Array.from(html.matchAll(/class="nk b[^"]*"/g)).length).toBe(5);
+    expect(html).toContain('<span role="img" class="nk b off" style="left:');
+    expect(html).toContain('aria-label="Komal Ga: sung 9 times, average score 50, usually 18 cents flat."');
+    expect(html).toContain('class="nk b good few"');
+    expect(html).toContain('class="nk w ok" data-k="-1"');
+    expect(html).toContain('70<i>▲</i>');
+    expect(html).toContain('class="nk w none"');
+    expect(html).toContain('grid-template-columns:1fr 7fr 1fr');
+    expect(noteKeysLegend([{ semi: 0, oct: 0, n: 2, score: 90, cents: 0 }])).toContain('Sung under 5 times');
+    expect(noteKeysHTML([], 'lat')).toBe('');
+  });
+});
+
+describe('a song’s report', () => {
+  const day = 86_400_000;
+  const notes: [number, number, number, number][] = [[0, 10, 92, 2], [5, 8, 94, 0], [7, 9, 90, 1], [12, 7, 60, -25]];
+  const input = (extra: Partial<SongReportInput> = {}): SongReportInput => {
+    const entries = [50, 55, 62, 70, 78, 84].map((s, i) => entry({ at: T0 - (10 - i) * day, score: s, lines: [[0, s - 10], [1, s + (i > 3 ? 10 : 0)]], notes: i > 2 ? notes : undefined }));
+    return { song: 's1', title: 'আমার সোনার বাংলা', exercise: false, songNow: { taal: 'keherwa', tempo: 60, text: TEXT }, entries, details: new Map([[T0 - 5 * day, { ...sing({ late: 0.2 }), at: T0 - 5 * day }]]), now: T0, script: 'bn', ...extra };
+  };
+
+  it('sums up the trend, each line and the timing', () => {
+    const o = input();
+    const s = songSummary(o);
+    expect(s.trend).toEqual({ from: 56, to: 77 });
+    expect(s.lines.get(0)!.map((x) => x.score)).toEqual([40, 45, 52, 60, 68, 74]);
+    expect(s.improved).toEqual({ line: 1, from: 53, to: 91 });
+    expect(s.lately).toBeGreaterThan(0.15);
+    const f = songFindings(o, s);
+    expect(f.good).toContain('Your score has risen from about 56 to about 77.');
+    expect(f.good).toContain('Line 2 has improved most: from 53 to 91.');
+    expect(f.good.join(' ')).toContain('Your surest notes: Ma (94)');
+    expect(f.work.join(' ')).toContain('Line 1 needs the most work');
+    expect(f.work.join(' ')).toContain('upper Sa (60, usually flat)');
+    expect(f.work.join(' ')).toMatch(/come in about (1[5-9]0|2[0-9]0) ms behind the music/);
+  });
+
+  it('is a whole page: where it stands, findings, over time, line by line, note by note, every session', () => {
+    const html = songReportHTML(input());
+    expect(html.startsWith('<!doctype html>')).toBe(true);
+    expect(html).toContain('<h1>আমার সোনার বাংলা</h1>');
+    expect(html).toContain('Getting better: from about 56 to about 77.');
+    for (const h of ['Going well', 'To work on', 'Over time', 'Line by line', 'Note by note', 'Every session', 'Bear in mind']) expect(html).toContain('<h2>' + h + '</h2>');
+    expect(html).toContain('<table class="heat">');
+    expect(html).toContain('<td class="c lately ok">');
+    expect(html).toContain('class="nk w ok" data-k="12"');
+    expect(html).toContain('Note by note counts 3 of the 6 sessions');
+    expect((html.match(/<tr><td class="nw">/g) || []).length).toBe(6);
+    expect(html).toContain('id="save"');
+  });
+
+  it('works for a song deleted since, never sung with the pitch check', () => {
+    const o = input({ songNow: null, entries: [entry({ score: undefined })], details: new Map() });
+    const html = songReportHTML(o);
+    expect(html).toContain('Not yet sung with the pitch check');
+    expect(html).toContain('deleted since');
+    expect(html).not.toContain('<h2>Line by line</h2>');
   });
 });
 
