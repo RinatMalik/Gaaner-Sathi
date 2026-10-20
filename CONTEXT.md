@@ -67,8 +67,10 @@ wins, except a later explicit decision by Rinat, which always wins.
   slides left out, unsung notes left out again, no glitch spikes, the scoring note, the pitch
   data download), twenty-five (PH2-25: a Report and a file For AI for each session, each
   session's detail kept, songs' lengths), twenty-six (PH2-26: Progress redone, its
-  sections folding and moving as the library's) and twenty-seven (PH2-27: pitch song by song
-  and note by note, all the practice data in one file, Start afresh) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
+  sections folding and moving as the library's), twenty-seven (PH2-27: pitch song by song
+  and note by note, all the practice data in one file, Start afresh) and twenty-eight (PH2-28:
+  the notes on a harmonium's keys, a report and an AI file per song, titles of their own, a
+  20-second wait before deleting) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
 - **Next single action:** Rinat enters a song in the beat boxes again (rounds sixteen and
   eighteen: Join, Split, Higher, Lower and New line; the lines centred; the dock of notes
@@ -77,10 +79,11 @@ wins, except a later explicit decision by Rinat, which always wins.
   Scarlett 2i2 (done: 100 ms, wired Rhode mic, 2026-10-20), sings with rounds twenty-three
   and twenty-four, opens a session's Report (round twenty-five) and gives its For AI file to an
   AI or puts it in `feedback/` for Claude to read; looks over the new Progress (rounds
-  twenty-six and twenty-seven: Pitch by song and note by note, Start afresh); tries round nine;
+  twenty-six to twenty-eight: Pitch by song, the notes on the keys, a song's Report, Start
+  afresh); tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `058def9` (CI run `39438372555`: core, reference and deploy jobs green; checked live).
+- **Last known-good commit:** `7c95269` (CI run `39446617784`: core, reference and deploy jobs green; checked live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -315,7 +318,7 @@ decision.
 ### Commands
 
 - `npm install` once.
-- `npm test`: every Vitest suite (416 tests, about 10 s). Read the "Test Files" line: a
+- `npm test`: every Vitest suite (423 tests, about 10 s). Read the "Test Files" line: a
   file that fails to load is not counted as a failed test.
 - `npm run typecheck`: the whole project, then `src/core` and `src/audio/dsp` with no DOM
   library (a DOM call there fails).
@@ -391,6 +394,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-02 | Claude | Review | Design, round two: Pause and a separate Stop; nothing that plays changes the Lines to practise (play from here, sheet line numbers, sections, rewaz, takes); "Check my pitch" listens only while playing; beat box rows with the number and buttons (play this line, play from here, ×) full height, vibhag starts coloured instead of X/0, a tap anywhere on a row selects it, hover | 5 unit tests and the boxes' HTML tests; Edge scenarios `round6` (42 checks) and `rewaz6` (5), with a WAV microphone (Work log 2026-10-12 16:43) | Waiting for Rinat's use and two answers |
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
+| PH2-28 | Claude | Review | The notes on the keys, a report per song, titles of their own: Note by note as a harmonium's keys from the lowest note sung to the highest (Sa as C, so komal and tivra are the black keys), each sung key coloured by its average score with the score on it and ▲ ▼ when usually sharp or flat, under 5 times hatched, the octaves named under them; in Progress a key tapped says its numbers, the numbers folded under the keys; the session report shows the keys above its table (src/app/notekeys.ts, its styles shared). Songs and exercises rows: Report (songreport.ts: the trend, tiles, going well and to work on, score by date, line by line session by session, the keys, timing, every session) and For AI (`practiceFileParts` for one song). Titles: `uniqueTitle` for new songs, copies and imports; a note while typing a title in use, numbered on leaving the box; `titleFixes` on opening for songs already sharing one. Start afresh "(delete all practice data)", Delete it all disabled for 20 s with a countdown | 7 new unit tests (the keys; titles: compared, numbered, fixed; the song report: sums, findings, the page, a deleted song) and 4 extended; headless Edge on `npm run dev` with 42 seeded sessions (komal Ga and Ni sung, a third song sharing a title): the shared title numbered on load and said; keys with komal Ga and Ni black; a key tapped; a song's report (7 sections, opened from its row); Delete it all disabled and counting, refusing a click, enabled at 20 s and deleting; a new song typed to a title in use, said, then numbered; 1280 px day and 360 px night (no sideways scrolling) (Work log 2026-10-20, round twenty-eight) | Waiting for Rinat's use |
 | PH2-27 | Claude | Review | Pitch song by song and note by note; the data in one file; Start afresh: Progress's Pitch section (was Pitch over time) for all songs and exercises or one (a picker, or a song's scores in its row), over the last 30 or 90 days, the last year or all time; each day's score placed by date, from the first day with a score to the last; Note by note: each note of the scale from the highest down, by octave, a bar of its average score and how sharp or flat it usually is, the best and weakest in a sentence, notes sung under 5 times paler. The log keeps each session's notes (`notes`; filled in from the kept detail for sessions logged earlier). At the foot of Progress: Download all practice data (every session with its detail, a brief for AI; version 2) and Start afresh (asked in place; the log and every session's detail deleted, songs and the rest kept); Download the log left History's heading | 6 new unit tests (log: the notes kept and checked, summed, each day for a song or all; storage: notes filled in, cleared; Progress: pitch by song and time, note by note, asking to start afresh; the file of all practice) and 3 extended; headless Edge on `npm run dev` with 42 seeded sessions over 34 days: two sessions' notes filled in from IndexedDB on load, the picker, a song's scores, the download (42 sessions, 2 with detail), Escape, Start afresh (log and sessions empty, songs kept, still empty after a reload); 1280 px day and 360 px night (Work log 2026-10-20, round twenty-seven) | Waiting for Rinat's use |
 | PH2-26 | Claude | Review | Progress redone: four sections that fold by their heading and move by a grip or the arrow keys, kept (`pgFold`, `pgOrder`): This week (days in a row and the best run, the last 7 days' time and pitch against the week before, all time; the days' bars), Pitch over time (each day's average score over 30 days), Songs and exercises (library rows, latest first, opening to practise; the scores' trend, latest and best; the weakest line; deleted songs said), History (days folding with their time, sessions and pitch; sessions as rows with Report and For AI at their end; Download the log in its heading). The library's section builder and drag code shared (fold.ts) | 3 new unit tests (sections, order and folds; the sums; prefs) and 2 rewritten; the library's tests unchanged but for its body's class; headless Edge on `npm run dev` with 40 seeded sessions over 12 days: 1280 px day and 360 px night; fold, drag, ↑, reload, Practise; the library's drag, ↑, fold and search unchanged (Work log 2026-10-20, round twenty-six) | Waiting for Rinat's use |
 | PH2-25 | Claude | Review | Session reports and songs' lengths: **Report** (a page in a new tab: the score and a sentence, tiles, what went well and what to work on, timing, how close to the notes, note by note, each line drawn, rounds, the song over time; Save and Print) and **For AI** (JSON, a brief for any AI first, then the session, the song as played, the app's findings, every note, beat and reading) beside each Progress session and under the lines after a run, replacing "Download the pitch data"; each session's detail kept in IndexedDB (`sessions`, version 2, newest 1,000); how long a song plays at its tempo after the Practice title (with the lines to practise), in Edit notation's Settings and in each library row | 15 new unit tests (session.test.ts: lengths, the detail read back, findings for a singer in tune but 200 ms late, in time, flat on Ga, earlier sessions, no detail; the AI file and the report; Progress buttons) and 1 in sections.test.ts (the transport's beats take exactly the length said); headless Edge on `npm run dev` with a WAV singer: a run logged with its detail, its report in a new tab (7 sections, 4 lines drawn), its AI file (26 notes, 717 readings), Progress's buttons, lengths changing with lines and tempo; 360 px night: Progress, an old session's report, Practice, library, Edit (Work log 2026-10-20, round twenty-five) | Waiting for Rinat's use |
@@ -484,6 +488,8 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-15 | **The Practice view is the song line by line:** one window of about seven lines (5, 7 or 9, in its settings), the line being sung third (the first two lines start at the top) and large, sliding on a line as each plays; a line number plays from there and the section chips stay above. Each beat: the words big with the notes small above (a line without words shows its notes big), a mark for how it was sung, and a pitch strip with a bar for each note at its height; while the pitch check listens the voice is drawn over the bars (green, amber, red), and each line's score shows by its number. The beat sounding is lit, with a playhead through it. It replaces the Now singing panel, the coming-up notes, the pitch meter and its trace box, and the Practice sheet; the ruled lines, the red margin and the red-ink words stay. | Rinat, chat 2026-10-15, with a mockup ("combining the section where it shows the current and upcoming notes, pitch checker with the lyrics section", "a vertical carousel where about 7 lines are visible. The currently playing line is the 3rd one", "The lyrics part is bigger, full width pitch performance strip. When the microphone is off it still shows the strip with lines representing the notes"); the details (a strip under every line, the colours, the first lines at the top, long lines over two rows on a phone, the scores by the numbers, the last line kept at the end) are Claude's | src/app/lines.ts; ENGINE.md → Pitch feedback → Shown. The editor's preview and the printed sheet are unchanged. |
 | 2026-10-15 | **The taal as a figure,** beside the line being sung: a shape per vibhag with a corner per beat (four beats a square, three a triangle, two a stroke: Keherwa two squares, Dadra two triangles, Teentaal four squares), the first corner of each in its kind's colour (sam, tali, khali, as in the beat boxes), khali's shape dashed; the cycle traced round as it goes, the beat's corner lit. The strip of bols is gone. | Rinat, chat 2026-10-15 ("a square where the corners light up for 8 beat taals. but not sure where to put it … seeing the bol's of the taal doesn't really do much for me"); generalising the square to a shape per vibhag, and its place (where Rinat's mockup drew it), are Claude's | The taal's name and structure stay over the lines ("Keherwa · 4 + 4"). |
 | 2026-10-15 | **A settings button over the lines:** lines shown (5, 7, 9), the size of the words and notes (smaller, normal, bigger), the keys to press and the pitch check's octave rule (both moved here). The Practice settings bar is left as it was. | Rinat, chat 2026-10-15 ("There could be a settings button to adjust a few relevant things", "Leave the settings section alone - we'll come back to it later"); the choice of settings is Claude's | Settings `plRows`, `plSize` (DATA.md). |
+| 2026-10-20 | **No two songs share a title; Note by note is a harmonium's keys; each song has its own report.** New songs, copies and imports get " (2)" and so on; a title typed in use is said and numbered on leaving the box; songs already sharing one are numbered once on opening (the first made keeps it) and told. Notes are drawn on keys with Sa as C, komal and tivra black, coloured by score. A song's row in Progress opens a report of all its practice and saves its sessions for AI. Start afresh says "(delete all practice data)", not "Delete All Data": it keeps songs (decided the same day); its Delete it all waits 20 seconds. | Rinat, chat 2026-10-20 ("is it worth having a button next to each song to generate a combined report of that song?"; "Is it good to have a check and not have the exact same title on multiple songs?"; "maybe also add in bracket (Delete All Data). Have the delete all button greyed out until 20 seconds have passed"; "Do not like the visual on note by note ... should the alternative notes, komal, tivra etc be included?"); the keys, what the song report holds, numbering rather than refusing a title, and renaming songs already sharing one are Claude's | src/core/song/library.ts (`titleKey`, `uniqueTitle`, `titleFixes`), src/app/notekeys.ts, songreport.ts, progress.ts, app.ts; docs/DATA.md → Song files, Session detail. |
+| 2026-10-20 | **Start afresh stays as built:** it deletes the practice history only (the log and each session's detail); songs, exercises, rewaz routines, takes and settings stay. No "delete everything" option. | Rinat, chat 2026-10-20 ("Keep it as it is: Start afresh deletes only the practice history"), answering the question in round twenty-seven | Settles PH2-27's open question; nothing to change. |
 | 2026-10-20 | **Pitch by song and by note; all the practice data in one file; Start afresh deletes the practice history only.** Progress's Pitch section looks at one song or all over a time chosen, its line placed by date and ending on the last day with a score (never an empty today); Note by note sums the notes of the scale the log now keeps per session. Download all practice data holds every session with its detail and a brief for AI. Start afresh, asked in place, deletes the practice log and each session's detail; songs, exercises, routines, takes and settings stay (they are not practice history, and never losing a song is an invariant). | Rinat, chat 2026-10-20 ("have a button somewhere to delete all current data and start fresh"; "I assume download log button exports all data as one file which is fine"; "Have pitch over time chart for each songs as well"; "If there is no data for today then no point including today in pitch over time"; "add another visual where it shows how did for each note"); what Start afresh deletes, the periods and the ladder's form are Claude's | src/app/progress.ts, aifile.ts (`practiceFileParts`), app.ts (`exportAll`, `wipePractice`, `backfillNotes`), db.ts, store.ts; `noteTally`, `noteScores`, `lastDaysOf` in src/core/practice/log.ts; docs/DATA.md → Practice log. |
 | 2026-10-20 | **Progress redone, its sections as the library's:** This week, Pitch over time, Songs and exercises and History, each folding by its heading and moved by a grip (or the arrow keys), the folds and order kept on the device; songs and exercises as Music library rows that open to practise, with their scores' trend and the line that most needs work; sessions as rows with Report and For AI at their end. One section builder and drag for both pages (src/app/fold.ts). | Rinat, chat 2026-10-20 ("progress page needs a bit design TLC, make the songs and exercises and history headings collapsible and draggable, follow the design of other pages etc"; "look at it with fresh eyes and see what would go here better"); what goes in each section, the pitch line, the trend lines and the weakest line are Claude's | src/app/progress.ts, fold.ts, songs.ts; `periodSummary`, `meanScore`, `dailyScores`, `songScores`, `weakLine` in src/core/practice/log.ts; prefs `pgFold`, `pgOrder` (docs/DATA.md → Settings). |
 | 2026-10-20 | **Session reports, the file for AI, each session's detail kept, songs' lengths:** each session in Progress (and a run just sung, under the lines) has **Report**, an HTML page opened in a new tab (save or print it there), and **For AI**, a JSON file starting with a brief for an AI that knows nothing of the app; they replace "Download the pitch data". To make them, each logged session keeps its detail (the song as played, the settings, and with the pitch check every note's result, line scores, readings and beats) in IndexedDB, the newest 1,000; sessions before 2026-10-20 have only the log's summary. The findings are sums of the scores shown while singing, by fixed rules, never a re-scoring. A song's length is its beats at its tempo and its sections' own, without the count-in, shown in Practice (with the lines to practise), Edit notation and the Music library. | Rinat, chat 2026-10-20 ("Have two buttons for each session. one is to generate a human friendly report with nice dashboard etc, maybe saved/downloaded as html ot whatever you see fit … Another button would be for exporting for AI analysis. I think json file would be better but you decide what format … a brief of how it all works should be included"; "Practice page, music library and edit notation page should show how long each of the song is at its current settings"); opening in a tab, keeping 1,000 sessions, the findings' rules, replacing the pitch data download and leaving out the count-in are Claude's | src/core/practice/session.ts, insights.ts; src/app/db.ts, report.ts, aifile.ts, progress.ts, app.ts; `playSeconds` in src/core/notation/sections.ts; docs/ENGINE.md → Session reports, How long a song plays; docs/DATA.md → Session detail, reports and the file for AI. |
@@ -544,6 +550,48 @@ Template:
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
 
+### 2026-10-20 BST — Claude (Opus 5.5) — PH2-28 the notes on the keys; a report per song; titles of their own; a wait before deleting
+
+- **Goal:** Rinat: "is it worth having a button next to each song to generate a combined report
+  of that song? ... multiple songs with the same title is accepted ... Is it good to have a
+  check and not have the exact same title on multiple songs? ... add in bracket (Delete All
+  Data). Have the delete all button greyed out until 20 seconds have passed. Do not like the
+  visual on note by note ... should the alternative notes, komal, tivra etc be included?"
+- **Inspected:** practice is kept by song id, so two songs with one title keep separate
+  practice but show the same name in the library, the pickers and Progress; titles were never
+  checked (a copy was "… (copy)", an import kept its title, a backup imported twice gave two
+  of each). Komal and tivra notes were already counted when sung; the bars put them in a list.
+  "Delete All Data" would be wrong: Start afresh keeps songs, as Rinat decided earlier today.
+- **Changed:** `7c95269` (feat(progress)): src/app/notekeys.ts (new: the keys, their legend
+  and table, their styles), songreport.ts (new: a song's report), progress.ts (the keys in
+  Note by note, tapped for numbers; Report and For AI on song rows; the label and the 20-second
+  wait), report.ts (`REPORT_CSS`, `reportHead`, `reportScript` shared; the keys in Note by
+  note), aifile.ts (`practiceFileParts` for one song), app.ts (`openSongReport`,
+  `saveSongForAI`, `fixSameTitles`, titles checked in new songs, copies, imports and the
+  title box), main.ts (the keys' styles), library.ts (`titleKey`, `uniqueTitle`,
+  `titleFixes`), index.html (the note under the title box), styles.css; tests (library,
+  rewaz, session). This commit: docs/DATA.md, ROADMAP row 28, this file (the decision row of
+  "Start afresh stays as built" too; the older PH2-26 entry moved to HISTORY).
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 38 files, 423
+  passed; `npm run build` → 328.7 kB JS, 62.3 kB CSS. Headless Edge on `npm run dev`, 42 seeded
+  sessions with komal Ga and komal Ni among the notes and a third song titled as another: on
+  load the newer was renamed "আমার সোনার বাংলা (2)" and the library said so; the keys lower Pa
+  to upper Re with komal Ga 69▼ and komal Ni 66▲ on black keys; upper Sa tapped: "Upper Sa: sung
+  170 times, average score 68, usually 23 cents flat."; a song's Report from its row: a 36 KB
+  page with Going well, To work on, Over time, Line by line, Note by note, Every session, Bear
+  in mind; Start afresh: Delete it all disabled "(20)", a click refused, "(2)" after 18 s,
+  enabled at 20.6 s, then the log deleted; a new song typed "পুরানো সেই দিনের কথা": the note
+  under the box, then "… (2)" on leaving it, four distinct titles stored. 360 px night:
+  Progress and the song report 360 px wide; black keys' arrows hidden on a phone (no room).
+  CI run `39446617784` (`7c95269`): green. Live: the page has the keys.
+- **Decisions made:** one row (titles of their own; the keys; a report per song; the wait),
+  and the row "Start afresh stays as built" (Rinat's answer to round twenty-seven's question).
+- **Risks or disagreements:** Songs already sharing a title are renamed without asking (the
+  newer gets " (2)"); Rinat may prefer to choose. A song report's timing comes from the newest
+  60 sessions' detail. The song report's findings are rules of thumb (trend from the first and
+  last three scores; a line improved by 8 or more). Not tried on a real phone.
+- **Next handoff:** Rinat looks at the keys and a song's report, and says what to change.
+
 ### 2026-10-20 BST — Claude (Opus 5.5) — PH2-27 pitch by song and note; all data in one file; Start afresh
 
 - **Goal:** Rinat: "have a button somewhere to delete all current data and start fresh. I
@@ -588,43 +636,5 @@ Template:
   second of singing). Not tried on a real phone.
 - **Next handoff:** Rinat looks at Pitch by song and note, and says whether Start afresh
   should also clear songs.
-
-### 2026-10-20 BST — Claude (Opus 5.5) — PH2-26 Progress redone
-
-- **Goal:** Rinat: "progress page needs a bit design TLC, make the songs and exercises and
-  history headings collapsible and draggable, follow the design of other pages etc. Do a bit of
-  common sense improvement, look at it with fresh eyes and see what would go here better".
-- **Inspected:** Progress with 40 seeded sessions over 12 days (two songs, four exercises, a
-  deleted song, a rewaz), at 1280 px and on a 360 px phone, beside the Music library and Rewaz.
-  Found: the songs table scrolled sideways on a phone and hid the scores; plain headings that
-  neither folded nor moved, crowded against what was above; nothing showed whether the pitch
-  was improving; Report and For AI cluttered each history line; the tiles' "best run of days"
-  a tile of its own; nothing opened a song.
-- **Changed:** `b3ad513` (feat(progress)): src/app/fold.ts (new: the section heading row,
-  `inOrder`, `initSectionDrag`, moved from songs.ts), progress.ts (rewritten: four sections),
-  songs.ts (on fold.ts), report.ts (`scoreLine` exported), store.ts (`pgFold`, `pgOrder`),
-  app.ts (the Progress host: song, open, folds, order), index.html (Progress's intro; the
-  download moved into History), styles.css (Progress's styles; `.sorting .lsecbody`),
-  log.ts (`periodSummary`, `meanScore`, `dailyScores`, `songScores`, `weakLine`); tests
-  (rewaz, session, library, store). This commit: docs/DATA.md (`pgFold`, `pgOrder`), ROADMAP
-  row 26, this file (the older PH2-24 entry moved to HISTORY).
-- **Tests / verification:** `npm run typecheck` clean; `npx vitest run` → 38 files, 410
-  passed; `npm run build` → 295.4 kB JS, 60.1 kB CSS. Headless Edge on `npm run dev` with the
-  seeded sessions: 1280 px day and 360 px night full pages (no sideways scrolling; the tiles two
-  to a row on the phone, the History heading's button wrapping under it); Songs folded (kept as
-  `pgFold: {songs: true}`, the keyboard staying on its heading); History dragged by its grip
-  above This week (`pgOrder: ["history","week","pitch","songs"]`); ↑ on This week's grip moved
-  it back up; after a reload the order and fold the same; Practise on an exercise opened it in
-  Practice ("37 s long"). The Music library after the move to fold.ts: Exercises dragged below
-  My songs, ↑ back (the stored order removed again), My songs folded, a search showing no fold
-  buttons. A clash found and fixed on the way: the tiles' caption class `.pgs` was the pitch
-  gauge's scale (18 px wide), breaking every word onto its own line. CI run `39425748765`
-  (`b3ad513`): green. Live: the page has the sections.
-- **Decisions made:** one row (Progress redone, its sections as the library's).
-- **Risks or disagreements:** "The line that most needs work" uses the log's line scores of a
-  song's last five scored sessions, whatever lines each practised; with only a session or two
-  it is rough. The pitch line averages every song and exercise of a day together, so an easy
-  exercise one day and a hard song the next move it. Not tried on a real phone.
-- **Next handoff:** Rinat looks over the new Progress and says what to change.
 
 Older entries: `docs/HISTORY.md`.

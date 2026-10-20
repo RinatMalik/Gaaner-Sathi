@@ -84,7 +84,16 @@ exactly as before.
 - **Import** (Music library) accepts that envelope, a bare array of songs, a single song object, or
   a plain `.txt`, which becomes one song titled from the file name. Limits: 2 MB per file,
   200 songs per import, 200 000 characters per song. Imports always get new ids, so they
-  never overwrite; importing the same backup twice gives two copies.
+  never overwrite; importing the same backup twice gives two copies, the second titled
+  "… (2)".
+- **Titles of their own** (Rinat, 2026-10-20: "Is it good to have a check and not have the
+  exact same title on multiple songs?"): no two songs or exercises share a title (compared
+  without case, extra spaces or Unicode spelling; `titleKey`), so the library, the pickers
+  and Progress never show two the same. A new song, a copy or an import whose title is taken
+  gets " (2)", " (3)" … (`uniqueTitle`); typing a title in use says so under the box, and it is
+  numbered on leaving the box. Songs that already shared a title are numbered once when the
+  app opens, the first made (by its id's time) keeping it, and the library says which
+  (`titleFixes`). Practice is kept by song id, so a rename never mixes or loses it.
 - Files exported before the rename say `"format": "swaralipi-player"`. The importer never
   checks this field, so both import; keep it that way.
 - Keep reading version 1 forever. Bump `version` only for breaking changes, with a migration.
@@ -334,6 +343,15 @@ Long tables have one row to a line. The file holds the notation, so treat it lik
 no sound is in it. It replaced "Download the pitch data" (2026-10-20, one day old), whose
 contents it holds in a form an AI can read without the app; Rinat's files for Claude still go
 in `feedback/`, which git ignores.
+
+**Report** and **For AI** on each row of Progress's Songs and exercises (Rinat, 2026-10-20:
+"is it worth having a button next to each song to generate a combined report of that song?")
+do the same for all of one song's practice. Its report (src/app/songreport.ts) has where it
+stands in a number and a sentence, tiles, what is going well and what to work on, the score of
+each session placed by date, each line session by session (the last 12, coloured, with its
+average over the last five), the notes of the scale on the keys, how far behind the music the
+voice came (from the newest 60 sessions' detail), and every session. Its file is the practice
+data file (Practice log, above) for that song alone: `<title> all sessions <date> for AI.json`.
 
 ## Built-in exercises
 

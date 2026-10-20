@@ -49,6 +49,44 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-20 BST — Claude (Opus 5.5) — PH2-26 Progress redone
+
+- **Goal:** Rinat: "progress page needs a bit design TLC, make the songs and exercises and
+  history headings collapsible and draggable, follow the design of other pages etc. Do a bit of
+  common sense improvement, look at it with fresh eyes and see what would go here better".
+- **Inspected:** Progress with 40 seeded sessions over 12 days (two songs, four exercises, a
+  deleted song, a rewaz), at 1280 px and on a 360 px phone, beside the Music library and Rewaz.
+  Found: the songs table scrolled sideways on a phone and hid the scores; plain headings that
+  neither folded nor moved, crowded against what was above; nothing showed whether the pitch
+  was improving; Report and For AI cluttered each history line; the tiles' "best run of days"
+  a tile of its own; nothing opened a song.
+- **Changed:** `b3ad513` (feat(progress)): src/app/fold.ts (new: the section heading row,
+  `inOrder`, `initSectionDrag`, moved from songs.ts), progress.ts (rewritten: four sections),
+  songs.ts (on fold.ts), report.ts (`scoreLine` exported), store.ts (`pgFold`, `pgOrder`),
+  app.ts (the Progress host: song, open, folds, order), index.html (Progress's intro; the
+  download moved into History), styles.css (Progress's styles; `.sorting .lsecbody`),
+  log.ts (`periodSummary`, `meanScore`, `dailyScores`, `songScores`, `weakLine`); tests
+  (rewaz, session, library, store). This commit: docs/DATA.md (`pgFold`, `pgOrder`), ROADMAP
+  row 26, this file (the older PH2-24 entry moved to HISTORY).
+- **Tests / verification:** `npm run typecheck` clean; `npx vitest run` → 38 files, 410
+  passed; `npm run build` → 295.4 kB JS, 60.1 kB CSS. Headless Edge on `npm run dev` with the
+  seeded sessions: 1280 px day and 360 px night full pages (no sideways scrolling; the tiles two
+  to a row on the phone, the History heading's button wrapping under it); Songs folded (kept as
+  `pgFold: {songs: true}`, the keyboard staying on its heading); History dragged by its grip
+  above This week (`pgOrder: ["history","week","pitch","songs"]`); ↑ on This week's grip moved
+  it back up; after a reload the order and fold the same; Practise on an exercise opened it in
+  Practice ("37 s long"). The Music library after the move to fold.ts: Exercises dragged below
+  My songs, ↑ back (the stored order removed again), My songs folded, a search showing no fold
+  buttons. A clash found and fixed on the way: the tiles' caption class `.pgs` was the pitch
+  gauge's scale (18 px wide), breaking every word onto its own line. CI run `39425748765`
+  (`b3ad513`): green. Live: the page has the sections.
+- **Decisions made:** one row (Progress redone, its sections as the library's).
+- **Risks or disagreements:** "The line that most needs work" uses the log's line scores of a
+  song's last five scored sessions, whatever lines each practised; with only a session or two
+  it is rough. The pitch line averages every song and exercise of a day together, so an easy
+  exercise one day and a hard song the next move it. Not tried on a real phone.
+- **Next handoff:** Rinat looks over the new Progress and says what to change.
+
 ### 2026-10-20 BST — Claude (Opus 5.5) — PH2-25 session reports, the file for AI, songs' lengths
 
 - **Goal:** Rinat: "are all the data from all previous sessions saved in the browser?"; in
