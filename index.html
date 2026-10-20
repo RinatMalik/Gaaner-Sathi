@@ -173,6 +173,7 @@
         <div class="plfoot" id="pitchBox" hidden>
           <span class="pscores" id="pScores" aria-live="polite"></span>
           <span class="pmsg" id="pMsg"></span>
+          <button type="button" class="btn pexport" id="pExport" hidden>Download the pitch data</button>
           <span class="spacer"></span>
           <span class="phint">Headphones help: otherwise the microphone also hears the harmonium.</span>
           <span class="phint" id="pLag"></span>
@@ -184,6 +185,25 @@
         <p class="phint">While <b>Record me</b> is on, each play is a take. Play one back against the guide to hear where you were off. Takes stay in this browser.</p>
         <ul class="tklist" id="takesList"></ul>
         <span class="fstatus" id="takesStatus" aria-live="polite"></span>
+      </details>
+      <!-- How the singing is scored (Rinat, 2026-10-20: "please also add a helpful note in the
+           bottom of the practice page (collapsible) explaining how the scoring is done"). -->
+      <details class="help" id="scoreHelp">
+        <summary>How your singing is scored</summary>
+        <table>
+          <tr><td>When</td><td>Each moment of your voice is compared with the note that was playing when you sang it, as you heard it. The only thing taken off is your device’s delay: the time for the sound to reach your headphones and your voice to come back through the microphone. Measure it once in Practice settings → Pitch → <b>Measure the delay</b>; until then the device’s own figure is used. Nothing else is adjusted.</td></tr>
+          <tr><td>Each moment</td><td>The microphone is read about 45 times a second. A reading with voice scores 100 within 10 cents of the note, 2 points less for each cent beyond, and 0 from 60 cents off. (A semitone is 100 cents.)</td></tr>
+          <tr><td>Each note</td><td>The average of its readings, from the note’s start to its end. A voice still on the last note (coming in late) or already on the next (leaving early) counts against it.</td></tr>
+          <tr><td>Left out</td><td>Moments with no voice: a breath, a consonant such as <code>স ত ক প</code>, or stopping before the note ends. A slide into a note (a meend), while your voice is moving towards it. The first and last 25 ms of each note, where a reading also hears the note beside it. A single reading that jumps away and straight back, which the microphone got wrong.</td></tr>
+          <tr><td>Notes not sung</td><td>A note with voice for less than half its length is not sung: it is left out of the score, and counts in “% of the notes sung” instead. Its mark is grey.</td></tr>
+          <tr><td>Lines and the run</td><td>The average of the sung notes, longer notes counting more. A line’s number box turns red at 50 or less, amber at 75 and green from 95. The average under the lines is the run’s score, kept in your practice log.</td></tr>
+          <tr><td>Colours</td><td>The voice line and the gauge: green within 15 cents of the note, amber within 35, red beyond; grey while your voice slides into a note, or where no note plays. The mark under each beat follows its note’s score: green from 85, amber from 60, red below.</td></tr>
+          <tr><td>Looking back</td><td>Tap a line to open it. Under each beat: the pitch your voice held once it reached the note, in cents (+ sharp, − flat), and how long after the note began it got there, when 0.1 s or more.</td></tr>
+          <tr><td>Octave</td><td>Any octave counts as the right note, unless <b>The octave must match too</b> is on (Practice settings → Pitch).</td></tr>
+          <tr><td>Behind the guide</td><td>Under the lines: how far behind (or ahead of) the guide your voice comes, from the last 10 seconds of singing. It is only shown, never taken off.</td></tr>
+          <tr><td>Not scored</td><td>Rests, and the rounds where the guide plays for you to listen (guide every other round).</td></tr>
+          <tr><td>Your data</td><td>After a run, <b>Download the pitch data</b> saves what the microphone heard (pitch only, no sound) with the notes and scores, to look at or share. Nothing leaves this device otherwise.</td></tr>
+        </table>
       </details>
     </div>
   </main>

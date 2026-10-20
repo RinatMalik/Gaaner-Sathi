@@ -10,7 +10,7 @@ import { Transport } from '../../src/audio/transport';
 import { EXERCISES } from '../../src/core/exercises';
 import { parseSong } from '../../src/core/notation/parse';
 import type { ParsedSong } from '../../src/core/notation/types';
-import { beatNotes, centsFromSa, eventsByBeat, foldOctave, nearestNote, noteScore, PitchTracker, type ExpectedNote, type Section } from '../../src/core/pitch/track';
+import { beatNotes, centsFromSa, eventsByBeat, foldOctave, isGlitch, nearestNote, noteScore, PitchTracker, sliding, type ExpectedNote, type Section } from '../../src/core/pitch/track';
 import { taalInfo } from '../../src/core/taal/taals';
 import { RecordingContext } from '../differential/webaudio-recorder';
 import { seeded } from '../helpers';
@@ -118,7 +118,7 @@ describe('scores', () => {
     expect(rest.every((r) => Math.abs(r.cents) < 1)).toBe(true);
   });
 
-  it('counts the end of a note too, and silence as nothing', () => {
+  it('counts the end of a note too, and leaves silence out (Rinat, 2026-10-20)', () => {
     const tr = new PitchTracker({ lag: 0, anyOctave: true, saHz: SA });
     tr.addNotes(place(P, { spb: 0.6 }));
     // In tune, then 50 cents sharp for the last 15 % (90 ms of 600).
@@ -129,15 +129,71 @@ describe('scores', () => {
     });
     tr.settle(true);
     expect(tr.results.every((r) => r.score >= 85 && r.score < 100 && r.wobble > 0)).toBe(true);
-    // Half of each note silent: about half marks, and the notes still sung.
-    const half = new PitchTracker({ lag: 0, anyOctave: true, saHz: SA });
-    half.addNotes(place(P, { spb: 0.6 }));
-    readings(half, 0, 4.9, (t) => {
-      const n = half.expectedAt(t);
-      return n && t - n.t0 < 0.3 ? hzOf(n) : 0;
+    // Each note sung in tune for its first 70 % then a breath, and a 40 ms consonant gap in the
+    // middle: full marks, the silence left out.
+    const breath = new PitchTracker({ lag: 0, anyOctave: true, saHz: SA });
+    breath.addNotes(place(P, { spb: 0.6 }));
+    readings(breath, 0, 4.9, (t) => {
+      const n = breath.expectedAt(t);
+      const into = n ? t - n.t0 : 1;
+      return n && into < 0.42 && !(into > 0.2 && into < 0.24) ? hzOf(n) : 0;
     });
-    half.settle(true);
-    expect(half.results.every((r) => r.status === 'sung' && r.score >= 40 && r.score <= 60)).toBe(true);
+    breath.settle(true);
+    expect(breath.results.map((r) => [r.status, r.score])).toEqual(Array(8).fill(['sung', 100]));
+    // Voice for under half of each note: not sung, left out of the score.
+    const little = new PitchTracker({ lag: 0, anyOctave: true, saHz: SA });
+    little.addNotes(place(P, { spb: 0.6 }));
+    readings(little, 0, 4.9, (t) => {
+      const n = little.expectedAt(t);
+      return n && t - n.t0 < 0.2 ? hzOf(n, 40) : 0;
+    });
+    little.settle(true);
+    expect(little.results.every((r) => r.status === 'unsung' && Number.isNaN(r.score))).toBe(true);
+    expect(little.summary()).toBeNull();
+  });
+
+  it('leaves out a slide into a note, but not a voice holding the last one', () => {
+    // Moving 10 cents or more nearer, not yet in tune, the slide not over: sliding.
+    expect([sliding(-300, -250, false), sliding(-40, -25, false), sliding(-300, -295, false), sliding(-25, -12, false), sliding(-300, -250, true), sliding(null, -250, false)]).toEqual([true, true, false, false, false, false]);
+    const tr = new PitchTracker({ lag: 0, anyOctave: true, saHz: SA });
+    tr.addNotes(place(P, { spb: 0.6 }));
+    // Each note slides up from the note below over its first 150 ms, then holds in tune.
+    readings(tr, 0, 4.9, (t) => {
+      const n = tr.expectedAt(t);
+      if (!n) return 0;
+      const into = t - n.t0;
+      return hzOf(n, into < 0.15 ? -200 * (1 - into / 0.15) : 0);
+    });
+    tr.settle(true);
+    expect(tr.results.every((r) => r.score === 100)).toBe(true);
+    // How long the slide took still shows.
+    expect(tr.results.every((r) => r.arrive > 0.08 && r.arrive < 0.15)).toBe(true);
+  });
+
+  it('reads a jump away and straight back, or a lone reading, as the detector getting it wrong', () => {
+    const G = 196;
+    expect(isGlitch(G, G * 2, G)).toBe(true);
+    expect(isGlitch(G, 240, 196.5)).toBe(true);
+    expect(isGlitch(0, G, 0)).toBe(true);
+    // A note change, a reading in tune, no voice, and one neighbour missing are not.
+    expect(isGlitch(G, 220, 220)).toBe(false);
+    expect(isGlitch(G, 197, G)).toBe(false);
+    expect(isGlitch(G, 0, G)).toBe(false);
+    expect(isGlitch(0, G, G)).toBe(false);
+  });
+
+  it('finds the octave the voice sings in, to draw it all in one octave', () => {
+    const tr = new PitchTracker({ lag: 0, anyOctave: true, saHz: SA });
+    const Q = parseSong(Array.from({ length: 3 }, () => 'সা পা গা মা র্সা ধা না পা').join('\n'));
+    tr.addNotes(place(Q, { spb: 0.4 }));
+    for (let t = 0; t < 9.5; t += 0.022) {
+      const n = tr.expectedAt(t);
+      tr.addReading({ t, hz: n ? hzOf(n, -1200) : 0 });
+      tr.settle();
+    }
+    expect(tr.octave).toBe(-1);
+    tr.settle(true);
+    expect(tr.summary()!.score).toBe(100);
   });
 
 

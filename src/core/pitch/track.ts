@@ -10,7 +10,9 @@
  * to the singing (Rinat, 2026-10-19: "trying to make it too clever that it misrepresents is
  * not the way to go"): a voice behind the guide is judged against the notes it was behind.
  * How far behind it comes is measured from the singing and reported (`behind`), never used to
- * judge. (Until 2026-10-19 the lag was fitted to the singing, which forgave lateness.)
+ * judge. (Until 2026-10-19 the lag was fitted to the singing, which forgave lateness.) What is
+ * not judged at all: no voice (a breath, a consonant, stopping early), the voice sliding into a
+ * note, and readings the detector got wrong (Rinat, 2026-10-20).
  */
 import type { NoteEvent, ParsedSong } from '../notation/types';
 
@@ -41,11 +43,12 @@ export type NoteStatus = 'sung' | 'unsung' | 'short';
 
 export interface NoteResult {
   note: ExpectedNote;
-  /** sung: some voice; unsung: no voice at all (scores 0); short: too short to judge. */
+  /** sung: voice for at least half of it; unsung: less (left out of the scores, but counted in
+   * the share sung); short: too short to judge. */
   status: NoteStatus;
   /** The median distance of the voice from the note once it reached it, cents (sharp is
-   * positive); NaN unless sung. The score, 0–100: the average of every reading's, from the
-   * note's start (no voice scores 0); NaN when short. */
+   * positive); NaN unless sung. The score, 0–100: the average of its readings with voice, from
+   * the note's start, but for a slide into it; NaN unless sung. */
   cents: number;
   score: number;
   /** How much the pitch moved on the note (standard deviation, cents); NaN unless sung. */
@@ -57,8 +60,8 @@ export interface NoteResult {
 export interface LineResult {
   line: number;
   pass: number;
-  /** Pitch score of the judged notes, by their time, unsung ones 0; 0–100 (NaN if none were
-   * judged); and the share of the judged notes with voice, 0–1. */
+  /** Pitch score of the sung notes, by their time, 0–100 (NaN if none were sung); and the share
+   * of the judged notes that were sung, 0–1. */
   score: number;
   sung: number;
 }
@@ -95,6 +98,34 @@ export function nearestNote(centsFromSaValue: number): { semi: number; oct: numb
 
 /** A note's score from its distance: 100 within 10 cents, then 2 points a cent, 0 from 60. */
 export const noteScore = (cents: number): number => Math.round(Math.max(0, Math.min(100, 100 - (Math.abs(cents) - 10) * 2)));
+
+/** Cents between two pitches. */
+const apart = (a: number, b: number): number => Math.abs(1200 * Math.log2(a / b));
+
+/**
+ * Whether a reading (`b`, Hz; 0 is no voice) is one the detector most likely got wrong, from
+ * the readings either side of it: voice alone between two without, or more than a semitone
+ * from both while they agree within one. It lasts about 20 ms, shorter than anything sung, and
+ * drew a spike; it is read as no voice (Rinat, 2026-10-20: "micro spikes at random points").
+ */
+export function isGlitch(a: number, b: number, c: number): boolean {
+  if (b <= 0) return false;
+  if (a <= 0 && c <= 0) return true;
+  if (a <= 0 || c <= 0) return false;
+  return apart(a, c) < 100 && apart(a, b) > 100 && apart(b, c) > 100;
+}
+
+/**
+ * Whether a reading is the voice sliding into its note (a meend or a scoop), left out of the
+ * score: since the note began every reading has been moving towards it, this one too, by at
+ * least 10 cents (about 450 cents a second or faster), and it is not yet in tune (within 15
+ * cents). The slide is over (`settled`) at the first reading that is not; a voice holding the
+ * last note is not sliding, and counts (Rinat, 2026-10-20: "sliding in can be part of the
+ * singing").
+ */
+export function sliding(prevErr: number | null, err: number, settled: boolean): boolean {
+  return !settled && prevErr != null && Math.abs(err) > 15 && Math.abs(err) <= Math.abs(prevErr) - 10;
+}
 
 function median(v: number[]): number {
   const s = v.slice().sort((a, b) => a - b);
@@ -158,6 +189,10 @@ export class PitchTracker {
   /** How far behind the guide the voice comes, seconds (negative: ahead), from the last 10 s of
    * singing; null until there is enough to say. Reported only. */
   behind: number | null = null;
+  /** The octave the voice sings in against the notes (−1: an octave below), when any octave
+   * counts: the most common over the last 10 s. The voice is drawn moved by it, all of it the
+   * same, so it never flips between octaves reading by reading. */
+  octave = 0;
   /** Can change while singing: later notes follow it. */
   anyOctave: boolean;
   readonly saHz: number;
@@ -272,8 +307,8 @@ export class PitchTracker {
     return { notes, lines };
   }
 
-  /** The score of everything judged so far, unsung notes 0: by note time, and by line (each
-   * line's rounds together). Null until something was sung. */
+  /** The score of everything sung so far: by note time, and by line (each line's rounds
+   * together). Null until enough was sung to say. */
   summary(): { score: number; sung: number; lines: [number, number][] } | null {
     const sung = this.results.filter((r) => r.status === 'sung');
     if (sung.length < 4) return null;
@@ -281,19 +316,21 @@ export class PitchTracker {
     const w = (rs: NoteResult[]) => rs.reduce((a, r) => a + (r.note.t1 - r.note.t0), 0);
     const mean = (rs: NoteResult[]) => rs.reduce((a, r) => a + r.score * (r.note.t1 - r.note.t0), 0) / w(rs);
     const byLine = new Map<number, NoteResult[]>();
-    for (const r of judged) {
+    for (const r of sung) {
       if (!byLine.has(r.note.line)) byLine.set(r.note.line, []);
       byLine.get(r.note.line)!.push(r);
     }
     const lines = Array.from(byLine, ([line, rs]) => [line, Math.round(mean(rs))] as [number, number]).sort((a, b) => a[0] - b[0]);
-    return { score: Math.round(mean(judged)), sung: w(sung) / Math.max(1e-9, w(judged)), lines };
+    return { score: Math.round(mean(sung)), sung: w(sung) / Math.max(1e-9, w(judged)), lines };
   }
 
-  /** A note's score: every reading while it played, each scored by how close it is (full
-   * marks within 10 cents, nothing from 60 off) and nothing where there is no voice, averaged.
-   * So a late, scooped or early-leaving voice counts against the note, as silence does (Rinat,
-   * 2026-10-19; until then its first 100 ms and last 10 % were left out and the median
-   * taken). Only `EDGE` at each end is left out, where a reading holds the next note too. */
+  /** A note's score: every reading with voice while it played, each scored by how close it is
+   * (full marks within 10 cents, nothing from 60 off), averaged. A voice late on the last note
+   * or leaving early for the next counts against it (Rinat, 2026-10-19); no voice, and a slide
+   * into the note, are left out (2026-10-20). A note with voice for under half of it is not
+   * sung: left out of the scores. Only `EDGE` at each end is left out, where a reading holds the
+   * next note too. (Until 2026-10-19 the median over its middle, from 100 ms in to its last
+   * 10 %.) */
   private scoreNote(n: ExpectedNote): NoteResult {
     const a = n.t0 + EDGE;
     const b = n.t1 - EDGE;
@@ -302,29 +339,54 @@ export class PitchTracker {
     let errs: number[] = [];
     let count = 0;
     let total = 0;
+    let scored = 0;
     let arrive = NaN;
     let from = 0;
+    /** The reading before's distance from this note (null: no voice), and whether a slide into
+     * it is over, to tell a slide. */
+    let prev: number | null = null;
+    let settled = false;
     for (const r of this.readings) {
       const t = r.t - this.lag;
-      if (t < a || t > b) continue;
+      if (t > b) continue;
+      if (t < a) {
+        if (t > a - 0.06) prev = r.hz > 0 ? this.errorFor(r.hz, n) : null;
+        continue;
+      }
       count++;
-      if (r.hz <= 0) continue;
+      if (r.hz <= 0) {
+        prev = null;
+        continue;
+      }
       const e = this.errorFor(r.hz, n);
-      total += noteScore(e);
-      if (Number.isNaN(arrive) && Math.abs(e) <= 50) {
+      const arrived = !Number.isNaN(arrive);
+      if (sliding(prev, e, settled)) {
+        // A slide into the note: left out.
+      } else {
+        settled = true;
+        total += noteScore(e);
+        scored++;
+      }
+      if (!arrived && Math.abs(e) <= 50) {
         arrive = t - n.t0;
         from = errs.length;
       }
       errs.push(e);
+      prev = e;
     }
     if (count < 2) return { ...none, status: 'short' };
-    if (!errs.length) return { ...none, status: 'unsung', score: 0 };
+    if (errs.length < Math.max(2, 0.5 * count)) return { ...none, status: 'unsung' };
+    // Slid the whole way without arriving: it all counts.
+    if (!scored) {
+      total = errs.reduce((s, e) => s + noteScore(e), 0);
+      scored = errs.length;
+    }
     // The pitch it held: from when the voice reached the note (all of it, if it never did), so
     // a late start shows as late, not as off pitch.
     errs = errs.slice(from);
     const c = median(errs);
     const sd = Math.sqrt(errs.reduce((s, e) => s + (e - c) ** 2, 0) / errs.length);
-    return { note: n, status: 'sung', cents: c, score: Math.round(total / count), wobble: sd, arrive };
+    return { note: n, status: 'sung', cents: c, score: Math.round(total / scored), wobble: sd, arrive };
   }
 
   /**
@@ -355,6 +417,21 @@ export class PitchTracker {
       }
     }
     if (bestFit >= 0.4) this.behind = best;
+    // The octave sung in: among readings within a semitone of an octave of their note.
+    if (!this.anyOctave) {
+      this.octave = 0;
+      return;
+    }
+    const tally = new Map<number, number>();
+    for (const r of rs) {
+      const n = this.expectedAt(r.t - this.lag - best);
+      if (!n) continue;
+      const c = centsFromSa(r.hz, this.saHz) - (100 * n.semi + 1200 * n.oct);
+      const k = Math.round(c / 1200);
+      if (Math.abs(c - 1200 * k) < 100) tally.set(k, (tally.get(k) ?? 0) + 1);
+    }
+    let most = 0;
+    for (const [k, v] of tally) if (v > most) [most, this.octave] = [v, k];
   }
 
   /** Forget readings and notes more than 20 s old (scores are kept). */
@@ -369,6 +446,6 @@ function lineResult(line: number, pass: number, rs: readonly NoteResult[]): Line
   const judged = rs.filter((r) => r.status !== 'short');
   const sung = judged.filter((r) => r.status === 'sung');
   const w = (x: readonly NoteResult[]) => x.reduce((a, r) => a + (r.note.t1 - r.note.t0), 0);
-  const score = judged.length ? Math.round(judged.reduce((a, r) => a + r.score * (r.note.t1 - r.note.t0), 0) / w(judged)) : NaN;
+  const score = sung.length ? Math.round(sung.reduce((a, r) => a + r.score * (r.note.t1 - r.note.t0), 0) / w(sung)) : NaN;
   return { line, pass, score, sung: judged.length ? w(sung) / w(judged) : 0 };
 }

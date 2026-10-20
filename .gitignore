@@ -51,3 +51,6 @@ reference/tests/.extracted/
 # ── Misc ────────────────────────────────────────────────────────────────────
 *.tmp
 .tmp/
+
+# ── Pitch data downloaded from the app, for Claude to read (private: never committed) ──
+feedback/

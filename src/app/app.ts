@@ -2083,6 +2083,8 @@ export function init(): void {
         savePrefs();
       },
     },
+    song: () => ({ title: current.title, taal: current.taal, tempo: current.tempo, text: current.text }),
+    save: (name, text, say) => void offerFile(name, text, say),
   });
   rewaz = initRewaz({
     choices: pickerGroups,
