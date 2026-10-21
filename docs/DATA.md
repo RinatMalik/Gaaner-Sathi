@@ -53,7 +53,7 @@ as it was set up (its sound and notes included), without the sender's log, takes
 | `taal` | One of 19 taal ids (ENGINE.md → Taals): `dadra`, `keherwa`, `rupak`, `jhaptal`, `ektal`, `teentaal`, `jhampak`, `shashthi`, `rupakra`, `nabatal`, `ekadashi`, `nabapanchatal`, `khemta`, `deepchandi`, `dhamar`, `jhumra`, `teora`, `kawali`, `garba`. Anything else reads as `dadra` (the prototype also reads the last thirteen as `dadra`). Sections may have their own, in their headings (NOTATION.md → A taal per section); the prototype plays them in this one. |
 | `tempo` | Matras per minute, 30–240. Sections may have their own, in their headings (NOTATION.md → Sections). |
 | `saKey` | Semitones above C, 0–11. The app shows the CT-X3000 key too ("C · White 1", "C♯ · Black 1", …). |
-| `saOct` | 3, 4 or 5 (Low, Middle, High); Sa = MIDI 12 × (saOct + 1) + saKey. |
+| `saOct` | 3, 4 or 5 (Low, Middle, High); Sa = MIDI 12 × (saOct + 1) + saKey. It is the keyboard's octave number, middle C being C4, and the app names Sa so (Rinat, 2026-10-21): the picker says "C♯3 · low", and Sa in words is "C♯3 (Black 1), low octave". C3 is the second C from the left on a 61-key keyboard such as the CT-X3000, the third on an 88-key piano. |
 | `startOn` | The taal beat (1-based) the first beat lands on. |
 | `text` | The notation (NOTATION.md). |
 | `updatedAt` | ms epoch; the newer copy wins when two places have the same song. |
@@ -304,7 +304,7 @@ only the summary: their report and file say so, and show what the log has (score
 
 ```json
 { "at": 1791655308398, "song": "song-mv2pb608-a4kmn",
-  "played": { "title": "…", "taal": "keherwa", "tempo": 100, "text": "…", "saHz": 261.63, "sa": "C (White 1), middle octave" },
+  "played": { "title": "…", "taal": "keherwa", "tempo": 100, "text": "…", "saHz": 261.63, "sa": "C4 (White 1), middle octave" },
   "settings": { "guide": "full", "guideLoop": "all", "countIn": true, "ramp": false, "rampStep": 4, "rampMax": 160 },
   "pitch": { "lag": 0.1, "measured": true, "anyOctave": true, "octave": 0,
     "notes": [{ "t0": 0, "t1": 0.6, "semi": 0, "oct": 0, "g": 0, "line": 0, "pass": 0, "status": "sung",

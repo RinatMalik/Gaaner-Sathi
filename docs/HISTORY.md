@@ -49,6 +49,55 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-21 BST — Claude (Opus 5.5) — PH2-30 no jumps in the voice line; a day in one file for AI
+
+- **Goal:** Rinat, with the files for AI of yesterday's seven sessions in `feedback/`: "the
+  sudden jump of the pitch line still exists. I don't know the thing worked pretty good
+  before, just a few versions ago"; "provide feedback on the generated file for AI analysis
+  itself. Is that a good format? were you able to parse the required information easily? will
+  a local llm fall over with multiple long json files like this? Does it need refinement or
+  more text"; "It would've been good to be able to expost a day's data in one go."
+- **Inspected:** the six files with readings (one had none): Rinat sings an octave below the
+  notes; 3–6 % of readings sat in stretches of 1–11 at 2, 3 or 4 times the voice's pitch (the
+  3rd harmonic most often), now and then the guide, at onsets after a breath and at
+  consonants; synthetic voices (formants, jitter, vibrato, noise, a low cut, onsets) never
+  did it with any McLeod k from 0.8 to 0.97, so the detector was left alone. `drawVoice` until
+  round twenty-four folded each reading onto its note, hiding most of them; since, it draws
+  the voice at its pitch moved by the octave sung, which started at 0 each run and was found
+  after 1.3–4.2 s. The files: 30–300 KB each, readings 57–68 % of each.
+- **Changed:** `6fdcb7a` (fix(pitch)): track.ts (`SlipFilter`; `measureOctave` every 0.25 s
+  from the octave last sung, 20 readings and twice the old to change), pitch.ts (the filter
+  after the glitch rule, drained on pause and stop; the octave kept), store.ts and app.ts
+  (`voiceOct`); tests (pitch-track, store). `e405e1c` (feat(progress)): aifile.ts
+  (`sessionParts`, `dayFileParts`, `DAY_BRIEF`; the long tables last; readings to 10 ms and the
+  cent; the brief: what to skip, "short", readings at the pitch sung, overtone slips),
+  progress.ts and styles.css (a day's For AI), app.ts (`saveDayForAI`); tests (session). This
+  commit: docs/ENGINE.md, DATA.md, ROADMAP row 30, this file (the PH2-28 entry moved to
+  HISTORY).
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 38 files, 431
+  passed; `npm run build` → 338.8 kB JS. Rinat's sessions replayed through `SlipFilter` and the
+  tracker (a scratch Vitest file reading `feedback/`, deleted): jumps over 600 cents
+  45/22/55/148/30/122 → 10/1/3/11/5/16, points outside the strip 37–185 with the octave kept
+  (123–415 before), readings held 5–10 % (median 4, 95th percentile 8–13, at most 18),
+  scores +0 to +3. Headless Edge with Edge's fake microphone playing a synthesised singer an
+  octave below the notes with 25 slips at ×2 and ×3 (40 s, 8 lines in Keherwa): the live site
+  29 jumps of over 40 % of the strip and 191 points at its edge (83 of 117 on the first line);
+  `npm run dev` 1 and 20 (the first half second), `voiceOct` −1 saved; with it kept, 1 and 0.
+  A day's For AI on seeded sessions (two with detail in IndexedDB): "Saved Practice 2026-10-20
+  (4 sessions) for AI.json", its parts in order, 4 sessions numbered, the song as played and
+  as now, earlier sessions per song, notes and readings for the two with detail; 10 days of 16
+  with the bar; 1280 px day and 360 px night (360 px wide). CI run `39586150210` (`e405e1c`):
+  green.
+- **Decisions made:** two rows (overtone slips and the octave kept; a day in one file, the
+  long tables last).
+- **Risks or disagreements:** Overtone stretches longer than about 0.2 s still show (6 of the
+  11 jumps left in the busiest session were three of 0.23–0.6 s); a real leap of an octave or more to a note
+  under 0.2 s is read as no voice; the start of each phrase is drawn about 0.1–0.2 s later
+  than before. Not heard on Rinat's own voice yet: only replayed. A local model may still
+  not fit a day's file; the brief tells it to take the beginning.
+- **Next handoff:** Rinat sings with the Scarlett and says whether the line still jumps;
+  gives a day's file to an AI (or `feedback/`).
+
 ### 2026-10-20 BST — Claude (Opus 5.5) — PH2-29 one session deleted from History
 
 - **Goal:** Rinat: "have a button next to each session line to delete that particular session
