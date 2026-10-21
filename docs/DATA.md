@@ -219,7 +219,7 @@ Entries are checked when read (damaged ones skipped, numbers clamped). About 150
 400 with `notes`, so years fit.
 
 **Download all practice data** (the foot of Progress, Rinat 2026-10-20: "I assume download log
-button exports all data as one file") saves `gaaner-sathi-practice-<yyyy-mm-dd>.json`:
+button exports all data as one file") saves `<yyyy.mm.dd_hh.mm.ss> - All practice - Data.json`:
 `{ "format": "gaaner-sathi-log", "version": 2, "exported", "about_this_file", "file",
 "songs_as_played", "sessions" }`. The brief (`PRACTICE_BRIEF`) tells any AI what the app is and
 how to read the file (its notation, time and scoring parts are the For AI file's). Each of
@@ -234,6 +234,11 @@ to megabytes. Version 1 (until 2026-10-20) was the log's summaries only, as `ent
 button next to each session line to delete that particular session data. as sometimes i might
 click play and inturrupted by a call"): asked in the row, it deletes that log entry and that
 session's detail; everything else stays.
+
+**A day** has the same three buttons on its row in History, for all its sessions (Rinat,
+2026-10-21: "there will be the same three buttons as there are for the individual sessions");
+its date folds it. Its bin asks in the row ("Delete all 7 sessions of this day?") and deletes
+those log entries and their detail together; other days stay.
 
 **Start afresh** (beside it, Rinat 2026-10-20: "have a button somewhere to delete all current
 data and start fresh") asks in place, saying what goes and what stays, offers the download
@@ -267,7 +272,8 @@ ends it.
 ## Takes
 
 A recording of the singer during one play, while "Record me" is on (ENGINE.md → Takes). Kept
-in IndexedDB, never in song files; Download writes one as a mono 16-bit WAV file.
+in IndexedDB, never in song files; Download writes one as a mono 16-bit WAV file,
+`<when> - <title> - Recording.wav`, named as a session's files are (File names, below).
 
 ```json
 { "id": "take-mv33v2f4-56twq", "song": "song-…", "title": "…", "at": 1791679736267, "secs": 12.9,
@@ -320,14 +326,14 @@ kept; an older one's goes, and its summary stays in the log. Details are checked
 (`cleanSession`).
 
 - **Report** (src/app/report.ts) is one HTML page, built in the browser and opened in a new
-  tab (where a tab cannot open, saved as `<title> session <date> <time> report.html`). It has
+  tab (where a tab cannot open, saved as `<when> - <title> - Report.html`). It has
   the score and the session in a sentence, tiles, what went well and what to work on
   (src/core/practice/insights.ts, docs/ENGINE.md → Session reports), when new notes were
   reached, how far off the notes were, note by note, each line with the voice drawn over its
   notes, the rounds, the song's earlier scores, and what to bear in mind. **Save this report**
   and **Print or save as PDF** are on the page. It loads the app's two fonts from Google
   Fonts, as the app does; nothing else leaves the device.
-- **For AI** (src/app/aifile.ts) saves `<title> session <yyyy-mm-dd> <hh-mm> for AI.json`
+- **For AI** (src/app/aifile.ts) saves `<when> - <title> - Data.json`
   ("it should be AI friendly so any llm can read and analyse them better ... a brief of how it
   all works should be included"). One object, the brief first:
 
@@ -352,9 +358,20 @@ are most of a file (57–68 % of Rinat's of 2026-10-20, which ran to 30–300 KB
 brief says the last parts are for checking with a program, and that a model that can take only
 part of the file should take the beginning; a file cut short loses only them.
 
+**File names** (Rinat, 2026-10-21: "YYYY.MM.DD_HH.mm.SS - Title maxchar90 - Data.json",
+"YYYY.MM.DD_HH.mm.SS - Title maxchar90 - Report.html", the length left to Claude): every file
+Progress and Practice save is `<when> - <title> - <kind>` (src/app/filenames.ts), so a folder
+lists them in time order with a session's files together: `<when>` is when the session (or the
+take) began, `2026.10.20_19.35.49`, or the date alone for a day's, which then come just before
+its sessions'; a song's and all the practice's are when they were made. `<title>` keeps at most
+60 letters (a consonant and its vowel sign are one), cut at a space near the end with "…", and
+no character a computer refuses: the longest songs' first lines fit, and a whole path stays
+well inside Windows' 260 characters even in a deep folder. `<kind>` is `Data.json` (For AI),
+`Report.html` or `Recording.wav` (a take). Song files (Export, Back up) keep their own names.
+
 **A day's sessions in one file** (Rinat, 2026-10-21: "It would've been good to be able to
-export a day's data in one go"): **For AI** at the top of each day in Progress's History with
-two or more sessions saves `Practice <yyyy-mm-dd> (<n> sessions) for AI.json`
+export a day's data in one go"): **For AI** on each day's row in Progress's History saves
+`<yyyy.mm.dd> - Whole day (<n> sessions) - Data.json`
 (`dayFileParts`): `about_this_file` (`DAY_BRIEF`, the session brief's parts with the day's own
 first words, parts and ways to analyse), `file` (`{ kind: "Gaaner Sathi practice of one day,
 for AI analysis", version: 1, made, day, sessions, sessions_with_detail }`), `day` (date,
@@ -362,8 +379,16 @@ sessions, seconds, songs, average score), `sessions` (each numbered in order, `s
 with `song_as_played` and the session file's parts before its long tables), `songs_as_played`
 (each song once for each way it was played; `as_played` false where the session kept no detail
 and the song is shown as it is now), `earlier_sessions_of_each_song` (before the day), then the
-long tables: `notes` and `for_programs` (`beats`, `pitch_readings`), each by `session_number`. The file holds the notation, so treat it like a song file;
-no sound is in it. It replaced "Download the pitch data" (2026-10-20, one day old), whose
+long tables: `notes` and `for_programs` (`beats`, `pitch_readings`), each by `session_number`.
+**Report** on the same row opens a page on the day (src/app/dayreport.ts): the day's average
+and how many sessions, tiles (time, sessions, songs and exercises, the best, timing, tendency),
+what went well and what to work on across the day (the best and weakest session, a song sung
+again better or worse, the surest and weakest notes, coming in late, singing flat or sharp),
+the score through the day, the day's notes of the scale on the keys, and each session with the
+app's findings and its lines' scores; saved as `<yyyy.mm.dd> - Whole day (<n> sessions) -
+Report.html`.
+
+These files hold the notation, so treat them like song files; no sound is in them. It replaced "Download the pitch data" (2026-10-20, one day old), whose
 contents it holds in a form an AI can read without the app; Rinat's files for Claude still go
 in `feedback/`, which git ignores.
 
@@ -374,7 +399,8 @@ stands in a number and a sentence, tiles, what is going well and what to work on
 each session placed by date, each line session by session (the last 12, coloured, with its
 average over the last five), the notes of the scale on the keys, how far behind the music the
 voice came (from the newest 60 sessions' detail), and every session. Its file is the practice
-data file (Practice log, above) for that song alone: `<title> all sessions <date> for AI.json`.
+data file (Practice log, above) for that song alone: `<when> - <title> (all sessions) - Data.json`
+(and `… - Report.html`).
 
 ## Built-in exercises
 

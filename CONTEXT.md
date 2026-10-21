@@ -70,9 +70,10 @@ wins, except a later explicit decision by Rinat, which always wins.
   sections folding and moving as the library's), twenty-seven (PH2-27: pitch song by song
   and note by note, all the practice data in one file, Start afresh), twenty-eight (PH2-28:
   the notes on a harmonium's keys, a report and an AI file per song, titles of their own, a
-  20-second wait before deleting), twenty-nine (PH2-29: one session deleted from History) and
-  thirty (PH2-30: no jumps in the voice line; a day's sessions in one file for AI) are built
-  and live. Phase 1, features, was closed by Rinat ("That's it for features",
+  20-second wait before deleting), twenty-nine (PH2-29: one session deleted from History),
+  thirty (PH2-30: no jumps in the voice line; a day's sessions in one file for AI) and
+  thirty-one (PH2-31: a day's Report, For AI and bin on its row; files named by when, title and
+  kind) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
 - **Next single action:** Rinat enters a song in the beat boxes again (rounds sixteen and
   eighteen: Join, Split, Higher, Lower and New line; the lines centred; the dock of notes
@@ -83,10 +84,13 @@ wins, except a later explicit decision by Rinat, which always wins.
   AI or puts it in `feedback/` for Claude to read; looks over the new Progress (rounds
   twenty-six to twenty-nine: Pitch by song, the notes on the keys, a song's Report, Start
   afresh, a session's bin); sings again to see the voice line without jumps and gives a day's
-  For AI file to an AI (round thirty); tries round nine;
+  For AI file to an AI (round thirty); tries a day's Report and bin (round thirty-one); records
+  a take with the pitch check on and puts its Recording.wav beside the session's Data.json in
+  `feedback/`, for Claude to measure; sets Sa's octave to Low if the guide should sound where
+  Rinat sings (C♯3, the second octave of the Casio); tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `e405e1c` (CI run `39586150210`: core, reference and deploy jobs green; checked live).
+- **Last known-good commit:** `cb7fa21` (CI run `39591858782`: core, reference and deploy jobs green; checked live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -321,7 +325,7 @@ decision.
 ### Commands
 
 - `npm install` once.
-- `npm test`: every Vitest suite (431 tests, about 10 s). Read the "Test Files" line: a
+- `npm test`: every Vitest suite (435 tests, about 10 s). Read the "Test Files" line: a
   file that fails to load is not counted as a failed test.
 - `npm run typecheck`: the whole project, then `src/core` and `src/audio/dsp` with no DOM
   library (a DOM call there fails).
@@ -397,6 +401,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-02 | Claude | Review | Design, round two: Pause and a separate Stop; nothing that plays changes the Lines to practise (play from here, sheet line numbers, sections, rewaz, takes); "Check my pitch" listens only while playing; beat box rows with the number and buttons (play this line, play from here, ×) full height, vibhag starts coloured instead of X/0, a tap anywhere on a row selects it, hover | 5 unit tests and the boxes' HTML tests; Edge scenarios `round6` (42 checks) and `rewaz6` (5), with a WAV microphone (Work log 2026-10-12 16:43) | Waiting for Rinat's use and two answers |
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
+| PH2-31 | Claude | Review | A day's three buttons; files named by when: each History day's row has Report (src/app/dayreport.ts: the day's average, tiles, findings across the day, the score through the day, note by note, each session with its findings and line scores), For AI (the day's file) and the bin, asked in the row ("Delete all 7 sessions of this day?", Escape keeps), deleting the day's log entries (`LogStore.remove` of several) and detail; the date folds the day (a button, `aria-expanded`), the separate day bar gone. Every file saved named `<when> - <title> - <kind>` (src/app/filenames.ts: `stamp`, `fileTitle` to 60 letters at a space, `exportName`): session, day, song and all-practice data and reports, and takes (`Recording.wav`) | 4 new unit tests (names; titles cut; a day's sums and findings; the day's page) and 4 changed (the day's row and its asking; the days kept open; the names of a session's, a day's and a take's files; several log entries deleted); headless Edge on `npm run dev` with seeded sessions (two details in IndexedDB): 16 days with three buttons each, the date folding and unfolding with the keyboard kept, the day's report (6 sections, 4 sessions, saved as "2026.10.20 - Whole day (4 sessions) - Report.html"), the day's and a session's files ("2026.10.20 - Whole day (4 sessions) - Data.json", "2026.10.20_08.37.02 - আমার সোনার বাংলা - Data.json"), the bin asking, Escape back to the bin, Delete removing 4 entries and 2 details; the report at 1280 px day and 360 px night (360 px wide), History at 360 px night (Work log 2026-10-21, round thirty-one) | Waiting for Rinat's use |
 | PH2-30 | Claude | Review | No jumps in the voice line; a day in one file for AI: after the glitch rule, a stretch of voice of up to 8 readings (about 185 ms) that leaps 1000 cents or more from a longer stretch next to it, within 0.25 s, is read as no voice (`SlipFilter` in src/core/pitch/track.ts; the detector catching the 2nd, 3rd or 4th harmonic of a low voice, or the guide); the octave sung in starts as last time (`voiceOct`) and changes on 20 readings and twice the old octave's. For AI at the top of each History day of two or more sessions saves `Practice <date> (<n> sessions) for AI.json` (`dayFileParts`, `DAY_BRIEF`); the session file's long tables come last, readings to 10 ms and the cent, the brief saying what to skip, "short" notes, readings at the pitch sung and overtone slips | 7 new unit tests (slips in a note, at an onset, at the end, two in a row, after a pause; the singing left alone; the octave kept and changed; `voiceOct` kept; the long tables last; the day's file; the day's button); Rinat's six sessions of 2026-10-20 replayed through the tracker (jumps over 600 cents 45/22/55/148/30/122 → 10/1/3/11/5/16); headless Edge with a WAV singer an octave below with 25 overtone slips, the live site against `npm run dev`: 29 jumps and 191 points at the strip's edge → 1 and 20 (0 with the octave kept), `voiceOct` −1 saved; a day's For AI on seeded sessions: the file's parts, 4 sessions, 2 songs as played; 1280 px day, 360 px night (Work log 2026-10-21, round thirty) | Waiting for Rinat to sing with it |
 | PH2-29 | Claude | Review | One session deleted: a bin at the end of each History session asks "Delete this session?" in its row (Delete, Keep; Escape keeps, the keyboard back on the bin) and deletes its log entry (`LogStore.remove`) and its detail (`SessionStore.remove`), the library's last-practised dates and the buttons after a run following; History's days stay opened or closed as the user left them when Progress is drawn again | 1 new unit test (asked in the row; the days kept) and 2 extended (the bin; `remove`); headless Edge on `npm run dev` with seeded sessions and two details in IndexedDB: the bin asked, Escape back to the bin, Delete removed the entry and its detail (2 kept → 1) with "Deleted the session of ‘আমার সোনার বাংলা’ at 13:11.", a sixth day opened stayed open; 360 px night: the row asking, 360 px wide (Work log 2026-10-20, round twenty-nine) | Waiting for Rinat's use |
 | PH2-28 | Claude | Review | The notes on the keys, a report per song, titles of their own: Note by note as a harmonium's keys from the lowest note sung to the highest (Sa as C, so komal and tivra are the black keys), each sung key coloured by its average score with the score on it and ▲ ▼ when usually sharp or flat, under 5 times hatched, the octaves named under them; in Progress a key tapped says its numbers, the numbers folded under the keys; the session report shows the keys above its table (src/app/notekeys.ts, its styles shared). Songs and exercises rows: Report (songreport.ts: the trend, tiles, going well and to work on, score by date, line by line session by session, the keys, timing, every session) and For AI (`practiceFileParts` for one song). Titles: `uniqueTitle` for new songs, copies and imports; a note while typing a title in use, numbered on leaving the box; `titleFixes` on opening for songs already sharing one. Start afresh "(delete all practice data)", Delete it all disabled for 20 s with a countdown | 7 new unit tests (the keys; titles: compared, numbered, fixed; the song report: sums, findings, the page, a deleted song) and 4 extended; headless Edge on `npm run dev` with 42 seeded sessions (komal Ga and Ni sung, a third song sharing a title): the shared title numbered on load and said; keys with komal Ga and Ni black; a key tapped; a song's report (7 sections, opened from its row); Delete it all disabled and counting, refusing a click, enabled at 20 s and deleting; a new song typed to a title in use, said, then numbered; 1280 px day and 360 px night (no sideways scrolling) (Work log 2026-10-20, round twenty-eight) | Waiting for Rinat's use |
@@ -493,6 +498,7 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-15 | **The Practice view is the song line by line:** one window of about seven lines (5, 7 or 9, in its settings), the line being sung third (the first two lines start at the top) and large, sliding on a line as each plays; a line number plays from there and the section chips stay above. Each beat: the words big with the notes small above (a line without words shows its notes big), a mark for how it was sung, and a pitch strip with a bar for each note at its height; while the pitch check listens the voice is drawn over the bars (green, amber, red), and each line's score shows by its number. The beat sounding is lit, with a playhead through it. It replaces the Now singing panel, the coming-up notes, the pitch meter and its trace box, and the Practice sheet; the ruled lines, the red margin and the red-ink words stay. | Rinat, chat 2026-10-15, with a mockup ("combining the section where it shows the current and upcoming notes, pitch checker with the lyrics section", "a vertical carousel where about 7 lines are visible. The currently playing line is the 3rd one", "The lyrics part is bigger, full width pitch performance strip. When the microphone is off it still shows the strip with lines representing the notes"); the details (a strip under every line, the colours, the first lines at the top, long lines over two rows on a phone, the scores by the numbers, the last line kept at the end) are Claude's | src/app/lines.ts; ENGINE.md → Pitch feedback → Shown. The editor's preview and the printed sheet are unchanged. |
 | 2026-10-15 | **The taal as a figure,** beside the line being sung: a shape per vibhag with a corner per beat (four beats a square, three a triangle, two a stroke: Keherwa two squares, Dadra two triangles, Teentaal four squares), the first corner of each in its kind's colour (sam, tali, khali, as in the beat boxes), khali's shape dashed; the cycle traced round as it goes, the beat's corner lit. The strip of bols is gone. | Rinat, chat 2026-10-15 ("a square where the corners light up for 8 beat taals. but not sure where to put it … seeing the bol's of the taal doesn't really do much for me"); generalising the square to a shape per vibhag, and its place (where Rinat's mockup drew it), are Claude's | The taal's name and structure stay over the lines ("Keherwa · 4 + 4"). |
 | 2026-10-15 | **A settings button over the lines:** lines shown (5, 7, 9), the size of the words and notes (smaller, normal, bigger), the keys to press and the pitch check's octave rule (both moved here). The Practice settings bar is left as it was. | Rinat, chat 2026-10-15 ("There could be a settings button to adjust a few relevant things", "Leave the settings section alone - we'll come back to it later"); the choice of settings is Claude's | Settings `plRows`, `plSize` (DATA.md). |
+| 2026-10-21 | **Files named by when, title and kind; a day's three buttons.** Every file Progress and Practice save is `YYYY.MM.DD_HH.mm.SS - Title - Data.json` (`Report.html`; `Recording.wav` for a take), a day's with its date alone, so a folder lists a session's files together in time order; titles keep at most 60 letters, cut at a space. Each History day has a session's Report, For AI and bin for the whole day, the bin asked in the row; its date folds it. | Rinat, chat 2026-10-21 ("The export file format make it like this YYYY.MM.DD_HH.mm.SS - Title maxchar90 - Data.json … pick a more suitable number as you see fit"; "the same three buttons as there are for the individual sessions, where they can export a days report, days data "For AI" and also the delete button to delete that days data"); 60 letters, the takes' names, the date alone for a day's and the day report's contents are Claude's | src/app/filenames.ts, dayreport.ts, progress.ts, app.ts (`openDayReport`, `removeDay`), store.ts; docs/DATA.md → File names, Practice log. |
 | 2026-10-21 | **Overtone slips read as no voice; the octave sung in kept.** A stretch of voice of up to about 0.2 s that leaps 1000 cents or more away from a longer stretch next to it is the detector catching an overtone (or the guide), not singing: it is read as no voice, in the drawing, the scores, the detail and the file for AI, as a glitch is. Smaller steps are never touched; a real leap of an octave or more waits about 0.2 s before it is drawn. The octave the voice is drawn in starts as the last run's (kept on the device) and changes only when another is clearly sung. | Rinat, chat 2026-10-21 ("the sudden jump of the pitch line still exists. I don't know the thing worked pretty good before, just a few versions ago"): until 2026-10-20 each reading was drawn folded onto the note, which hid most overtones; drawing the voice at its own pitch (round twenty-four, so it never flipped) showed them, and the octave found anew each run made a jump at its start. The rule, its sizes and keeping the octave are Claude's, measured on Rinat's sessions | src/core/pitch/track.ts (`SlipFilter`, `measureOctave`), src/app/pitch.ts; prefs `voiceOct` (docs/DATA.md); docs/ENGINE.md → Slips to an overtone, The octave sung in. |
 | 2026-10-21 | **A day's sessions in one file for AI; the files' long tables last.** For AI at the top of each History day of two or more sessions saves them all in one file: the brief once, each session's summary and findings, each song once, earlier sessions per song, then the notes, beats and readings. In every file for AI the long tables come last and the brief says they are for programs, so an AI that can take only part of a file takes what it needs; readings are kept to 10 ms and the cent. | Rinat, chat 2026-10-21 ("It would've been good to be able to expost a day's data in one go"; "will a local llm fall over with multiple long json files like this? Does it need refinement or more text to give the llm context?"); the layout, the precision and a button only for days of several sessions are Claude's | src/app/aifile.ts (`dayFileParts`, `DAY_BRIEF`, `sessionParts`), progress.ts, app.ts (`saveDayForAI`); docs/DATA.md → Session detail, reports and the file for AI. |
 | 2026-10-20 | **One session can be deleted, asked in its row**, removing its log entry and its detail together; nothing else changes. | Rinat, chat 2026-10-20 ("have a button next to each session line to delete that particular session data. as sometimes i might click play and inturrupted by a call or another human"); asking in the row, as the library does, is Claude's | src/app/progress.ts, app.ts (`removeSession`), store.ts, db.ts; docs/DATA.md → Practice log. |
@@ -558,6 +564,46 @@ Template:
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
 
+### 2026-10-21 BST — Claude (Opus 5.5) — PH2-31 a day's three buttons; files named by when
+
+- **Goal:** Rinat: "what would fill the gap in our feedback loop? if I record myself can you
+  actually hear them? ... i didn't know i sing an octave lower, i though i was matching it";
+  "in a piano, i pick the second octave from left and match to that"; the files named
+  "YYYY.MM.DD_HH.mm.SS - Title maxchar90 - Data.json" and "... - Report.html"; "the same three
+  buttons as there are for the individual sessions" on each day.
+- **Inspected:** takes already record the microphone through the pitch check's capture and
+  download as WAV (24 kHz, 16-bit), so a recording can come to `feedback/` beside its session's
+  data; Claude cannot listen, but can run the app's own detector over it, measure its spectrum
+  and draw it. The octave: the Sa of Rinat's songs is C♯ "Middle" (C♯4, 277 Hz); the second
+  octave of a 61-key Casio is C3–B3, so Rinat's Sa is C♯3 (139 Hz), where the voice sat: the
+  singing matched what Rinat meant, the guide played an octave above, and the Sa picker's
+  octaves (Low, Middle, High) do not say which keys they are. Every saved file's name was made
+  in its own place, six ways.
+- **Changed:** `cb7fa21` (feat(progress)): filenames.ts (new), dayreport.ts (new), progress.ts
+  (the day's row: a fold button and three actions, asked in the row), app.ts (`dayInputs`,
+  `openDayReport`, `removeDay`; every name through `exportName`), store.ts (`remove` of several),
+  aifile.ts, report.ts, songreport.ts, takes.ts (names), styles.css; tests (session, rewaz,
+  takes, log). This commit: docs/DATA.md (File names, a day), ROADMAP row 31, this file (the
+  PH2-29 entry moved to HISTORY).
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 38 files, 435
+  passed; `npm run build` → 349.7 kB JS. Headless Edge on `npm run dev`, seeded sessions on 16
+  days, two with detail in IndexedDB: 16 days with Report, For AI and a bin each; the date
+  folding (`aria-expanded` false, list hidden, the keyboard on the date) and unfolding; the
+  day's report in a new tab (6 sections, 4 sessions, no NaN, saving as "2026.10.20 - Whole day
+  (4 sessions) - Report.html"); "Saved 2026.10.20 - Whole day (4 sessions) - Data.json"; a
+  session's "2026.10.20_08.37.02 - আমার সোনার বাংলা - Data.json"; the bin asking "Delete all 4
+  sessions of this day?" with the keyboard on Keep, Escape back to the bin, Delete: the day's 4
+  log entries and its 2 details gone, "Deleted all 4 sessions of Tuesday 20 October.", 15 days
+  left. 1280 px day: History and the day report; 360 px night: History, the asking row and the
+  day report, 360 px wide. CI run `39591858782` (`cb7fa21`): green.
+- **Decisions made:** one row (files named by when, title and kind; a day's three buttons).
+- **Risks or disagreements:** A day's bin deletes several sessions with no undo (asked in the
+  row, as a session's; no wait, unlike Start afresh). A take and its session differ by the
+  count-in in their times, so they list next to each other, not under one name. Not tried on a
+  real phone.
+- **Next handoff:** Rinat sends a take's Recording.wav with its session's Data.json; Rinat says
+  whether the Sa picker should name its octaves by the keyboard (C3, C4, C5).
+
 ### 2026-10-21 BST — Claude (Opus 5.5) — PH2-30 no jumps in the voice line; a day in one file for AI
 
 - **Goal:** Rinat, with the files for AI of yesterday's seven sessions in `feedback/`: "the
@@ -606,31 +652,5 @@ Template:
   not fit a day's file; the brief tells it to take the beginning.
 - **Next handoff:** Rinat sings with the Scarlett and says whether the line still jumps;
   gives a day's file to an AI (or `feedback/`).
-
-### 2026-10-20 BST — Claude (Opus 5.5) — PH2-29 one session deleted from History
-
-- **Goal:** Rinat: "have a button next to each session line to delete that particular session
-  data. as sometimes i might click play and inturrupted by a call or another human etc."
-- **Inspected:** History's rows (Report, For AI); the library's delete asked in its row; the
-  log (localStorage, appended to) and the session detail (IndexedDB, by `at`). Found on the
-  way: drawing Progress again (after a fold, a delete or a new session) closed any day the
-  user had opened beyond the latest three.
-- **Changed:** `ed18bfe` (feat(progress)): progress.ts (the bin, the question in the row,
-  Escape, the days kept as opened), app.ts (`removeSession`: the entry and the detail, the
-  last-practised dates, the buttons after a run), store.ts (`LogStore.remove`), db.ts
-  (`SessionStore.remove`), styles.css; tests (rewaz, log). This commit: docs/DATA.md, ROADMAP
-  row 29, this file (the older PH2-27 entry moved to HISTORY).
-- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 38 files, 424
-  passed; `npm run build` → 330.7 kB JS. Headless Edge on `npm run dev` (restarted: it had
-  stopped), seeded sessions with two details in IndexedDB: the sixth day opened; the bin of a
-  session with detail asked "Delete this session?" with the keyboard on Keep; Escape put the
-  row back with the keyboard on the bin; Delete removed the entry (gone from the stored log),
-  its detail (2 kept → 1) and said "Deleted the session of ‘আমার সোনার বাংলা’ at 13:11.";
-  the sixth day still open. 360 px night: the row asking, Delete and Keep beside the
-  question, 360 px wide. CI run `39460156712` (`ed18bfe`): green.
-- **Decisions made:** one row (one session deleted, asked in its row).
-- **Risks or disagreements:** No undo once Delete is pressed (as with a song). Not tried on a
-  real phone.
-- **Next handoff:** Rinat uses the bin on an interrupted session and says what to change.
 
 Older entries: `docs/HISTORY.md`.

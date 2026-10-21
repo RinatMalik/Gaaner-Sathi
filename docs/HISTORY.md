@@ -49,6 +49,32 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-20 BST — Claude (Opus 5.5) — PH2-29 one session deleted from History
+
+- **Goal:** Rinat: "have a button next to each session line to delete that particular session
+  data. as sometimes i might click play and inturrupted by a call or another human etc."
+- **Inspected:** History's rows (Report, For AI); the library's delete asked in its row; the
+  log (localStorage, appended to) and the session detail (IndexedDB, by `at`). Found on the
+  way: drawing Progress again (after a fold, a delete or a new session) closed any day the
+  user had opened beyond the latest three.
+- **Changed:** `ed18bfe` (feat(progress)): progress.ts (the bin, the question in the row,
+  Escape, the days kept as opened), app.ts (`removeSession`: the entry and the detail, the
+  last-practised dates, the buttons after a run), store.ts (`LogStore.remove`), db.ts
+  (`SessionStore.remove`), styles.css; tests (rewaz, log). This commit: docs/DATA.md, ROADMAP
+  row 29, this file (the older PH2-27 entry moved to HISTORY).
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 38 files, 424
+  passed; `npm run build` → 330.7 kB JS. Headless Edge on `npm run dev` (restarted: it had
+  stopped), seeded sessions with two details in IndexedDB: the sixth day opened; the bin of a
+  session with detail asked "Delete this session?" with the keyboard on Keep; Escape put the
+  row back with the keyboard on the bin; Delete removed the entry (gone from the stored log),
+  its detail (2 kept → 1) and said "Deleted the session of ‘আমার সোনার বাংলা’ at 13:11.";
+  the sixth day still open. 360 px night: the row asking, Delete and Keep beside the
+  question, 360 px wide. CI run `39460156712` (`ed18bfe`): green.
+- **Decisions made:** one row (one session deleted, asked in its row).
+- **Risks or disagreements:** No undo once Delete is pressed (as with a song). Not tried on a
+  real phone.
+- **Next handoff:** Rinat uses the bin on an interrupted session and says what to change.
+
 ### 2026-10-20 BST — Claude (Opus 5.5) — PH2-28 the notes on the keys; a report per song; titles of their own; a wait before deleting
 
 - **Goal:** Rinat: "is it worth having a button next to each song to generate a combined report
