@@ -17,6 +17,13 @@ import { plainBeat } from './view';
 export const AI_FILE_KIND = 'Gaaner Sathi practice session, for AI analysis';
 export const AI_FILE_VERSION = 1;
 
+/** The long tables, and what reading them as text gets (Rinat, 2026-10-21: "will a local llm fall
+ * over with multiple long json files like this?"): they are last, so a file cut short loses them
+ * first. */
+const LONG_PARTS =
+  'The last parts are long (in a long session, tens of thousands of numbers): they are for checking with a program. Reading this ' +
+  'file as text, everything before them is enough, and an AI that can only take part of the file should take the beginning.';
+
 /** What an AI reading the file needs to know first: it may know nothing of the app. */
 export const AI_BRIEF = {
   read_this_first:
@@ -60,9 +67,9 @@ export const AI_BRIEF = {
     'scores are the averages of their sung notes, weighted by length. Grades: 85 and over in tune (shown green), 60 to 84 close ' +
     '(amber), under 60 off (red). cents_off is the median distance from the note once the voice first came within 50 cents of it (+ ' +
     'sharp, − flat), so coming in late does not count as singing off pitch. reached_after_s is how long after the note started the ' +
-    'voice first came within 50 cents of it; null means never. If equipment.any_octave_counts is true, the right note in another ' +
-    'octave counts as right (distances are taken to the nearest octave of the note). The app never moves the singing in time to make ' +
-    'it fit: singing late scores lower.',
+    'voice first came within 50 cents of it; null means never. A note too short to judge (under about 0.08 s) is "short" and left ' +
+    'out. If equipment.any_octave_counts is true, the right note in another octave counts as right (distances are taken to the ' +
+    'nearest octave of the note). The app never moves the singing in time to make it fit: singing late scores lower.',
   behind_the_music:
     'behind_the_music_ms is how far behind the guide the voice came: the shift, from −200 to +600 ms, at which most readings with ' +
     'voice land within 50 cents of the note playing (positive: after the guide; negative: ahead). It is the singer\'s own lateness, ' +
@@ -71,8 +78,8 @@ export const AI_BRIEF = {
     'session: when, how long, which lines, rounds, tempo, the score. song: the song as it was played, its notation and Sa. ' +
     'settings: how it was played. equipment: the device\'s delay and octave settings. findings_by_the_app: what the app itself ' +
     'concluded, by fixed rules, from the same data (check them, and say where you disagree). lines, rounds, notes_of_the_scale: ' +
-    'summaries. notes: every note the singer was asked to sing, one row each (columns named in notes.columns). beats: every beat ' +
-    'played. pitch_readings: every reading. earlier_sessions_of_this_song: the song\'s earlier sessions, for progress.',
+    'summaries. earlier_sessions_of_this_song: the song\'s earlier sessions, for progress. notes: every note the singer was asked ' +
+    'to sing, one row each (columns named in notes.columns). beats: every beat played. pitch_readings: every reading. ' + LONG_PARTS,
   how_to_analyse: [
     'Start from findings_by_the_app, then check them against the numbers.',
     'Tell pitch from timing: a note can score low because it was reached late (reached_after_s) or because it was held off the note (cents_off).',
@@ -82,7 +89,7 @@ export const AI_BRIEF = {
     'Do not over-read small numbers: with under about 10 sung notes the findings are rough, and a few red notes at the end of a line often only mean the singer stopped to breathe.',
   ],
   caveats: [
-    'The pitch detector can mistake a note for one an octave away, or catch a consonant; readings that jump away and straight back are already taken as no voice.',
+    'The pitch detector can catch an overtone of the voice (an octave, or an octave and a fifth, above it), the guide, or a consonant. A single reading that jumps away and straight back, and a stretch of up to about 0.2 s that leaps 1000 cents or more away from the voice next to it, are already taken as no voice; a longer one can remain, as a sudden leap of an octave or more and back.',
     'Without headphones the microphone also hears the harmonium, which can make the readings follow the guide and look better than the singing was.',
     'A song whose notation was changed after the session is shown here as it was played.',
   ],
@@ -96,6 +103,8 @@ const iso = (at: number) => {
   const off = -d.getTimezoneOffset();
   return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + (off >= 0 ? '+' : '-') + p(Math.floor(Math.abs(off) / 60)) + ':' + p(Math.abs(off) % 60);
 };
+
+const linesText = (e: LogEntry) => (e.from === e.to ? String(e.from + 1) : e.from + 1 + '–' + (e.to + 1));
 
 /** Each notes line's notes and words as text. */
 export function lineTexts(text: string): { notes: string; words: string }[] {
@@ -117,21 +126,22 @@ export interface SessionFileInput {
   made: number;
 }
 
-/** The file's contents. */
-export function aiFile(o: SessionFileInput): Record<string, unknown> {
+type SongPlayed = NonNullable<SessionFileInput['songNow']>;
+const taalText = (taal: string) => {
+  const T = taalInfo(taal);
+  return T ? T.name + ' (' + T.bn + '), ' + T.cycle + ' beats a cycle, divided ' + T.vib.join(' + ') : taal;
+};
+
+/** A session's own parts, as both the file of one session and the file of a day have them. */
+function sessionParts(o: SessionFileInput, texts: readonly { notes: string; words: string }[]): Record<string, unknown> {
   const { e, detail, ins } = o;
-  const song = detail?.played ?? o.songNow;
   const p = detail?.pitch ?? null;
-  const T = song ? taalInfo(song.taal) : null;
-  const texts = song ? lineTexts(song.text) : [];
-  const out: Record<string, unknown> = {
-    about_this_file: AI_BRIEF,
-    file: { kind: AI_FILE_KIND, version: AI_FILE_VERSION, made: iso(o.made) },
+  return {
     session: {
       started: iso(e.at),
       seconds_practised: e.secs,
       song_title: e.title,
-      lines_practised: e.from === e.to ? String(e.from + 1) : e.from + 1 + '–' + (e.to + 1),
+      lines_practised: linesText(e),
       looped: e.loop,
       rounds: e.rounds,
       tempo: e.tempo,
@@ -142,18 +152,6 @@ export function aiFile(o: SessionFileInput): Record<string, unknown> {
       share_of_notes_sung: r(ins.sung, 3),
       detail_kept: !!detail,
     },
-    song: song
-      ? {
-          title: song.title,
-          taal: T ? T.name + ' (' + T.bn + '), ' + T.cycle + ' beats a cycle, divided ' + T.vib.join(' + ') : song.taal,
-          tempo: song.tempo,
-          sa: song.sa,
-          sa_hz: r(song.saHz, 2),
-          as_played: !!detail,
-          notation: song.text,
-          lines: texts.map((t, i) => ({ line: i + 1, notes: t.notes, words: t.words })),
-        }
-      : null,
     settings: detail
       ? {
           guide: detail.settings.guide,
@@ -198,12 +196,42 @@ export function aiFile(o: SessionFileInput): Record<string, unknown> {
     })),
     rounds: ins.rounds.map((x) => ({ round: x.round + 1, score: x.score })),
     notes_of_the_scale: ins.swaras.map((s) => ({ note: noteWords(s.semi, s.oct), bengali: bengali(s.semi, s.oct), times_sung: s.n, average_score: s.score, median_cents_off: s.cents })),
+  };
+}
+
+/** A song as played (or as it is now, for a session without detail). */
+const songPart = (song: SongPlayed, asPlayed: boolean, texts: readonly { notes: string; words: string }[]) => ({
+  title: song.title,
+  taal: taalText(song.taal),
+  tempo: song.tempo,
+  sa: song.sa,
+  sa_hz: r(song.saHz, 2),
+  as_played: asPlayed,
+  notation: song.text,
+  lines: texts.map((t, i) => ({ line: i + 1, notes: t.notes, words: t.words })),
+});
+
+const earlierPart = (es: readonly LogEntry[]) =>
+  es.map((x) => ({ started: iso(x.at), seconds_practised: x.secs, lines_practised: linesText(x), rounds: x.rounds, tempo: x.tempo, score: x.score ?? null }));
+
+/** The file's contents: the brief, the summaries, then the long tables (Rinat, 2026-10-21: the
+ * earlier sessions moved before them, so a file cut short keeps them). */
+export function aiFile(o: SessionFileInput): Record<string, unknown> {
+  const song = o.detail?.played ?? o.songNow;
+  const p = o.detail?.pitch ?? null;
+  const texts = song ? lineTexts(song.text) : [];
+  const { session, ...rest } = sessionParts(o, texts);
+  return {
+    about_this_file: AI_BRIEF,
+    file: { kind: AI_FILE_KIND, version: AI_FILE_VERSION, made: iso(o.made) },
+    session,
+    song: song ? songPart(song, !!o.detail, texts) : null,
+    ...rest,
+    earlier_sessions_of_this_song: earlierPart(o.earlier),
     notes: p ? notesTable(p) : null,
     beats: p ? beatsTable(p) : null,
     pitch_readings: p && song ? readingsTable(p, song.saHz) : null,
-    earlier_sessions_of_this_song: o.earlier.map((x) => ({ started: iso(x.at), seconds_practised: x.secs, lines_practised: x.from === x.to ? String(x.from + 1) : x.from + 1 + '–' + (x.to + 1), rounds: x.rounds, tempo: x.tempo, score: x.score ?? null })),
   };
-  return out;
 }
 
 const notesTable = (p: PitchDetail) => ({
@@ -213,15 +241,17 @@ const notesTable = (p: PitchDetail) => ({
 const beatsTable = (p: PitchDetail) => ({ columns: ['start_s', 'song_beat', 'round', 'seconds_a_beat'], rows: p.beats.map((b) => [r(b[0], 3), b[1] + 1, b[2] + 1, r(b[3], 4)]) });
 const readingsTable = (p: PitchDetail, saHz: number) => ({
   columns: ['time_s', 'cents_above_sa'],
-  about: 'Every reading, when it was sung. cents_above_sa is null where there was no voice; Hz = sa_hz × 2^(cents/1200).',
+  about: 'Every reading, when it was sung, at the pitch sung: a voice an octave below the notes (equipment.octave_sung_against_the_notes −1) reads about 1200 below them. cents_above_sa is null where there was no voice. Times to the hundredth of a second, cents to the whole cent; Hz = sa_hz × 2^(cents/1200).',
   rows: readingRows(p.readings, p.lag, saHz),
 });
 
+/** Times to 10 ms and cents to the cent (Rinat, 2026-10-21): the readings are ~21 ms apart and the
+ * detector good to a cent or two, and they are most of a file's length. */
 function readingRows(readings: readonly number[], lag: number, saHz: number): (number | null)[][] {
   const out: (number | null)[][] = [];
   for (let i = 0; i + 1 < readings.length; i += 2) {
     const hz = readings[i + 1]!;
-    out.push([r(readings[i]! - lag, 3), hz > 0 ? r(centsFromSa(hz, saHz), 1) : null]);
+    out.push([r(readings[i]! - lag, 2), hz > 0 ? Math.round(centsFromSa(hz, saHz)) : null]);
   }
   return out;
 }
@@ -270,8 +300,6 @@ export const PRACTICE_BRIEF = {
   caveats: AI_BRIEF.caveats,
 };
 
-const linesText = (e: LogEntry) => (e.from === e.to ? String(e.from + 1) : e.from + 1 + '–' + (e.to + 1));
-
 /** The text of the whole practice history, in pieces to join (a long history is tens of
  * megabytes, so it is never one string or one pass of a regular expression). */
 export function practiceFileParts(log: readonly LogEntry[], sessions: readonly SessionDetail[], exported: string, made: number, oneSong?: string): string[] {
@@ -286,12 +314,11 @@ export function practiceFileParts(log: readonly LogEntry[], sessions: readonly S
     const key = [d.song, s.title, s.taal, s.tempo, s.saHz, s.sa, s.text].join('\u0001');
     let v = versions.get(key);
     if (!v) {
-      const T = taalInfo(s.taal);
       v = {
         song_as_played: 'v' + (versions.size + 1),
         song_id: d.song,
         title: s.title,
-        taal: T ? T.name + ' (' + T.bn + '), ' + T.cycle + ' beats a cycle, divided ' + T.vib.join(' + ') : s.taal,
+        taal: taalText(s.taal),
         tempo: s.tempo,
         sa: s.sa,
         sa_hz: r(s.saHz, 2),
@@ -344,6 +371,107 @@ export function practiceFileParts(log: readonly LogEntry[], sessions: readonly S
   parts.push('\n  ]\n}\n');
   return parts;
 }
+
+// ── A day's sessions, as one file (Progress → History → a day's For AI) ───────
+
+export const DAY_FILE_KIND = 'Gaaner Sathi practice of one day, for AI analysis';
+export const DAY_FILE_VERSION = 1;
+
+/** What an AI reading a day's practice needs to know first. */
+export const DAY_BRIEF = {
+  read_this_first:
+    'This file is one day of a singer\'s practice: every session that day, from Gaaner Sathi (গানের সাথী, "singing companion"), a web ' +
+    'app for practising Bengali songs (Rabindrasangeet and others) from swaralipi, the Bengali akarmatrik notation. The singer sang ' +
+    'along with the app while it listened through the microphone. Read this brief first: it explains the app, the notation, how the ' +
+    'app judged the singing, and every part of the file. Then help the singer: how the day went, what went well, what needs work ' +
+    '(pitch, timing, particular notes, lines, jumps), and what to practise next. The singer is not technical: write in plain words, ' +
+    'name sessions by their number and song ("session 3, Nisha lagilo re"), lines by number ("line 3") and notes by name ("komal Ga"), ' +
+    'and give cents and milliseconds only with what they mean ("about a fifth of a second late").',
+  the_app: AI_BRIEF.the_app,
+  notation: AI_BRIEF.notation,
+  time: AI_BRIEF.time + ' Each session has its own times, from its own first beat.',
+  scoring: AI_BRIEF.scoring,
+  behind_the_music: AI_BRIEF.behind_the_music,
+  the_parts_of_this_file:
+    'day: the day in brief. sessions: each session, numbered (session_number) in the order sung, with what the file of one session has before its ' +
+    'long tables: session (when, how long, which lines, rounds, tempo, the score), song_as_played (which of songs_as_played it is), ' +
+    'settings, equipment (the device\'s delay and octave settings), findings_by_the_app (what the app itself concluded, by fixed ' +
+    'rules: check them, and say where you disagree), lines, rounds and notes_of_the_scale. songs_as_played: each song once, as it was ' +
+    'played: its notation, Sa, taal, tempo, and its lines\' notes and words. earlier_sessions_of_each_song: each song\'s sessions ' +
+    'before this day, for progress. notes: for each session (by session_number), every note the singer was asked to sing, one row ' +
+    'each (columns named in columns). for_programs: for each session, every beat played (beats) and every pitch reading ' +
+    '(pitch_readings). ' + LONG_PARTS,
+  how_to_analyse: [
+    'Start from each session\'s findings_by_the_app, then check them against the numbers.',
+    'Compare the sessions of the day: the same song sung again (better or worse?), warming up through the day, or tiring.',
+    'Tell pitch from timing: a note can score low because it was reached late (reached_after_s) or because it was held off the note (cents_off).',
+    'Look for patterns across the day: notes of the scale always sharp or flat; big jumps (5 semitones or more) reached late; the start of lines (coming in after a breath) against their middle; high or low notes.',
+    'Compare with earlier_sessions_of_each_song for progress.',
+    'Suggest three to five things to practise next, concretely: for example a slower tempo, looping one line, the guide on Soft, practising one jump on its own, holding Sa or Pa with the tanpura.',
+    'Do not over-read small numbers: with under about 10 sung notes the findings are rough, and a few red notes at the end of a line often only mean the singer stopped to breathe.',
+  ],
+  caveats: AI_BRIEF.caveats,
+};
+
+/**
+ * A day's sessions as one file (Rinat, 2026-10-21: "It would've been good to be able to export
+ * a day's data in one go"), oldest first: the brief once, every session's summary and findings,
+ * each song once, then the long tables, so that what an AI reads first is what it needs (a day's
+ * readings are hundreds of thousands of numbers). In pieces to join, as a busy day runs to
+ * megabytes.
+ */
+export function dayFileParts(inputs: readonly SessionFileInput[], day: string, made: number): string[] {
+  const versions = new Map<string, Record<string, unknown>>();
+  const earlier = new Map<string, { title: string; entries: readonly LogEntry[] }>();
+  const sessions = inputs.map((o, i) => {
+    const song = o.detail?.played ?? o.songNow;
+    const texts = song ? lineTexts(song.text) : [];
+    let version: string | null = null;
+    if (song) {
+      const key = [o.e.song, song.title, song.taal, song.tempo, song.saHz, song.sa, song.text, !!o.detail].join('\u0001');
+      if (!versions.has(key)) versions.set(key, { song_as_played: 'v' + (versions.size + 1), ...songPart(song, !!o.detail, texts) });
+      version = versions.get(key)!.song_as_played as string;
+    }
+    // A song's sessions before the day: those before its first session of the day.
+    if (!earlier.has(o.e.song)) earlier.set(o.e.song, { title: o.e.title, entries: o.earlier.filter((x) => !inputs.some((y) => y.e.at === x.at)) });
+    return { session_number: i + 1, song_as_played: version, ...sessionParts(o, texts) };
+  });
+  const scored = inputs.map((o) => o.ins.score).filter((s): s is number => s != null);
+  const head = tableJSON({
+    about_this_file: DAY_BRIEF,
+    file: { kind: DAY_FILE_KIND, version: DAY_FILE_VERSION, made: iso(made), day, sessions: inputs.length, sessions_with_detail: inputs.filter((o) => o.detail).length },
+    day: {
+      date: day,
+      sessions: inputs.length,
+      seconds_practised: inputs.reduce((a, o) => a + o.e.secs, 0),
+      songs: [...new Set(inputs.map((o) => o.e.title))],
+      average_score: scored.length ? Math.round(scored.reduce((a, s) => a + s, 0) / scored.length) : null,
+    },
+    sessions,
+    songs_as_played: Array.from(versions.values()),
+    earlier_sessions_of_each_song: Array.from(earlier.values(), (x) => ({ song_title: x.title, sessions: earlierPart(x.entries) })),
+  });
+  const parts = [head.slice(0, head.lastIndexOf('}')).trimEnd()];
+  const list = (key: string, of: (o: SessionFileInput) => Record<string, unknown> | null) => {
+    parts.push(',\n  "' + key + '": [');
+    let n = 0;
+    inputs.forEach((o, i) => {
+      const x = of(o);
+      if (x) parts.push((n++ ? ',' : '') + '\n' + tableJSON({ session_number: i + 1, started: iso(o.e.at), ...x }).replace(/^/gm, '    '));
+    });
+    parts.push('\n  ]');
+  };
+  list('notes', (o) => (o.detail?.pitch ? notesTable(o.detail.pitch) : null));
+  list('for_programs', (o) => {
+    const p = o.detail?.pitch;
+    return p ? { beats: beatsTable(p), pitch_readings: readingsTable(p, o.detail!.played.saHz) } : null;
+  });
+  parts.push('\n}\n');
+  return parts;
+}
+
+/** A day's file's name. */
+export const dayFileName = (day: string, n: number): string => 'Practice ' + day + ' (' + n + (n === 1 ? ' session' : ' sessions') + ') for AI.json';
 
 /** The file's name: the song, the date and time. */
 export function aiFileName(e: LogEntry): string {

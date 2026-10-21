@@ -36,7 +36,7 @@ import { playSeconds, sectionOfLine, sectionTempoAt, setHeadingTempo, songSectio
 import { oneTaal, taalMap, type Taals } from '../core/notation/taalmap';
 import type { Beat, ParsedSong, Unit } from '../core/notation/types';
 import { analyse } from '../core/practice/insights';
-import { lastPractised, lengthText, MIN_LOG_SECS, noteTally, type LogEntry } from '../core/practice/log';
+import { dayNumber, lastPractised, lengthText, MIN_LOG_SECS, noteTally, type LogEntry } from '../core/practice/log';
 import type { PitchDetail, PlayedSettings, PlayedSong, SessionDetail } from '../core/practice/session';
 import { songSpan } from '../core/pitch/voice';
 import { itemLines, type RoutineItem } from '../core/practice/routine';
@@ -46,7 +46,7 @@ import { titleFixes, uniqueTitle } from '../core/song/library';
 import { cleanDismissed, cleanNotes, newId, normalize, parseTags, type Song } from '../core/song/model';
 import { SONG_SOUND_KEYS, soundOf, type SongSound } from '../core/song/sound';
 import { isTaalId, taalInfo, TAALS, type TaalInfo } from '../core/taal/taals';
-import { aiFileName, aiFileText, practiceFileParts, type SessionFileInput } from './aifile';
+import { aiFileName, aiFileText, dayFileName, dayFileParts, practiceFileParts, type SessionFileInput } from './aifile';
 import { SessionStore } from './db';
 import { initPitch, type PitchUI } from './pitch';
 import { initBoxes, withNewHeading, type Boxes } from './boxes';
@@ -875,6 +875,21 @@ async function saveSongForAI(id: string): Promise<void> {
   const d = today();
   const name = o.title.replace(/[\\/:*?"<>|\u0000-\u001f]+/g, '-').replace(/\s+/g, ' ').trim().slice(0, 60) + ' all sessions ' + d + ' for AI.json';
   void offerFile(name, new Blob(practiceFileParts(o.entries, Array.from(o.details.values()), d, Date.now(), o.title), { type: 'application/json' }), say);
+}
+
+/** A day's sessions (by day number, as Progress groups them) as one file for AI, saved. */
+async function saveDayForAI(day: number): Promise<void> {
+  const say = (t: string) => setFileStatus(t, '#pgStatus');
+  const ats = logStore.load().filter((e) => dayNumber(e.at) === day).map((e) => e.at);
+  say('Gathering the day’s sessions…');
+  const inputs = (await Promise.all(ats.map(sessionInput))).filter((o): o is SessionFileInput => !!o);
+  if (!inputs.length) {
+    say('That day is no longer in the practice log.');
+    return;
+  }
+  const d = new Date(inputs[0]!.e.at);
+  const date = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  void offerFile(dayFileName(date, inputs.length), new Blob(dayFileParts(inputs, date, Date.now()), { type: 'application/json' }), say);
 }
 
 /** A session's file for AI, saved. */
@@ -2535,6 +2550,7 @@ export function init(): void {
     script: () => prefs.script,
     report: (at) => void openReport(at, (t) => setFileStatus(t, '#pgStatus')),
     forAI: (at) => void saveForAI(at, (t) => setFileStatus(t, '#pgStatus')),
+    dayForAI: (day) => void saveDayForAI(day),
   });
   void backfillNotes();
   // After a run with the pitch check: its report and its file for AI, as in Progress.

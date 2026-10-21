@@ -1,7 +1,7 @@
 // A session's detail, what it shows, its report and its file for AI (src/core/practice/session.ts,
 // insights.ts; src/app/report.ts, aifile.ts), and how long a song plays.
 import { describe, expect, it } from 'vitest';
-import { aiFile, aiFileName, aiFileText, AI_BRIEF, practiceFileParts, PRACTICE_BRIEF, type SessionFileInput } from '../../src/app/aifile';
+import { aiFile, aiFileName, aiFileText, AI_BRIEF, DAY_BRIEF, dayFileName, dayFileParts, practiceFileParts, PRACTICE_BRIEF, type SessionFileInput } from '../../src/app/aifile';
 import { progressHTML } from '../../src/app/progress';
 import { noteKeysHTML, noteKeysLegend } from '../../src/app/notekeys';
 import { reportHTML } from '../../src/app/report';
@@ -10,7 +10,7 @@ import { songRowHTML } from '../../src/app/songs';
 import { parseSong } from '../../src/core/notation/parse';
 import { playSeconds, sectionTempoAt, songSections } from '../../src/core/notation/sections';
 import { analyse, noteWords } from '../../src/core/practice/insights';
-import { lengthText, noteTally, type LogEntry } from '../../src/core/practice/log';
+import { dayNumber, lengthText, noteTally, type LogEntry } from '../../src/core/practice/log';
 import { cleanSession, type NoteRow, type SessionDetail } from '../../src/core/practice/session';
 import { PitchTracker, type ExpectedNote } from '../../src/core/pitch/track';
 import { entryFor, type LibrarySong } from '../../src/core/song/library';
@@ -168,6 +168,14 @@ describe('the file for AI', () => {
     expect(aiFileName(o.e)).toBe('আমার সোনার বাংলা session 2026-10-20 18-05 for AI.json');
   });
 
+  it('keeps the long tables last, the readings to 10 ms and the cent (Rinat, 2026-10-21)', () => {
+    const f = aiFile(input(sing())) as Record<string, any>;
+    expect(Object.keys(f).slice(-4)).toEqual(['earlier_sessions_of_this_song', 'notes', 'beats', 'pitch_readings']);
+    const voiced = f.pitch_readings.rows.filter((r: (number | null)[]) => r[1] != null);
+    expect(voiced.every(([t, c]: number[]) => Number.isInteger(c) && Math.abs(t * 100 - Math.round(t * 100)) < 1e-6)).toBe(true);
+    expect(AI_BRIEF.the_parts_of_this_file).toContain('for checking with a program');
+  });
+
   it('still says what the log knows for a session without detail', () => {
     const f = aiFile(input(null, [entry({ score: 70, lines: [[0, 70]] })])) as Record<string, any>;
     expect(f.session.detail_kept).toBe(false);
@@ -204,6 +212,37 @@ describe('all practice as one file', () => {
     expect(s1.notes_of_the_scale).toEqual(fileOfOne.notes_of_the_scale);
     expect(s2).toMatchObject({ rewaz_routine: 'Morning', notes_of_the_scale: null });
     expect(s2.detail.equipment).toEqual({ device_delay_s: 0.05, delay_measured: true, any_octave_counts: true, octave_sung_against_the_notes: 0 });
+  });
+});
+
+describe('a day as one file (Rinat, 2026-10-21)', () => {
+  it('has the brief once, every session’s summary in order, each song once, then the long tables', () => {
+    const before = entry({ at: T0 - 86_400_000, score: 55 });
+    const e1 = entry({ score: 80 });
+    const e2 = entry({ at: T0 + 60_000, score: 90 });
+    const e3 = entry({ at: T0 + 120_000, song: 's2', title: 'Old' });
+    const log = [before, e1, e2, e3];
+    const d1 = sing({ late: 0.2 });
+    const d2 = { ...sing(), at: e2.at };
+    const of = (e: LogEntry, d: SessionDetail | null): SessionFileInput => ({ e, detail: d, ins: analyse(e, d, log), songNow: d ? null : { title: 'Old', taal: 'dadra', tempo: 90, text: 'সা রা গা', saHz: SA, sa: 'C' }, earlier: log.filter((x) => x.song === e.song && x.at < e.at), made: T0 });
+    const inputs = [of(e1, d1), of(e2, d2), of(e3, null)];
+    const f = JSON.parse(dayFileParts(inputs, '2026-10-20', T0 + 200_000).join(''));
+    expect(Object.keys(f)).toEqual(['about_this_file', 'file', 'day', 'sessions', 'songs_as_played', 'earlier_sessions_of_each_song', 'notes', 'for_programs']);
+    expect(f.about_this_file).toEqual(JSON.parse(JSON.stringify(DAY_BRIEF)));
+    expect(f.file).toMatchObject({ day: '2026-10-20', sessions: 3, sessions_with_detail: 2 });
+    expect(f.day).toMatchObject({ sessions: 3, seconds_practised: 51, songs: ['আমার সোনার বাংলা', 'Old'] });
+    // Each session as its own file has it, before the long tables, numbered and pointing at its song.
+    expect(f.sessions.map((s: any) => [s.session_number, s.song_as_played])).toEqual([[1, 'v1'], [2, 'v1'], [3, 'v2']]);
+    const own = aiFile(inputs[0]!) as Record<string, any>;
+    expect(f.sessions[0].findings_by_the_app).toEqual(JSON.parse(JSON.stringify(own.findings_by_the_app)));
+    expect(f.sessions[0].lines).toEqual(JSON.parse(JSON.stringify(own.lines)));
+    expect(f.songs_as_played.map((s: any) => [s.title, s.as_played])).toEqual([['আমার সোনার বাংলা', true], ['Old', false]]);
+    // Earlier sessions: before the day only, once for each song.
+    expect(f.earlier_sessions_of_each_song).toEqual([{ song_title: 'আমার সোনার বাংলা', sessions: [expect.objectContaining({ score: 55 })] }, { song_title: 'Old', sessions: [] }]);
+    // The long tables for the sessions with the pitch check, by number.
+    expect(f.notes.map((n: any) => [n.session_number, n.rows.length])).toEqual([[1, d1.pitch!.notes.length], [2, d2.pitch!.notes.length]]);
+    expect(f.for_programs[1].pitch_readings.rows).toHaveLength(d2.pitch!.readings.length / 2);
+    expect(dayFileName('2026-10-20', 3)).toBe('Practice 2026-10-20 (3 sessions) for AI.json');
   });
 });
 
@@ -302,5 +341,14 @@ describe('Progress', () => {
     const html = progressHTML([entry({ score: 80 })], T0 + 60_000, { song: () => null });
     expect(html).toContain('data-report="' + T0 + '"');
     expect(html).toContain('data-ai="' + T0 + '"');
+  });
+
+  it('has a For AI for a day of several sessions, all of them in one file (Rinat, 2026-10-21)', () => {
+    const log = [entry({ at: T0 - 86_400_000 }), entry(), entry({ at: T0 + 60_000 })];
+    const html = progressHTML(log, T0 + 120_000, { song: () => null });
+    // Today's two sessions; yesterday's one has its own.
+    expect(html.match(/data-dayai="/g)).toHaveLength(1);
+    expect(html).toContain('data-dayai="' + dayNumber(T0) + '"');
+    expect(html).toContain('All 2 sessions of this day, in one file');
   });
 });

@@ -222,14 +222,21 @@ function songsHTML(log: readonly LogEntry[], now: number, o: ProgressOptions): s
 /** History: each day's sessions, newest day first, the latest three days unfolded. */
 function historyHTML(log: readonly LogEntry[], now: number, o: ProgressOptions): string {
   const days = byDay(log);
-  let html = '<p class="pgsub"><b>Report</b> opens a page on how a session went; <b>For AI</b> saves everything about it as a file for an AI such as Claude or ChatGPT to analyse; the bin deletes it, for one that was interrupted.</p>';
+  let html = '<p class="pgsub"><b>Report</b> opens a page on how a session went; <b>For AI</b> saves everything about it as a file for an AI such as Claude or ChatGPT to analyse (at the top of a day, all its sessions in one file); the bin deletes it, for one that was interrupted.</p>';
   days.slice(0, 60).forEach((d, i) => {
     const date = dateOf(d.day);
     const when = whenText(date.getTime(), now);
     const label = (when === 'today' || when === 'yesterday' ? when[0]!.toUpperCase() + when.slice(1) + ', ' : '') + DAY_NAMES[date.getDay()] + ' ' + date.getDate() + ' ' + MONTHS[date.getMonth()] + (date.getFullYear() === new Date(now).getFullYear() ? '' : ' ' + date.getFullYear());
     const score = meanScore(d.entries);
     const meta = [durationText(d.secs), plural(d.entries.length, 'session'), score != null ? 'pitch ' + score : ''].filter(Boolean).join(' · ');
-    html += '<details class="pgdayl" data-day="' + d.day + '"' + (o.dayOpen?.get(d.day) ?? i < 3 ? ' open' : '') + '><summary><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><b>' + label + '</b><span class="pgdaymeta">' + esc(meta) + '</span></summary><ul class="pgses">' +
+    html += '<details class="pgdayl" data-day="' + d.day + '"' + (o.dayOpen?.get(d.day) ?? i < 3 ? ' open' : '') + '><summary><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><b>' + label + '</b><span class="pgdaymeta">' + esc(meta) + '</span></summary>' +
+      // A day of several sessions: all of them in one file (Rinat, 2026-10-21: "It would've been
+      // good to be able to export a day's data in one go").
+      (d.entries.length > 1
+        ? '<div class="pgsrow pgdayall"><div class="pgsmain"><span class="pgdet">All ' + d.entries.length + ' sessions of this day, in one file</span></div>' +
+          '<div class="lacts"><button type="button" class="lact pgact" data-dayai="' + d.day + '" title="Every session of this day in one file, for an AI such as Claude or ChatGPT to analyse">' + AI_ICON + '<span>For AI</span></button><span class="lact ldel pgpad" aria-hidden="true"></span></div></div>'
+        : '') +
+      '<ul class="pgses">' +
       d.entries.map((e) => {
         const s = o.song(e.song);
         const sure = o.confirmDel === e.at;
@@ -296,6 +303,8 @@ export interface ProgressHost {
   /** A session's report, opened in a new tab; its file for AI, saved. By its log entry's `at`. */
   report(at: number): void;
   forAI(at: number): void;
+  /** A day's sessions as one file for AI, saved. By its day number. */
+  dayForAI(day: number): void;
   /** Open a song or exercise to practise. */
   open(id: string): void;
   /** The sections folded away, and their order, kept on the device. */
@@ -412,6 +421,7 @@ export function initProgress(host: ProgressHost): { render(): void } {
       body.querySelector('[data-sec="pitch"]')?.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
     } else if (b.dataset.report) host.report(+b.dataset.report);
     else if (b.dataset.ai) host.forAI(+b.dataset.ai);
+    else if (b.dataset.dayai) host.dayForAI(+b.dataset.dayai);
     else if (b.dataset.open) host.open(b.dataset.open);
   });
   initSectionDrag(body, {

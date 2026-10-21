@@ -540,6 +540,10 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .pgrw{font-size:12px}
 .pgsrow.sure{background:color-mix(in srgb,var(--red-ink) 7%,transparent)}
 .pgsrow .lact.ldel{width:3.6em}
+/* A day's For AI, above its sessions, in line with theirs. */
+.pgsrow.pgdayall{border-top:1px solid var(--rule);background:color-mix(in srgb,var(--ink) 3%,transparent)}
+.pgsrow.pgdayall .pgsmain{padding-left:44px}
+@media (max-width:720px){.pgsrow.pgdayall .pgsmain{padding-left:14px}.pgsrow.pgdayall .pgpad{display:none}}
 @media (max-width:720px){.pgsrow .lact.ldel{flex:0 0 52px}.pgsrow .lsuret{flex:1 1 auto;border-left:0}.pgsrow .lsure .lact{flex:0 0 auto;width:auto;padding:8px 16px}}
 @media (max-width:720px){.pgsrow{flex-direction:column}.pgsrow .lacts{border-top:1px solid var(--rule)}.pgsrow .lact{flex:1 1 0;width:auto;min-height:40px;font-size:13px}.pgsrow .lact:first-child{border-left:0}}
 .tabbtns{flex-wrap:wrap}
