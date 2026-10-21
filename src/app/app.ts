@@ -609,16 +609,17 @@ function startRun(from: number, to: number, loop: boolean): void {
   const s = soundSource;
   run = {
     song: current.id, title: current.title, from, to, loop, tempo: t, top: t, first: 0, wall: 0, seg: 0, done: 0, pass: 0, line: from, end: 0,
-    played: { title: current.title, taal: current.taal, tempo: current.tempo, text: current.text, saHz: saFreq(songSource), sa: saWords(songSource) },
+    played: { title: current.title, taal: current.taal, tempo: current.tempo, text: current.text, saHz: saFreq(songSource), sa: V.saWords(songSource) },
     settings: { guide: s.guide, guideLoop: s.guideLoop, countIn: !!s.countIn, ramp: !!s.ramp, rampStep: s.rampStep, rampMax: s.rampMax },
   };
   $('#pAfter').hidden = true;
 }
 
-/** Sa in words: "C♯ (Black 1), middle octave". */
-function saWords(k: { saKey: number; saOct: number }): string {
-  const key = V.KEYS[k.saKey];
-  return (key ? key[0] + ' (' + key[1] + ')' : '?') + ', ' + (V.OCTS.find((o) => o[0] === k.saOct)?.[1] ?? '').toLowerCase() + ' octave';
+/** The deck's Sa pickers set to a Sa, the octaves named with its key ("C♯3 · low"). */
+function showSa(saKey: number, saOct: number): void {
+  select('#saKey').value = String(saKey);
+  select('#saOct').innerHTML = V.octOptionsHTML(saKey);
+  select('#saOct').value = String(saOct);
 }
 
 /** A beat is showing: note how far the practice has got. */
@@ -704,7 +705,7 @@ async function sessionInput(at: number): Promise<SessionFileInput | null> {
     detail = null;
   }
   const s = e.song === current.id ? current : songs.get(e.song) || EXERCISES.find((x) => x.id === e.song);
-  const songNow = s ? { title: s.title, taal: s.taal, tempo: s.tempo, text: s.text, saHz: saFreq(s), sa: saWords(s) } : null;
+  const songNow = s ? { title: s.title, taal: s.taal, tempo: s.tempo, text: s.text, saHz: saFreq(s), sa: V.saWords(s) } : null;
   return { e, detail, ins: analyse(e, detail, log), songNow, earlier: log.filter((x) => x.song === e.song && x.at < e.at), made: Date.now() };
 }
 
@@ -1235,8 +1236,7 @@ function forgetSound(): void {
 /** Set the open song's Sa (the deck's pickers too); on an exercise it becomes your Sa. */
 function setSa(s: SaChoice): void {
   const oct = s.saOct === 3 || s.saOct === 5 ? s.saOct : 4;
-  select('#saKey').value = String(s.saKey);
-  select('#saOct').value = String(oct);
+  showSa(s.saKey, oct);
   changed('saKey', s.saKey);
   changed('saOct', oct);
   rememberExerciseSa();
@@ -1866,8 +1866,7 @@ function loadSong(song: Song | Exercise): void {
   $('#notesF').hidden = current.example;
   renderAbout();
   notationBox().value = current.text;
-  select('#saKey').value = String(current.saKey);
-  select('#saOct').value = String(current.saOct);
+  showSa(current.saKey, current.saOct);
   select('#taalSel').value = current.taal;
   taal = taalInfo(current.taal);
   renderStartOn();
@@ -2648,6 +2647,7 @@ export function init(): void {
   input('#tempoNum').addEventListener('change', (e) => setTempo((e.target as HTMLInputElement).value));
   select('#saKey').addEventListener('change', (e) => {
     changed('saKey', +(e.target as HTMLSelectElement).value);
+    showSa(current.saKey, current.saOct);
     rememberExerciseSa();
     renderKeys();
     if (!playing()) showIdle();

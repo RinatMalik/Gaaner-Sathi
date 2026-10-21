@@ -8,6 +8,8 @@ import { foldText, type Song } from './model';
 /** What the library needs from a song or an exercise. */
 export type LibrarySong = Pick<Song, 'id' | 'title' | 'text' | 'tempo' | 'saKey'> & {
   taal: TaalId;
+  /** Sa's octave, to name it as a keyboard does (C♯3). */
+  saOct?: number;
   example?: boolean;
   /** One of the user's songs listed under Exercises. */
   exercise?: boolean;

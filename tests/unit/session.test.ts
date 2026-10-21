@@ -82,7 +82,7 @@ describe('how long a song plays', () => {
   it('shows in the Music library', () => {
     const s: LibrarySong = { id: 'x', title: 'Song', text: 'সা', taal: 'dadra', tempo: 90, saKey: 0, saOct: 4, startOn: 1, example: false, changed: 0 } as unknown as LibrarySong;
     const html = songRowHTML(entryFor(s), { query: '', filter: { kind: 'all', tag: '' }, sort: 'title', currentId: '', practisedAt: () => 0, now: T0, lengthOf: () => 200 } as never);
-    expect(html).toContain('90 per min · 3 min 20 s · Sa C');
+    expect(html).toContain('90 per min · 3 min 20 s · Sa C4 · ');
   });
 });
 

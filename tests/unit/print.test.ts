@@ -15,7 +15,7 @@ describe('the printed sheet', () => {
   it('has the title, the taal, Sa, tempo and start beat, the sheet itself, tags and notes, escaped', () => {
     const html = printSheetHTML(song, P, T, 'bn');
     expect(html).toContain('<h1>আমার &lt;সোনার&gt; বাংলা</h1>');
-    expect(html).toContain('Rupak · রূপক, 7 matras, 3 + 2 + 2, starting on beat 2 · Sa C♯ (Black 1), low octave · 84 matras a minute');
+    expect(html).toContain('Rupak · রূপক, 7 matras, 3 + 2 + 2, starting on beat 2 · Sa C♯3 (Black 1), low octave · 84 matras a minute');
     expect(html).toContain(sheetHTML(P, T, 1, false, 'bn'));
     expect(html).toContain('Rabindrasangeet');
     expect(html).toContain('<h2>About this song</h2><p>Source: Gitabitan\n&lt;meaning&gt;</p>');

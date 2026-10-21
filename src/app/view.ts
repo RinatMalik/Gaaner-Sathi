@@ -28,6 +28,14 @@ export const KOMAL: ReadonlySet<number> = new Set([1, 3, 8, 10]);
 /** Each key with its CT-X3000 key, as Rinat finds it on the keyboard. */
 export const KEYS = [['C', 'White 1'], ['C♯', 'Black 1'], ['D', 'White 2'], ['D♯', 'Black 2'], ['E', 'White 3'], ['F', 'White 4'], ['F♯', 'Black 3'], ['G', 'White 5'], ['G♯', 'Black 4'], ['A', 'White 6'], ['A♯', 'Black 5'], ['B', 'White 7']] as const;
 export const OCTS = [[3, 'Low'], [4, 'Middle'], [5, 'High']] as const;
+/** Sa as a keyboard names it, with its octave's number, middle C being C4: "C♯3" (Rinat,
+ * 2026-10-21: "make the Sa octave picker say which keyboard octave it is (C3, C4, C5), so I can
+ * match it to my Casio"). On a 61-key keyboard such as the CT-X3000, C2 to C7, octave 3 is the
+ * second from the left. */
+export const saKeyName = (saKey: number, saOct: number): string => (KEYS[saKey]?.[0] ?? '?') + saOct;
+/** Sa in words, wherever the app names it: "C♯3 (Black 1), low octave". */
+export const saWords = (s: { saKey: number; saOct: number }): string =>
+  saKeyName(s.saKey, s.saOct) + ' (' + (KEYS[s.saKey]?.[1] ?? '?') + '), ' + (OCTS.find((o) => o[0] === s.saOct)?.[1] ?? '').toLowerCase() + ' octave';
 
 // ── Notes ────────────────────────────────────────────────────────────────────
 
@@ -139,7 +147,8 @@ export function lineOptionsHTML(P: ParsedSong, script: Script): string {
 }
 
 export const keyOptionsHTML = (): string => KEYS.map((k, i) => '<option value="' + i + '">' + k[0] + ' · ' + k[1] + '</option>').join('');
-export const octOptionsHTML = (): string => OCTS.map((o) => '<option value="' + o[0] + '">' + o[1] + '</option>').join('');
+/** The octaves of Sa, named with its key: "C♯3 · low", "C♯4 · middle", "C♯5 · high". */
+export const octOptionsHTML = (saKey = 0): string => OCTS.map((o) => '<option value="' + o[0] + '">' + saKeyName(saKey, o[0]) + ' · ' + o[1].toLowerCase() + '</option>').join('');
 /** The taal picker, in groups: the prototype's six first, then Tagore's own, then more. */
 export const taalOptionsHTML = (): string =>
   TAAL_GROUPS.map((g) => '<optgroup label="' + esc(g.label) + '">' +

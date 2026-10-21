@@ -110,10 +110,10 @@ describe('the Voice view', () => {
   it('says the range, your Sa and the song’s, and offers to use them', () => {
     const html = rangeResultHTML({ lo: 48, hi: 67 }, 'lat', undefined, { title: 'আমার <গান>', own: true, span: { lo: -5, hi: 12 }, sa: { saKey: 0, saOct: 4 } });
     expect(html).toContain('Your range: <b>C3 · White 1</b> to <b>G4 · White 5</b>, 1 octave and 7 semitones.');
-    expect(html).toContain('Your Sa: <b>E (White 3), low octave</b>');
+    expect(html).toContain('Your Sa: <b>E3 (White 3), low octave</b>');
     expect(html).toContain('a little more than your range');
     expect(html).toContain('data-act="mysa" data-key="4" data-oct="3"');
-    expect(html).toContain('For <b class="vtitle">আমার &lt;গান&gt;</b>: <b>F♯ (Black 3), low octave</b>');
+    expect(html).toContain('For <b class="vtitle">আমার &lt;গান&gt;</b>: <b>F♯3 (Black 3), low octave</b>');
     expect(html).toContain('which fits your range');
     expect(html).toContain('data-act="songsa" data-key="6" data-oct="3"');
     // Already chosen: no buttons, a note instead. An exercise gets no song part.

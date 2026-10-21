@@ -10,19 +10,17 @@ import { asTaals, taalMap, type Taals } from '../core/notation/taalmap';
 import type { ParsedSong } from '../core/notation/types';
 import type { Song } from '../core/song/model';
 import type { TaalInfo } from '../core/taal/taals';
-import { esc, KEYS, OCTS, sheetHTML, taalName, taalSub, type Script } from './view';
+import { esc, saWords, sheetHTML, taalName, taalSub, type Script } from './view';
 
 /** The whole printed page: title, the song's details, the sheet, and its notes. `taals`: the
  * song's taal map, or its one taal. */
 export function printSheetHTML(song: Song, P: ParsedSong, taals: TaalInfo | Taals, script: Script): string {
   const M = asTaals(taals, song.startOn - 1);
   const T = M.runs[0]!.T;
-  const key = KEYS[song.saKey];
-  const oct = OCTS.find((o) => o[0] === song.saOct)?.[1] ?? '';
   const details = [
     taalName(T) + ', ' + taalSub(T) + (song.startOn > 1 ? ', starting on beat ' + song.startOn : '') +
       (M.changes ? ', changing taal by section: ' + M.runs.map((r) => r.T.name).join(', then ') : ''),
-    'Sa ' + (key ? key[0] + ' (' + key[1] + ')' : '?') + ', ' + oct.toLowerCase() + ' octave',
+    'Sa ' + saWords(song),
     song.tempo + ' matras a minute',
   ];
   return '<header class="prhead"><h1>' + esc(song.title) + '</h1><p>' + details.map(esc).join(' · ') + '</p>' +

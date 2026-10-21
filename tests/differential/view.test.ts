@@ -168,6 +168,10 @@ describe('the screen matches the prototype', () => {
       expect(V.startOnOptionsHTML(taalInfo(id))).toBe(W.el('#startOn').innerHTML);
     }
     expect(V.keyOptionsHTML()).toBe(W.keyOptions());
-    expect(V.octOptionsHTML()).toBe(W.octOptions());
+    // The octaves keep the prototype's values and order, now named as a keyboard names them with
+    // the key (Rinat, 2026-10-21: "C3, C4, C5"): "Low" became "C3 · low".
+    const words = (h: string) => Array.from(h.matchAll(/<option value="(\d)">([^<]*)<\/option>/g), (m) => [m[1], m[2]!.replace(/^.*· /, '').toLowerCase()]);
+    expect(words(V.octOptionsHTML())).toEqual(words(W.octOptions()));
+    expect(V.octOptionsHTML(1)).toBe('<option value="3">C♯3 · low</option><option value="4">C♯4 · middle</option><option value="5">C♯5 · high</option>');
   });
 });

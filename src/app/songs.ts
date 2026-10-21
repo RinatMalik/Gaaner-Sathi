@@ -8,7 +8,7 @@ import { foldText } from '../core/song/model';
 import { lengthText } from '../core/practice/log';
 import { TAALS } from '../core/taal/taals';
 import { foldSectionHTML, initSectionDrag } from './fold';
-import { esc, KEYS } from './view';
+import { esc, KEYS, saKeyName } from './view';
 
 /** The library's two sections. */
 export type LibSection = 'mine' | 'ex';
@@ -51,7 +51,7 @@ export function songRowHTML(e: LibraryEntry, o: ListOptions): string {
   const at = o.practisedAt(s.id);
   const what = isExercise(s) ? 'exercise' : 'song';
   const secs = o.lengthOf?.(s.id);
-  const meta = [TAALS[s.taal]?.name ?? s.taal, s.tempo + ' per min', ...(secs ? [lengthText(secs)] : []), 'Sa ' + (KEYS[s.saKey]?.[0] ?? '?'), at ? 'practised ' + whenText(at, o.now) : 'not practised yet'].join(' · ');
+  const meta = [TAALS[s.taal]?.name ?? s.taal, s.tempo + ' per min', ...(secs ? [lengthText(secs)] : []), 'Sa ' + (s.saOct != null ? saKeyName(s.saKey, s.saOct) : KEYS[s.saKey]?.[0] ?? '?'), at ? 'practised ' + whenText(at, o.now) : 'not practised yet'].join(' · ');
   const star = s.example
     ? '<span class="lfav" aria-hidden="true"></span>'
     : '<button type="button" class="lfav" data-fav="' + esc(s.id) + '" aria-pressed="' + !!s.fav + '" aria-label="Favourite">' + (s.fav ? '★' : '☆') + '</button>';

@@ -14,7 +14,7 @@ import { LAT_LETTER } from '../core/notation/symbols';
 import type { ParsedSong } from '../core/notation/types';
 import { HoldTimer, noteName, RangeListener, songSpan, steadiness, suggestSa, TYPICAL_SPAN, type HoldResult, type SaSuggestion } from '../core/pitch/voice';
 import { taalInfo } from '../core/taal/taals';
-import { beatNoteHTML, esc, KEYS, OCTS, type Script } from './view';
+import { beatNoteHTML, esc, KEYS, saWords, type Script } from './view';
 
 /** The lowest and highest notes found, MIDI numbers; either may be missing yet. */
 export interface VoiceRange {
@@ -28,12 +28,8 @@ export interface SaChoice {
 
 const mod = (a: number, n: number) => ((a % n) + n) % n;
 
-/** A Sa in words, as the deck names it: "E (White 3), low octave". */
-export function saText(s: SaChoice): string {
-  const k = KEYS[s.saKey];
-  const o = OCTS.find((x) => x[0] === s.saOct)?.[1] ?? '';
-  return (k ? k[0] + ' (' + k[1] + ')' : '?') + ', ' + o.toLowerCase() + ' octave';
-}
+/** A Sa in words, as the deck names it: "E3 (White 3), low octave". */
+export const saText = (s: SaChoice): string => saWords(s);
 /** A note given in semitones from Sa, drawn as on the sheet. */
 const noteAt = (semis: number, script: Script) => '<b class="vnote">' + beatNoteHTML({ units: [{ k: 'note', semi: mod(semis, 12), oct: Math.floor(semis / 12) }] }, script) + '</b>';
 const midiText = (m: number) => {
