@@ -91,6 +91,9 @@ export interface Prefs extends SoundSettings {
   pitchLag?: number;
   /** The device's own delay, sound out and back in, as last measured with clicks, seconds. */
   deviceLag?: number;
+  /** The octave the voice sang in against the notes last time (−1: an octave below), when any
+   * octave counts; the voice is drawn moved by it from the start of the next run. */
+  voiceOct?: number;
   /** The rewaz routines unfolded, by id; absent: all folded. */
   rewazOpen?: string[];
   /** Day or night colours; unset follows the device. */
@@ -192,6 +195,7 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
   if (r.pitchOctave === true) p.pitchOctave = true;
   if (typeof r.pitchLag === 'number' && r.pitchLag >= 0 && r.pitchLag <= 0.6) p.pitchLag = r.pitchLag;
   if (typeof r.deviceLag === 'number' && r.deviceLag >= 0 && r.deviceLag <= 0.6) p.deviceLag = r.deviceLag;
+  if (Number.isInteger(r.voiceOct) && Math.abs(r.voiceOct as number) <= 2) p.voiceOct = r.voiceOct as number;
   const ro = Array.isArray(r.rewazOpen) ? r.rewazOpen.filter((x): x is string => typeof x === 'string' && !!x).slice(0, 100) : [];
   if (ro.length) p.rewazOpen = ro;
   if (r.theme === 'light' || r.theme === 'dark') p.theme = r.theme;

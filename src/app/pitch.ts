@@ -11,7 +11,9 @@
  * true feedback so i can work on my delay/lateness"). How far behind the guide the voice comes
  * is said under the lines. A reading the detector most likely got wrong is read as no voice;
  * the voice is drawn in the octave it sings in, all of it the same; a slide into a note is drawn
- * grey and not scored (Rinat, 2026-10-20). After a run its detail (every note's result, each
+ * grey and not scored (Rinat, 2026-10-20). A short stretch that slipped to an overtone is read as
+ * no voice too, and the octave sung in is remembered from one run to the next, so the line does
+ * not jump (Rinat, 2026-10-21). After a run its detail (every note's result, each
  * line's score, the readings and the beats) is kept with the session in the practice log, for
  * its report and its file for AI (src/core/practice/session.ts).
  * "Check my pitch" switches it on; the microphone then listens only while a
@@ -23,7 +25,7 @@ import { Mic, MicError, micProblemText, type MicReading } from '../audio/mic';
 import type { BeatEntry } from '../audio/transport';
 import type { ParsedSong } from '../core/notation/types';
 import type { PitchDetail } from '../core/practice/session';
-import { beatNotes, centsFromSa, eventsByBeat, isGlitch, nearestNote, PitchTracker, sliding, type ExpectedNote, type LineResult, type NoteResult, type Section } from '../core/pitch/track';
+import { beatNotes, centsFromSa, eventsByBeat, isGlitch, nearestNote, PitchTracker, SlipFilter, sliding, type ExpectedNote, type LineResult, type NoteResult, type Section } from '../core/pitch/track';
 import { centsText, closeness, ragColour, type LinesUI } from './lines';
 import { beatNoteHTML, type Script } from './view';
 
@@ -42,6 +44,8 @@ export interface PitchHost {
   octave: { get(): boolean; set(v: boolean): void };
   /** The device's own delay (sound out and back in) as last measured, seconds. */
   devLag: { get(): number | undefined; set(v: number): void };
+  /** The octave the voice sang in against the notes last time, when any octave counts. */
+  voiceOct: { get(): number | undefined; set(v: number): void };
   /** The Practice view's lines: the voice is drawn on their strips, each line's score beside it. */
   lines: Pick<LinesUI, 'voice' | 'voiceOff' | 'lineScore' | 'clearRun' | 'gaugeOn' | 'gauge'>;
 }
@@ -99,6 +103,8 @@ export function initPitch(host: PitchHost): PitchUI {
    * pitch of the one before it (0: no voice). */
   let held: MicReading | null = null;
   let before = 0;
+  /** After the glitches, short stretches that slipped to an overtone are read as no voice. */
+  let slips = new SlipFilter<MicReading>();
   /** For drawing a slide grey: the note the last reading was against, whether the voice had
    * slid into it yet, its distance from it, and the last pitch drawn (0: no voice). */
   let slideNote: ExpectedNote | null = null;
@@ -171,8 +177,17 @@ export function initPitch(host: PitchHost): PitchUI {
     }
   }
 
+  /** The readings the slip filter still holds: sung before playing stopped or paused, so scored
+   * and drawn too. */
+  function drain(): void {
+    for (const x of slips.flush()) take(x);
+    slips = new SlipFilter<MicReading>();
+    if (tracker && raf) drawVoice(host.saHz());
+  }
+
   /** Close the microphone (playing stopped or paused); pitch checking stays on. */
   function quiet(text = WAITING): void {
+    drain();
     wanted = false;
     mic?.close();
     mic = null;
@@ -189,7 +204,8 @@ export function initPitch(host: PitchHost): PitchUI {
     message(text);
   }
 
-  /** A reading comes in: the one before it is passed on, read as no voice if it was a glitch. */
+  /** A reading comes in: the one before it is passed on, read as no voice if it was a glitch,
+   * then through the slip filter. */
   function onReading(r: MicReading): void {
     const h = held;
     held = r;
@@ -197,6 +213,11 @@ export function initPitch(host: PitchHost): PitchUI {
     const glitch = isGlitch(before, h.hz, r.hz);
     const c = glitch ? { ...h, hz: 0 } : h;
     before = c.hz;
+    for (const x of slips.push(c)) take(x);
+  }
+
+  /** A reading as it will be drawn, scored and kept. */
+  function take(c: MicReading): void {
     recent.push(c);
     if (recent.length > 400) recent = recent.slice(-300);
     tracker?.addReading({ t: c.t, hz: c.hz });
@@ -277,7 +298,8 @@ export function initPitch(host: PitchHost): PitchUI {
     log = { beats: [], readings: [] };
     parsedAt = host.parsed();
     byBeat = eventsByBeat(parsedAt);
-    tracker = new PitchTracker({ lag: host.devLag.get() ?? mic?.latency() ?? 0.05, anyOctave: !host.octave.get(), saHz: host.saHz() });
+    slips = new SlipFilter<MicReading>();
+    tracker = new PitchTracker({ lag: host.devLag.get() ?? mic?.latency() ?? 0.05, anyOctave: !host.octave.get(), saHz: host.saHz(), octave: host.voiceOct.get() });
     void listen();
   }
 
@@ -469,6 +491,7 @@ export function initPitch(host: PitchHost): PitchUI {
     startRun,
     pause(t) {
       if (tracker) {
+        drain();
         tracker.cut(t);
         settle(false);
       }
@@ -492,6 +515,7 @@ export function initPitch(host: PitchHost): PitchUI {
       quiet();
       if (!tracker) return null;
       settle(true);
+      if (tracker.anyOctave) host.voiceOct.set(tracker.octave);
       const s = tracker.summary();
       showAverage(true);
       if (s) message(REVIEW);

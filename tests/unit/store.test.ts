@@ -59,6 +59,14 @@ describe('preferences', () => {
     expect([loadPrefs(S).pitchLag, loadPrefs(S).deviceLag]).toEqual([undefined, undefined]);
   });
 
+  it('keep the octave the voice sang in, a whole octave within two (Rinat, 2026-10-21)', () => {
+    const S = new Memory();
+    expect([-1, 0, 2, -3, 0.5, '1'].map((v) => {
+      S.setItem(STORE_KEYS.prefs, JSON.stringify({ voiceOct: v }));
+      return loadPrefs(S).voiceOct;
+    })).toEqual([-1, 0, 2, undefined, undefined, undefined]);
+  });
+
   it('fall back to the defaults for values the controls cannot make', () => {
     const S = new Memory();
     S.setItem(STORE_KEYS.prefs, JSON.stringify({ beat: 'banjo', tablaVol: 7, reeds: '3', speed: null, layers: 'x', rampMax: -5, soundOpen: 'yes', tab: 'other' }));

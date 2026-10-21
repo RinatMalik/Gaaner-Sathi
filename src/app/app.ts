@@ -2399,6 +2399,14 @@ export function init(): void {
         savePrefs();
       },
     },
+    voiceOct: {
+      get: () => prefs.voiceOct,
+      set: (v) => {
+        if (prefs.voiceOct === v) return;
+        prefs.voiceOct = v;
+        savePrefs();
+      },
+    },
   });
   rewaz = initRewaz({
     choices: pickerGroups,

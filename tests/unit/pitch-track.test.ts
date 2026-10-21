@@ -10,7 +10,7 @@ import { Transport } from '../../src/audio/transport';
 import { EXERCISES } from '../../src/core/exercises';
 import { parseSong } from '../../src/core/notation/parse';
 import type { ParsedSong } from '../../src/core/notation/types';
-import { beatNotes, centsFromSa, eventsByBeat, foldOctave, isGlitch, nearestNote, noteScore, PitchTracker, sliding, type ExpectedNote, type Section } from '../../src/core/pitch/track';
+import { beatNotes, centsFromSa, eventsByBeat, foldOctave, isGlitch, nearestNote, noteScore, PitchTracker, SLIP_MAX, SlipFilter, sliding, type ExpectedNote, type Section } from '../../src/core/pitch/track';
 import { taalInfo } from '../../src/core/taal/taals';
 import { RecordingContext } from '../differential/webaudio-recorder';
 import { seeded } from '../helpers';
@@ -180,6 +180,77 @@ describe('scores', () => {
     expect(isGlitch(G, 197, G)).toBe(false);
     expect(isGlitch(G, 0, G)).toBe(false);
     expect(isGlitch(0, G, G)).toBe(false);
+  });
+
+  /** Readings 23 ms apart (cents from Sa, null: no voice) through a slip filter: what comes out,
+   * and the most readings it held at once from the `from`th on. */
+  function slipped(cs: (number | null)[], from = 0): { out: (number | null)[]; most: number } {
+    const f = new SlipFilter();
+    const out: (number | null)[] = [];
+    let most = 0;
+    const take = (rs: { hz: number }[]) => out.push(...rs.map((r) => (r.hz ? Math.round(centsFromSa(r.hz, SA)) : null)));
+    cs.forEach((c, i) => {
+      take(f.push({ t: i * 0.023, hz: c == null ? 0 : SA * 2 ** (c / 1200) }));
+      if (i >= from) most = Math.max(most, i + 1 - out.length);
+    });
+    take(f.flush());
+    return { out, most };
+  }
+  const run = (n: number, c: number | null) => Array<number | null>(n).fill(c);
+
+  it('reads a stretch that slipped to an overtone as no voice: in a note, at an onset, at the end (Rinat, 2026-10-21)', () => {
+    // A voice an octave below Sa; the detector reads its 3rd harmonic (1900 cents up) for 3.
+    const mid = slipped([...run(20, -1200), ...run(3, 702), ...run(20, -1200)], 20);
+    expect(mid.out).toEqual([...run(20, -1200), ...run(3, null), ...run(20, -1200)]);
+    // Only the slip waits: the voice coming back carries on at once.
+    expect(mid.most).toBe(3);
+    // At an onset after a breath, five readings of the 3rd harmonic before the voice.
+    const onset = slipped([...run(15, null), ...run(5, 700), ...run(20, -1196)]);
+    expect(onset.out).toEqual([...run(20, null), ...run(20, -1196)]);
+    // At the end of a phrase, the 2nd harmonic; and two in a row, the 3rd then the 2nd.
+    expect(slipped([...run(20, 0), ...run(3, 1200), ...run(15, null)]).out).toEqual([...run(20, 0), ...run(18, null)]);
+    expect(slipped([...run(20, 0), ...run(2, 1902), ...run(2, 1200), ...run(20, 0)]).out).toEqual([...run(20, 0), ...run(4, null), ...run(20, 0)]);
+    // A reading the voice comes back from, after a pause of under a quarter second, too.
+    expect(slipped([...run(20, 0), ...run(4, null), ...run(4, 2400), ...run(20, 50)]).out).toEqual([...run(20, 0), ...run(8, null), ...run(20, 50)]);
+  });
+
+  it('leaves the singing alone: an octave leap held, a meend, a fifth, a grace note, a short syllable', () => {
+    const same = (cs: (number | null)[]) => expect(slipped(cs).out).toEqual(cs);
+    same([...run(20, 0), ...run(20, 1200)]);
+    same(Array.from({ length: 31 }, (_, i) => 40 * i));
+    same([...run(20, 0), ...run(2, 200), ...run(20, 0)]);
+    same([...run(20, 0), ...run(4, 700), ...run(20, 0)]);
+    same([...run(15, null), ...run(6, 400), ...run(15, null)]);
+    // A real leap waits until it is longer than a slip can be (about 0.2 s), then goes on.
+    expect(slipped([...run(20, 0), ...run(20, 1200)], 20).most).toBe(SLIP_MAX);
+  });
+
+  it('starts in the octave sung last time, and changes it only when another is clearly sung', () => {
+    const Q = parseSong(Array.from({ length: 3 }, () => 'সা পা গা মা র্সা ধা না পা').join('\n'));
+    const sing = (o: { octave?: number; anyOctave?: boolean }, detune: (t: number) => number) => {
+      const tr = new PitchTracker({ lag: 0, anyOctave: o.anyOctave ?? true, saHz: SA, octave: o.octave });
+      tr.addNotes(place(Q, { spb: 0.4 }));
+      const seen = new Set<number>([tr.octave]);
+      let found = NaN;
+      for (let t = 0; t < 9.5; t += 0.022) {
+        const n = tr.expectedAt(t);
+        tr.addReading({ t, hz: n ? hzOf(n, detune(t)) : 0 });
+        tr.settle();
+        seen.add(tr.octave);
+        if (Number.isNaN(found) && tr.octave === -1) found = t;
+      }
+      return { seen: [...seen], found };
+    };
+    // An octave below, as last time: drawn there from the first reading, never moved.
+    expect(sing({ octave: -1 }, () => -1200).seen).toEqual([-1]);
+    // A new singer an octave below: found within about half a second (it took over a second).
+    const fresh = sing({}, () => -1200);
+    expect(fresh.seen).toEqual([0, -1]);
+    expect(fresh.found).toBeLessThan(0.6);
+    // A third of the readings in the other octave does not move it.
+    expect(sing({ octave: -1 }, (t) => (Math.floor(t / 0.4) % 3 === 1 ? 0 : -1200)).seen).toEqual([-1]);
+    // When the octave must match, the voice is drawn where it is.
+    expect(sing({ octave: -1, anyOctave: false }, () => -1200).seen).toEqual([0]);
   });
 
   it('finds the octave the voice sings in, to draw it all in one octave', () => {

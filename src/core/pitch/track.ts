@@ -115,6 +115,112 @@ export function isGlitch(a: number, b: number, c: number): boolean {
   return apart(a, c) < 100 && apart(a, b) > 100 && apart(b, c) > 100;
 }
 
+/** A step this big between readings with voice, cents, starts a new stretch of voice. */
+export const SLIP_STEP = 1000;
+/** A stretch of voice this short, readings (about 185 ms), can be a slip. */
+export const SLIP_MAX = 8;
+/** Silence this long, seconds, ends a stretch of voice. */
+export const SLIP_GAP = 0.25;
+
+interface Stretch {
+  /** Readings with voice in it; when it began and its latest; their pitches, Hz. */
+  n: number;
+  t0: number;
+  t1: number;
+  hz0: number;
+  hz: number;
+  /** A later stretch has begun, or the silence after it outlasted SLIP_GAP. */
+  ended: boolean;
+  /** Kept or read as no voice, once known. */
+  keep?: boolean;
+}
+
+/**
+ * Readings that slipped to an overtone, read as no voice (Rinat, 2026-10-21: "the sudden jump
+ * of the pitch line still exists"). On some vowels, at an onset or a consonant, the detector can
+ * read a low voice's 2nd, 3rd or 4th harmonic (or the guide, heard through speakers) for up to
+ * about 200 ms: 1200, 1900 or 2400 cents away, then straight back. A voice does not leap that far
+ * and back so fast, so the voice is split into stretches at steps of `SLIP_STEP` or more, and a
+ * stretch of at most `SLIP_MAX` readings next to a longer one (within `SLIP_GAP`) is a slip.
+ * Smaller steps (a meend, a leap of a fifth, a grace note) are never touched. Readings carrying on
+ * a stretch longer than `SLIP_MAX` go on at once; the start of any other stretch waits until its
+ * fate is known (at most about twice `SLIP_MAX` readings).
+ */
+export class SlipFilter<R extends Reading = Reading> {
+  /** Readings not passed on yet, each with its stretch (null: no voice). */
+  private held: { r: R; s: Stretch | null }[] = [];
+  /** Stretches whose fate is not known yet, in time order; the one decided just before them;
+   * and the latest of all. */
+  private open: Stretch[] = [];
+  private before: Stretch | null = null;
+  private last: Stretch | null = null;
+
+  /** A reading in; the readings whose fate is now known out, in order. */
+  push(r: R): R[] {
+    const L = this.last;
+    if (L && !L.ended && r.t - L.t1 > SLIP_GAP) L.ended = true;
+    let s: Stretch | null = null;
+    if (r.hz > 0) {
+      if (L && !L.ended && apart(r.hz, L.hz) < SLIP_STEP) {
+        s = L;
+        L.n++;
+        L.t1 = r.t;
+        L.hz = r.hz;
+      } else {
+        if (L) L.ended = true;
+        s = { n: 1, t0: r.t, t1: r.t, hz0: r.hz, hz: r.hz, ended: false };
+        this.open.push(s);
+        this.last = s;
+      }
+    }
+    this.held.push({ r, s });
+    this.decide();
+    return this.release();
+  }
+
+  /** Playing stopped: everything held is decided on what is known. */
+  flush(): R[] {
+    if (this.last) this.last.ended = true;
+    this.decide();
+    return this.release();
+  }
+
+  private decide(): void {
+    const near = (a: Stretch, b: Stretch) => b.t0 - a.t1 <= SLIP_GAP;
+    while (this.open.length) {
+      const S = this.open[0]!;
+      const P = this.before;
+      const N = this.open[1];
+      let keep: boolean | undefined;
+      if (S.n > SLIP_MAX) keep = true;
+      else if (S.ended) {
+        if (P?.keep && near(P, S) && P.n > S.n) keep = false;
+        else if (N && near(S, N)) {
+          if (N.n > S.n) keep = false;
+          else if (N.ended) keep = true;
+        } else keep = true;
+      }
+      if (keep == null) return;
+      S.keep = keep;
+      this.open.shift();
+      // The voice coming back from a slip carries on the stretch before it, so it goes on at once.
+      if (!keep && P?.keep && N && near(P, N) && apart(N.hz0, P.hz) < SLIP_STEP) N.n += P.n;
+      this.before = keep || !P ? S : P;
+    }
+  }
+
+  private release(): R[] {
+    const out: R[] = [];
+    while (this.held.length) {
+      const h = this.held[0]!;
+      if (h.s && h.s.keep == null) break;
+      this.held.shift();
+      out.push(h.s && !h.s.keep ? { ...h.r, hz: 0 } : h.r);
+    }
+    return out;
+  }
+}
+
 /**
  * Whether a reading is the voice sliding into its note (a meend or a scoop), left out of the
  * score: since the note began every reading has been moving towards it, this one too, by at
@@ -174,7 +280,14 @@ export interface TrackerOptions {
   anyOctave: boolean;
   /** Sa, Hz. */
   saHz: number;
+  /** The octave the voice sang in last time, against the notes, when any octave counts. */
+  octave?: number;
 }
+
+/** Readings within a semitone of an octave of their note that it takes to change the octave the
+ * voice is drawn in, and how many times more of them there must be than in the octave it was. */
+const OCTAVE_MIN = 20;
+const OCTAVE_LEAD = 2;
 
 /** How far behind (or ahead of) the guide the voice is looked for, seconds. */
 export const BEHIND_RANGE: readonly [number, number] = [-0.2, 0.6];
@@ -190,9 +303,12 @@ export class PitchTracker {
    * singing; null until there is enough to say. Reported only. */
   behind: number | null = null;
   /** The octave the voice sings in against the notes (−1: an octave below), when any octave
-   * counts: the most common over the last 10 s. The voice is drawn moved by it, all of it the
-   * same, so it never flips between octaves reading by reading. */
-  octave = 0;
+   * counts. The voice is drawn moved by it, all of it the same, so it never flips between
+   * octaves reading by reading. It starts as last time (Rinat, 2026-10-21: until 2026-10-20 it
+   * started at 0 and was found only after a second or more of singing, so a voice an octave
+   * below was drawn at the foot of the strip and then jumped up), and changes when another is
+   * clearly the most common over the last 10 s. */
+  octave: number;
   /** Can change while singing: later notes follow it. */
   anyOctave: boolean;
   readonly saHz: number;
@@ -202,6 +318,7 @@ export class PitchTracker {
   private recent: ExpectedNote[] = [];
   private readings: Reading[] = [];
   private lastAlign = -Infinity;
+  private lastOctave = -Infinity;
   /** Every note scored so far, and each line as it finishes. */
   readonly results: NoteResult[] = [];
   readonly lines: LineResult[] = [];
@@ -211,6 +328,7 @@ export class PitchTracker {
     this.lag = o.lag;
     this.anyOctave = o.anyOctave;
     this.saHz = o.saHz;
+    this.octave = o.anyOctave ? (o.octave ?? 0) : 0;
   }
 
   /** Add the note pieces of a scheduled beat; a piece continuing the last note extends it. */
@@ -280,6 +398,10 @@ export class PitchTracker {
     if (!final && latest - this.lastAlign >= 1) {
       this.lastAlign = latest;
       this.measureBehind(latest);
+    }
+    if (!final && latest - this.lastOctave >= 0.25) {
+      this.lastOctave = latest;
+      this.measureOctave(latest);
     }
     const notes: NoteResult[] = [];
     while (this.pending.length && (final || this.pending[0]!.t1 + 0.03 <= latest)) {
@@ -417,21 +539,29 @@ export class PitchTracker {
       }
     }
     if (bestFit >= 0.4) this.behind = best;
-    // The octave sung in: among readings within a semitone of an octave of their note.
+  }
+
+  /** The octave sung in, from the last 10 s: among readings within a semitone of an octave of
+   * their note, the most common, once it has `OCTAVE_MIN` of them and `OCTAVE_LEAD` times as
+   * many as the octave it was. */
+  private measureOctave(latest: number): void {
     if (!this.anyOctave) {
       this.octave = 0;
       return;
     }
     const tally = new Map<number, number>();
-    for (const r of rs) {
-      const n = this.expectedAt(r.t - this.lag - best);
+    for (const r of this.readings) {
+      if (!(r.hz > 0) || r.t - this.lag < latest - 10) continue;
+      const n = this.expectedAt(r.t - this.lag - (this.behind ?? 0));
       if (!n) continue;
       const c = centsFromSa(r.hz, this.saHz) - (100 * n.semi + 1200 * n.oct);
       const k = Math.round(c / 1200);
       if (Math.abs(c - 1200 * k) < 100) tally.set(k, (tally.get(k) ?? 0) + 1);
     }
+    let best = this.octave;
     let most = 0;
-    for (const [k, v] of tally) if (v > most) [most, this.octave] = [v, k];
+    for (const [k, v] of tally) if (v > most) [most, best] = [v, k];
+    if (best !== this.octave && most >= OCTAVE_MIN && most >= OCTAVE_LEAD * (tally.get(this.octave) ?? 0)) this.octave = best;
   }
 
   /** Forget readings and notes more than 20 s old (scores are kept). */
