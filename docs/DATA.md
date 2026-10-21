@@ -17,7 +17,7 @@ Clearing a browser's site data ("cookies and site data") deletes it all.
 | The built-in exercises and the starter rewaz | The app itself | Everyone has them |
 | Your settings: your usual sound, your Sa, the practice settings, script, theme, the editor view, the MIDI choice | `localStorage` | No |
 | Practice log (Progress): each session's summary | `localStorage` | **Download all practice data** (foot of Progress) saves it, with each session's detail, as one file (below); not importable. **Start afresh** there deletes both |
-| Each session's detail: the song as played, every note's result, the pitch heard (since 2026-10-20) | IndexedDB, the newest 1,000 sessions | **Report** opens a page on it, **For AI** saves it as a file (below), and the download above holds them all; not importable |
+| Each session's detail: the song as played, every note's result, the pitch heard (since 2026-10-20) | IndexedDB, the newest 1,000 sessions | **Report** opens a page on it, **For AI** saves it as a file (below), a day's **For AI** a day's in one, and the download above holds them all; not importable |
 | Rewaz routines | `localStorage` | No |
 | Takes (recordings) | IndexedDB | Each downloads as a WAV file; not importable |
 | The microphone | Not kept: analysed as it arrives | Never leaves the device |
@@ -134,6 +134,7 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `pitchOctave` | `true` when pitch feedback counts the octave too |
 | `pitchLag` | No longer read (2026-10-19): the delay from a beat to the voice, fitted to the singing, which forgave lateness. The voice is judged at `deviceLag` |
 | `deviceLag` | The device's own delay, sound out and back in, as last measured with clicks, seconds (0–0.6); absent until measured (the device's own figure is used then). The voice is judged and drawn at it, when it was sung |
+| `voiceOct` | The octave the voice sang in against the notes at the end of the last run, when any octave counts (−2 to 2; −1: an octave below); the next run draws the voice moved by it from its first reading (ENGINE.md → The octave sung in). Absent until a run with the pitch check |
 | `rewazOpen` | The ids of the rewaz routines unfolded on the Rewaz view; absent: all folded. (`rewazId`, the routine last chosen, is no longer read) |
 | `theme` | `light` (Day) or `dark` (Night); absent: Auto, as the device says. Read by a line in the page's head before the app runs, so a reload never flashes the other colours |
 | `editMode` | `text` when the editor shows free text; absent: beat boxes |
@@ -339,12 +340,29 @@ kept; an older one's goes, and its summary stays in the log. Details are checked
 | `settings`, `equipment` | As played; the device's delay, measured or not, any octave, octave sung |
 | `findings_by_the_app` | The headline, what went well, what to work on, what to bear in mind, and the numbers behind them |
 | `lines`, `rounds`, `notes_of_the_scale` | Summaries (lines and rounds from 1) |
+| `earlier_sessions_of_this_song` | Each earlier log entry of the song: when, seconds, lines, rounds, tempo, score |
 | `notes` | `{ columns, rows }`: each judged note: line, round, song beat, note, Bengali, octave, cents above Sa, start, end, status, score, cents off, reached after, wobble |
 | `beats` | `{ columns, rows }`: start, song beat, round, seconds a beat |
-| `pitch_readings` | `{ columns: [time_s, cents_above_sa], rows }`: when sung (the delay taken off); null with no voice |
-| `earlier_sessions_of_this_song` | Each earlier log entry of the song: when, seconds, lines, rounds, tempo, score |
+| `pitch_readings` | `{ columns: [time_s, cents_above_sa], rows }`: when sung (the delay taken off), at the pitch sung, to 10 ms and the whole cent (since 2026-10-21; before, 1 ms and a tenth of a cent); null with no voice |
 
-Long tables have one row to a line. The file holds the notation, so treat it like a song file;
+Long tables have one row to a line, and come last (since 2026-10-21; `earlier_sessions_of_this_song`
+was after them). Rinat asked whether a local LLM would cope with several such files: the readings
+are most of a file (57–68 % of Rinat's of 2026-10-20, which ran to 30–300 KB, about 10,000 to
+100,000 tokens each), useful to a program but not to a model reading the file as text. So the
+brief says the last parts are for checking with a program, and that a model that can take only
+part of the file should take the beginning; a file cut short loses only them.
+
+**A day's sessions in one file** (Rinat, 2026-10-21: "It would've been good to be able to
+export a day's data in one go"): **For AI** at the top of each day in Progress's History with
+two or more sessions saves `Practice <yyyy-mm-dd> (<n> sessions) for AI.json`
+(`dayFileParts`): `about_this_file` (`DAY_BRIEF`, the session brief's parts with the day's own
+first words, parts and ways to analyse), `file` (`{ kind: "Gaaner Sathi practice of one day,
+for AI analysis", version: 1, made, day, sessions, sessions_with_detail }`), `day` (date,
+sessions, seconds, songs, average score), `sessions` (each numbered in order, `session_number`,
+with `song_as_played` and the session file's parts before its long tables), `songs_as_played`
+(each song once for each way it was played; `as_played` false where the session kept no detail
+and the song is shown as it is now), `earlier_sessions_of_each_song` (before the day), then the
+long tables: `notes` and `for_programs` (`beats`, `pitch_readings`), each by `session_number`. The file holds the notation, so treat it like a song file;
 no sound is in it. It replaced "Download the pitch data" (2026-10-20, one day old), whose
 contents it holds in a form an AI can read without the app; Rinat's files for Claude still go
 in `feedback/`, which git ignores.

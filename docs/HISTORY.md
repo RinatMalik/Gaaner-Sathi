@@ -49,6 +49,48 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-20 BST — Claude (Opus 5.5) — PH2-28 the notes on the keys; a report per song; titles of their own; a wait before deleting
+
+- **Goal:** Rinat: "is it worth having a button next to each song to generate a combined report
+  of that song? ... multiple songs with the same title is accepted ... Is it good to have a
+  check and not have the exact same title on multiple songs? ... add in bracket (Delete All
+  Data). Have the delete all button greyed out until 20 seconds have passed. Do not like the
+  visual on note by note ... should the alternative notes, komal, tivra etc be included?"
+- **Inspected:** practice is kept by song id, so two songs with one title keep separate
+  practice but show the same name in the library, the pickers and Progress; titles were never
+  checked (a copy was "… (copy)", an import kept its title, a backup imported twice gave two
+  of each). Komal and tivra notes were already counted when sung; the bars put them in a list.
+  "Delete All Data" would be wrong: Start afresh keeps songs, as Rinat decided earlier today.
+- **Changed:** `7c95269` (feat(progress)): src/app/notekeys.ts (new: the keys, their legend
+  and table, their styles), songreport.ts (new: a song's report), progress.ts (the keys in
+  Note by note, tapped for numbers; Report and For AI on song rows; the label and the 20-second
+  wait), report.ts (`REPORT_CSS`, `reportHead`, `reportScript` shared; the keys in Note by
+  note), aifile.ts (`practiceFileParts` for one song), app.ts (`openSongReport`,
+  `saveSongForAI`, `fixSameTitles`, titles checked in new songs, copies, imports and the
+  title box), main.ts (the keys' styles), library.ts (`titleKey`, `uniqueTitle`,
+  `titleFixes`), index.html (the note under the title box), styles.css; tests (library,
+  rewaz, session). This commit: docs/DATA.md, ROADMAP row 28, this file (the decision row of
+  "Start afresh stays as built" too; the older PH2-26 entry moved to HISTORY).
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 38 files, 423
+  passed; `npm run build` → 328.7 kB JS, 62.3 kB CSS. Headless Edge on `npm run dev`, 42 seeded
+  sessions with komal Ga and komal Ni among the notes and a third song titled as another: on
+  load the newer was renamed "আমার সোনার বাংলা (2)" and the library said so; the keys lower Pa
+  to upper Re with komal Ga 69▼ and komal Ni 66▲ on black keys; upper Sa tapped: "Upper Sa: sung
+  170 times, average score 68, usually 23 cents flat."; a song's Report from its row: a 36 KB
+  page with Going well, To work on, Over time, Line by line, Note by note, Every session, Bear
+  in mind; Start afresh: Delete it all disabled "(20)", a click refused, "(2)" after 18 s,
+  enabled at 20.6 s, then the log deleted; a new song typed "পুরানো সেই দিনের কথা": the note
+  under the box, then "… (2)" on leaving it, four distinct titles stored. 360 px night:
+  Progress and the song report 360 px wide; black keys' arrows hidden on a phone (no room).
+  CI run `39446617784` (`7c95269`): green. Live: the page has the keys.
+- **Decisions made:** one row (titles of their own; the keys; a report per song; the wait),
+  and the row "Start afresh stays as built" (Rinat's answer to round twenty-seven's question).
+- **Risks or disagreements:** Songs already sharing a title are renamed without asking (the
+  newer gets " (2)"); Rinat may prefer to choose. A song report's timing comes from the newest
+  60 sessions' detail. The song report's findings are rules of thumb (trend from the first and
+  last three scores; a line improved by 8 or more). Not tried on a real phone.
+- **Next handoff:** Rinat looks at the keys and a song's report, and says what to change.
+
 ### 2026-10-20 BST — Claude (Opus 5.5) — PH2-27 pitch by song and note; all data in one file; Start afresh
 
 - **Goal:** Rinat: "have a button somewhere to delete all current data and start fresh. I

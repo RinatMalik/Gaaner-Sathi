@@ -260,6 +260,29 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   (`isGlitch`): voice alone between two readings without, or more than a semitone from both
   neighbours while they agree within one. Lasting one reading, it is shorter than anything
   sung.
+- **Slips to an overtone** (Rinat, 2026-10-21: "the sudden jump of the pitch line still
+  exists"): Rinat's sessions of 2026-10-20 (a voice an octave below the notes, through a
+  Scarlett 2i2) had 3–6 % of their readings in short stretches at 2, 3 or 4 times the voice's
+  pitch (1200, 1900, 2400 cents up), now and then the guide: at onsets after a breath, at
+  consonants, on some vowels, where the sound changes within the detector's 43 ms window, so
+  the time-domain detector takes a harmonic's period. Steady synthetic voices never do it. Drawn
+  at their pitch they leapt to the edge of the strip and back. After the glitch rule, the
+  voice is split into stretches at steps of 1000 cents or more (`SlipFilter`, src/core/pitch/
+  track.ts); a stretch of at most 8 readings (about 185 ms) next to a longer one, within 0.25
+  s, is read as no voice. A meend, a leap of a fifth or a grace note never makes such a step;
+  a real leap of an octave or more waits about 0.2 s, then goes on. Readings carrying on a
+  long stretch go on at once; the start of any other (each phrase after a breath) waits until
+  its fate is known, at most about twice 8 readings. Replayed through the tracker, Rinat's six
+  sessions drew 45, 22, 55, 148, 30 and 122 jumps of over 600 cents; with it 10, 1, 3, 11, 5
+  and 16 (overtone stretches longer than 0.2 s stay), and the scores moved by 0 to 3. The
+  readings in a session's detail and file for AI are the ones after both rules.
+- **The octave sung in** (`octave`, when any octave counts): the voice is drawn moved by it,
+  all of it the same. It starts as the octave sung last time (`voiceOct`, kept on the device)
+  and is checked every quarter second over the last 10 s: among readings within a semitone of
+  an octave of their note, another octave takes over once it has 20 and twice as many as the
+  octave it was. *Until 2026-10-21* it started at 0 and was found only with 60 readings of
+  voice, after 1.3–4.2 s in Rinat's sessions, so a voice an octave below was drawn at the foot
+  of the strip and then jumped up at the start of every run.
 - **How far behind the guide** (`behind`): measured every second from the last 10 s of
   singing, the shift (−200 to +600 ms) at which most readings land within half a semitone of
   the note playing, the nearest to none where several fit as well (held notes). It is said
