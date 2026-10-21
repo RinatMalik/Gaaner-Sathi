@@ -12,6 +12,7 @@ import type { PitchDetail, SessionDetail } from '../core/practice/session';
 import { centsFromSa } from '../core/pitch/track';
 import { taalInfo } from '../core/taal/taals';
 import { AKAR, BN_LETTER, REPH } from '../core/notation/symbols';
+import { dayTitle, exportName, stamp } from './filenames';
 import { plainBeat } from './view';
 
 export const AI_FILE_KIND = 'Gaaner Sathi practice session, for AI analysis';
@@ -470,13 +471,8 @@ export function dayFileParts(inputs: readonly SessionFileInput[], day: string, m
   return parts;
 }
 
-/** A day's file's name. */
-export const dayFileName = (day: string, n: number): string => 'Practice ' + day + ' (' + n + (n === 1 ? ' session' : ' sessions') + ') for AI.json';
+/** A day's file's name, by a time on that day: "2026.10.20 - Whole day (7 sessions) - Data.json". */
+export const dayFileName = (at: number, n: number): string => exportName(stamp(at, false), dayTitle(n), 'Data');
 
-/** The file's name: the song, the date and time. */
-export function aiFileName(e: LogEntry): string {
-  const d = new Date(e.at);
-  const p = (n: number) => String(n).padStart(2, '0');
-  const base = (e.title || 'session').replace(/[\\/:*?"<>|\u0000-\u001f]+/g, '-').replace(/\s+/g, ' ').trim().slice(0, 60);
-  return base + ' session ' + d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + '-' + p(d.getMinutes()) + ' for AI.json';
-}
+/** The file's name: when it began, the song: "2026.10.20_19.35.49 - Nisha lagilo re - Data.json". */
+export const aiFileName = (e: LogEntry): string => exportName(stamp(e.at), e.title || 'Session', 'Data');

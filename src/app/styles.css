@@ -522,12 +522,13 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .pgbest{font-size:12px;color:var(--ink-2)}
 /* History: each day folds; its sessions are rows with Report and For AI at their end. */
 .pgdayl{background:var(--sheet);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:0}
-.pgdayl summary{display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px;padding:10px 14px 10px 10px;cursor:pointer;list-style:none}
-.pgdayl summary::-webkit-details-marker{display:none}
-.pgdayl summary:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
-.pgdayl summary svg{flex:none;width:20px;height:20px;color:var(--ink-2);transition:transform .15s}
-.pgdayl:not([open]) summary svg{transform:rotate(-90deg)}
-.pgdayl summary b{font-weight:600}
+/* The day's row: its date folds it; Report, For AI and the bin are the whole day's. */
+.pgdayt{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px;padding:10px 14px 10px 10px;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.pgdayt:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.pgdayt svg{flex:none;width:20px;height:20px;color:var(--ink-2);transition:transform .15s}
+.pgdayt[aria-expanded="false"] svg{transform:rotate(-90deg)}
+.pgdayt b{font-weight:600}
+@media (prefers-reduced-motion:reduce){.pgdayt svg{transition:none}}
 .pgdaymeta{font-size:13px;color:var(--ink-2)}
 .pgses{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule)}
 .pgsrow{display:flex;align-items:stretch;min-width:0;border-top:1px solid var(--rule)}
@@ -540,10 +541,6 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .pgrw{font-size:12px}
 .pgsrow.sure{background:color-mix(in srgb,var(--red-ink) 7%,transparent)}
 .pgsrow .lact.ldel{width:3.6em}
-/* A day's For AI, above its sessions, in line with theirs. */
-.pgsrow.pgdayall{border-top:1px solid var(--rule);background:color-mix(in srgb,var(--ink) 3%,transparent)}
-.pgsrow.pgdayall .pgsmain{padding-left:44px}
-@media (max-width:720px){.pgsrow.pgdayall .pgsmain{padding-left:14px}.pgsrow.pgdayall .pgpad{display:none}}
 @media (max-width:720px){.pgsrow .lact.ldel{flex:0 0 52px}.pgsrow .lsuret{flex:1 1 auto;border-left:0}.pgsrow .lsure .lact{flex:0 0 auto;width:auto;padding:8px 16px}}
 @media (max-width:720px){.pgsrow{flex-direction:column}.pgsrow .lacts{border-top:1px solid var(--rule)}.pgsrow .lact{flex:1 1 0;width:auto;min-height:40px;font-size:13px}.pgsrow .lact:first-child{border-left:0}}
 .tabbtns{flex-wrap:wrap}

@@ -341,11 +341,13 @@ export class LogStore {
     return writeJSON(this.S, STORE_KEYS.log, raw);
   }
 
-  /** Delete one entry, by its `at`, re-reading the stored log so another tab's entries survive. */
-  remove(at: number): WriteResult {
+  /** Delete one entry, or several (a day's), by their `at`, re-reading the stored log so another
+   * tab's entries survive. */
+  remove(at: number | readonly number[]): WriteResult {
+    const gone = new Set<unknown>(typeof at === 'number' ? [at] : at);
     const raw = readJSON(this.S, STORE_KEYS.log);
     if (!Array.isArray(raw)) return 'ok';
-    return writeJSON(this.S, STORE_KEYS.log, raw.filter((x) => !(x && typeof x === 'object' && (x as { at?: unknown }).at === at)));
+    return writeJSON(this.S, STORE_KEYS.log, raw.filter((x) => !(x && typeof x === 'object' && gone.has((x as { at?: unknown }).at))));
   }
 
   /** Delete the whole log (Start afresh, in Progress). */

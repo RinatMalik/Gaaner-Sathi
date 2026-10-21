@@ -88,6 +88,7 @@ describe('take records', () => {
     expect(takesHTML([T], now, T.sig, { confirm: 'take-1' })).toContain('Delete this take?');
     expect(takesHTML([T], now, T.sig, { playing: { id: 'take-1', how: 'me' } })).toContain('data-act="me" data-id="take-1">■ Stop');
     expect(takesHTML([], now, '')).toContain('No takes yet');
-    expect(takeFileName(T)).toMatch(/^আমার -গান- take 2026-10-11 \d\d-05\.wav$/);
+    // Named as a session's files are, so it lists beside them (Rinat, 2026-10-21).
+    expect(takeFileName(T)).toMatch(/^2026\.10\.11_\d\d\.05\.\d\d - আমার -গান- - Recording\.wav$/);
   });
 });

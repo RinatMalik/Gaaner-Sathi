@@ -12,6 +12,7 @@ import type { SessionDetail } from '../core/practice/session';
 import { whenText } from '../core/song/library';
 import { taalInfo } from '../core/taal/taals';
 import { lineTexts } from './aifile';
+import { exportName, stamp } from './filenames';
 import { FEW, noteBrief, noteHighlights, noteKeysHTML, noteKeysLegend, noteTableHTML } from './notekeys';
 import { dayText, grade, msText, reportHead, reportScript, scoreLine, shortDay } from './report';
 import { esc, type Script } from './view';
@@ -29,6 +30,9 @@ export interface SongReportInput {
   now: number;
   script: Script;
 }
+
+/** A song's report or data file, by when it was made: "… - Nisha lagilo re (all sessions) - Report.html". */
+export const songFileName = (made: number, title: string, kind: 'Data' | 'Report'): string => exportName(stamp(made), title || 'Song', kind, '(all sessions)');
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const p2 = (n: number) => String(n).padStart(2, '0');
@@ -124,7 +128,7 @@ export function songReportHTML(o: SongReportInput): string {
   const top = [plural(E.length, 'session') + (first && last ? ' from ' + shortDay(first.at) + ' to ' + shortDay(last.at) + ' ' + new Date(last.at).getFullYear() : ''), lengthText(secs) + ' in all'];
   if (T && o.songNow) top.push(T.name + ', ' + o.songNow.tempo + ' matras a minute');
   if (!o.songNow) top.push('deleted since');
-  const fileName = (o.title || 'song').replace(/[\\/:*?"<>|\u0000-\u001f]+/g, '-').trim().slice(0, 60) + ' song report ' + new Date(o.now).toISOString().slice(0, 10) + '.html';
+  const fileName = songFileName(o.now, o.title, 'Report');
 
   let html = reportHead(o.title + ' · song report', SONG_CSS);
   html += '<header class="hero"><div class="wrap"><div class="brand">Gaaner Sathi · <b>গানের সাথী</b> · ' + (o.exercise ? 'exercise' : 'song') + ' report</div><h1>' + esc(o.title) + '</h1>' +

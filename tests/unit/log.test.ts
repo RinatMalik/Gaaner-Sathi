@@ -116,6 +116,11 @@ describe('the log in storage', () => {
     expect(a.load().map((e) => e.notes ?? null)).toEqual([null, [[0, 3, 80, -5]]]);
     expect(a.remove(1)).toBe('ok');
     expect(a.load().map((e) => e.at)).toEqual([2]);
+    // A day's at once.
+    a.add(entry('c', 3));
+    a.add(entry('d', 4));
+    expect(a.remove([2, 4])).toBe('ok');
+    expect(a.load().map((e) => e.at)).toEqual([3]);
     expect(a.clear()).toBe('ok');
     expect(a.load()).toEqual([]);
     expect(S.m.has(STORE_KEYS.log)).toBe(false);

@@ -302,7 +302,7 @@ describe('the Progress view', () => {
     expect(html).not.toContain('data-sdel="' + at(9) + '"');
     expect(html).toContain('data-sdel="' + at(10) + '"');
     // The latest three days open; then as the user left them.
-    const open = (h: string) => Array.from(h.matchAll(/<details class="pgdayl" data-day="(\d+)" open>/g), (m) => +m[1]!);
+    const open = (h: string) => Array.from(h.matchAll(/data-dayfold="(\d+)" aria-expanded="true"/g), (m) => +m[1]!);
     expect(open(html).length).toBe(3);
     const days = Array.from(html.matchAll(/data-day="(\d+)"/g), (m) => +m[1]!);
     const kept = progressHTML(log, at(10, 20), { song, dayOpen: new Map([[days[0]!, false], [days[4]!, true]]) });

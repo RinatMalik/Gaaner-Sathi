@@ -5,12 +5,14 @@ import { aiFile, aiFileName, aiFileText, AI_BRIEF, DAY_BRIEF, dayFileName, dayFi
 import { progressHTML } from '../../src/app/progress';
 import { noteKeysHTML, noteKeysLegend } from '../../src/app/notekeys';
 import { reportHTML } from '../../src/app/report';
-import { songFindings, songReportHTML, songSummary, type SongReportInput } from '../../src/app/songreport';
+import { dayFindings, dayReportHTML, dayReportName, daySummary } from '../../src/app/dayreport';
+import { dayTitle, exportName, fileTitle, stamp, TITLE_MAX } from '../../src/app/filenames';
+import { songFileName, songFindings, songReportHTML, songSummary, type SongReportInput } from '../../src/app/songreport';
 import { songRowHTML } from '../../src/app/songs';
 import { parseSong } from '../../src/core/notation/parse';
 import { playSeconds, sectionTempoAt, songSections } from '../../src/core/notation/sections';
 import { analyse, noteWords } from '../../src/core/practice/insights';
-import { dayNumber, lengthText, noteTally, type LogEntry } from '../../src/core/practice/log';
+import { dayNumber, lengthText, meanScore, noteTally, type LogEntry } from '../../src/core/practice/log';
 import { cleanSession, type NoteRow, type SessionDetail } from '../../src/core/practice/session';
 import { PitchTracker, type ExpectedNote } from '../../src/core/pitch/track';
 import { entryFor, type LibrarySong } from '../../src/core/song/library';
@@ -165,7 +167,7 @@ describe('the file for AI', () => {
     expect(f.song.lines[0]).toEqual({ line: 1, notes: 'সা রা গা মা গা রা গা সা', words: 'আ মার সো নার বাং লা আ মি' });
     expect(f.findings_by_the_app.headline).toBe('You kept to the notes well, but came in late.');
     expect(f.equipment).toEqual({ device_delay_s: 0.08, delay_measured: true, any_octave_counts: true, octave_sung_against_the_notes: 0 });
-    expect(aiFileName(o.e)).toBe('আমার সোনার বাংলা session 2026-10-20 18-05 for AI.json');
+    expect(aiFileName(o.e)).toBe('2026.10.20_18.05.00 - আমার সোনার বাংলা - Data.json');
   });
 
   it('keeps the long tables last, the readings to 10 ms and the cent (Rinat, 2026-10-21)', () => {
@@ -242,7 +244,40 @@ describe('a day as one file (Rinat, 2026-10-21)', () => {
     // The long tables for the sessions with the pitch check, by number.
     expect(f.notes.map((n: any) => [n.session_number, n.rows.length])).toEqual([[1, d1.pitch!.notes.length], [2, d2.pitch!.notes.length]]);
     expect(f.for_programs[1].pitch_readings.rows).toHaveLength(d2.pitch!.readings.length / 2);
-    expect(dayFileName('2026-10-20', 3)).toBe('Practice 2026-10-20 (3 sessions) for AI.json');
+    expect(dayFileName(T0, 3)).toBe('2026.10.20 - Whole day (3 sessions) - Data.json');
+  });
+});
+
+describe('a day’s report (Rinat, 2026-10-21)', () => {
+  const day = () => {
+    const log = [entry({ at: T0, score: 70, notes: noteTally(sing({ late: 0.2 }).pitch!.notes) }), entry({ at: T0 + 600_000, score: 85 }), entry({ at: T0 + 1_200_000, song: 's2', title: 'Old', score: 40 }), entry({ at: T0 + 1_800_000, song: 's3', title: 'Plain' })];
+    const ds = [sing({ late: 0.2 }), { ...sing(), at: T0 + 600_000 }, null, null];
+    return log.map((e, i): SessionFileInput => ({ e, detail: ds[i] ?? null, ins: analyse(e, ds[i] ?? null, log), songNow: null, earlier: [], made: T0 }));
+  };
+
+  it('sums up the day: its average, best and weakest, a song sung again, the timing', () => {
+    const o = { inputs: day(), now: T0 + 3_600_000, script: 'bn' as const };
+    const s = daySummary(o);
+    expect([s.average, s.best?.score, s.weakest?.score]).toEqual([meanScore(o.inputs.map((x) => x.e)), 85, 40]);
+    expect(s.again).toEqual([{ title: 'আমার সোনার বাংলা', from: 70, to: 85 }]);
+    expect(s.behind).not.toBeNull();
+    const f = dayFindings(o, s);
+    expect(f.good).toContain('Your best: ‘আমার সোনার বাংলা’ at 18:15 (85).');
+    expect(f.good).toContain('‘আমার সোনার বাংলা’ went from 70 to 85 through the day.');
+    expect(f.work).toContain('‘Old’ at 18:25 needs the most work (40).');
+  });
+
+  it('is a whole page: the day, findings, through the day, note by note, each session', () => {
+    const o = { inputs: day(), now: T0 + 3_600_000, script: 'bn' as const };
+    const html = dayReportHTML(o);
+    expect(html.startsWith('<!doctype html>')).toBe(true);
+    expect(html).toContain('<h1>Tuesday 20 October 2026</h1>');
+    for (const h of ['What went well', 'What to work on', 'Through the day', 'Note by note', 'Each session', 'Bear in mind']) expect(html).toContain('<h2>' + h + '</h2>');
+    expect(html.match(/class="sess"/g)).toHaveLength(4);
+    expect(html).toContain('no pitch check');
+    expect(html).toContain('"2026.10.20 - Whole day (4 sessions) - Report.html"');
+    expect(dayReportName(o.inputs)).toBe('2026.10.20 - Whole day (4 sessions) - Report.html');
+    expect(html).not.toMatch(/NaN|undefined|Infinity/);
   });
 });
 
@@ -343,12 +378,40 @@ describe('Progress', () => {
     expect(html).toContain('data-ai="' + T0 + '"');
   });
 
-  it('has a For AI for a day of several sessions, all of them in one file (Rinat, 2026-10-21)', () => {
+  it('has a session’s three buttons on each day’s row, for the whole day, asking in its row before deleting (Rinat, 2026-10-21)', () => {
     const log = [entry({ at: T0 - 86_400_000 }), entry(), entry({ at: T0 + 60_000 })];
     const html = progressHTML(log, T0 + 120_000, { song: () => null });
-    // Today's two sessions; yesterday's one has its own.
-    expect(html.match(/data-dayai="/g)).toHaveLength(1);
+    for (const k of ['dayreport', 'dayai', 'daydel']) expect(html.match(new RegExp('data-' + k + '="', 'g'))).toHaveLength(2);
     expect(html).toContain('data-dayai="' + dayNumber(T0) + '"');
-    expect(html).toContain('All 2 sessions of this day, in one file');
+    // The date folds the day; the latest days open.
+    expect(html).toContain('data-dayfold="' + dayNumber(T0) + '" aria-expanded="true" aria-controls="pgday-' + dayNumber(T0) + '"');
+    const sure = progressHTML(log, T0 + 120_000, { song: () => null, confirmDay: dayNumber(T0) });
+    expect(sure).toContain('<span class="lsuret">Delete all 2 sessions of this day?</span><button type="button" class="lact ldelyes" data-daydelyes="' + dayNumber(T0) + '">Delete</button>');
+    expect(sure).not.toContain('data-daydel="' + dayNumber(T0) + '"');
+    expect(progressHTML(log, T0 + 120_000, { song: () => null, confirmDay: dayNumber(T0 - 86_400_000) })).toContain('Delete this day’s session?');
+  });
+});
+
+describe('the names of the files saved (Rinat, 2026-10-21)', () => {
+  it('say when, the title and what it is, so a folder lists them in time order', () => {
+    const at = new Date(2026, 9, 20, 19, 35, 49).getTime();
+    expect(exportName(stamp(at), 'nisha lagilo re', 'Data')).toBe('2026.10.20_19.35.49 - nisha lagilo re - Data.json');
+    expect(exportName(stamp(at), 'বড়ো আশা ক\'রে এসেছি গো', 'Report')).toBe('2026.10.20_19.35.49 - বড়ো আশা ক\'রে এসেছি গো - Report.html');
+    expect(exportName(stamp(at, false), dayTitle(7), 'Data')).toBe('2026.10.20 - Whole day (7 sessions) - Data.json');
+    expect(songFileName(at, 'Amar', 'Report')).toBe('2026.10.20_19.35.49 - Amar (all sessions) - Report.html');
+    // A day's files come before its sessions'.
+    expect(['2026.10.20_19.35.49 - a - Data.json', '2026.10.20 - Whole day (7 sessions) - Data.json'].sort()[0]).toContain('Whole day');
+  });
+
+  it('keep titles to 60 letters, cut at a space, with no characters a computer refuses', () => {
+    expect(fileTitle('a/b: c?')).toBe('a-b- c-');
+    expect(fileTitle('   ')).toBe('Untitled');
+    const long = Array.from({ length: 12 }, () => 'আমার সোনার').join(' ');
+    const t = fileTitle(long);
+    expect(t.endsWith('সোনার…') || t.endsWith('আমার…')).toBe(true);
+    expect(Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(t)).length).toBeLessThanOrEqual(TITLE_MAX + 1);
+    // No space to cut at: cut between letters, never inside one (a consonant and its vowel sign).
+    const word = fileTitle('কা'.repeat(70));
+    expect(word).toBe('কা'.repeat(TITLE_MAX) + '…');
   });
 });

@@ -9,6 +9,7 @@ import { fromInt16 } from '../audio/dsp/pcm';
 import { cleanTake, takeDetail, type Take } from '../core/practice/take';
 import { whenText } from '../core/song/library';
 import { inTx, openDB } from './db';
+import { exportName, stamp } from './filenames';
 import { esc } from './view';
 
 /** The takes and their samples in IndexedDB (db.ts); null where IndexedDB is not available. */
@@ -74,13 +75,9 @@ export function takesHTML(takes: readonly Take[], now: number, sig: string, o: {
   }).join('');
 }
 
-/** A take's file name: the song, the date and time. */
-export function takeFileName(t: Take): string {
-  const d = new Date(t.at);
-  const p = (n: number) => String(n).padStart(2, '0');
-  const base = (t.title || 'take').replace(/[\\/:*?"<>|\u0000-\u001f]+/g, '-').replace(/\s+/g, ' ').trim().slice(0, 60);
-  return base + ' take ' + d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + '-' + p(d.getMinutes()) + '.wav';
-}
+/** A take's file name, named as a session's files are (Rinat, 2026-10-21), so it lists beside
+ * them: "2026.10.20_19.35.41 - Nisha lagilo re - Recording.wav". */
+export const takeFileName = (t: Take): string => exportName(stamp(t.at), t.title || 'Take', 'Recording');
 
 /** The samples as an AudioBuffer on a context, to play. */
 export function takeBuffer(ctx: BaseAudioContext, pcm: Int16Array, rate: number): AudioBuffer {

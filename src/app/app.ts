@@ -55,7 +55,9 @@ import { initLines, type LinesUI } from './lines';
 import { initPrint } from './print';
 import { initProgress, PG_ORDER } from './progress';
 import { reportHTML } from './report';
-import { songReportHTML, type SongReportInput } from './songreport';
+import { dayReportHTML, dayReportName } from './dayreport';
+import { exportName, stamp } from './filenames';
+import { songFileName, songReportHTML, type SongReportInput } from './songreport';
 import { initRewaz, type ItemSong, type Rewaz } from './rewaz';
 import { takeBuffer, takeFileName, takesHTML, TakeStore } from './takes';
 import { initVoice, type SaChoice, type VoiceUI } from './voice';
@@ -727,7 +729,7 @@ async function openReport(at: number, say: (t: string) => void): Promise<void> {
     w.location.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
     say('The report is open in a new tab.');
   } else {
-    void offerFile(aiFileName(o.e).replace(/ for AI\.json$/, ' report.html'), new Blob([html], { type: 'text/html' }), say);
+    void offerFile(exportName(stamp(o.e.at), o.e.title || 'Session', 'Report'), new Blob([html], { type: 'text/html' }), say);
   }
 }
 
@@ -765,8 +767,8 @@ async function exportAll(): Promise<void> {
   } catch {
     sessions = [];
   }
-  const d = today();
-  void offerFile('gaaner-sathi-practice-' + d + '.json', new Blob(practiceFileParts(log, sessions, d, Date.now()), { type: 'application/json' }), say);
+  const now = Date.now();
+  void offerFile(exportName(stamp(now), 'All practice', 'Data'), new Blob(practiceFileParts(log, sessions, today(), now), { type: 'application/json' }), say);
 }
 
 /** One session deleted (its bin in Progress's History, asked first): its log entry and its
@@ -857,7 +859,7 @@ async function openSongReport(id: string): Promise<void> {
     return;
   }
   const html = songReportHTML(o);
-  const name = o.title.replace(/[\\/:*?"<>|\u0000-\u001f]+/g, '-').trim().slice(0, 60) + ' song report.html';
+  const name = songFileName(o.now, o.title, 'Report');
   if (w) {
     w.location.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
     say('The report is open in a new tab.');
@@ -872,24 +874,77 @@ async function saveSongForAI(id: string): Promise<void> {
     say('That song is no longer in the practice log.');
     return;
   }
-  const d = today();
-  const name = o.title.replace(/[\\/:*?"<>|\u0000-\u001f]+/g, '-').replace(/\s+/g, ' ').trim().slice(0, 60) + ' all sessions ' + d + ' for AI.json';
-  void offerFile(name, new Blob(practiceFileParts(o.entries, Array.from(o.details.values()), d, Date.now(), o.title), { type: 'application/json' }), say);
+  void offerFile(songFileName(o.now, o.title, 'Data'), new Blob(practiceFileParts(o.entries, Array.from(o.details.values()), today(), o.now, o.title), { type: 'application/json' }), say);
 }
 
-/** A day's sessions (by day number, as Progress groups them) as one file for AI, saved. */
+/** All a day's report and file for AI need: each of its sessions, oldest first (by day number,
+ * as Progress groups them). */
+async function dayInputs(day: number): Promise<SessionFileInput[]> {
+  const ats = logStore.load().filter((e) => dayNumber(e.at) === day).map((e) => e.at);
+  return (await Promise.all(ats.map(sessionInput))).filter((o): o is SessionFileInput => !!o);
+}
+
+/** A day's sessions as one file for AI, saved. */
 async function saveDayForAI(day: number): Promise<void> {
   const say = (t: string) => setFileStatus(t, '#pgStatus');
-  const ats = logStore.load().filter((e) => dayNumber(e.at) === day).map((e) => e.at);
   say('Gathering the day’s sessions…');
-  const inputs = (await Promise.all(ats.map(sessionInput))).filter((o): o is SessionFileInput => !!o);
+  const inputs = await dayInputs(day);
   if (!inputs.length) {
     say('That day is no longer in the practice log.');
     return;
   }
   const d = new Date(inputs[0]!.e.at);
   const date = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  void offerFile(dayFileName(date, inputs.length), new Blob(dayFileParts(inputs, date, Date.now()), { type: 'application/json' }), say);
+  void offerFile(dayFileName(d.getTime(), inputs.length), new Blob(dayFileParts(inputs, date, Date.now()), { type: 'application/json' }), say);
+}
+
+/** A day's report, in a new tab (opened inside the tap, so it is not blocked). */
+async function openDayReport(day: number): Promise<void> {
+  const say = (t: string) => setFileStatus(t, '#pgStatus');
+  let w: Window | null = null;
+  try {
+    w = window.open('', '_blank');
+  } catch {
+    w = null;
+  }
+  say('Making the report…');
+  const inputs = await dayInputs(day);
+  if (!inputs.length) {
+    w?.close();
+    say('That day is no longer in the practice log.');
+    return;
+  }
+  const html = dayReportHTML({ inputs, now: Date.now(), script: prefs.script });
+  if (w) {
+    w.location.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+    say('The report is open in a new tab.');
+  } else void offerFile(dayReportName(inputs), new Blob([html], { type: 'text/html' }), say);
+}
+
+/** A day's sessions deleted (the bin on its row in History, asked first): their log entries and
+ * their detail. */
+async function removeDay(day: number): Promise<void> {
+  const say = (t: string) => setFileStatus(t, '#pgStatus');
+  const ats = logStore.load().filter((e) => dayNumber(e.at) === day).map((e) => e.at);
+  if (!ats.length) return;
+  if (logStore.remove(ats) !== 'ok') {
+    say('That day could not be deleted: this browser blocked it. Nothing has changed.');
+    return;
+  }
+  try {
+    const db = await sessionsDB();
+    for (const at of ats) await db?.remove(at);
+  } catch {
+    // The log entries are gone, so nothing shows the detail left behind.
+  }
+  practised = lastPractised(logStore.load());
+  if (ats.includes(lastSession)) {
+    lastSession = 0;
+    $('#pAfter').hidden = true;
+  }
+  songsView.render();
+  const d = new Date(ats[0]!);
+  say('Deleted ' + (ats.length === 1 ? 'the session' : 'all ' + ats.length + ' sessions') + ' of ' + d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) + '.');
 }
 
 /** A session's file for AI, saved. */
@@ -2551,6 +2606,8 @@ export function init(): void {
     report: (at) => void openReport(at, (t) => setFileStatus(t, '#pgStatus')),
     forAI: (at) => void saveForAI(at, (t) => setFileStatus(t, '#pgStatus')),
     dayForAI: (day) => void saveDayForAI(day),
+    dayReport: (day) => void openDayReport(day),
+    removeDay,
   });
   void backfillNotes();
   // After a run with the pitch check: its report and its file for AI, as in Progress.

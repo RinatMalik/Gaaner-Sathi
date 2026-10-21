@@ -13,6 +13,7 @@ import { lengthText } from '../core/practice/log';
 import { centsFromSa, foldOctave } from '../core/pitch/track';
 import { taalInfo } from '../core/taal/taals';
 import type { SessionFileInput } from './aifile';
+import { exportName, stamp } from './filenames';
 import { noteKeysHTML, noteKeysLegend, NOTEKEYS_CSS } from './notekeys';
 import { beatNoteHTML, esc, lyricHTML, type Script } from './view';
 
@@ -299,7 +300,7 @@ export function reportHTML(o: SessionFileInput & { script: Script }): string {
   const when = [dayText(e.at), lengthText(e.secs) + ' practised', lines + (e.loop && e.rounds > 1 ? ', ' + e.rounds + ' rounds' : ''),
     (T ? T.name : '') , (e.top > e.tempo ? e.tempo + '→' + e.top : e.tempo) + ' matras a minute'].filter(Boolean);
   if (e.routine) when.push('rewaz: ' + e.routine);
-  const fileName = (e.title || 'session').replace(/[\\/:*?"<>|\u0000-\u001f]+/g, '-').trim().slice(0, 60) + ' report ' + new Date(e.at).toISOString().slice(0, 10) + '.html';
+  const fileName = exportName(stamp(e.at), e.title || 'Session', 'Report');
 
   let html = reportHead(e.title + ' · practice report · ' + shortDay(e.at));
   html += '<header class="hero"><div class="wrap"><div class="brand">Gaaner Sathi · <b>গানের সাথী</b> · practice report</div><h1>' + esc(e.title || song?.title || 'Practice') + '</h1>' +

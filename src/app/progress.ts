@@ -80,6 +80,8 @@ export interface ProgressOptions {
   wipeWait?: number;
   /** The session (its `at`) whose bin was pressed: asking to confirm in its row. */
   confirmDel?: number;
+  /** The day (its day number) whose bin was pressed: asking to confirm in its row. */
+  confirmDay?: number;
   /** History's days opened or closed by the user, by day (absent: the latest three open). */
   dayOpen?: ReadonlyMap<number, boolean>;
 }
@@ -222,21 +224,26 @@ function songsHTML(log: readonly LogEntry[], now: number, o: ProgressOptions): s
 /** History: each day's sessions, newest day first, the latest three days unfolded. */
 function historyHTML(log: readonly LogEntry[], now: number, o: ProgressOptions): string {
   const days = byDay(log);
-  let html = '<p class="pgsub"><b>Report</b> opens a page on how a session went; <b>For AI</b> saves everything about it as a file for an AI such as Claude or ChatGPT to analyse (at the top of a day, all its sessions in one file); the bin deletes it, for one that was interrupted.</p>';
+  let html = '<p class="pgsub">Each day and each session has <b>Report</b>, a page on how it went; <b>For AI</b>, everything about it in a file for an AI such as Claude or ChatGPT to analyse; and the bin, to delete it (one that was interrupted, say).</p>';
   days.slice(0, 60).forEach((d, i) => {
     const date = dateOf(d.day);
     const when = whenText(date.getTime(), now);
     const label = (when === 'today' || when === 'yesterday' ? when[0]!.toUpperCase() + when.slice(1) + ', ' : '') + DAY_NAMES[date.getDay()] + ' ' + date.getDate() + ' ' + MONTHS[date.getMonth()] + (date.getFullYear() === new Date(now).getFullYear() ? '' : ' ' + date.getFullYear());
     const score = meanScore(d.entries);
     const meta = [durationText(d.secs), plural(d.entries.length, 'session'), score != null ? 'pitch ' + score : ''].filter(Boolean).join(' · ');
-    html += '<details class="pgdayl" data-day="' + d.day + '"' + (o.dayOpen?.get(d.day) ?? i < 3 ? ' open' : '') + '><summary><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><b>' + label + '</b><span class="pgdaymeta">' + esc(meta) + '</span></summary>' +
-      // A day of several sessions: all of them in one file (Rinat, 2026-10-21: "It would've been
-      // good to be able to export a day's data in one go").
-      (d.entries.length > 1
-        ? '<div class="pgsrow pgdayall"><div class="pgsmain"><span class="pgdet">All ' + d.entries.length + ' sessions of this day, in one file</span></div>' +
-          '<div class="lacts"><button type="button" class="lact pgact" data-dayai="' + d.day + '" title="Every session of this day in one file, for an AI such as Claude or ChatGPT to analyse">' + AI_ICON + '<span>For AI</span></button><span class="lact ldel pgpad" aria-hidden="true"></span></div></div>'
-        : '') +
-      '<ul class="pgses">' +
+    // The day's row has a session's three buttons, for all its sessions (Rinat, 2026-10-21:
+    // "there will be the same three buttons as there are for the individual sessions"); its date
+    // folds it.
+    const open = o.dayOpen?.get(d.day) ?? i < 3;
+    const n = d.entries.length;
+    const sureDay = o.confirmDay === d.day;
+    const dayActs = sureDay
+      ? '<div class="lacts lsure"><span class="lsuret">' + (n === 1 ? 'Delete this day’s session?' : 'Delete all ' + n + ' sessions of this day?') + '</span><button type="button" class="lact ldelyes" data-daydelyes="' + d.day + '">Delete</button><button type="button" class="lact" data-daydelno="' + d.day + '">Keep</button></div>'
+      : '<div class="lacts"><button type="button" class="lact pgact" data-dayreport="' + d.day + '" title="A page on this day’s practice: each session, how it went, note by note">' + REPORT_ICON + '<span>Report</span></button>' +
+        '<button type="button" class="lact pgact" data-dayai="' + d.day + '" title="Every session of this day in one file, for an AI such as Claude or ChatGPT to analyse">' + AI_ICON + '<span>For AI</span></button>' +
+        '<button type="button" class="lact ldel" data-daydel="' + d.day + '" aria-label="Delete this day’s practice" title="Delete this day’s practice: each session’s time, score, report and file for AI">' + DEL_ICON + '</button></div>';
+    html += '<div class="pgdayl" data-day="' + d.day + '"><div class="pgsrow pgdayh' + (sureDay ? ' sure' : '') + '"><button type="button" class="pgdayt" data-dayfold="' + d.day + '" aria-expanded="' + open + '" aria-controls="pgday-' + d.day + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><b>' + label + '</b><span class="pgdaymeta">' + esc(meta) + '</span></button>' + dayActs + '</div>' +
+      '<ul class="pgses" id="pgday-' + d.day + '"' + (open ? '' : ' hidden') + '>' +
       d.entries.map((e) => {
         const s = o.song(e.song);
         const sure = o.confirmDel === e.at;
@@ -247,7 +254,7 @@ function historyHTML(log: readonly LogEntry[], now: number, o: ProgressOptions):
             '<button type="button" class="lact ldel" data-sdel="' + e.at + '" aria-label="Delete this session" title="Delete this session: its time, score, report and file for AI">' + DEL_ICON + '</button></div>';
         return '<li class="pgsrow' + (sure ? ' sure' : '') + '"><div class="pgsmain"><span class="pgclock">' + clock(e.at) + '</span><span class="pgsong">' + esc(s?.title ?? e.title) + '</span>' + scoreHTML(e.score) +
           '<span class="pgdet">' + esc(entryDetail(e)) + '</span>' + (e.routine ? '<span class="ltag pgrw">Rewaz: ' + esc(e.routine) + '</span>' : '') + '</div>' + acts + '</li>';
-      }).join('') + '</ul></details>';
+      }).join('') + '</ul></div>';
   });
   if (days.length > 60) html += '<p class="pgsub">The download below has every day; this shows the latest 60.</p>';
   return html;
@@ -303,8 +310,11 @@ export interface ProgressHost {
   /** A session's report, opened in a new tab; its file for AI, saved. By its log entry's `at`. */
   report(at: number): void;
   forAI(at: number): void;
-  /** A day's sessions as one file for AI, saved. By its day number. */
+  /** A day's report, opened in a new tab; its sessions as one file for AI, saved; its sessions
+   * deleted (log entries and detail), reporting in the view. By its day number. */
+  dayReport(day: number): void;
   dayForAI(day: number): void;
+  removeDay(day: number): Promise<void>;
   /** Open a song or exercise to practise. */
   open(id: string): void;
   /** The sections folded away, and their order, kept on the device. */
@@ -323,8 +333,9 @@ export function initProgress(host: ProgressHost): { render(): void } {
   let pitchSong = '';
   let pitchDays = 30;
   let wipe = false;
-  // The session whose bin was pressed, asking in its row.
+  // The session or the day whose bin was pressed, asking in its row (one at a time).
   let confirmDel = 0;
+  let confirmDay = 0;
   // Delete it all waits WIPE_WAIT seconds from when Start afresh is pressed, counting down.
   let wipeFrom = 0;
   let wipeTick = 0;
@@ -353,8 +364,8 @@ export function initProgress(host: ProgressHost): { render(): void } {
     const log = host.log();
     if (!log.length && wipe) askWipe(false);
     // The days the user opened or closed stay so when the view is drawn again.
-    const dayOpen = new Map(Array.from(body.querySelectorAll<HTMLDetailsElement>('details.pgdayl[data-day]'), (d) => [+d.dataset.day!, d.open] as [number, boolean]));
-    body.innerHTML = progressHTML(log, Date.now(), { song: host.song, order: host.order(), folded: host.folded(), script: host.script(), pitchSong, pitchDays, wipe, wipeWait: wipeWait(), confirmDel, dayOpen });
+    const dayOpen = new Map(Array.from(body.querySelectorAll<HTMLElement>('button[data-dayfold]'), (b) => [+b.dataset.dayfold!, b.getAttribute('aria-expanded') === 'true'] as [number, boolean]));
+    body.innerHTML = progressHTML(log, Date.now(), { song: host.song, order: host.order(), folded: host.folded(), script: host.script(), pitchSong, pitchDays, wipe, wipeWait: wipeWait(), confirmDel, confirmDay, dayOpen });
   }
   const focus = (sel: string) => body.querySelector<HTMLElement>(sel)?.focus();
   body.addEventListener('change', (ev) => {
@@ -371,6 +382,11 @@ export function initProgress(host: ProgressHost): { render(): void } {
       confirmDel = 0;
       render();
       focus('button[data-sdel="' + at + '"]');
+    } else if (ev.key === 'Escape' && confirmDay) {
+      const day = confirmDay;
+      confirmDay = 0;
+      render();
+      focus('button[data-daydel="' + day + '"]');
     } else if (ev.key === 'Escape' && wipe) {
       askWipe(false);
       render();
@@ -405,12 +421,29 @@ export function initProgress(host: ProgressHost): { render(): void } {
     } else if (b.dataset.sdel || b.dataset.sdelno) {
       // Asked in the row; Keep (or Escape) puts it back, with the keyboard on its bin.
       confirmDel = b.dataset.sdel ? +b.dataset.sdel : 0;
+      confirmDay = 0;
       render();
       focus(confirmDel ? 'button[data-sdelno="' + confirmDel + '"]' : 'button[data-sdel="' + b.dataset.sdelno + '"]');
     } else if (b.dataset.sdelyes) {
       confirmDel = 0;
       void host.removeSession(+b.dataset.sdelyes).then(render);
-    } else if (b.dataset.sreport) host.songReport(b.dataset.sreport);
+    } else if (b.dataset.daydel || b.dataset.daydelno) {
+      // A day, the same way.
+      confirmDay = b.dataset.daydel ? +b.dataset.daydel : 0;
+      confirmDel = 0;
+      render();
+      focus(confirmDay ? 'button[data-daydelno="' + confirmDay + '"]' : 'button[data-daydel="' + b.dataset.daydelno + '"]');
+    } else if (b.dataset.daydelyes) {
+      confirmDay = 0;
+      void host.removeDay(+b.dataset.daydelyes).then(render);
+    } else if (b.dataset.dayfold) {
+      // A day folds or unfolds where it is, the keyboard staying on its date.
+      const open = b.getAttribute('aria-expanded') !== 'true';
+      b.setAttribute('aria-expanded', String(open));
+      const list = body.querySelector<HTMLElement>('#pgday-' + b.dataset.dayfold);
+      if (list) list.hidden = !open;
+    } else if (b.dataset.dayreport) host.dayReport(+b.dataset.dayreport);
+    else if (b.dataset.sreport) host.songReport(b.dataset.sreport);
     else if (b.dataset.sai) host.songForAI(b.dataset.sai);
     else if (b.dataset.pitch) {
       // A song's scores: its pitch over time and note by note, in the Pitch section.
