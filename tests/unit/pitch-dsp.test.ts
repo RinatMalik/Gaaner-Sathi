@@ -100,6 +100,42 @@ describe('pitch detector (McLeod)', () => {
     }
   });
 
+  it('takes the voice, not its 2nd or 3rd harmonic, when that harmonic is 20 to 30 dB above it', () => {
+    // Rinat's takes of 2026-10-21, sung loud: at 231 Hz the 2nd harmonic 33 dB above the
+    // fundamental; at 158 Hz, on "o", the 3rd 24 dB above it. McLeod's rule alone (the first key
+    // maximum within 0.9 of the highest) read both as the harmonic: the voice line's jumps.
+    const dB = (v: number[]) => v.map((x) => 10 ** (x / 20));
+    const voices: [number, number[]][] = [
+      [231, dB([-33, 0, -17, -22, -17, -27, -41, -13])],
+      [158, dB([-24, -21, 0, -17, -23, -23, -21, -40])],
+    ];
+    for (const sr of [44100, 48000]) {
+      const N = windowSize(sr);
+      const d = new PitchDetector(N, sr);
+      for (const [f, harmonics] of voices) {
+        for (const phase of [0, 1.3]) {
+          expect(Math.abs(cents(d.detect(tone(f, sr, N, { harmonics, phase })).hz, f))).toBeLessThan(3);
+          for (const seed of [1, 2]) {
+            const r = d.detect(tone(f, sr, N, { harmonics, phase, vibrato: [25, 5.5], snrDb: 30, seed }));
+            expect(Math.abs(cents(r.hz, f))).toBeLessThan(30);
+          }
+        }
+      }
+    }
+  });
+
+  it('leaves a high voice where it is: the pitch those harmonics had, sung', () => {
+    const sr = 44100;
+    const d = new PitchDetector(2048, sr);
+    for (const f of [316, 462, 474, 690]) {
+      for (const phase of [0, 1.3]) {
+        expect(Math.abs(cents(d.detect(tone(f, sr, 2048, { phase })).hz, f))).toBeLessThan(2);
+        const r = d.detect(tone(f, sr, 2048, { phase, vibrato: [25, 5.5], snrDb: 30, seed: 3 }));
+        expect(Math.abs(cents(r.hz, f))).toBeLessThan(30);
+      }
+    }
+  });
+
   it('copes with a noisy room (20 dB below the voice) and vibrato', () => {
     const sr = 48000;
     const d = new PitchDetector(2048, sr);

@@ -2,8 +2,9 @@
  * Pitch detection by the McLeod pitch method (P. McLeod and G. Wyvill, "A smarter way to
  * find pitch", ICMC 2005): the normalised square difference function of a ~40 ms window,
  * then the first of its key maxima that comes close to the highest one, refined by a
- * parabola. The autocorrelation goes through an FFT, so a window costs a few hundred
- * thousand operations. Pure (no DOM), so it is tested in Node with synthetic voices.
+ * parabola, unless that was a harmonic (`HARMONIC_LEAD`). The autocorrelation goes through
+ * an FFT, so a window costs a few hundred thousand operations. Pure (no DOM), so it is tested
+ * in Node with synthetic voices.
  */
 import { fft, type FFT } from './fft';
 
@@ -30,6 +31,20 @@ export interface DetectorOptions {
 
 /** Singing range with room to spare: a low male mandra Sa (C2, 65 Hz) to a high soprano. */
 export const DETECTOR_DEFAULTS: DetectorOptions = { minHz: 60, maxHz: 1500, k: 0.9, minRms: 0.002, minClarity: 0.75 };
+
+/**
+ * A key maximum at 2, 3 or 4 times the period chosen that is this much higher than it is the
+ * period: the one chosen was a harmonic (Rinat, 2026-10-21: "the voice line still jumps, but not
+ * as much"). A low voice sung loud can have its 2nd or 3rd harmonic 20 to 30 dB above the
+ * fundamental (Rinat's takes: 33 dB at 231 Hz; 24 dB at 158 Hz, on "o"), so the window is nearly
+ * periodic at a half or a third of its period too, and McLeod's rule took that for up to 1.4 s.
+ * At the true period a voice's higher multiples are no higher than it, give or take 0.006 in
+ * those takes. Played through the detector, the two takes' readings more than 600 cents from
+ * their notes went from 181 and 270 to 22 and 85.
+ */
+export const HARMONIC_LEAD = 0.02;
+/** How far from an exact multiple of the period chosen a key maximum may be, as a share of it. */
+const HARMONIC_NEAR = 0.04;
 
 /** The analysis window for a sample rate: about 40 ms, a power of two (2048 at 44.1 and 48 kHz). */
 export function windowSize(sampleRate: number): number {
@@ -114,17 +129,36 @@ export class PitchDetector {
     if (!keys.length) return { hz: 0, clarity: 0, rms };
     let top = 0;
     for (const k of keys) top = Math.max(top, nsdf[k]!);
-    const pick = keys.find((k) => nsdf[k]! >= this.opts.k * top)!;
-
-    // A parabola through the peak and its neighbours gives the period between samples.
-    const a = nsdf[pick - 1]!;
-    const b = nsdf[pick]!;
-    const c = nsdf[pick + 1]!;
-    const den = a - 2 * b + c;
-    const shift = den < 0 ? (0.5 * (a - c)) / den : 0;
-    const clarity = Math.min(1, den < 0 ? b - 0.25 * (a - c) * shift : b);
-    const hz = this.sampleRate / (pick + shift);
+    let pick = this.peak(keys.find((k) => nsdf[k]! >= this.opts.k * top)!);
+    // A clearly higher key maximum at a multiple of it: that was a harmonic. Checked again from
+    // there, so a 4th harmonic goes to the 2nd, then to the voice.
+    for (let found = true; found;) {
+      found = false;
+      for (let m = 2; m <= 4 && !found; m++) {
+        for (const k of keys) {
+          const q = this.peak(k);
+          if (Math.abs(q.lag - m * pick.lag) <= HARMONIC_NEAR * m * pick.lag && q.v > pick.v + HARMONIC_LEAD) {
+            pick = q;
+            found = true;
+            break;
+          }
+        }
+      }
+    }
+    const clarity = pick.v;
+    const hz = this.sampleRate / pick.lag;
     if (clarity < this.opts.minClarity || hz < this.opts.minHz || hz > this.opts.maxHz) return { hz: 0, clarity, rms };
     return { hz, clarity, rms };
+  }
+
+  /** A key maximum's period between samples and its height: a parabola through the peak and
+   * its neighbours. */
+  private peak(t: number): { lag: number; v: number } {
+    const a = this.nsdf[t - 1]!;
+    const b = this.nsdf[t]!;
+    const c = this.nsdf[t + 1]!;
+    const den = a - 2 * b + c;
+    const shift = den < 0 ? (0.5 * (a - c)) / den : 0;
+    return { lag: t + shift, v: Math.min(1, den < 0 ? b - 0.25 * (a - c) * shift : b) };
   }
 }
