@@ -10,7 +10,7 @@ import { Transport } from '../../src/audio/transport';
 import { EXERCISES } from '../../src/core/exercises';
 import { parseSong } from '../../src/core/notation/parse';
 import type { ParsedSong } from '../../src/core/notation/types';
-import { beatNotes, centsFromSa, eventsByBeat, foldOctave, isGlitch, nearestNote, noteScore, PitchTracker, SLIP_MAX, SlipFilter, sliding, type ExpectedNote, type Section } from '../../src/core/pitch/track';
+import { beatNotes, centsFromSa, eventsByBeat, foldOctave, isGlitch, nearestNote, noteScore, octaveFor, PitchTracker, SLIP_MAX, SlipFilter, sliding, type ExpectedNote, type Section } from '../../src/core/pitch/track';
 import { taalInfo } from '../../src/core/taal/taals';
 import { RecordingContext } from '../differential/webaudio-recorder';
 import { seeded } from '../helpers';
@@ -251,6 +251,13 @@ describe('scores', () => {
     expect(sing({ octave: -1 }, (t) => (Math.floor(t / 0.4) % 3 === 1 ? 0 : -1200)).seen).toEqual([-1]);
     // When the octave must match, the voice is drawn where it is.
     expect(sing({ octave: -1, anyOctave: false }, () => -1200).seen).toEqual([0]);
+  });
+
+  it('starts each song in the octave nearest the Sa the voice sang on, whatever the song’s Sa (Rinat, 2026-10-21)', () => {
+    // Rinat's voice: Sa on C♯3 (138.59 Hz). Songs with Sa C♯4, C♯3, D4, C♯5 and C♯2.
+    expect([277.18, 138.59, 293.66, 554.37, 69.3].map((sa) => octaveFor(138.59, sa))).toEqual([-1, 0, -1, -2, 1]);
+    // Beyond two octaves, two.
+    expect(octaveFor(138.59, 2217.46)).toBe(-2);
   });
 
   it('finds the octave the voice sings in, to draw it all in one octave', () => {

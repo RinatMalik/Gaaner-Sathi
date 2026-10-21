@@ -44,7 +44,9 @@ export interface PitchHost {
   octave: { get(): boolean; set(v: boolean): void };
   /** The device's own delay (sound out and back in) as last measured, seconds. */
   devLag: { get(): number | undefined; set(v: number): void };
-  /** The octave the voice sang in against the notes last time, when any octave counts. */
+  /** The octave to start the voice in against this song's notes, from where it sang last time
+   * (kept as the Sa it sang on, so it holds across songs with Sa in other octaves); and the octave
+   * it sang in this time, when any octave counts. */
   voiceOct: { get(): number | undefined; set(v: number): void };
   /** The Practice view's lines: the voice is drawn on their strips, each line's score beside it. */
   lines: Pick<LinesUI, 'voice' | 'voiceOff' | 'lineScore' | 'clearRun' | 'gaugeOn' | 'gauge'>;
@@ -515,7 +517,8 @@ export function initPitch(host: PitchHost): PitchUI {
       quiet();
       if (!tracker) return null;
       settle(true);
-      if (tracker.anyOctave) host.voiceOct.set(tracker.octave);
+      // Only from singing: a run with none heard keeps where the voice sang before.
+      if (tracker.anyOctave && tracker.results.some((r) => r.status === 'sung')) host.voiceOct.set(tracker.octave);
       const s = tracker.summary();
       showAverage(true);
       if (s) message(REVIEW);

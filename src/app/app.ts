@@ -38,6 +38,7 @@ import type { Beat, ParsedSong, Unit } from '../core/notation/types';
 import { analyse } from '../core/practice/insights';
 import { dayNumber, lastPractised, lengthText, MIN_LOG_SECS, noteTally, type LogEntry } from '../core/practice/log';
 import type { PitchDetail, PlayedSettings, PlayedSong, SessionDetail } from '../core/practice/session';
+import { octaveFor } from '../core/pitch/track';
 import { songSpan } from '../core/pitch/voice';
 import { itemLines, type RoutineItem } from '../core/practice/routine';
 import { clockText, MIN_TAKE_SECS, newTakeId, textSig, type Take } from '../core/practice/take';
@@ -2469,10 +2470,12 @@ export function init(): void {
       },
     },
     voiceOct: {
-      get: () => prefs.voiceOct,
+      get: () => (prefs.voiceSa ? octaveFor(prefs.voiceSa, saFreq(current)) : prefs.voiceOct),
       set: (v) => {
-        if (prefs.voiceOct === v) return;
-        prefs.voiceOct = v;
+        const hz = Math.round(saFreq(current) * 2 ** v * 100) / 100;
+        if (prefs.voiceSa === hz && prefs.voiceOct == null) return;
+        prefs.voiceSa = hz;
+        delete prefs.voiceOct;
         savePrefs();
       },
     },

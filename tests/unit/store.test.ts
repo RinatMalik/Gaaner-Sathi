@@ -67,6 +67,15 @@ describe('preferences', () => {
     })).toEqual([-1, 0, 2, undefined, undefined, undefined]);
   });
 
+  it('keep the Sa the voice sang on, a pitch a voice can have', () => {
+    const S = new Memory();
+    expect([138.59, 65.41, 20, 2000, '138'].map((v) => {
+      S.setItem(STORE_KEYS.prefs, JSON.stringify({ voiceSa: v, voiceOct: -1 }));
+      const p = loadPrefs(S);
+      return [p.voiceSa, p.voiceOct];
+    })).toEqual([[138.59, -1], [65.41, -1], [undefined, -1], [undefined, -1], [undefined, -1]]);
+  });
+
   it('fall back to the defaults for values the controls cannot make', () => {
     const S = new Memory();
     S.setItem(STORE_KEYS.prefs, JSON.stringify({ beat: 'banjo', tablaVol: 7, reeds: '3', speed: null, layers: 'x', rampMax: -5, soundOpen: 'yes', tab: 'other' }));

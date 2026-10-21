@@ -91,8 +91,12 @@ export interface Prefs extends SoundSettings {
   pitchLag?: number;
   /** The device's own delay, sound out and back in, as last measured with clicks, seconds. */
   deviceLag?: number;
-  /** The octave the voice sang in against the notes last time (−1: an octave below), when any
-   * octave counts; the voice is drawn moved by it from the start of the next run. */
+  /** The Sa the voice sang on last time, Hz (the song's Sa moved by the octave it sang in), when
+   * any octave counts; the next run, of any song, starts drawing the voice in the octave nearest
+   * it (`octaveFor`). */
+  voiceSa?: number;
+  /** The octave the voice sang in against the notes last time (−1: an octave below), as kept
+   * until 2026-10-21; read only while `voiceSa` is absent. */
   voiceOct?: number;
   /** The rewaz routines unfolded, by id; absent: all folded. */
   rewazOpen?: string[];
@@ -195,6 +199,7 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
   if (r.pitchOctave === true) p.pitchOctave = true;
   if (typeof r.pitchLag === 'number' && r.pitchLag >= 0 && r.pitchLag <= 0.6) p.pitchLag = r.pitchLag;
   if (typeof r.deviceLag === 'number' && r.deviceLag >= 0 && r.deviceLag <= 0.6) p.deviceLag = r.deviceLag;
+  if (typeof r.voiceSa === 'number' && r.voiceSa >= 30 && r.voiceSa <= 1100) p.voiceSa = r.voiceSa;
   if (Number.isInteger(r.voiceOct) && Math.abs(r.voiceOct as number) <= 2) p.voiceOct = r.voiceOct as number;
   const ro = Array.isArray(r.rewazOpen) ? r.rewazOpen.filter((x): x is string => typeof x === 'string' && !!x).slice(0, 100) : [];
   if (ro.length) p.rewazOpen = ro;

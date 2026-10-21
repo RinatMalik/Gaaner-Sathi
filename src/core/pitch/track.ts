@@ -289,6 +289,15 @@ export interface TrackerOptions {
 const OCTAVE_MIN = 20;
 const OCTAVE_LEAD = 2;
 
+/**
+ * The octave to start drawing a voice in against a song whose Sa is `saHz`, from the Sa the voice
+ * sang on last time (Hz: that song's Sa moved by the octave it sang in). Kept as a pitch, not as an
+ * octave against the notes, so a song with Sa an octave lower starts right too (Rinat, 2026-10-21:
+ * one song at C♯3, the next at C♯4; kept as an octave, the next run drew its first second an octave
+ * off, then jumped).
+ */
+export const octaveFor = (voiceSa: number, saHz: number): number => Math.max(-2, Math.min(2, Math.round(Math.log2(voiceSa / saHz))));
+
 /** How far behind (or ahead of) the guide the voice is looked for, seconds. */
 export const BEHIND_RANGE: readonly [number, number] = [-0.2, 0.6];
 
