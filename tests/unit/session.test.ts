@@ -148,6 +148,26 @@ describe('what a session shows', () => {
     expect(old.work).toContain('Line 1 needs the most practice (60).');
     expect(analyse(entry(), sing({ pitch: false }), []).notes[0]).toContain('Check my pitch was off');
   });
+
+  it('leaves a round hardly sung out of the rounds compared (Rinat, 2026-10-21: the loop went on after the singing)', () => {
+    const d = sing();
+    const one = d.pitch!.notes;
+    const round = (k: number, f: (i: number) => Partial<NoteRow> = () => ({})) => one.map((r, i) => ({ ...r, t0: r.t0 + 16 * k, t1: r.t1 + 16 * k, pass: k, ...f(i) }));
+    d.pitch!.notes = [...one, ...round(1), ...round(2, (i) => (i ? { status: 'unsung', score: null, cents: null, arrive: null, wobble: null } : { score: 30, cents: -45 }))];
+    const ins = analyse(entry({ loop: true, rounds: 3 }), d, [entry()]);
+    expect(ins.rounds.map((r) => r.round)).toEqual([0, 1]);
+    expect(ins.work.join(' ')).not.toContain('fell in later rounds');
+    expect(ins.notes.join(' ')).toContain('Round 3 was hardly sung (6% of its notes)');
+  });
+
+  it('says when the pitch check heard no singing, not that it was off', () => {
+    const d = sing();
+    d.pitch!.notes = d.pitch!.notes.map((r) => ({ ...r, status: 'unsung', score: null, cents: null, arrive: null, wobble: null }));
+    const ins = analyse(entry(), d, [entry()]);
+    expect(ins.headline).toBe('No singing was heard this time.');
+    expect(ins.notes[0]).toContain('check the microphone');
+    expect(analyse(entry(), sing({ pitch: false }), []).headline).toBe('No pitch check this time.');
+  });
 });
 
 describe('the file for AI', () => {

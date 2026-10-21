@@ -244,8 +244,14 @@ export function analyse(e: LogEntry, detail: SessionDetail | null, log: readonly
     const passes = Array.from(new Set(rows.map((r) => r.pass))).sort((a, b) => a - b);
     if (passes.length > 1) {
       for (const k of passes) {
-        const s = weighted(rows.filter((r) => r.pass === k));
-        if (s != null) ins.rounds.push({ round: k, score: s });
+        const q = rows.filter((r) => r.pass === k);
+        const w = q.reduce((a, r) => a + dur(r), 0);
+        const sung = w > 0 ? q.filter((r) => r.status === 'sung').reduce((a, r) => a + dur(r), 0) / w : 0;
+        const s = weighted(q);
+        // A round mostly not sung says nothing about how the rounds went: the loop going on after
+        // the singer stopped (Rinat, 2026-10-21), or playing stopped early in it.
+        if (s != null && sung >= 0.5) ins.rounds.push({ round: k, score: s });
+        else ins.notes.push('Round ' + (k + 1) + ' was hardly sung (' + Math.round(sung * 100) + '% of its notes), so it is left out of the rounds compared.');
       }
     }
   } else if (e.lines) {
@@ -260,7 +266,7 @@ export function analyse(e: LogEntry, detail: SessionDetail | null, log: readonly
 function headline(ins: Insights): string {
   const p = ins.pitch;
   const b = ins.timing?.behind ?? null;
-  if (!p) return ins.score != null ? 'Your score: ' + ins.score + '.' : 'No pitch check this time.';
+  if (!p) return ins.score != null ? 'Your score: ' + ins.score + '.' : ins.counts.judged ? 'No singing was heard this time.' : 'No pitch check this time.';
   const pitchOk = p.medianAbs <= 20;
   const pitch = p.medianAbs <= 12 ? 'You kept to the notes well' : pitchOk ? 'You were close to the notes' : 'You were often off the notes';
   if (b == null) return pitch + '.';
@@ -342,6 +348,7 @@ function findings(ins: Insights, e: LogEntry, detail: SessionDetail | null): voi
   // What to bear in mind.
   if (!detail) notes.push('This session is from before the app kept each session’s detail (20 October 2026), so only its score and lines are known.');
   else if (!detail.pitch || !detail.pitch.notes.length) notes.push('Check my pitch was off, so there is nothing on pitch or timing. Switch it on before you play to get them.');
+  else if (!ins.counts.sung) notes.unshift('The pitch check was on but heard no singing. If you were singing, check the microphone: plugged in, its level up, and the one the browser is using.');
   if (detail?.pitch && !detail.pitch.measured) notes.push('The device’s delay was not measured, so some of the lateness may be your headphones or speakers. Measure it once in Practice settings → Pitch.');
   if (detail?.pitch?.anyOctave && detail.pitch.octave) notes.push('You sang ' + (Math.abs(detail.pitch.octave) === 1 ? 'an octave' : Math.abs(detail.pitch.octave) + ' octaves') + (detail.pitch.octave < 0 ? ' below' : ' above') + ' the notes, which counts as right.');
   if (p && ins.counts.sung < 12) notes.push('Only ' + ins.counts.sung + ' notes were sung, so these findings are rough.');
