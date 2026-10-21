@@ -73,8 +73,9 @@ wins, except a later explicit decision by Rinat, which always wins.
   20-second wait before deleting), twenty-nine (PH2-29: one session deleted from History),
   thirty (PH2-30: no jumps in the voice line; a day's sessions in one file for AI) and
   thirty-one (PH2-31: a day's Report, For AI and bin on its row; files named by when, title and
-  kind) and thirty-two (PH2-32: Sa's octave named as a keyboard names it, C♯3) are built and
-  live. Phase 1, features, was closed by Rinat ("That's it for features",
+  kind), thirty-two (PH2-32: Sa's octave named as a keyboard names it, C♯3) and thirty-three
+  (PH2-33: the voice line's last jumps, the detector's harmonics and each song's first octave;
+  a round hardly sung left out) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
 - **Next single action:** Rinat enters a song in the beat boxes again (rounds sixteen and
   eighteen: Join, Split, Higher, Lower and New line; the lines centred; the dock of notes
@@ -88,10 +89,13 @@ wins, except a later explicit decision by Rinat, which always wins.
   For AI file to an AI (round thirty); tries a day's Report and bin (round thirty-one); records
   a take with the pitch check on and puts its Recording.wav beside the session's Data.json in
   `feedback/`, for Claude to measure; sets Sa to C♯3 · low (round thirty-two) if the guide
-  should sound where Rinat sings (the second octave of the Casio); tries round nine;
+  should sound where Rinat sings (the second octave of the Casio); sings with round
+  thirty-three to see the line without jumps, the Scarlett's gain a notch lower (the takes of
+  2026-10-21 reached full scale), and says whether session 1 of that day (no voice heard at
+  C♯3) was the microphone; tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `f2df5a3` (CI run `39593935861`: core, reference and deploy jobs green; checked live).
+- **Last known-good commit:** `1770a14` (CI run `39687233839`: core, reference and deploy jobs green; the live script carries `voiceSa`).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -402,6 +406,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-02 | Claude | Review | Design, round two: Pause and a separate Stop; nothing that plays changes the Lines to practise (play from here, sheet line numbers, sections, rewaz, takes); "Check my pitch" listens only while playing; beat box rows with the number and buttons (play this line, play from here, ×) full height, vibhag starts coloured instead of X/0, a tap anywhere on a row selects it, hover | 5 unit tests and the boxes' HTML tests; Edge scenarios `round6` (42 checks) and `rewaz6` (5), with a WAV microphone (Work log 2026-10-12 16:43) | Waiting for Rinat's use and two answers |
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
+| PH2-33 | Claude | Review | The voice line's last jumps: a key maximum at 2, 3 or 4 times the lag McLeod's rule chose that is more than 0.02 higher is the period (`HARMONIC_LEAD`, src/audio/dsp/mpm.ts; a loud low voice's 2nd or 3rd harmonic 24–33 dB above its fundamental); each song starts drawing the voice in the octave nearest the Sa it sang on last time (`octaveFor` in track.ts, prefs `voiceSa` in store.ts and app.ts, kept only from a run with singing in pitch.ts); a round under half sung left out of the rounds compared and said so, and a pitch check that heard no singing says so (insights.ts) | 5 new unit tests (Rinat's two spectra at 44.1 and 48 kHz, steady and with vibrato, failing before; high voices left alone; `octaveFor`; `voiceSa` kept; a round hardly sung; no singing heard, both failing before). Rinat's two takes of 2026-10-21 replayed (the old detector matching the app's own line scores to within 3 on all 86 lines): over 600 cents off 181/270 → 22/85, jumps of an octave or more drawn 10/5 → 0/0 at 44.1 kHz, scores 55 → 56, 59 → 59. Headless Edge with session 5's take as the microphone, live site against `npm run dev`: 8 jumps and 104 points at the strip's edge → 0 and 9 (score so far 49 → 55); a song at Sa C♯3 after C♯4: 2 jumps and 51 at the edge → 0 and 0, `voiceSa` 138.59 kept, an old `voiceOct` replaced (Work log 2026-10-21, round thirty-three) | Waiting for Rinat to sing with it |
 | PH2-32 | Claude | Review | Sa's octave named as a keyboard names it: `saKeyName`, `saWords`, `octOptionsHTML(saKey)` in src/app/view.ts; the deck's octave picker "C♯3 · low", "C♯4 · middle", "C♯5 · high", relabelled when the key changes (`showSa` in app.ts), with a tooltip on where C3 is; Sa in words "C♯3 (Black 1), low octave" in the range finder, the printed sheet, a session's detail and file for AI; "Sa C♯3" in library rows (`LibrarySong.saOct`) | 5 tests changed (the octave picker against the prototype's values and order, and with C♯; the range finder's and the printed sheet's Sa; the library row); headless Edge on `npm run dev`: C · White 1 with C3 · low, C4 · middle, C5 · high; C♯ low chosen; G relabels to G3/G4/G5 keeping low; the tooltip; 1280 px day and 360 px night (360 px wide) (Work log 2026-10-21, round thirty-two) | Waiting for Rinat's use |
 | PH2-31 | Claude | Review | A day's three buttons; files named by when: each History day's row has Report (src/app/dayreport.ts: the day's average, tiles, findings across the day, the score through the day, note by note, each session with its findings and line scores), For AI (the day's file) and the bin, asked in the row ("Delete all 7 sessions of this day?", Escape keeps), deleting the day's log entries (`LogStore.remove` of several) and detail; the date folds the day (a button, `aria-expanded`), the separate day bar gone. Every file saved named `<when> - <title> - <kind>` (src/app/filenames.ts: `stamp`, `fileTitle` to 60 letters at a space, `exportName`): session, day, song and all-practice data and reports, and takes (`Recording.wav`) | 4 new unit tests (names; titles cut; a day's sums and findings; the day's page) and 4 changed (the day's row and its asking; the days kept open; the names of a session's, a day's and a take's files; several log entries deleted); headless Edge on `npm run dev` with seeded sessions (two details in IndexedDB): 16 days with three buttons each, the date folding and unfolding with the keyboard kept, the day's report (6 sections, 4 sessions, saved as "2026.10.20 - Whole day (4 sessions) - Report.html"), the day's and a session's files ("2026.10.20 - Whole day (4 sessions) - Data.json", "2026.10.20_08.37.02 - আমার সোনার বাংলা - Data.json"), the bin asking, Escape back to the bin, Delete removing 4 entries and 2 details; the report at 1280 px day and 360 px night (360 px wide), History at 360 px night (Work log 2026-10-21, round thirty-one) | Waiting for Rinat's use |
 | PH2-30 | Claude | Review | No jumps in the voice line; a day in one file for AI: after the glitch rule, a stretch of voice of up to 8 readings (about 185 ms) that leaps 1000 cents or more from a longer stretch next to it, within 0.25 s, is read as no voice (`SlipFilter` in src/core/pitch/track.ts; the detector catching the 2nd, 3rd or 4th harmonic of a low voice, or the guide); the octave sung in starts as last time (`voiceOct`) and changes on 20 readings and twice the old octave's. For AI at the top of each History day of two or more sessions saves `Practice <date> (<n> sessions) for AI.json` (`dayFileParts`, `DAY_BRIEF`); the session file's long tables come last, readings to 10 ms and the cent, the brief saying what to skip, "short" notes, readings at the pitch sung and overtone slips | 7 new unit tests (slips in a note, at an onset, at the end, two in a row, after a pause; the singing left alone; the octave kept and changed; `voiceOct` kept; the long tables last; the day's file; the day's button); Rinat's six sessions of 2026-10-20 replayed through the tracker (jumps over 600 cents 45/22/55/148/30/122 → 10/1/3/11/5/16); headless Edge with a WAV singer an octave below with 25 overtone slips, the live site against `npm run dev`: 29 jumps and 191 points at the strip's edge → 1 and 20 (0 with the octave kept), `voiceOct` −1 saved; a day's For AI on seeded sessions: the file's parts, 4 sessions, 2 songs as played; 1280 px day, 360 px night (Work log 2026-10-21, round thirty) | Waiting for Rinat to sing with it |
@@ -500,6 +505,9 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-15 | **The Practice view is the song line by line:** one window of about seven lines (5, 7 or 9, in its settings), the line being sung third (the first two lines start at the top) and large, sliding on a line as each plays; a line number plays from there and the section chips stay above. Each beat: the words big with the notes small above (a line without words shows its notes big), a mark for how it was sung, and a pitch strip with a bar for each note at its height; while the pitch check listens the voice is drawn over the bars (green, amber, red), and each line's score shows by its number. The beat sounding is lit, with a playhead through it. It replaces the Now singing panel, the coming-up notes, the pitch meter and its trace box, and the Practice sheet; the ruled lines, the red margin and the red-ink words stay. | Rinat, chat 2026-10-15, with a mockup ("combining the section where it shows the current and upcoming notes, pitch checker with the lyrics section", "a vertical carousel where about 7 lines are visible. The currently playing line is the 3rd one", "The lyrics part is bigger, full width pitch performance strip. When the microphone is off it still shows the strip with lines representing the notes"); the details (a strip under every line, the colours, the first lines at the top, long lines over two rows on a phone, the scores by the numbers, the last line kept at the end) are Claude's | src/app/lines.ts; ENGINE.md → Pitch feedback → Shown. The editor's preview and the printed sheet are unchanged. |
 | 2026-10-15 | **The taal as a figure,** beside the line being sung: a shape per vibhag with a corner per beat (four beats a square, three a triangle, two a stroke: Keherwa two squares, Dadra two triangles, Teentaal four squares), the first corner of each in its kind's colour (sam, tali, khali, as in the beat boxes), khali's shape dashed; the cycle traced round as it goes, the beat's corner lit. The strip of bols is gone. | Rinat, chat 2026-10-15 ("a square where the corners light up for 8 beat taals. but not sure where to put it … seeing the bol's of the taal doesn't really do much for me"); generalising the square to a shape per vibhag, and its place (where Rinat's mockup drew it), are Claude's | The taal's name and structure stay over the lines ("Keherwa · 4 + 4"). |
 | 2026-10-15 | **A settings button over the lines:** lines shown (5, 7, 9), the size of the words and notes (smaller, normal, bigger), the keys to press and the pitch check's octave rule (both moved here). The Practice settings bar is left as it was. | Rinat, chat 2026-10-15 ("There could be a settings button to adjust a few relevant things", "Leave the settings section alone - we'll come back to it later"); the choice of settings is Claude's | Settings `plRows`, `plSize` (DATA.md). |
+| 2026-10-21 | **The detector checks its period's multiples.** McLeod's first key maximum within 0.9 of the highest stays the rule, but a key maximum at 2, 3 or 4 times its lag (within 4 %) that is more than 0.02 higher is the period instead, checked again from there. Raising k alone (0.93–0.97) or taking the highest maximum were measured and left out. | Rinat, chat 2026-10-21 ("the voice line still jumps but not as much"), with two takes and the day's file in `feedback/`: the jumps left were the detector taking a loud low voice's 2nd or 3rd harmonic for 0.2–1.4 s (the harmonic 24–33 dB above the fundamental), too long for the slip rule. The rule and its sizes are Claude's, measured on the takes | src/audio/dsp/mpm.ts (`HARMONIC_LEAD`); docs/ENGINE.md → Harmonics taken for the voice. The slip rule stays for short slips. |
+| 2026-10-21 | **The voice's octave kept as a pitch.** Where the voice sang is kept as the Sa it sang on (Hz), not as an octave against the last song's notes, and only from a run where something was sung; each song starts drawing the voice in the octave nearest it. | Rinat's day of 2026-10-21: a session at Sa C♯3 heard no voice, then the next, at C♯4, drew its first second an octave off and jumped; Rinat now sets Sa per song (round thirty-two). Claude's | src/core/pitch/track.ts (`octaveFor`), src/app/app.ts, pitch.ts; prefs `voiceSa` (`voiceOct` read until replaced; docs/DATA.md). |
+| 2026-10-21 | **A round hardly sung is not compared.** A round with under half its notes sung is left out of "better or worse round by round" and said so; a pitch check that heard no singing says so and to check the microphone, not that it was off. | Rinat, chat 2026-10-21 ("it might say two rounds but its just one round with a few second of next round auto recorded as I had loop turned on"): the app told Rinat the score "fell in later rounds … take a break" from a round with one note sung. Claude's | src/core/practice/insights.ts; docs/ENGINE.md → Session reports. |
 | 2026-10-21 | **Sa's octave named as a keyboard names it:** the octave picker and every place the app names Sa give its key with the keyboard's octave number, middle C being C4 ("C♯3 · low", "C♯3 (Black 1), low octave"); Low, Middle and High stay as words beside it. | Rinat, chat 2026-10-21 ("i didn't know i sing an octave lower, i though i was matching it"; "in a piano, i pick the second octave from left and match to that"; to Claude's question: "make the Sa octave picker say which keyboard octave it is (C3, C4, C5), so I can match it to my Casio"); naming it with the key, the tooltip and naming Sa so everywhere are Claude's | src/app/view.ts (`saKeyName`, `saWords`, `octOptionsHTML`), app.ts, voice.ts, print.ts, songs.ts; docs/DATA.md → Song. |
 | 2026-10-21 | **Files named by when, title and kind; a day's three buttons.** Every file Progress and Practice save is `YYYY.MM.DD_HH.mm.SS - Title - Data.json` (`Report.html`; `Recording.wav` for a take), a day's with its date alone, so a folder lists a session's files together in time order; titles keep at most 60 letters, cut at a space. Each History day has a session's Report, For AI and bin for the whole day, the bin asked in the row; its date folds it. | Rinat, chat 2026-10-21 ("The export file format make it like this YYYY.MM.DD_HH.mm.SS - Title maxchar90 - Data.json … pick a more suitable number as you see fit"; "the same three buttons as there are for the individual sessions, where they can export a days report, days data "For AI" and also the delete button to delete that days data"); 60 letters, the takes' names, the date alone for a day's and the day report's contents are Claude's | src/app/filenames.ts, dayreport.ts, progress.ts, app.ts (`openDayReport`, `removeDay`), store.ts; docs/DATA.md → File names, Practice log. |
 | 2026-10-21 | **Overtone slips read as no voice; the octave sung in kept.** A stretch of voice of up to about 0.2 s that leaps 1000 cents or more away from a longer stretch next to it is the detector catching an overtone (or the guide), not singing: it is read as no voice, in the drawing, the scores, the detail and the file for AI, as a glitch is. Smaller steps are never touched; a real leap of an octave or more waits about 0.2 s before it is drawn. The octave the voice is drawn in starts as the last run's (kept on the device) and changes only when another is clearly sung. | Rinat, chat 2026-10-21 ("the sudden jump of the pitch line still exists. I don't know the thing worked pretty good before, just a few versions ago"): until 2026-10-20 each reading was drawn folded onto the note, which hid most overtones; drawing the voice at its own pitch (round twenty-four, so it never flipped) showed them, and the octave found anew each run made a jump at its start. The rule, its sizes and keeping the octave are Claude's, measured on Rinat's sessions | src/core/pitch/track.ts (`SlipFilter`, `measureOctave`), src/app/pitch.ts; prefs `voiceOct` (docs/DATA.md); docs/ENGINE.md → Slips to an overtone, The octave sung in. |
@@ -567,6 +575,58 @@ Template:
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
 
+### 2026-10-21 BST — Claude (Opus 5.5) — PH2-33 the voice line's last jumps
+
+- **Goal:** Rinat, with the day's file for AI (6 sessions) and two takes' Recording.wav in
+  `feedback/`: "the voice line still jumps but not as much"; "it might say two rounds but its
+  just one round with a few second of next round auto recorded as I had loop turned on";
+  "while investigating why the voice line jumps, also provide feedback on my singing quality and
+  anything else that you might notice".
+- **Inspected:** the day's readings: jumps of 600 cents or more 8/2/17/10/10 in sessions 2–6
+  (none in 1, which heard no voice at Sa C♯3), at ×2, ×3 and ×4, 0.2–1.4 s long, so past the
+  slip rule. The takes (22.05 kHz, so the browser ran at 44.1) run through the app's own detector
+  and lined up with the sessions (offsets 18.110 and 4.910 s): 5269 of 5274 and 11138 of 11157
+  voiced readings agree within 30 cents. At each jump the NSDF's key maxima: the voice at
+  0.94–0.999, its 2nd or 3rd harmonic at 0.90–0.97, chosen by McLeod's 0.9 rule; spectra: the
+  2nd harmonic 33 dB above the fundamental (231 Hz), the 3rd 24 dB (158 Hz). No guide bleed
+  (quiet frames never at the guide's note); peaks at full scale (74 of 359 seconds in session
+  6). Candidate rules scored on every frame of both takes (k 0.93–1, multiples with a lead of
+  0.005–0.05). Session 2 began an octave off for 1.1 s (41 readings): session 1's silent run at
+  C♯3 had saved octave 0. Session 3's "score fell in later rounds" came from a round 3 with one
+  note sung.
+- **Changed:** `bb1a3ce` (fix(pitch)): mpm.ts (`HARMONIC_LEAD`, `peak`), pitch-dsp tests.
+  `1b6b2f6` (fix(pitch)): track.ts (`octaveFor`), app.ts and store.ts (`voiceSa`), pitch.ts
+  (kept only from a run with singing), pitch-track and store tests. `1770a14` (fix(progress)):
+  insights.ts (a round under half sung left out and said; no singing heard said), session tests.
+  This commit: docs/ENGINE.md, DATA.md, ROADMAP row 33, HISTORY (the PH2-31 entry), this file.
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 38 files, 441
+  passed (the new detector test failed before at 1199 cents, the two findings tests before
+  too); `npm run build` → 349.8 kB JS; `bash reference/tests/run-all.sh` → parser 31, checker
+  11, join-split 10, rhythm 12, tanpura 5 passed, 12 exercises valid. Takes replayed (scratch
+  scripts bundled with rolldown, deleted): the old detector at 44.1 kHz matched the app's line
+  scores within 3 on all 17 and 69 lines; new: over 600 cents off 99/133 → 8/33 (22 kHz),
+  jumps of 1000 cents or more 10/5 → 0/0 (44.1 kHz), scores 55 → 56, 59 → 59, lines 3 and 4 of
+  session 5 49 → 54 and 54 → 61. Headless Edge (fake microphone: session 5's first 52 s at 44.1
+  kHz; the song as played, Sa C♯4, start beat 15), the live site against `npm run dev`: 8 jumps
+  of over 40 % of the strip and 104 points at its edge → 0 and 9, the average so far 49 → 55;
+  the song at Sa C♯3 with an old `voiceOct` −1 (live) against `voiceSa` 138.59 (dev): 2 jumps
+  and 51 at the edge → 0 and 0; `voiceSa` 138.59 kept after runs at C♯3 and at C♯4 (an old
+  `voiceOct` replaced). The findings rebuilt from the day's file: session 1 "No singing was
+  heard this time.", session 3 rounds 1–2 compared and round 3 said, session 6's few seconds of
+  round 2 said. CI run `39687233839` (`1770a14`): core, reference and deploy jobs green; the
+  live site's script carries `voiceSa`.
+- **Decisions made:** three rows (the detector checks its period's multiples; the voice's
+  octave kept as a pitch; a round hardly sung is not compared).
+- **Risks or disagreements:** Rinat's other sessions (2–4) have no takes, so they were not
+  replayed; their stored readings keep the old slips (session 2's line 14 partly). Readings
+  over 600 cents from the note that remain (8 and 30 in 52 s and 6 min, at 44.1 kHz) are mostly
+  1–3 readings, which the slip rule takes; a voice whose 2nd period is clearly more periodic
+  than its 1st (creak) now reads an octave low for those readings (3 and 12 in the two takes).
+  `octaveFor` guesses at a Sa exactly half an octave away. Not heard on Rinat's own singing
+  live yet: only replayed and in headless Edge.
+- **Next handoff:** Rinat sings with round thirty-three (the Scarlett's gain a notch lower) and
+  says whether the line still jumps; says whether session 1 was the microphone.
+
 ### 2026-10-21 BST — Claude (Opus 5.5) — PH2-32 Sa's octave named as a keyboard names it
 
 - **Goal:** Rinat, to Claude's question whether the Sa picker should name keyboard octaves:
@@ -594,45 +654,5 @@ Template:
   not read off the CT-X3000.
 - **Next handoff:** Rinat sets C♯3 · low where wanted and sings; sends a take's Recording.wav
   with its Data.json.
-
-### 2026-10-21 BST — Claude (Opus 5.5) — PH2-31 a day's three buttons; files named by when
-
-- **Goal:** Rinat: "what would fill the gap in our feedback loop? if I record myself can you
-  actually hear them? ... i didn't know i sing an octave lower, i though i was matching it";
-  "in a piano, i pick the second octave from left and match to that"; the files named
-  "YYYY.MM.DD_HH.mm.SS - Title maxchar90 - Data.json" and "... - Report.html"; "the same three
-  buttons as there are for the individual sessions" on each day.
-- **Inspected:** takes already record the microphone through the pitch check's capture and
-  download as WAV (24 kHz, 16-bit), so a recording can come to `feedback/` beside its session's
-  data; Claude cannot listen, but can run the app's own detector over it, measure its spectrum
-  and draw it. The octave: the Sa of Rinat's songs is C♯ "Middle" (C♯4, 277 Hz); the second
-  octave of a 61-key Casio is C3–B3, so Rinat's Sa is C♯3 (139 Hz), where the voice sat: the
-  singing matched what Rinat meant, the guide played an octave above, and the Sa picker's
-  octaves (Low, Middle, High) do not say which keys they are. Every saved file's name was made
-  in its own place, six ways.
-- **Changed:** `cb7fa21` (feat(progress)): filenames.ts (new), dayreport.ts (new), progress.ts
-  (the day's row: a fold button and three actions, asked in the row), app.ts (`dayInputs`,
-  `openDayReport`, `removeDay`; every name through `exportName`), store.ts (`remove` of several),
-  aifile.ts, report.ts, songreport.ts, takes.ts (names), styles.css; tests (session, rewaz,
-  takes, log). This commit: docs/DATA.md (File names, a day), ROADMAP row 31, this file (the
-  PH2-29 entry moved to HISTORY).
-- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 38 files, 435
-  passed; `npm run build` → 349.7 kB JS. Headless Edge on `npm run dev`, seeded sessions on 16
-  days, two with detail in IndexedDB: 16 days with Report, For AI and a bin each; the date
-  folding (`aria-expanded` false, list hidden, the keyboard on the date) and unfolding; the
-  day's report in a new tab (6 sections, 4 sessions, no NaN, saving as "2026.10.20 - Whole day
-  (4 sessions) - Report.html"); "Saved 2026.10.20 - Whole day (4 sessions) - Data.json"; a
-  session's "2026.10.20_08.37.02 - আমার সোনার বাংলা - Data.json"; the bin asking "Delete all 4
-  sessions of this day?" with the keyboard on Keep, Escape back to the bin, Delete: the day's 4
-  log entries and its 2 details gone, "Deleted all 4 sessions of Tuesday 20 October.", 15 days
-  left. 1280 px day: History and the day report; 360 px night: History, the asking row and the
-  day report, 360 px wide. CI run `39591858782` (`cb7fa21`): green.
-- **Decisions made:** one row (files named by when, title and kind; a day's three buttons).
-- **Risks or disagreements:** A day's bin deletes several sessions with no undo (asked in the
-  row, as a session's; no wait, unlike Start afresh). A take and its session differ by the
-  count-in in their times, so they list next to each other, not under one name. Not tried on a
-  real phone.
-- **Next handoff:** Rinat sends a take's Recording.wav with its session's Data.json; Rinat says
-  whether the Sa picker should name its octaves by the keyboard (C3, C4, C5).
 
 Older entries: `docs/HISTORY.md`.

@@ -49,6 +49,46 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-21 BST — Claude (Opus 5.5) — PH2-31 a day's three buttons; files named by when
+
+- **Goal:** Rinat: "what would fill the gap in our feedback loop? if I record myself can you
+  actually hear them? ... i didn't know i sing an octave lower, i though i was matching it";
+  "in a piano, i pick the second octave from left and match to that"; the files named
+  "YYYY.MM.DD_HH.mm.SS - Title maxchar90 - Data.json" and "... - Report.html"; "the same three
+  buttons as there are for the individual sessions" on each day.
+- **Inspected:** takes already record the microphone through the pitch check's capture and
+  download as WAV (24 kHz, 16-bit), so a recording can come to `feedback/` beside its session's
+  data; Claude cannot listen, but can run the app's own detector over it, measure its spectrum
+  and draw it. The octave: the Sa of Rinat's songs is C♯ "Middle" (C♯4, 277 Hz); the second
+  octave of a 61-key Casio is C3–B3, so Rinat's Sa is C♯3 (139 Hz), where the voice sat: the
+  singing matched what Rinat meant, the guide played an octave above, and the Sa picker's
+  octaves (Low, Middle, High) do not say which keys they are. Every saved file's name was made
+  in its own place, six ways.
+- **Changed:** `cb7fa21` (feat(progress)): filenames.ts (new), dayreport.ts (new), progress.ts
+  (the day's row: a fold button and three actions, asked in the row), app.ts (`dayInputs`,
+  `openDayReport`, `removeDay`; every name through `exportName`), store.ts (`remove` of several),
+  aifile.ts, report.ts, songreport.ts, takes.ts (names), styles.css; tests (session, rewaz,
+  takes, log). This commit: docs/DATA.md (File names, a day), ROADMAP row 31, this file (the
+  PH2-29 entry moved to HISTORY).
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 38 files, 435
+  passed; `npm run build` → 349.7 kB JS. Headless Edge on `npm run dev`, seeded sessions on 16
+  days, two with detail in IndexedDB: 16 days with Report, For AI and a bin each; the date
+  folding (`aria-expanded` false, list hidden, the keyboard on the date) and unfolding; the
+  day's report in a new tab (6 sections, 4 sessions, no NaN, saving as "2026.10.20 - Whole day
+  (4 sessions) - Report.html"); "Saved 2026.10.20 - Whole day (4 sessions) - Data.json"; a
+  session's "2026.10.20_08.37.02 - আমার সোনার বাংলা - Data.json"; the bin asking "Delete all 4
+  sessions of this day?" with the keyboard on Keep, Escape back to the bin, Delete: the day's 4
+  log entries and its 2 details gone, "Deleted all 4 sessions of Tuesday 20 October.", 15 days
+  left. 1280 px day: History and the day report; 360 px night: History, the asking row and the
+  day report, 360 px wide. CI run `39591858782` (`cb7fa21`): green.
+- **Decisions made:** one row (files named by when, title and kind; a day's three buttons).
+- **Risks or disagreements:** A day's bin deletes several sessions with no undo (asked in the
+  row, as a session's; no wait, unlike Start afresh). A take and its session differ by the
+  count-in in their times, so they list next to each other, not under one name. Not tried on a
+  real phone.
+- **Next handoff:** Rinat sends a take's Recording.wav with its session's Data.json; Rinat says
+  whether the Sa picker should name its octaves by the keyboard (C3, C4, C5).
+
 ### 2026-10-21 BST — Claude (Opus 5.5) — PH2-30 no jumps in the voice line; a day in one file for AI
 
 - **Goal:** Rinat, with the files for AI of yesterday's seven sessions in `feedback/`: "the

@@ -239,9 +239,27 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   half a window (about 45 readings a second), 60–1500 Hz. A window under 0.002 RMS or with a
   clarity under 0.75 reads as no pitch. *Why MPM:* its key-maximum rule chooses octaves well
   on voices with no per-voice threshold (YIN is similar in accuracy).
+- **Harmonics taken for the voice** (Rinat, 2026-10-21: "the voice line still jumps, but not
+  as much"): McLeod's rule takes the first key maximum within 0.9 of the highest. Rinat's two
+  takes of 2026-10-21 (a low voice, sung loud, through a Scarlett 2i2) showed the jumps left after
+  the slip rule (below) were that rule taking the voice's 2nd or 3rd harmonic for 0.2–1.4 s: on
+  loud notes the 2nd harmonic was 33 dB above the fundamental (at 231 Hz) or the 3rd 24 dB above
+  it (at 158 Hz, on "o"), so the window is nearly periodic at a half or a third of its period
+  too (0.90–0.97 against 0.99 at the period). So a key maximum at 2, 3 or 4 times the lag chosen
+  (within 4 %) that is more than 0.02 higher is the period instead, checked again from there
+  (`HARMONIC_LEAD`, src/audio/dsp/mpm.ts). At the true period a voice's multiples are no
+  higher than it, give or take 0.006 in those takes. *Measured on the takes* (the old detector
+  reproduced the app's own line scores to within 3 on all 86 lines): readings more than 600
+  cents from their notes 181 and 270 → 22 and 85 (at the take's 22 kHz) and, at 44.1 kHz, jumps
+  of 1000 cents or more drawn 10 and 5 → 0 and 0; scores 55 → 56 and 59 → 59. In headless Edge
+  with the take as the microphone, the first 34 s of the song: 8 jumps of over 40 % of the strip
+  and 104 points at its edge → 0 and 9. k = 0.93 to 0.97 alone helped less, and picking the
+  highest (k = 1) read 2 to 3 times as many readings an octave low.
 - **Measured** (`tests/unit/pitch-dsp.test.ts`): pure tones C2–C6 within 0.03 cents and
   sung-like tones (24 harmonics, a vowel formant) within 1.3 cents, at 44.1 and 48 kHz; a
-  weak fundamental does not jump an octave; 20 dB of room noise stays within 5 cents;
+  weak fundamental does not jump an octave, nor one 24–33 dB below the 2nd or 3rd harmonic
+  (Rinat's spectra, steady and with vibrato and noise), while voices at those harmonics' pitches
+  stay where they are; 20 dB of room noise stays within 5 cents;
   silence, hiss and plain noise read as no pitch; 0.24 ms a window on the dev laptop.
 - **Expected notes:** each scheduled matra (`onBeat`) gives the note pieces the guide plays
   in it; pieces of the same held note join up.
@@ -275,10 +293,16 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   its fate is known, at most about twice 8 readings. Replayed through the tracker, Rinat's six
   sessions drew 45, 22, 55, 148, 30 and 122 jumps of over 600 cents; with it 10, 1, 3, 11, 5
   and 16 (overtone stretches longer than 0.2 s stay), and the scores moved by 0 to 3. The
-  readings in a session's detail and file for AI are the ones after both rules.
+  readings in a session's detail and file for AI are the ones after both rules. The longer
+  stretches were the detector's own (Harmonics taken for the voice, above), fixed there since;
+  this rule stays for the short ones at onsets and consonants.
 - **The octave sung in** (`octave`, when any octave counts): the voice is drawn moved by it,
-  all of it the same. It starts as the octave sung last time (`voiceOct`, kept on the device)
-  and is checked every quarter second over the last 10 s: among readings within a semitone of
+  all of it the same. It starts in the octave nearest the Sa the voice sang on last time
+  (`octaveFor`; `voiceSa`, kept on the device as a pitch, the song's Sa moved by the octave
+  sung, and only from a run where something was sung), so a song with Sa an octave away starts
+  right too (Rinat, 2026-10-21, one song at C♯3 and the next at C♯4: kept as an octave against
+  the notes, `voiceOct`, the next run drew its first second, 41 to 66 readings, an octave off,
+  then jumped), and is checked every quarter second over the last 10 s: among readings within a semitone of
   an octave of their note, another octave takes over once it has 20 and twice as many as the
   octave it was. *Until 2026-10-21* it started at 0 and was found only with 60 readings of
   voice, after 1.3–4.2 s in Rinat's sessions, so a voice an octave below was drawn at the foot
@@ -393,10 +417,13 @@ session in Progress and under the lines after a run (docs/DATA.md → Session de
 - **Findings,** in plain words: in tune within 12 cents and 100 ms or more behind is said as
   one ("You keep to the notes well" / "You come in late: about 150 ms behind the music"),
   as Rinat put it; slow to settle is said only beyond the lateness; lines (best named only 5
-  points clear, the weakest 10 below), rounds getting better or worse by 5, against the last
-  session of the song. What to bear in mind: no detail kept (before 2026-10-20), the pitch
-  check off, the delay not measured, another octave, few notes, a short session. A headline
-  puts pitch and timing in one sentence ("You kept to the notes well, but came in late.").
+  points clear, the weakest 10 below), rounds getting better or worse by 5 (a round with under
+  half its notes sung left out and said so: the loop going on after the singer stopped, Rinat
+  2026-10-21), against the last session of the song. What to bear in mind: no detail kept
+  (before 2026-10-20), the pitch check off, on but no singing heard (check the microphone), the
+  delay not measured, another octave, few notes, a short session. A headline puts pitch and
+  timing in one sentence ("You kept to the notes well, but came in late."; "No singing was
+  heard this time." when the check heard none).
 - **The report page** (src/app/report.ts) draws with the app's tokens in its own copy (day,
   night, and day when printed); in tune, close and off as green, amber and red, checked for
   colour-blind readers with the dataviz validator (light `#1f7a3a #d9a21f #b4261e`, dark

@@ -134,7 +134,8 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `pitchOctave` | `true` when pitch feedback counts the octave too |
 | `pitchLag` | No longer read (2026-10-19): the delay from a beat to the voice, fitted to the singing, which forgave lateness. The voice is judged at `deviceLag` |
 | `deviceLag` | The device's own delay, sound out and back in, as last measured with clicks, seconds (0–0.6); absent until measured (the device's own figure is used then). The voice is judged and drawn at it, when it was sung |
-| `voiceOct` | The octave the voice sang in against the notes at the end of the last run, when any octave counts (−2 to 2; −1: an octave below); the next run draws the voice moved by it from its first reading (ENGINE.md → The octave sung in). Absent until a run with the pitch check |
+| `voiceSa` | The Sa the voice sang on in the last run where something was sung, Hz (30–1100: the song's Sa moved by the octave sung in), when any octave counts; the next run, of any song, starts drawing the voice in the octave nearest it (ENGINE.md → The octave sung in). Written in place of `voiceOct` from 2026-10-21 (PH2-33). Absent until a run with the pitch check |
+| `voiceOct` | Kept until 2026-10-21 (PH2-33): the octave the voice sang in against the notes at the end of the last run (−2 to 2; −1: an octave below). Read only while `voiceSa` is absent, and dropped when it is written |
 | `rewazOpen` | The ids of the rewaz routines unfolded on the Rewaz view; absent: all folded. (`rewazId`, the routine last chosen, is no longer read) |
 | `theme` | `light` (Day) or `dark` (Night); absent: Auto, as the device says. Read by a line in the page's head before the app runs, so a reload never flashes the other colours |
 | `editMode` | `text` when the editor shows free text; absent: beat boxes |
