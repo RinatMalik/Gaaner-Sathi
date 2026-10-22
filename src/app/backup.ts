@@ -57,7 +57,7 @@ export function backupParts(b: Backup): string[] {
     format: BACKUP_FORMAT,
     version: FILE_VERSION,
     exported: new Date(b.at).toISOString(),
-    about: 'A backup of Gaaner Sathi (গানের সাথী): songs, rewaz routines, practice and settings, without recordings. Restore it with Import, at the top of the app.',
+    about: 'A backup of Gaaner Sathi (গানের সাথী): songs, rewaz routines, practice and settings, without recordings. Restore it with Import from file, in the Music library.',
     songs: b.songs.map((s) => ({ id: s.id, updatedAt: s.updatedAt, ...songForFile(s) })),
     routines: b.routines,
     prefs: singerPrefs(b.prefs),

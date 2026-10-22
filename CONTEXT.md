@@ -106,7 +106,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   C♯3) was the microphone; tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `bbb3dd5` (CI run `39870222435`: core, reference and deploy jobs green; the live page has the three panels and the library's `libImpBtn`).
+- **Last known-good commit:** `b0bc5db` (CI run `39871837884`: core, reference and deploy jobs green; the live page has the practice settings line `psets`, the keyboard line `kbLine` and the strip's `midiConn`).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
