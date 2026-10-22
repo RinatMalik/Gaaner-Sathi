@@ -43,8 +43,6 @@
         <label class="sr-only" for="songSel">Song</label>
         <select id="songSel" class="songsel"></select>
         <button id="newBtn" class="dbtn" type="button" title="Start a new song">+ New</button>
-        <button id="impBtn" class="dbtn dicon" type="button" title="Import songs from a file, or a backup to restore" aria-label="Import songs or a backup from a file"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 15v4h14v-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-        <input id="impFile" type="file" accept=".json,.txt,application/json,text/plain" multiple hidden>
       </div>
       <div class="transport">
         <button id="playBtn" class="play" type="button" aria-label="Play" title="Play">
@@ -66,11 +64,7 @@
         <div class="row dchks"><label class="chk"><input type="checkbox" id="loopChk"> Loop</label><label class="chk" title="Otherwise the right note in a higher or lower octave counts"><input type="checkbox" id="pOct"> Octave must match</label></div>
       </div>
       <label class="chk"><input type="checkbox" id="keysChk"> Show virtual keyboard</label>
-      <fieldset class="dmidi" id="midiOpts" hidden>
-        <div class="drow"><span class="lab" id="midiRouteLab">Guide plays on</span>
-          <div class="seg" id="midiRoute" role="group" aria-labelledby="midiRouteLab"><button type="button" data-v="app">This device</button><button type="button" data-v="kb">Keyboard</button><button type="button" data-v="both">Both</button></div></div>
-        <div class="row dpair"><select id="midiSound" aria-label="The keyboard’s sound for the guide"><option value="keep">The keyboard’s own sound</option><option value="organ">Reed organ sound</option><option value="accordion">Accordion sound</option></select><select id="midiOut" aria-label="Which keyboard plays the guide" hidden></select></div>
-      </fieldset>
+      <div class="row dkb" id="kbLine"><span class="dstat" id="midiStatus" aria-live="polite"></span><button id="midiBtn" class="dlink" type="button" title="Connect a MIDI keyboard, such as a Casio, by its USB cable">Connect</button></div>
     </div>
 
     <!-- On a phone: the other two panels, one open at a time. -->
@@ -123,6 +117,17 @@
       </div>
     </div>
 
+    <!-- A MIDI keyboard's settings, in a strip across the deck once one is found (Rinat, 2026-10-23:
+         "Once a device is connected, a new section should appear"). -->
+    <div class="dkbd" id="midiOpts" role="group" aria-labelledby="midiConn" hidden>
+      <span class="lab">Keyboard</span>
+      <span class="dkbname" id="midiConn"></span>
+      <div class="drow"><span class="lab" id="midiRouteLab">Guide plays on</span>
+        <div class="seg" id="midiRoute" role="group" aria-labelledby="midiRouteLab"><button type="button" data-v="app">This device</button><button type="button" data-v="kb">Keyboard</button><button type="button" data-v="both">Both</button></div></div>
+      <select id="midiSound" aria-label="The keyboard’s sound for the guide"><option value="keep">The keyboard’s own sound</option><option value="organ">Reed organ sound</option><option value="accordion">Accordion sound</option></select>
+      <select id="midiOut" aria-label="Which keyboard plays the guide" hidden></select>
+    </div>
+
   </section>
   <!-- What Import found, and a backup waiting to be restored. -->
   <div class="rbar fbar" id="fileBar" role="status" hidden><span class="rbtext" id="fileBarText"></span><span class="spacer"></span><span class="fbbtns" id="fileBarBtns"></span><button type="button" class="btn" id="fileBarClose" aria-label="Close">×</button></div>
@@ -146,6 +151,7 @@
         <select id="libSort" class="msel"><option value="practised">Recently practised</option><option value="changed">Recently added or changed</option><option value="title">Title</option></select>
         <span class="spacer"></span>
         <button id="libImpBtn" class="btn" type="button" title="Songs from a file, or a backup to restore">Import from file</button>
+        <input id="impFile" type="file" accept=".json,.txt,application/json,text/plain" multiple hidden>
         <div class="dbk">
           <button id="bkBtn" class="btn bkbtn" type="button" aria-expanded="false" aria-controls="bkMenu">Back up or export<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           <div class="dmenu" id="bkMenu" role="group" aria-label="Back up or export" hidden>
@@ -164,34 +170,17 @@
   <main id="practice" role="tabpanel" aria-labelledby="tabPractice">
     <div style="display:grid;gap:14px">
       <div class="rbar" id="rwBar" hidden aria-live="polite"><span class="rbtext" id="rwBarText"></span><span class="spacer"></span><button id="rwSkip" class="btn" type="button">Skip</button><button id="rwStop" class="btn" type="button">Stop rewaz</button></div>
-      <div class="sound">
-        <button id="soundBtn" class="soundbar" type="button" aria-expanded="true" aria-controls="mixer">
-          <span class="soundtext"><span class="mhead">Practice settings</span><span class="soundsum" id="soundSum"></span></span>
-          <span class="soundact" aria-hidden="true"><span id="soundAct">Done</span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        </button>
-      <!-- What the top section does not hold (Rinat, 2026-10-22: "keep the ones not covered"): how
-           the lines show, and what is set up once for this device, the microphone's delay and a
-           MIDI keyboard. -->
-      <section class="mixer" id="mixer" aria-label="Practice settings">
-        <div class="mgroup">
-          <span class="mhead">Lines</span><div class="mitems">
-          <div class="mx"><span class="lab2" id="plRowsLab">Lines shown</span>
-            <div class="seg" id="plRowsSeg" role="group" aria-labelledby="plRowsLab"><button type="button" data-v="5">5</button><button type="button" data-v="7">7</button><button type="button" data-v="9">9</button><button type="button" data-v="12">12</button></div></div>
-          <div class="mx"><span class="lab2" id="plAtLab">Line being sung, from the top</span>
-            <div class="seg" id="plAtSeg" role="group" aria-labelledby="plAtLab"><button type="button" data-v="1">1st</button><button type="button" data-v="2">2nd</button><button type="button" data-v="3">3rd</button><button type="button" data-v="4">4th</button><button type="button" data-v="5">5th</button></div></div>
-        </div></div>
-        <div class="mgroup">
-          <span class="mhead">Delay</span><div class="mitems">
-          <div class="mx pmeasure"><button type="button" class="btn" id="pMeasure" title="Plays eight clicks and times them through the microphone, so the delay of your headphones or speakers is not marked as singing late">Measure the delay</button><span class="phint" id="pMeasureMsg" aria-live="polite"></span></div>
-        </div></div>
-        <div class="mgroup">
-          <span class="mhead">Keyboard</span><div class="mitems">
-          <div class="mx"><button id="midiBtn" class="btn" type="button">Connect a keyboard (MIDI)</button><span class="phint" id="midiStatus" aria-live="polite"></span></div>
-        </div></div>
-      </section>
-      </div>
 
       <div class="sheetHead"><h2 id="songTitle"></h2><span class="songlen" id="songLen" title="How long it plays at this tempo, without the count-in"></span><span class="hint">Tap a section or a line number to play from there · Space bar plays and pauses</span></div>
+      <!-- The practice settings in one line under the title (Rinat, 2026-10-23: "make the practice
+           settings just one line … lines shown, being sung and measure delay"). -->
+      <div class="psets" role="group" aria-label="Practice settings">
+        <div class="mx"><span class="lab2" id="plRowsLab">Lines shown</span>
+          <div class="seg" id="plRowsSeg" role="group" aria-labelledby="plRowsLab"><button type="button" data-v="5">5</button><button type="button" data-v="7">7</button><button type="button" data-v="9">9</button><button type="button" data-v="12">12</button></div></div>
+        <div class="mx"><span class="lab2" id="plAtLab" title="Which of the lines shown, from the top, is the one being sung">Line being sung</span>
+          <div class="seg" id="plAtSeg" role="group" aria-labelledby="plAtLab"><button type="button" data-v="1">1st</button><button type="button" data-v="2">2nd</button><button type="button" data-v="3">3rd</button><button type="button" data-v="4">4th</button><button type="button" data-v="5">5th</button></div></div>
+        <div class="mx pmeasure"><button type="button" class="btn" id="pMeasure" title="Hold an earphone to the microphone (or turn the speakers up), keep quiet, and press it: eight clicks are played and timed, so the delay of your headphones or speakers is not marked as singing late">Measure the delay</button><span class="phint" id="pMeasureMsg" aria-live="polite"></span></div>
+      </div>
       <div class="chips secs" id="secChips" role="group" aria-label="Sections: tap one to play from there" hidden></div>
       <details class="about" id="aboutBox" hidden><summary>About this song</summary><div class="abouttext" id="aboutText"></div></details>
       <!-- The song line by line (Rinat, 2026-10-15): about seven lines in view, the line being sung
@@ -230,7 +219,7 @@
           <tr><td>The numbers</td><td>Each line’s score is in its number box. The number under the song is your score for the whole run, and is saved in Progress.</td></tr>
           <tr><td>See where it went wrong</td><td>Tap a line to open it. Under each note: how high or low you were (<b>+12</b> is a little high, <b>−8</b> a little low; a semitone is 100), and how late you reached it, if you did.</td></tr>
           <tr><td>Being late</td><td>Under the song it says how far behind the music you usually are, to help you sing on time. The app never moves your singing to hide it.</td></tr>
-          <tr><td>Your equipment</td><td>Headphones and microphones take a moment to pass sound along. Measure it once with <b>Measure the delay</b>, in Practice settings, so you are not marked late for it.</td></tr>
+          <tr><td>Your equipment</td><td>Headphones and microphones take a moment to pass sound along. Measure it once with <b>Measure the delay</b>, under the song’s title, so you are not marked late for it.</td></tr>
           <tr><td>Octaves</td><td>The right note in a higher or lower octave counts, unless you tick <b>Octave must match</b>, at the top under the lines to practise.</td></tr>
           <tr><td>Not scored</td><td>Rounds where the guide plays for you to listen first.</td></tr>
           <tr><td>Afterwards</td><td><b>Report</b>, under the song after a run and beside each session in Progress, opens a page on how it went: what went well, what to work on, your timing and each note. <b>For AI</b> saves everything about it as a file an AI such as Claude or ChatGPT can analyse: the tune the app heard, not a recording of you.</td></tr>

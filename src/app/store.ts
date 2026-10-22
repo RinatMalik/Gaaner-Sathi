@@ -67,9 +67,6 @@ export interface Prefs extends SoundSettings {
   /** The song open last time. */
   lastSong: string;
   tab: Tab;
-  /** Whether the Practice settings (the lines' settings) are unfolded; unset until the user
-   * folds or unfolds them. */
-  soundOpen?: boolean;
   /** Whether Edit notation's Settings are unfolded (unset: folded), and its Enter notes
    * section folded (unset: unfolded). */
   editSetOpen?: true;
@@ -175,7 +172,6 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
     libSort: oneOf(r.libSort, ['practised', 'changed', 'title'] as const, d.libSort),
   };
   if (typeof r.guideVol === 'number' && Number.isFinite(r.guideVol)) p.guideVol = num(r.guideVol, 0, 1, 1);
-  if (typeof r.soundOpen === 'boolean') p.soundOpen = r.soundOpen;
   if (r.editSetOpen === true) p.editSetOpen = true;
   if (r.padFold === true) p.padFold = true;
   const lo = r.libOrder;

@@ -78,13 +78,13 @@ button{cursor:pointer}
 .status{font-size:13px;color:var(--ink-2);min-width:0}
 
 /* harmonium deck: the top section, three panels of one size (Rinat, 2026-10-22): the song and
-   playing it, the guide and melody, the rhythm; under 900 px the song's panel, and the other two
-   one at a time under buttons. */
+   playing it, the guide and melody, the rhythm, and across them a strip for a MIDI keyboard once
+   one is found; under 900 px the song's panel, and the other two one at a time under buttons. */
 .deck{
   background:linear-gradient(180deg,var(--wood-2),var(--wood));
   background-image:repeating-linear-gradient(97deg,var(--grain) 0 2px,transparent 2px 11px),linear-gradient(180deg,var(--wood-2),var(--wood));
   color:var(--on-wood);border-radius:16px;padding:12px;
-  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:1fr;gap:10px;
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;
   box-shadow:0 1px 0 var(--deck-line) inset,0 2px 6px var(--shadow);
 }
 .dpanel{display:flex;flex-direction:column;gap:8px;min-width:0;padding:10px 12px;border:1px solid var(--deck-line);border-radius:12px;background:var(--deck-field)}
@@ -100,8 +100,6 @@ button{cursor:pointer}
 .dbtn:not(:disabled):hover{border-color:var(--brass)}
 .dbtn:disabled{opacity:.5;cursor:default}
 .dbtn svg{width:15px;height:15px;transition:transform .15s}
-.dbtn.dicon{padding:4px 7px}
-.dbtn.dicon svg{width:17px;height:17px}
 .dbtn[aria-expanded="true"] svg{transform:rotate(180deg)}
 .dstat{font-size:12.5px;line-height:1.35;color:var(--on-wood-2);min-width:0}
 .dnum{width:58px}
@@ -129,7 +127,13 @@ button{cursor:pointer}
 .deck .seg button[aria-pressed="true"]{background:var(--brass);color:var(--brass-ink)}
 .deck .chip{padding:1px 7px;font-size:12px;background:var(--deck-field);border-color:var(--deck-line);color:var(--on-wood-2)}
 .deck .chip[aria-pressed="true"]{background:var(--brass);border-color:var(--brass);color:var(--brass-ink)}
-.dmidi{display:flex;flex-direction:column;gap:8px;min-width:0;margin:0;padding:0;border:0}
+/* The keyboard: a line at the foot of the song panel until one is found, then a strip across the
+   deck with its name, where the guide plays and in what sound (Rinat, 2026-10-23). */
+.dkb{margin-top:auto;gap:2px 8px}
+.dkb .dlink{margin-top:0}
+.dkbd{grid-column:1 / -1;display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;min-width:0;padding:8px 12px;border:1px solid var(--deck-line);border-radius:12px;background:var(--deck-field)}
+.dkbname{font-weight:600}
+.dkbd select{max-width:100%}
 /* Back up or export: a small menu under its button. */
 .dbk{position:relative}
 .bkbtn{display:inline-flex;align-items:center;gap:4px}
@@ -410,6 +414,9 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .micbtn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 13px 0 9px;border-radius:999px;border:1px solid var(--deck-line);background:var(--deck-field);color:var(--on-wood);font-size:14px;font-weight:600;white-space:nowrap}
 .micbtn svg{width:18px;height:18px;flex:none}
 .micbtn[aria-pressed="true"]{background:var(--brass);border-color:var(--brass);color:var(--brass-ink)}
+/* The practice settings, one line under the title (Rinat, 2026-10-23). */
+.psets{display:flex;flex-wrap:wrap;align-items:center;gap:8px 22px;margin-top:-6px}
+.psets .pmeasure .phint{max-width:none}
 .pmeasure{flex-wrap:nowrap}
 .pmeasure .phint{min-width:0;max-width:46ch}
 @media (max-width:520px){.pmeasure{flex-wrap:wrap}}

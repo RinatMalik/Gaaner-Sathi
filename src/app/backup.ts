@@ -20,7 +20,7 @@ export const BACKUP_FORMAT = 'gaaner-sathi-backup';
 export const BACKUP_BYTES = 200_000_000;
 /** Settings of this device rather than of the singer, never written to a backup or taken from
  * one: its delay, its keyboard, and where it was left. */
-export const DEVICE_PREFS: readonly string[] = ['deviceLag', 'pitchLag', 'midi', 'lastSong', 'tab', 'soundOpen'];
+export const DEVICE_PREFS: readonly string[] = ['deviceLag', 'pitchLag', 'midi', 'lastSong', 'tab'];
 
 export interface Backup {
   /** When it was made, ms since epoch. */

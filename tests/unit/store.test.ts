@@ -3,7 +3,7 @@
 // summary lines, which are new.
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_PREFS, loadPrefs, savePrefs, SongStore, STORE_KEYS, type KeyValueStore } from '../../src/app/store';
-import { practiceSummary, songSoundSummary } from '../../src/app/view';
+import { songSoundSummary } from '../../src/app/view';
 import { normalize, type Song } from '../../src/core/song/model';
 
 /** localStorage in memory; it can be made full or blocked. */
@@ -44,11 +44,11 @@ describe('preferences', () => {
     const p = loadPrefs(S);
     expect([p.beat, p.droneVol, p.script]).toEqual(['dholak', 0.4, 'lat']);
     p.beat = 'kit';
-    p.soundOpen = false;
+    p.editSetOpen = true;
     expect(savePrefs(S, p)).toBe('ok');
     expect(S.json(STORE_KEYS.legacyPrefs)).toEqual({ beat: 'dholak', droneVol: 0.4, script: 'lat' });
     const q = loadPrefs(S);
-    expect([q.beat, q.droneVol, q.soundOpen]).toEqual(['kit', 0.4, false]);
+    expect([q.beat, q.droneVol, q.editSetOpen]).toEqual(['kit', 0.4, true]);
   });
 
   it('keep the delays found and measured, when they could be real (Rinat, 2026-10-19)', () => {
@@ -78,9 +78,9 @@ describe('preferences', () => {
 
   it('fall back to the defaults for values the controls cannot make', () => {
     const S = new Memory();
-    S.setItem(STORE_KEYS.prefs, JSON.stringify({ beat: 'banjo', tablaVol: 7, reeds: '3', speed: null, layers: 'x', rampMax: -5, soundOpen: 'yes', tab: 'other' }));
+    S.setItem(STORE_KEYS.prefs, JSON.stringify({ beat: 'banjo', tablaVol: 7, reeds: '3', speed: null, layers: 'x', rampMax: -5, editSetOpen: 'yes', tab: 'other' }));
     const p = loadPrefs(S);
-    expect([p.beat, p.tablaVol, p.reeds, p.speed, p.rampMax, p.soundOpen, p.tab]).toEqual(['tabla', 1, 3, 'normal', 30, undefined, 'practice']);
+    expect([p.beat, p.tablaVol, p.reeds, p.speed, p.rampMax, p.editSetOpen, p.tab]).toEqual(['tabla', 1, 3, 'normal', 30, undefined, 'practice']);
     expect(p.layers).toEqual({ tabla: [], dholak: [], kit: [] });
     S.setItem(STORE_KEYS.prefs, '{ not json');
     expect(loadPrefs(S)).toEqual(DEFAULT_PREFS);
@@ -268,15 +268,6 @@ describe('songs', () => {
 });
 
 describe('the settings bars’ summaries', () => {
-  it('Practice settings since the top section (2026-10-22): the lines shown, which is sung, and the device’s delay', () => {
-    expect(practiceSummary()).toBe('7 lines, the 3rd being sung · Delay not measured');
-    expect(practiceSummary({ plRows: 7, plAt: 3, deviceLag: 0.1 })).toBe('7 lines, the 3rd being sung · Delay 100 ms');
-    expect(practiceSummary({ plRows: 12, plAt: 4 })).toBe('12 lines, the 4th being sung · Delay not measured');
-    expect(practiceSummary({ plAt: 1, deviceLag: 0.0624 })).toBe('7 lines, the 1st being sung · Delay 62 ms');
-    // The guide, the font size and the rest are elsewhere, not in it.
-    const p: typeof DEFAULT_PREFS = { ...DEFAULT_PREFS, guide: 'off', countIn: false, plSize: 'big' };
-    expect(practiceSummary(p)).toBe('7 lines, the 3rd being sung · Delay not measured');
-  });
 
   it('a song’s sound: the harmonium, the drone, then the rhythm with its speed and added layers', () => {
     expect(songSoundSummary(DEFAULT_PREFS)).toBe('3 reeds · No drone · Tabla');

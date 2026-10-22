@@ -1,6 +1,7 @@
 /**
  * The keyboard (docs/ENGINE.md → MIDI keyboards): which key to press for
- * each note, drawn on the Practice view; and a MIDI keyboard, connected in the Practice settings,
+ * each note, drawn on the Practice view; and a MIDI keyboard, connected at the foot of the top
+ * section's song panel,
  * whose keys type notes into the editor and which can play the guide in its own sound. The
  * HTML builders are pure and tested in Node.
  */
@@ -99,7 +100,9 @@ export function initKeyboard(host: KeyboardHost): KeyboardUI {
   const $ = <T extends HTMLElement>(s: string) => document.querySelector(s) as T;
   const btn = $<HTMLButtonElement>('#midiBtn');
   const status = $('#midiStatus');
-  const opts = $<HTMLFieldSetElement>('#midiOpts');
+  const line = $('#kbLine');
+  const opts = $('#midiOpts');
+  const conn = $('#midiConn');
   const outSel = $<HTMLSelectElement>('#midiOut');
   const hint = $('#kbHint');
   let midi: Midi | null = null;
@@ -118,11 +121,15 @@ export function initKeyboard(host: KeyboardHost): KeyboardUI {
     const p = host.prefs.get();
     const ins = midi?.inputs() ?? [];
     const outs = midi?.outputs() ?? [];
-    // Where the guide plays and in what sound show at the top once a keyboard is found
-    // (Rinat, 2026-10-22); connecting is in the Practice settings.
-    btn.hidden = !!midi;
-    opts.hidden = !(ins.length || outs.length);
-    status.textContent = !midi ? (Midi.supported() ? 'No keyboard connected.' : midiProblemText('unsupported')) : ins.length || outs.length ? 'Connected: ' + Array.from(new Set([...ins, ...outs].map((x) => x.name))).join(', ') : 'No keyboard found yet. Connect it with a USB cable (the keyboard’s USB port that goes to a computer), and it shows up here.';
+    // The song panel ends with a line on the keyboard and Connect; once one is found, a strip
+    // across the deck says which, where the guide plays and in what sound (Rinat, 2026-10-23).
+    const found = ins.length > 0 || outs.length > 0;
+    btn.hidden = !!midi || !Midi.supported();
+    line.hidden = found;
+    opts.hidden = !found;
+    conn.textContent = found ? Array.from(new Set([...ins, ...outs].map((x) => x.name))).join(', ') + ' connected' : '';
+    status.textContent = !midi ? (Midi.supported() ? 'No keyboard connected.' : 'No MIDI keyboards in this browser.') : found ? '' : 'No keyboard found yet: plug it in with a USB cable.';
+    status.title = !midi ? (Midi.supported() ? '' : midiProblemText('unsupported')) : found ? '' : 'Connect it with a USB cable (the keyboard’s USB port that goes to a computer), and it shows up here.';
     for (const b of document.querySelectorAll<HTMLElement>('#midiRoute button')) b.setAttribute('aria-pressed', String(b.dataset.v === p.route));
     $<HTMLSelectElement>('#midiSound').value = p.sound;
     outSel.hidden = outs.length < 2;
@@ -200,10 +207,6 @@ export function initKeyboard(host: KeyboardHost): KeyboardUI {
     }).catch(() => {});
   } catch {
     // no permissions API
-  }
-  if (!Midi.supported()) {
-    btn.disabled = true;
-    status.textContent = midiProblemText('unsupported');
   }
   render();
 

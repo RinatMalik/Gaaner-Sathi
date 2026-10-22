@@ -4,9 +4,9 @@
  * the end). Names follow the prototype's, so the two read side by side.
  *
  * Changes from the prototype:
- * - The controls and settings are in the top section's four panels (Rinat, 2026-10-22): the
- *   song and playing it, the guide and melody, the rhythm, the keyboard and this device; the
- *   lines' settings fold away at the top of the Practice view.
+ * - The controls and settings are in the top section's three panels (Rinat, 2026-10-22 and 23):
+ *   the song and playing it, the guide and melody, the rhythm, with a strip for a MIDI keyboard
+ *   once one is found; the lines' settings and the delay in a line under the Practice title.
  * - Songs and settings stay in this browser, with no claude.ai storage or downloads;
  *   store.ts explains how the prototype's saved songs are read. Changes saved in another
  *   tab show up here, as the claude.ai version's live sync did.
@@ -85,7 +85,6 @@ try {
 const prefs = loadPrefs(storage);
 const savePrefs = () => {
   writePrefs(storage, prefs);
-  renderLinesSummary();
 };
 const wanted = prefs.lastSong;
 
@@ -1187,11 +1186,6 @@ function setSeg(id: string, v: string | number): void {
   for (const b of $$('#' + id + ' button')) b.setAttribute('aria-pressed', String(b.dataset.v === String(v)));
 }
 
-/** What the folded Practice settings (the lines' settings) say. */
-function renderLinesSummary(): void {
-  $('#soundSum').textContent = V.practiceSummary(prefs);
-}
-
 // ── Each song's own sound ────────────────────────────────────────────────────
 
 /** The rhythm's instrument to go back to when it is unmuted, which its picker shows meanwhile. */
@@ -1594,11 +1588,6 @@ function renderAbout(): void {
   $('#aboutText').textContent = notes || '';
 }
 
-function setSoundOpen(open: boolean): void {
-  $('#soundBtn').setAttribute('aria-expanded', String(open));
-  $('#mixer').hidden = !open;
-  $('#soundAct').textContent = open ? 'Done' : 'Change';
-}
 /** Edit notation's Settings (the song's details, sound and files), unfolded or not
  * (remembered on the device). */
 function setEditSetOpen(open: boolean): void {
@@ -2551,7 +2540,6 @@ export function init(): void {
   select('#rampStep').value = String(prefs.rampStep);
   input('#rampMax').value = String(prefs.rampMax);
   renderNoteButtons();
-  setSoundOpen(prefs.soundOpen ?? false);
   setEditSetOpen(!!prefs.editSetOpen);
   setPadOpen(!prefs.padFold);
   songsView = initSongs({
@@ -2851,12 +2839,6 @@ export function init(): void {
   });
   input('#loopChk').addEventListener('change', linesChanged);
 
-  $('#soundBtn').addEventListener('click', () => {
-    const open = !!$('#mixer').hidden;
-    prefs.soundOpen = open;
-    savePrefs();
-    setSoundOpen(open);
-  });
   $('#edSetBtn').addEventListener('click', () => {
     setEditSetOpen(!!$('#edSet').hidden);
     savePrefs();
@@ -3339,8 +3321,8 @@ export function init(): void {
     else backupSongs();
   });
   $('#fileBarClose').addEventListener('click', () => showFileBar(''));
-  // Import at the top, and in the Music library beside Back up or export (Rinat, 2026-10-23).
-  $('#impBtn').addEventListener('click', () => input('#impFile').click());
+  // Import from file, in the Music library beside Back up or export (Rinat, 2026-10-23; at the
+  // top for a day).
   $('#libImpBtn').addEventListener('click', () => input('#impFile').click());
   input('#impFile').addEventListener('change', (e) => {
     const el = e.target as HTMLInputElement;
