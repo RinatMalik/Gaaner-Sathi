@@ -3,7 +3,7 @@
 // summary lines, which are new.
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_PREFS, loadPrefs, savePrefs, SongStore, STORE_KEYS, type KeyValueStore } from '../../src/app/store';
-import { linesSummary, songSoundSummary } from '../../src/app/view';
+import { practiceSummary, songSoundSummary } from '../../src/app/view';
 import { normalize, type Song } from '../../src/core/song/model';
 
 /** localStorage in memory; it can be made full or blocked. */
@@ -268,15 +268,14 @@ describe('songs', () => {
 });
 
 describe('the settings bars’ summaries', () => {
-  it('Practice settings, the lines’ alone since the top section (2026-10-22): how many, which is sung, the size when not normal', () => {
-    expect(linesSummary()).toBe('7 lines, the 3rd being sung');
-    expect(linesSummary({ plRows: 7, plAt: 3, plSize: 'normal' })).toBe('7 lines, the 3rd being sung');
-    expect(linesSummary({ plRows: 12, plAt: 4, plSize: 'big' })).toBe('12 lines, the 4th being sung · Bigger words');
-    expect(linesSummary({ plRows: 9 })).toBe('9 lines, the 3rd being sung');
-    expect(linesSummary({ plAt: 1, plSize: 'small' })).toBe('7 lines, the 1st being sung · Smaller words');
-    // The guide and the rest are in the top section, not in it.
-    const p: typeof DEFAULT_PREFS = { ...DEFAULT_PREFS, guide: 'off', countIn: false };
-    expect(linesSummary(p)).toBe('7 lines, the 3rd being sung');
+  it('Practice settings since the top section (2026-10-22): the lines shown, which is sung, and the device’s delay', () => {
+    expect(practiceSummary()).toBe('7 lines, the 3rd being sung · Delay not measured');
+    expect(practiceSummary({ plRows: 7, plAt: 3, deviceLag: 0.1 })).toBe('7 lines, the 3rd being sung · Delay 100 ms');
+    expect(practiceSummary({ plRows: 12, plAt: 4 })).toBe('12 lines, the 4th being sung · Delay not measured');
+    expect(practiceSummary({ plAt: 1, deviceLag: 0.0624 })).toBe('7 lines, the 1st being sung · Delay 62 ms');
+    // The guide, the font size and the rest are elsewhere, not in it.
+    const p: typeof DEFAULT_PREFS = { ...DEFAULT_PREFS, guide: 'off', countIn: false, plSize: 'big' };
+    expect(practiceSummary(p)).toBe('7 lines, the 3rd being sung · Delay not measured');
   });
 
   it('a song’s sound: the harmonium, the drone, then the rhythm with its speed and added layers', () => {

@@ -349,7 +349,7 @@ function findings(ins: Insights, e: LogEntry, detail: SessionDetail | null): voi
   if (!detail) notes.push('This session is from before the app kept each session’s detail (20 October 2026), so only its score and lines are known.');
   else if (!detail.pitch || !detail.pitch.notes.length) notes.push('Check my pitch was off, so there is nothing on pitch or timing. Switch it on before you play to get them.');
   else if (!ins.counts.sung) notes.unshift('The pitch check was on but heard no singing. If you were singing, check the microphone: plugged in, its level up, and the one the browser is using.');
-  if (detail?.pitch && !detail.pitch.measured) notes.push('The device’s delay was not measured, so some of the lateness may be your headphones or speakers. Measure it once with Measure the delay, at the top of the app.');
+  if (detail?.pitch && !detail.pitch.measured) notes.push('The device’s delay was not measured, so some of the lateness may be your headphones or speakers. Measure it once with Measure the delay, in Practice settings.');
   if (detail?.pitch?.anyOctave && detail.pitch.octave) notes.push('You sang ' + (Math.abs(detail.pitch.octave) === 1 ? 'an octave' : Math.abs(detail.pitch.octave) + ' octaves') + (detail.pitch.octave < 0 ? ' below' : ' above') + ' the notes, which counts as right.');
   if (p && ins.counts.sung < 12) notes.push('Only ' + ins.counts.sung + ' notes were sung, so these findings are rough.');
   if (e.secs < 30 && detail?.pitch) notes.push('A short session: ' + Math.round(e.secs) + ' seconds.');

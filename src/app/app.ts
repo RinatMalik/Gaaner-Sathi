@@ -170,14 +170,16 @@ let deckBeat = -1;
 let wakeLock: WakeLockSentinel | null = null;
 const playing = () => !!T && T.playing;
 
-/** What to play: lines `from` to `to`, looped (for `rounds` rounds, if given) or on to the
- * end of the song; `check`: the editor's quick listen to one line. Nothing that plays changes
+/** What to play: lines `from` to `to`, looped (for `rounds` rounds, if given), or once up to
+ * `to` (`upTo`, the Lines to practise) or on to the end of the song; `check`: the editor's
+ * quick listen to one line. Nothing that plays changes
  * the Lines to practise pickers; only the deck's Play plays them (Rinat, 2026-10-12). */
 interface PlayAsk {
   from: number;
   to: number;
   loop: boolean;
   rounds?: number;
+  upTo?: boolean;
   check?: boolean;
 }
 /** What is playing, as asked (for Pause). */
@@ -263,7 +265,7 @@ function ensureAudio(): Transport {
 function pickedLines(): PlayAsk {
   const last = Math.max(0, parsed.noteLines.length - 1);
   const from = clamp(+select('#fromLine').value || 0, 0, last);
-  return { from, to: Math.max(from, clamp(+select('#toLine').value || 0, 0, last)), loop: input('#loopChk').checked };
+  return { from, to: Math.max(from, clamp(+select('#toLine').value || 0, 0, last)), loop: input('#loopChk').checked, upTo: true };
 }
 
 /** Play what is asked (the Lines to practise unless told otherwise). `at` goes on from a
@@ -300,7 +302,7 @@ function play(ask: PlayAsk = pickedLines(), at: { s: number; pass: number } | nu
   }
   keyboard.playStarting(tr);
   runFirst = -1;
-  const r = tr.start(source, { from, to, loop, rounds: ask.rounds, at: at ?? undefined });
+  const r = tr.start(source, { from, to, loop, rounds: ask.rounds, upTo: ask.upTo, at: at ?? undefined });
   if (!r) return;
   asked = { ...ask, from: r.from, to: r.to, loop };
   if (!ask.check && !at) {
@@ -1187,7 +1189,7 @@ function setSeg(id: string, v: string | number): void {
 
 /** What the folded Practice settings (the lines' settings) say. */
 function renderLinesSummary(): void {
-  $('#soundSum').textContent = V.linesSummary(prefs);
+  $('#soundSum').textContent = V.practiceSummary(prefs);
 }
 
 // ── Each song's own sound ────────────────────────────────────────────────────
@@ -1574,9 +1576,11 @@ function applyTheme(): void {
   setSeg('themeSeg', prefs.theme ?? 'auto');
   renderDisp();
 }
-/** The header's menu button says how notes are written and the colours: "বাংলা · Auto". */
+/** The header's menu button says how notes are written, the colours and the font size when it is
+ * not normal: "বাংলা · Auto · Bigger". */
 function renderDisp(): void {
-  $('#dispSum').textContent = (prefs.script === 'lat' ? 'Sa Re Ga' : 'বাংলা') + ' · ' + (prefs.theme === 'light' ? '☀ Day' : prefs.theme === 'dark' ? '☾ Night' : 'Auto');
+  $('#dispSum').textContent = (prefs.script === 'lat' ? 'Sa Re Ga' : 'বাংলা') + ' · ' + (prefs.theme === 'light' ? '☀ Day' : prefs.theme === 'dark' ? '☾ Night' : 'Auto') +
+    (prefs.plSize === 'big' ? ' · Bigger' : prefs.plSize === 'small' ? ' · Smaller' : '');
 }
 function setDispOpen(open: boolean): void {
   $('#dispMenu').hidden = !open;
@@ -1668,8 +1672,9 @@ function renderLength(): void {
   }
   const { from, to, loop } = pickedLines();
   let t = lengthText(playSeconds(parsed, baseTempoAt)) + ' long';
-  if (loop) t += ' · line' + (to > from ? 's ' + (from + 1) + '–' + (to + 1) : ' ' + (from + 1)) + ': ' + lengthText(playSeconds(parsed, baseTempoAt, from, to)) + ' a round';
-  else if (from > 0) t += ' · from line ' + (from + 1) + ': ' + lengthText(playSeconds(parsed, baseTempoAt, from));
+  const part = ' · line' + (to > from ? 's ' + (from + 1) + '–' + (to + 1) : ' ' + (from + 1)) + ': ' + lengthText(playSeconds(parsed, baseTempoAt, from, to));
+  if (loop) t += part + ' a round';
+  else if (from > 0 || to < parsed.noteLines.length - 1) t += part;
   el.textContent = t;
 }
 
@@ -2507,14 +2512,17 @@ function setTempo(v: number | string): void {
 const segButton = (e: Event) => (e.target as Element).closest<HTMLElement>('button');
 /** Print or save as PDF: the open song, or another from the Music library. */
 let printSong: (song?: Song) => void = () => {};
-/** The lines' settings, as chosen: lines shown, which is the one being sung, and the size of
- * the words and notes. */
+/** The lines' settings, as chosen: lines shown and which is the one being sung; and the font size
+ * of the song's notes and words (the header's menu), in Practice and Edit notation. */
 function applyLinesPrefs(): void {
   setSeg('plRowsSeg', prefs.plRows ?? 7);
   setSeg('plAtSeg', prefs.plAt ?? 3);
   setSeg('plSizeSeg', prefs.plSize ?? 'normal');
   $('#pl').dataset.size = prefs.plSize ?? 'normal';
+  if (prefs.plSize) document.documentElement.dataset.nsize = prefs.plSize;
+  else delete document.documentElement.dataset.nsize;
   lines.refresh();
+  if (boxesShown()) boxes.refresh();
 }
 
 
@@ -2808,8 +2816,6 @@ export function init(): void {
       }
     });
   }
-  $('#tDown').addEventListener('click', () => setTempo(shownTempo() - 4));
-  $('#tUp').addEventListener('click', () => setTempo(shownTempo() + 4));
   input('#tempoRange').addEventListener('input', (e) => setTempo((e.target as HTMLInputElement).value));
   input('#tempoNum').addEventListener('change', (e) => setTempo((e.target as HTMLInputElement).value));
   select('#saKey').addEventListener('change', (e) => {
@@ -2841,7 +2847,6 @@ export function init(): void {
   });
   select('#toLine').addEventListener('change', () => {
     if (+select('#toLine').value < +select('#fromLine').value) select('#fromLine').value = select('#toLine').value;
-    input('#loopChk').checked = true;
     linesChanged();
   });
   input('#loopChk').addEventListener('change', linesChanged);
@@ -3022,6 +3027,7 @@ export function init(): void {
     else delete prefs.plSize;
     savePrefs();
     applyLinesPrefs();
+    renderDisp();
   });
   $('#takesList').addEventListener('click', (e) => void onTakeClick(e));
   $('#themeSeg').addEventListener('click', (e) => {

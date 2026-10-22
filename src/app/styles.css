@@ -57,6 +57,11 @@ body{background:var(--paper);color:var(--ink);font-family:var(--f-ui);font-size:
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+/* The song's notes and words at the font size chosen in the header's menu (Rinat, 2026-10-22):
+   the Practice view's lines (.pl's --ts), and Edit notation's boxes, preview and free text. */
+:root{--ns:1}
+:root[data-nsize="small"]{--ns:.85}
+:root[data-nsize="big"]{--ns:1.2}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 .wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:18px 56px;display:grid;gap:14px}
@@ -72,14 +77,14 @@ button{cursor:pointer}
 .btn.danger{color:var(--red-ink)}
 .status{font-size:13px;color:var(--ink-2);min-width:0}
 
-/* harmonium deck: the top section, four panels of one size (Rinat, 2026-10-22): the song and
-   playing it, the guide and melody, the rhythm, the keyboard and this device; two to a row on a
-   tablet; on a phone the song's panel, and the others one at a time under buttons. */
+/* harmonium deck: the top section, three panels of one size (Rinat, 2026-10-22): the song and
+   playing it, the guide and melody, the rhythm; under 900 px the song's panel, and the other two
+   one at a time under buttons. */
 .deck{
   background:linear-gradient(180deg,var(--wood-2),var(--wood));
   background-image:repeating-linear-gradient(97deg,var(--grain) 0 2px,transparent 2px 11px),linear-gradient(180deg,var(--wood-2),var(--wood));
   color:var(--on-wood);border-radius:16px;padding:12px;
-  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:1fr;gap:10px;
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:1fr;gap:10px;
   box-shadow:0 1px 0 var(--deck-line) inset,0 2px 6px var(--shadow);
 }
 .dpanel{display:flex;flex-direction:column;gap:8px;min-width:0;padding:10px 12px;border:1px solid var(--deck-line);border-radius:12px;background:var(--deck-field)}
@@ -100,6 +105,7 @@ button{cursor:pointer}
 .dbtn[aria-expanded="true"] svg{transform:rotate(180deg)}
 .dstat{font-size:12.5px;line-height:1.35;color:var(--on-wood-2);min-width:0}
 .dnum{width:58px}
+.dchks{gap:6px 16px}
 /* Two controls that share a row and shrink to fit it: Sa's key and octave, the drone and its volume. */
 .row.dpair{flex-wrap:nowrap}
 .dpair select{flex:1 1 auto;min-width:0}
@@ -107,9 +113,8 @@ button{cursor:pointer}
 .dsong .micbtn{padding:0 10px 0 7px;font-size:13.5px}
 .dlink{align-self:flex-start;margin-top:auto;padding:0;border:0;background:none;color:var(--brass-hi);font-size:12.5px;font-weight:600;text-decoration:underline;text-underline-offset:.2em}
 /* The guide's and the rhythm's volume, and the tempo: tall sliders in a column at the left. */
-.vcol{flex:none;width:42px;display:flex;flex-direction:column;align-items:center;gap:6px;padding-right:8px;border-right:1px solid var(--deck-line)}
+.vcol{flex:none;width:52px;display:flex;flex-direction:column;align-items:center;gap:6px;padding-right:8px;border-right:1px solid var(--deck-line)}
 .dmix{column-gap:8px}
-.vtempo{width:54px}
 .vlab{font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--on-wood-2);font-weight:600}
 .deck input.vrange{writing-mode:vertical-lr;direction:rtl;width:26px;height:auto;flex:1 1 90px;min-height:80px;margin:0}
 .mute{flex:none;width:36px;height:30px;padding:0;display:grid;place-items:center;border:1px solid var(--deck-line);border-radius:8px;background:var(--deck-field);color:var(--on-wood)}
@@ -117,26 +122,26 @@ button{cursor:pointer}
 .mute .ic-off,.mute[aria-pressed="true"] .ic-on{display:none}
 .mute[aria-pressed="true"] .ic-off{display:inline}
 .mute[aria-pressed="true"]{background:var(--brass);border-color:var(--brass);color:var(--brass-ink)}
-.vtempo input[type=number]{width:48px;padding:3px 0;text-align:center;font-variant-numeric:tabular-nums;font-size:16px;font-weight:600;appearance:textfield;-moz-appearance:textfield}
+.vtempo input[type=number]{flex:none;width:44px;height:30px;padding:2px 0;text-align:center;font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;appearance:textfield;-moz-appearance:textfield}
 .deck input[type=number]::-webkit-inner-spin-button,.deck input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-.tpm{display:flex;gap:4px}
 .deck .seg{background:var(--deck-field);border-color:var(--deck-line)}
 .deck .seg button{padding:2px 9px;font-size:12.5px;color:var(--on-wood-2)}
 .deck .seg button[aria-pressed="true"]{background:var(--brass);color:var(--brass-ink)}
 .deck .chip{padding:1px 7px;font-size:12px;background:var(--deck-field);border-color:var(--deck-line);color:var(--on-wood-2)}
 .deck .chip[aria-pressed="true"]{background:var(--brass);border-color:var(--brass);color:var(--brass-ink)}
 .dmidi{display:flex;flex-direction:column;gap:8px;min-width:0;margin:0;padding:0;border:0}
-.dmidi:disabled{opacity:.5}
 /* Back up or export: a small menu under its button. */
 .dbk{position:relative}
+.bkbtn{display:inline-flex;align-items:center;gap:4px}
+.bkbtn svg{width:15px;height:15px;transition:transform .15s}
+.bkbtn[aria-expanded="true"] svg{transform:rotate(180deg)}
 .dmenu{position:absolute;right:0;top:100%;z-index:30;display:grid;gap:2px;width:max-content;max-width:min(320px,calc(100vw - 32px));margin-top:4px;padding:6px;background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px var(--shadow)}
 .dmenu button{display:grid;gap:1px;padding:7px 10px;border:0;border-radius:8px;background:none;text-align:left}
 .dmenu button:hover{background:var(--chip)}
 .dmenu b{font-size:14px;font-weight:600}
 .dmenu span{font-size:12.5px;color:var(--ink-2)}
 .fbar .fbbtns{display:flex;flex-wrap:wrap;gap:6px}
-@media (max-width:1100px){.deck{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:640px){
+@media (max-width:900px){
   .deck{grid-template-columns:minmax(0,1fr);grid-auto-rows:auto;gap:8px;padding:10px}
   .dtabs{display:flex;gap:6px}
   .dtab{flex:1 1 0;min-height:38px;padding:4px 8px;border:1px solid var(--deck-line);border-radius:9px;background:var(--deck-field);color:var(--on-wood);font-weight:600}
@@ -170,9 +175,10 @@ button{cursor:pointer}
   border-radius:8px;padding:4px 6px;min-width:0;max-width:100%;
 }
 .deck option{background:var(--wood);color:var(--on-wood)}
-.deck select{font-size:14px;line-height:1.25}
+.deck select{font-size:14px;line-height:1.25;height:30px;padding-block:0}
+.deck input.dnum{height:30px;padding-block:0}
+.nw{display:inline-flex;align-items:center;gap:6px}
 .deck select.lines{font-family:var(--f-note);flex:1 1 auto;min-width:0}
-.dk{width:27px;height:27px;border-radius:50%;border:1px solid var(--deck-line);background:var(--deck-field);color:var(--on-wood);font-size:18px;line-height:1}
 .deck input[type=range]{accent-color:var(--brass);width:auto;flex:1 1 60px;min-width:0;max-width:100%}
 .mini{font-size:13px;color:var(--on-wood-2)}
 .chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--on-wood-2)}
@@ -214,8 +220,8 @@ button{cursor:pointer}
 .hint{font-size:13px;color:var(--ink-2)}
 .sheet{position:relative;background:var(--sheet);border:1px solid var(--line);border-radius:14px;overflow:auto;max-height:56vh;overscroll-behavior:contain}
 #sheetE{max-height:72vh}
-#sheetE .nt{font-size:18px}
-#sheetE .ly{font-size:14px}
+#sheetE .nt{font-size:calc(18px * var(--ns))}
+#sheetE .ly{font-size:calc(14px * var(--ns))}
 .line{display:grid;grid-template-columns:46px minmax(0,1fr);border-bottom:1px solid var(--rule)}
 .line:last-child{border-bottom:0}
 .ln{border:0;border-right:1.5px solid var(--margin);background:none;color:var(--ink-2);font-variant-numeric:tabular-nums;font-size:13px;font-weight:600;padding-top:14px;align-self:stretch;display:flex;justify-content:center;align-items:flex-start}
@@ -267,7 +273,7 @@ button{cursor:pointer}
 .edgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
 .edcol{display:grid;gap:10px;min-width:0}
 .edgrid.solo{grid-template-columns:minmax(0,1fr)}
-textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--f-note);font-size:19px;line-height:1.85;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:12px 14px;tab-size:4}
+textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--f-note);font-size:calc(19px * var(--ns));line-height:1.85;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:12px 14px;tab-size:4}
 .issues{font-size:14px;color:var(--ink-2);display:grid;gap:6px}
 .issues .ok{color:var(--ink-2)}
 .chkok{color:var(--ink-2)}
@@ -404,6 +410,9 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .micbtn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 13px 0 9px;border-radius:999px;border:1px solid var(--deck-line);background:var(--deck-field);color:var(--on-wood);font-size:14px;font-weight:600;white-space:nowrap}
 .micbtn svg{width:18px;height:18px;flex:none}
 .micbtn[aria-pressed="true"]{background:var(--brass);border-color:var(--brass);color:var(--brass-ink)}
+.pmeasure{flex-wrap:nowrap}
+.pmeasure .phint{min-width:0;max-width:46ch}
+@media (max-width:520px){.pmeasure{flex-wrap:wrap}}
 .prow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;min-width:0}
 .pmeter{position:relative;flex:0 1 300px;min-width:160px;height:22px;border-radius:999px;background:var(--chip);overflow:hidden}
 .pmeter .pz{position:absolute;left:35%;width:30%;top:0;bottom:0;background:var(--good);opacity:.25}
@@ -658,13 +667,23 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .padoctname::before{content:"";display:inline-block;width:.8em;height:.8em;margin-right:.45em;border-radius:50%;background:var(--oc);vertical-align:-.08em}
 .pk.px{min-height:46px;border-style:dashed;font-family:var(--f-ui);font-size:13px;font-weight:600;color:var(--ink-2)}
 .pk.px .pks{font-family:var(--f-note);font-size:18px;line-height:1.1;color:var(--ink)}
+.pk{min-height:0;height:41px;padding:2px;font-size:21px;line-height:1.05}
+.pk.px{min-height:0;height:34px}
+.pk.px .pks{font-size:16px}
+.pkc{margin-top:1px;font-size:10px;line-height:1.1}
+.padmid,.padkeys,.pkrow{gap:5px}
+.padoctname{height:16px;line-height:16px;overflow:hidden}
+.padtools{gap:6px}
+.ptg{gap:2px;padding:4px 8px 5px}
+.ptlab{line-height:1.2}
+.ptb .obtn{min-height:28px;padding:2px 8px}
 @media (max-width:520px){
   .pad{grid-template-columns:42px minmax(0,1fr) 42px;gap:5px}
   .padoct{font-size:10px;border-radius:10px}
   .padoct svg{width:20px;height:20px}
   .pkrow,.padkeys{gap:4px}
-  .pk{min-height:48px;font-size:20px;border-radius:8px}
-  .pk.px{font-size:11px;min-height:44px}
+  .pk{min-height:36px;font-size:19px;border-radius:8px}
+  .pk.px{font-size:11px;min-height:33px}
 }
 
 /* A song's notes (new): written in the editor, shown above the sheet. */
@@ -700,6 +719,8 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
    Each row: its number down the left (the handle, behind the diary's red margin line), the
    boxes, and full-height buttons at its end (Rinat, 2026-10-12). */
 .modebar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+#modeHint{flex:1 1 300px;min-width:0;margin:0}
+.pk.px{flex-direction:row;gap:6px}
 .boxes{display:grid;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:0;max-height:72vh;overflow:auto;overscroll-behavior:contain}
 .bxrow{display:flex;align-items:stretch;gap:0 10px;border-bottom:1px solid var(--rule);min-width:0}
 .bxrow:last-child{border-bottom:0}
@@ -718,7 +739,7 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .bxgrp:first-child{border-left:0;padding-left:0}
 .bxcell{display:grid;justify-items:center;align-content:start;gap:2px}
 .bx,.lx{width:2.6em;min-width:2.6em;max-width:9em;field-sizing:content;text-align:center;font-family:var(--f-note);border-radius:7px;cursor:text}
-.bx{padding:3px 4px;border:1px solid var(--line);background:var(--paper);font-size:16px;line-height:1.3}
+.bx{padding:3px 4px;border:1px solid var(--line);background:var(--paper);font-size:calc(16px * var(--ns));line-height:1.3}
 .bxcell.ghost .bx{border-style:dashed;background:transparent}
 .bxcell.ghost .bx[tabindex="-1"]{opacity:.55}
 /* The first beat of each vibhag, by its kind (instead of X, 0 and numbers above the boxes). */
@@ -727,10 +748,10 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .bxcell.v-khali .bx{background:var(--v-khali);border-color:var(--v-khali-line)}
 .bxcell .bx.cur{border-color:var(--focus);box-shadow:0 0 0 1px var(--focus)}
 .bxcell.bad .bx{border-color:var(--red-ink);text-decoration:underline wavy var(--red-ink);text-underline-offset:.2em}
-.lx{padding:1px 4px;border:1px solid transparent;border-bottom-color:var(--rule);background:transparent;color:var(--red-ink);font-size:15px;line-height:1.3}
+.lx{padding:1px 4px;border:1px solid transparent;border-bottom-color:var(--rule);background:transparent;color:var(--red-ink);font-size:calc(15px * var(--ns));line-height:1.3}
 .lx:focus{border-color:var(--line)}
-.lxgap{display:block;height:calc(var(--v,1) * 24px)}
-.bxh{flex:1 1 180px;min-width:0;padding:5px 9px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-family:var(--f-note);font-size:17px}
+.lxgap{display:block;height:calc(var(--v,1) * 24px * var(--ns))}
+.bxh{flex:1 1 180px;min-width:0;padding:5px 9px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-family:var(--f-note);font-size:calc(17px * var(--ns))}
 .bxtl{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--ink-2)}
 .bxt{width:5em;padding:4px 6px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:14px}
 .bxtaal{max-width:11em;padding:4px 6px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:14px;color:var(--ink)}

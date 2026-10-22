@@ -1,11 +1,14 @@
-// The top section (Rinat, 2026-10-22): a taal picked to play the song in, until another song
+// The top section (Rinat, 2026-10-22): the Lines to practise from one line to another, looped
+// or not (src/audio/transport.ts → upTo); a taal picked to play the song in, until another song
 // opens (src/core/notation/taalmap.ts → inOneTaal); the guide's volume and mute
 // (src/audio/sound.ts); Back up or export → Everything, and its restore (src/app/backup.ts).
 import { describe, expect, it } from 'vitest';
 import { BACKUP_FORMAT, backupParts, backupWords, readBackup, restoredPrefs, restorePlan, type Backup } from '../../src/app/backup';
 import { DEFAULT_PREFS, loadPrefs, STORE_KEYS, type KeyValueStore } from '../../src/app/store';
 import { taalPickHTML } from '../../src/app/view';
+import { createEngine } from '../../src/audio/engine';
 import { DEFAULT_SOUND, guideLevel, guideSlider } from '../../src/audio/sound';
+import { Transport, type BeatEntry } from '../../src/audio/transport';
 import { parseSong } from '../../src/core/notation/parse';
 import { inOneTaal, placeIn, taalMap } from '../../src/core/notation/taalmap';
 import type { LogEntry } from '../../src/core/practice/log';
@@ -13,6 +16,8 @@ import type { SessionDetail } from '../../src/core/practice/session';
 import { songsFromFile } from '../../src/core/song/file';
 import { normalize } from '../../src/core/song/model';
 import { taalInfo } from '../../src/core/taal/taals';
+import { RecordingContext } from '../differential/webaudio-recorder';
+import { seeded } from '../helpers';
 
 class Memory implements KeyValueStore {
   private m = new Map<string, string>();
@@ -26,6 +31,30 @@ class Memory implements KeyValueStore {
     this.m.delete(k);
   }
 }
+
+describe('the Lines to practise, from one line to another', () => {
+  const TEXT = 'সা রা গা মা\nপা ধা না র্সা\nর্সা না ধা পা\nমা গা রা সা';
+  function lines(opts: { from: number; to: number; loop: boolean; rounds?: number; upTo?: boolean }): number[] {
+    const P = parseSong(TEXT);
+    const rec = new RecordingContext();
+    const T = new Transport(createEngine(rec as unknown as BaseAudioContext, seeded(3)), () => {});
+    const beats: BeatEntry[] = [];
+    T.onBeat = (q) => beats.push(q);
+    T.start({ parsed: P, taal: taalInfo('keherwa'), song: { saKey: 0, saOct: 4, tempo: 240, startOn: 1 }, sound: { ...structuredClone(DEFAULT_SOUND), countIn: false } }, opts);
+    for (let i = 1; i * 0.025 <= 30 && !T.endAt; i++) {
+      rec.currentTime = i * 0.025;
+      T.tick();
+    }
+    return Array.from(new Set(beats.filter((q) => q.pass >= 0).map((q) => P.lineOfBeat[q.s]!)));
+  }
+
+  it('without Loop, plays them once and stops at the last: not on to the end of the song', () => {
+    expect(lines({ from: 1, to: 2, loop: false, upTo: true })).toEqual([1, 2]);
+    // Elsewhere (a line number, "play from here") a play without a loop still goes to the end.
+    expect(lines({ from: 1, to: 2, loop: false })).toEqual([1, 2, 3]);
+    expect(lines({ from: 1, to: 2, loop: true, rounds: 2, upTo: true })).toEqual([1, 2]);
+  });
+});
 
 describe('a taal picked at the top', () => {
   it('plays the whole song in it, sections and all, with sam where the song’s own has it', () => {

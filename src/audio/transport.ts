@@ -119,10 +119,12 @@ export class Transport {
    * Start playing from note line `from` (and loop to line `to`, for `rounds` rounds if
    * given). Count-in: one cycle plus any pickup, always starting at sam. `at` goes on from
    * song beat s in round `pass` instead (after a pause): at once, with no count-in, a note
-   * held across that beat sounding again from it. Returns the lines used and the count-in
-   * length in beats, or null when there is nothing to play.
+   * held across that beat sounding again from it. `upTo`: without a loop, stop at the end of
+   * line `to` (the Lines to practise, from one line to another, Rinat 2026-10-22) rather than
+   * the song's. Returns the lines used and the count-in length in beats, or null when there is
+   * nothing to play.
    */
-  start(src: PlaySource, opts: { from: number; to: number; loop: boolean; rounds?: number; at?: { s: number; pass: number } }, now: number = this.E.ctx.currentTime): { from: number; to: number; pre: number } | null {
+  start(src: PlaySource, opts: { from: number; to: number; loop: boolean; rounds?: number; upTo?: boolean; at?: { s: number; pass: number } }, now: number = this.E.ctx.currentTime): { from: number; to: number; pre: number } | null {
     const L = src.parsed.noteLines;
     if (!L.length) return null;
     if (this.playing) this.stop();
@@ -133,7 +135,7 @@ export class Transport {
     let to = clamp(opts.to, 0, L.length - 1);
     if (to < from) to = from;
     this.secStart = L[from]!.start;
-    this.secEnd = this.loop ? L[to]!.end : src.parsed.total;
+    this.secEnd = this.loop || opts.upTo ? L[to]!.end : src.parsed.total;
     this.secLen = Math.max(1, this.secEnd - this.secStart);
     const at = this.taalOf(this.secStart);
     const cyc = at.T.cycle;

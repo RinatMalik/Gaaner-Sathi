@@ -1,6 +1,6 @@
 /**
  * The keyboard (docs/ENGINE.md → MIDI keyboards): which key to press for
- * each note, drawn on the Practice view; and a MIDI keyboard, connected in the top section,
+ * each note, drawn on the Practice view; and a MIDI keyboard, connected in the Practice settings,
  * whose keys type notes into the editor and which can play the guide in its own sound. The
  * HTML builders are pure and tested in Node.
  */
@@ -118,10 +118,10 @@ export function initKeyboard(host: KeyboardHost): KeyboardUI {
     const p = host.prefs.get();
     const ins = midi?.inputs() ?? [];
     const outs = midi?.outputs() ?? [];
-    // Where the guide plays and in what sound show always (the top section's panel keeps its
-    // shape), and can be changed once a keyboard is connected.
+    // Where the guide plays and in what sound show at the top once a keyboard is found
+    // (Rinat, 2026-10-22); connecting is in the Practice settings.
     btn.hidden = !!midi;
-    opts.disabled = !(ins.length || outs.length);
+    opts.hidden = !(ins.length || outs.length);
     status.textContent = !midi ? (Midi.supported() ? 'No keyboard connected.' : midiProblemText('unsupported')) : ins.length || outs.length ? 'Connected: ' + Array.from(new Set([...ins, ...outs].map((x) => x.name))).join(', ') : 'No keyboard found yet. Connect it with a USB cable (the keyboard’s USB port that goes to a computer), and it shows up here.';
     for (const b of document.querySelectorAll<HTMLElement>('#midiRoute button')) b.setAttribute('aria-pressed', String(b.dataset.v === p.route));
     $<HTMLSelectElement>('#midiSound').value = p.sound;

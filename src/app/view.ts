@@ -305,22 +305,21 @@ export function issuesHTML(P: ParsedSong, taals: TaalInfo | Taals, off: number, 
 const STYLE_NAMES: Record<string, string> = { tabla: 'Tabla', dholak: 'Dholak', kit: 'Drums', click: 'Click' };
 const FIRST_STRING: Record<string, string> = { P: 'Pa', M: 'Ma', N: 'Ni' };
 
-/** The lines' settings, in the Practice view's settings bar. */
+/** The Practice view's settings bar: the lines' settings, and the device's delay. */
 export interface ViewSettings {
   plRows?: number;
   plAt?: number;
-  plSize?: string;
+  deviceLag?: number;
 }
 
 const ORDINAL = ['', '1st', '2nd', '3rd', '4th', '5th'];
 
-/** What the folded Practice settings (since 2026-10-22 the lines' alone) are set to, in a line:
- * "7 lines, the 3rd being sung", then the size of the words when not normal. */
-export function linesSummary(v: ViewSettings = {}): string {
+/** What the folded Practice settings (since 2026-10-22 the lines' and the device's delay) are set
+ * to, in a line: "7 lines, the 3rd being sung · Delay 100 ms", or "· Delay not measured". */
+export function practiceSummary(v: ViewSettings = {}): string {
   const at = v.plAt ?? 3;
-  const parts = [(v.plRows ?? 7) + ' lines, the ' + (ORDINAL[at] ?? at) + ' being sung'];
-  if (v.plSize === 'small' || v.plSize === 'big') parts.push(v.plSize === 'big' ? 'Bigger words' : 'Smaller words');
-  return parts.join(' · ');
+  return (v.plRows ?? 7) + ' lines, the ' + (ORDINAL[at] ?? at) + ' being sung · ' +
+    (v.deviceLag != null ? 'Delay ' + Math.round(v.deviceLag * 1000) + ' ms' : 'Delay not measured');
 }
 
 /** A song's own sound in a line, for the top section's "Use my usual sound": "3 reeds · Tanpura,
