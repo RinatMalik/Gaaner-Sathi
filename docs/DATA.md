@@ -81,7 +81,8 @@ exactly as before.
   `dismissed` and `sound` appear only when set; an exercise exported, built-in or your own, carries
   `exercise`, so it imports as an exercise of your own. They are optional, so files stay version 1: the prototype and older readers
   skip them.
-- **Import** (the top section, beside the song picker; the Music library until 2026-10-22) accepts that envelope, a bare array of songs, a single song object, or
+- **Import** (the top section, beside the song picker; and **Import from file** in the Music
+  library, beside Back up or export) accepts that envelope, a bare array of songs, a single song object, or
   a plain `.txt`, which becomes one song titled from the file name. Limits: 2 MB per file,
   200 songs per import, 200 000 characters per song. Imports always get new ids, so they
   never overwrite; importing the same file twice gives two copies, the second titled
