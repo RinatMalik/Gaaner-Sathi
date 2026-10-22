@@ -33,6 +33,19 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
   40 s a round" when looping, or "from line 3: …"), in Edit notation's Settings bar, and in each
   Music library row. A test plays a song through the transport and checks its beats take
   exactly that long.
+- **Restart** (the top section, Rinat, 2026-10-22): what is playing or paused, again from its
+  start: the Lines to practise, a section, a "play from here" or the editor's line, with the
+  count-in as set. Not in a rewaz, which has its own Skip and Stop.
+- **A taal picked at the top** (Rinat, 2026-10-22: "I found myself playing with it by
+  choosing different ones … the top section will override it if something else is
+  selected"): the rhythm panel's taal picker shows the song's own taal (or taals) first; another
+  taal picked there plays the whole song in it, its sections' own taals too, until another song
+  opens (`inOneTaal`, src/core/notation/taalmap.ts). The song's first beat stays as many beats
+  before sam as in its own first taal (from the 13th beat of Teentaal, the 5th of Keherwa).
+  The Practice view's lines, the taal figure, the rhythm and a session's "song as played"
+  follow it; Edit notation (beat boxes, preview, checker) and the printed sheet keep the
+  taals as written. A song in another number of beats than its lines were written for plays,
+  its lines simply no longer falling on whole cycles.
 - **What plays** (Rinat, 2026-10-12): the deck's Play plays the Lines to practise; a line
   number on the sheet and the editor's "play from here" play from that line to the end of the
   song, once; a section button plays its section (looping it when "loop" is ticked); a rewaz
@@ -175,7 +188,9 @@ Every style becomes one cycle of hits `{pos, lane, vel}` with `pos` in matras fr
 - **Waveform:** a periodic wave with 21 harmonics (`H = [0, 1, .74, .58, .47, .39, .31, .26,
   .21, .17, .14, .12, .1, .085, .072, .06, .05, .042, .035, .029, .024, .02]`).
 - **Envelope:** 28 ms attack to the note level, settles to 82 % (τ 0.12 s), and releases with
-  τ 0.04 s starting 25 ms before the note ends. Guide level is Full 0.9 or Soft 0.3.
+  τ 0.04 s starting 25 ms before the note ends. Guide level is the top section's slider
+  times Full's 0.9 (`guideLevel`, Rinat, 2026-10-22), or 0 muted; before a slider was set,
+  Full 0.9 or Soft 0.3 as the prototype had them.
 - **Reed sets** (`REED_SETS`), as on a real harmonium: bass (an octave down), male (as
   written), female (an octave up). Each reed is a few cents off the others, which gives a
   slow beating.
@@ -313,7 +328,8 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   under the lines ("your voice 250 ms behind the guide", "with the guide" within 20 ms) and
   never taken off anything.
 - **The device's delay, measured** (Rinat, 2026-10-19, a Scarlett 2i2: "let's solve it in
-  desktop for now"): "Measure the delay" in Practice settings (Pitch) plays eight clicks
+  desktop for now"): "Measure the delay" (the top section's keyboard and device panel; in
+  Practice settings → Pitch until 2026-10-22) plays eight clicks
   (4 ms of falling noise, 0.6 s apart, the first 0.7 s after the microphone opens) and
   records the microphone on the AudioContext clock (`src/audio/latency.ts`). Each click is
   found in the recording differenced (hum and voice fall away): heard when its window's
@@ -322,7 +338,8 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   the middle ones within 10 ms, is the device's delay, sound out and back in (`deviceLag`);
   else it says how many were heard and to hold an earphone closer. Under the lines: "Device
   delay 50 ms (measured) · your voice 250 ms behind the guide"; unmeasured, "Device delay
-  62 ms, as it says: measure it in Practice settings" (Bluetooth often under-reports it). A
+  62 ms, as it says: measure it with Measure the delay, at the top" (Bluetooth often
+  under-reports it). A
   take plays back skipping the device's delay, so it is heard as it was sung. *Why clicks
   through an earphone held to the microphone:* with headphones the microphone cannot
   otherwise hear the app.
@@ -487,8 +504,9 @@ path as pitch feedback.
   device (USB "to host", or a MIDI interface) works the same; nothing is brand-specific, and
   there is no library. Chrome and Edge on a computer and Chrome on Android have Web MIDI;
   Firefox needs a site-permission add-on; Safari and iPhones have none (the Connect button
-  says so). Connecting is one button in the Practice settings; a keyboard allowed before
-  reconnects by itself.
+  says so). Connecting is one button in the top section's keyboard panel (where the guide
+  plays and in what sound show there always, usable once a keyboard is connected); a keyboard
+  allowed before reconnects by itself.
 - **Typing:** while the editor is showing, each key pressed is a beat, written from the
   song's Sa (two octaves either side), into the beat boxes or at the caret. Keys pressed
   within 40 ms of each other (an octave) type the highest once. Holds and rests come from the

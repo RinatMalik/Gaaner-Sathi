@@ -13,12 +13,12 @@ Clearing a browser's site data ("cookies and site data") deletes it all.
 
 | What | Kept in | Moves to another device or person |
 |---|---|---|
-| Your songs: notation, title, taal, tempo, Sa, start beat, section tempos and taals, tags, star, notes, the song's own sound, whether it is listed under Exercises | `localStorage` | Yes: **Export this song** (one) or **Back up all my songs** (all), then **Import** there |
+| Your songs: notation, title, taal, tempo, Sa, start beat, section tempos and taals, tags, star, notes, the song's own sound, whether it is listed under Exercises | `localStorage` | Yes: **Export this song** (one), **Back up or export → All my songs**, or **→ Everything** (below), then **Import** there |
 | The built-in exercises and the starter rewaz | The app itself | Everyone has them |
-| Your settings: your usual sound, your Sa, the practice settings, script, theme, the editor view, the MIDI choice | `localStorage` | No |
-| Practice log (Progress): each session's summary | `localStorage` | **Download all practice data** (foot of Progress) saves it, with each session's detail, as one file (below); not importable. **Start afresh** there deletes both |
-| Each session's detail: the song as played, every note's result, the pitch heard (since 2026-10-20) | IndexedDB, the newest 1,000 sessions | **Report** opens a page on it, **For AI** saves it as a file (below), a day's **For AI** a day's in one, and the download above holds them all; not importable |
-| Rewaz routines | `localStorage` | No |
+| Your settings: your usual sound, your Sa, the guide and practice settings, script, theme, the editor view, the MIDI choice | `localStorage` | In **Everything**, restored with "Restore with its settings" (not this device's delay or keyboard) |
+| Practice log (Progress): each session's summary | `localStorage` | **Download all practice data** (foot of Progress, or **Back up or export → All practice data**) saves it, with each session's detail, as one file (below), not importable; **Everything** holds it too and restores it. **Start afresh** in Progress deletes both |
+| Each session's detail: the song as played, every note's result, the pitch heard (since 2026-10-20) | IndexedDB, the newest 1,000 sessions | **Report** opens a page on it, **For AI** saves it as a file (below), a day's **For AI** a day's in one, and the downloads above hold them all; **Everything** restores them |
+| Rewaz routines | `localStorage` | In **Everything** |
 | Takes (recordings) | IndexedDB | Each downloads as a WAV file; not importable |
 | The microphone | Not kept: analysed as it arrives | Never leaves the device |
 
@@ -62,7 +62,7 @@ as it was set up (its sound and notes included), without the sender's log, takes
 | `exercise` | `true` for one of your songs listed under Exercises (your own exercise: "List under" in Edit notation, "+ New exercise", or a copy of a built-in one); absent: under My songs. Never on a built-in exercise, which is `example` in the app and never stored. |
 | `notes` | Notes about the song (its meaning, source, a teacher's comments): free text, at most 20 000 characters, shown above the sheet, printed and searched. Absent when empty. |
 | `dismissed` | The checker's warnings dismissed on this song, as short fingerprints (base-36, NOTATION.md → Checker → Dismissing), the newest 200; absent when none. Never on a built-in exercise. |
-| `sound` | The song's own harmonium, drone and rhythm (set in Edit notation → Sound of this song), with the same names and values as the device settings below. Absent while the song uses the usual sound. The app writes the whole set; reading checks each field and leaves out any it cannot read, so the device's setting shows through for that one. A `guide` written before 2026-10-13 is left out: the guide's level is a practice setting now. |
+| `sound` | The song's own harmonium, drone and rhythm (set in the top section since 2026-10-22; in Edit notation → Sound of this song before), with the same names and values as the device settings below. Absent while the song uses the usual sound. The app writes the whole set; reading checks each field and leaves out any it cannot read, so the device's setting shows through for that one. A `guide` written before 2026-10-13 is left out: the guide's level is a practice setting now. |
 
 `normalize()` runs on every song read or imported and clamps every field, as the prototype's
 does. `tags`, `fav`, `exercise`, `notes`, `dismissed` and `sound` are left out when unset, so a prototype song reads
@@ -76,16 +76,16 @@ exactly as before.
                "tags": ["..."], "fav": true, "exercise": true, "notes": "...", "sound": { } } ] }
 ```
 
-- **Export this song** (the editor) writes one song; **Back up all my songs** (Music
-  library) writes them all, built-in exercises excluded. `tags`, `fav`, `exercise`, `notes`,
+- **Export this song** (the editor) writes one song; **Back up or export → All my songs** (the
+  top section; the Music library until 2026-10-22) writes them all, built-in exercises excluded. `tags`, `fav`, `exercise`, `notes`,
   `dismissed` and `sound` appear only when set; an exercise exported, built-in or your own, carries
   `exercise`, so it imports as an exercise of your own. They are optional, so files stay version 1: the prototype and older readers
   skip them.
-- **Import** (Music library) accepts that envelope, a bare array of songs, a single song object, or
+- **Import** (the top section, beside the song picker; the Music library until 2026-10-22) accepts that envelope, a bare array of songs, a single song object, or
   a plain `.txt`, which becomes one song titled from the file name. Limits: 2 MB per file,
   200 songs per import, 200 000 characters per song. Imports always get new ids, so they
-  never overwrite; importing the same backup twice gives two copies, the second titled
-  "… (2)".
+  never overwrite; importing the same file twice gives two copies, the second titled
+  "… (2)". A backup of everything is told apart and offered to restore (Backups, below).
 - **Titles of their own** (Rinat, 2026-10-20: "Is it good to have a check and not have the
   exact same title on multiple songs?"): no two songs or exercises share a title (compared
   without case, extra spaces or Unicode spelling; `titleKey`), so the library, the pickers
@@ -107,8 +107,9 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | Key | Values |
 |---|---|
 | `script` | `bn` or `lat` |
-| `guide` | `full`, `soft` or `off` |
-| `beat` | `tabla`, `dholak`, `kit`, `click` or `off` |
+| `guide` | `full` (on), `off` (muted), or `soft` (from before 2026-10-22: a third of Full while `guideVol` is unset) |
+| `guideVol` | The guide's volume, 0–1 of Full, from the top section's slider (2026-10-22); absent: as `guide` says. Moving the slider unmutes; muting keeps it |
+| `beat` | `tabla`, `dholak`, `kit`, `click` or `off` (the rhythm muted, its picker showing the one it goes back to) |
 | `tablaVol` | 0–1 |
 | `speed` | `half`, `normal` or `double` |
 | `fills` | boolean |
@@ -122,8 +123,7 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `ramp`, `rampStep`, `rampMax` | The tempo trainer: on or off, the step and the top |
 | `lastSong` | The song open last |
 | `tab` | The view open last: `practice`, `songs` (the Music library), `edit`, `rewaz`, `voice` or `progress` |
-| `soundOpen` | Whether the Practice settings, at the top of the Practice view, are unfolded; unset: folded |
-| `songSoundOpen` | `true` while the song's sound in Edit notation is unfolded; absent: folded |
+| `soundOpen` | Whether the Practice settings (the lines' settings since 2026-10-22), at the top of the Practice view, are unfolded; unset: folded. (`songSoundOpen`, the song's sound unfolded in Edit notation until 2026-10-22, is no longer read) |
 | `editSetOpen` | `true` while Edit notation's Settings are unfolded; absent: folded |
 | `padFold` | `true` while Edit notation's Enter notes section (the note pad) is folded away; absent: unfolded. (`palOpen`, from 2026-10-15's "+ Add notes", is no longer read) |
 | `libSort` | How the Music library sorts: `practised`, `changed` or `title` |
@@ -149,14 +149,43 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 **Each song's own sound.** The harmonium, drone and rhythm settings (`reeds`, `droneType`,
 `droneVol`, `tanTune`, `beat`, `tablaVol`, `speed`, `fills`, `layers`) kept here are *your
 usual sound*. Exercises use it, and so does every song without a `sound` of its own (new
-songs, and songs from before this existed). They are set in Edit notation (Sound of this
-song, or Your usual sound on an exercise). Changing one of them while one of your songs is
-open saves the whole set with that song, and the usual sound is left alone; while an
-exercise is open, it changes the usual sound. "Use my usual sound" removes a song's own. The
-practice settings under the deck (`guide`, `countIn`, `guideLoop`, `ramp`, `rampStep`,
-`rampMax`) are always the device's: the guide's level is how much help the singer wants that
+songs, and songs from before this existed). They are set in the top section's guide and rhythm
+panels (Rinat, 2026-10-22; in Edit notation's Sound of this song before). Changing one of them
+while one of your songs is open saves the whole set with that song, and the usual sound is left
+alone; while an exercise is open, it changes the usual sound. "Use my usual sound", in the
+rhythm panel while a song has its own, removes it. The guide and practice settings
+(`guide`, `guideVol`, `countIn`, `guideLoop`, `ramp`, `rampStep`, `rampMax`) are always
+the device's: the guide's level is how much help the singer wants that
 day, not part of how a song is arranged (2026-10-13). A rewaz item's tempo and guide lie over
 all of these while it plays.
+
+## Backups (everything, and restoring it)
+
+**Back up or export → Everything** (the top section's keyboard and device panel; Rinat,
+2026-10-22) saves `<when> - Everything - Backup.json` (src/app/backup.ts):
+
+```json
+{ "format": "gaaner-sathi-backup", "version": 1, "exported": "2026-10-22T10:00:00.000Z", "about": "…",
+  "songs": [ { "id": "song-…", "updatedAt": 1791544356355, "title": "…", "text": "…", … } ],
+  "routines": [ { "id": "rw-…", "name": "…", "items": [ … ], "updatedAt": … } ],
+  "prefs": { … }, "log": [ … ],
+  "sessions": [ { "at": …, "song": "…", "played": { … }, "settings": { … }, "pitch": { … } } ] }
+```
+
+- **What it holds:** your songs and exercises with their ids (so the practice and routines that
+  name them still do), the rewaz routines, the practice log, each session's detail (its
+  readings to the millisecond and the hundredth of a hertz) and the settings, but not this
+  device's own (`deviceLag`, `pitchLag`, `midi`, `lastSong`, `tab`, `soundOpen`). Takes
+  (recordings) are left out: they are large (Rinat chose "no takes"). Its songs are a song
+  file's, so an import of songs alone reads them.
+- **Restoring:** **Import** recognises it (by `format`; up to 200 MB, where song files stop
+  at 2 MB) and says what it holds; **Restore** adds the songs, routines, log entries and
+  session details that are not here already (by id, or by a session's `at`) and never
+  changes anything here: a song here with the backup's id stays as it is here. A song restored
+  whose title is taken gets one of its own. **Restore with its settings** does the same, then
+  takes the backup's settings over these (this device's own kept) and opens the app again to
+  use them. Restoring is not a song import, so songs keep their ids; that is safe because a
+  song already here is never written over.
 
 ## Storage
 
@@ -262,7 +291,7 @@ routines, takes and settings stay.
 | `from`, `to` | Lines to practise, 0-based and inclusive; absent: the whole song |
 | `rounds` | Times through, 1–20 |
 | `tempo` | Matras per minute, 30–240; absent: the song's own. It never changes the song |
-| `guide` | `all` (every round), `first` (first round only), `alt` (every other round: call and response) or `off`; absent: as the Practice settings say |
+| `guide` | `all` (every round), `first` (first round only), `alt` (every other round: call and response) or `off`; absent: as set at the top of the app |
 
 A routine has at most 40 items. Until one is saved, a starter "Daily warm-up" (exercises 1, 2,
 3 and 12) is on offer; it stays on offer like the exercises, and changing it saves it as the

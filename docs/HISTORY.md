@@ -49,6 +49,34 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-21 BST — Claude (Opus 5.5) — PH2-32 Sa's octave named as a keyboard names it
+
+- **Goal:** Rinat, to Claude's question whether the Sa picker should name keyboard octaves:
+  "Yes: make the Sa octave picker say which keyboard octave it is (C3, C4, C5), so I can match
+  it to my Casio."
+- **Inspected:** `saOct` is already the keyboard's octave number (Sa = MIDI 12 × (saOct + 1) +
+  saKey, so C♯ Middle is C♯4, 277 Hz); the picker said only Low, Middle, High; Sa was put in
+  words in four places of its own (app.ts, voice.ts, print.ts, and the library's key alone).
+- **Changed:** `f2df5a3` (feat(practice)): view.ts (`saKeyName`, `saWords`, `octOptionsHTML`
+  with the key), app.ts (`showSa`, the octaves relabelled with the key), voice.ts, print.ts,
+  songs.ts and library.ts (Sa named so), index.html (the tooltip); tests (differential view,
+  print, voice, session). This commit: docs/DATA.md (`saOct`), ROADMAP row 32, this file (the
+  PH2-30 entry moved to HISTORY).
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 38 files, 435
+  passed; `npm run build` → 349.6 kB JS; `npm run test:reference` → parser 31, checker 11,
+  join-split 10, rhythm 12, tanpura 5 passed, 12 exercises valid. Headless Edge on `npm run
+  dev`: the picker "C · White 1" with "C3 · low | *C4 · middle | C5 · high"; C♯ and low chosen →
+  "*C♯3 · low | C♯4 · middle | C♯5 · high" (kept as the exercises' Sa, `{ saKey: 1, saOct: 3 }`);
+  G → "*G3 · low | G4 · middle | G5 · high"; the tooltip; 1280 px day and 360 px night, 360 px
+  wide. CI run `39593935861` (`f2df5a3`): green.
+- **Decisions made:** one row (Sa's octave named as a keyboard names it).
+- **Risks or disagreements:** Rinat's songs keep their Sa (C♯4, middle) until Rinat picks C♯3 ·
+  low for each; the exercises follow the Sa last set on one. That a 61-key Casio starts at C2 is
+  from the keyboard's usual range and Rinat's voice (C♯3, 139 Hz, sung as the second octave),
+  not read off the CT-X3000.
+- **Next handoff:** Rinat sets C♯3 · low where wanted and sings; sends a take's Recording.wav
+  with its Data.json.
+
 ### 2026-10-21 BST — Claude (Opus 5.5) — PH2-31 a day's three buttons; files named by when
 
 - **Goal:** Rinat: "what would fill the gap in our feedback loop? if I record myself can you
