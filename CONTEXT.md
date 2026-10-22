@@ -102,7 +102,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   C♯3) was the microphone; tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `1770a14` (CI run `39687233839`: core, reference and deploy jobs green; the live script carries `voiceSa`).
+- **Last known-good commit:** `bbfce34` (CI run `39860251991`: core, reference and deploy jobs green; the live page has the four panels: `dpGuide`, `restartBtn`, `taalPick`, `bkMenu`).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
