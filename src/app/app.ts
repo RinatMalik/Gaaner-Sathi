@@ -3339,7 +3339,9 @@ export function init(): void {
     else backupSongs();
   });
   $('#fileBarClose').addEventListener('click', () => showFileBar(''));
+  // Import at the top, and in the Music library beside Back up or export (Rinat, 2026-10-23).
   $('#impBtn').addEventListener('click', () => input('#impFile').click());
+  $('#libImpBtn').addEventListener('click', () => input('#impFile').click());
   input('#impFile').addEventListener('change', (e) => {
     const el = e.target as HTMLInputElement;
     const files = Array.from(el.files || []);
