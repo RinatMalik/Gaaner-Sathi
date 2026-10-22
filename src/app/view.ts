@@ -154,6 +154,10 @@ export const taalOptionsHTML = (): string =>
   TAAL_GROUPS.map((g) => '<optgroup label="' + esc(g.label) + '">' +
     g.ids.map((id) => '<option value="' + id + '">' + TAALS[id].name + ' · ' + TAALS[id].bn + ' (' + TAALS[id].bols.length + ')</option>').join('') + '</optgroup>').join('');
 
+/** The top section's taal picker (Rinat, 2026-10-22): the song's own taal first ("Keherwa", or
+ * "Keherwa, Dadra" when a section has its own), then every taal to play it in instead. */
+export const taalPickHTML = (own: string): string => '<option value="">' + esc(own) + ' (song’s own)</option>' + taalOptionsHTML();
+
 /** "Song starts on taal beat", marking sam (X) and khali (0). */
 export function startOnOptionsHTML(T: TaalInfo): string {
   let html = '';
@@ -301,34 +305,26 @@ export function issuesHTML(P: ParsedSong, taals: TaalInfo | Taals, off: number, 
 const STYLE_NAMES: Record<string, string> = { tabla: 'Tabla', dholak: 'Dholak', kit: 'Drums', click: 'Click' };
 const FIRST_STRING: Record<string, string> = { P: 'Pa', M: 'Ma', N: 'Ni' };
 
-/** The Practice view's own settings beside the sound's: the lines, the keys, the octave rule. */
+/** The lines' settings, in the Practice view's settings bar. */
 export interface ViewSettings {
   plRows?: number;
   plAt?: number;
   plSize?: string;
-  showKeys?: boolean;
-  pitchOctave?: boolean;
 }
 
 const ORDINAL = ['', '1st', '2nd', '3rd', '4th', '5th'];
 
-/** What the folded Practice settings are set to, in a line: "Guide full · No count-in".
- * Everything after the guide is named only when it differs from the defaults. */
-export function practiceSummary(s: SoundSettings, v: ViewSettings = {}): string {
-  const parts = ['Guide ' + s.guide + (s.guide === 'off' ? '' : s.guideLoop === 'first' ? ', first round only when looping' : s.guideLoop === 'alt' ? ', every other round when looping' : '')];
-  if (!s.countIn) parts.push('No count-in');
-  if (s.ramp) parts.push('Speeds up by ' + s.rampStep + ' to ' + s.rampMax);
-  if (v.showKeys) parts.push('Keys shown');
-  const rows = v.plRows ?? 7;
+/** What the folded Practice settings (since 2026-10-22 the lines' alone) are set to, in a line:
+ * "7 lines, the 3rd being sung", then the size of the words when not normal. */
+export function linesSummary(v: ViewSettings = {}): string {
   const at = v.plAt ?? 3;
-  if (rows !== 7 || at !== 3) parts.push(rows + ' lines' + (at !== 3 ? ', the ' + (ORDINAL[at] ?? at) + ' being sung' : ''));
+  const parts = [(v.plRows ?? 7) + ' lines, the ' + (ORDINAL[at] ?? at) + ' being sung'];
   if (v.plSize === 'small' || v.plSize === 'big') parts.push(v.plSize === 'big' ? 'Bigger words' : 'Smaller words');
-  if (v.pitchOctave) parts.push('Octave must match');
   return parts.join(' · ');
 }
 
-/** A song's own sound, folded, in a line: "3 reeds · Tanpura, 1st string Pa · Drums, double
- * speed, with shaker, claps". */
+/** A song's own sound in a line, for the top section's "Use my usual sound": "3 reeds · Tanpura,
+ * 1st string Pa · Drums, double speed, with shaker, claps". */
 export function songSoundSummary(s: SoundSettings): string {
   const layers = s.beat === 'off' || s.beat === 'click' ? [] : ((s.layers as Record<string, readonly string[] | undefined>)[s.beat] || []);
   const names = layers.map((id) => (Object.hasOwn(LAYERS, id) ? LAYERS[id as LayerId].name.toLowerCase() : id));

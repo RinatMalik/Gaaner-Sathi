@@ -3,7 +3,7 @@
 // summary lines, which are new.
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_PREFS, loadPrefs, savePrefs, SongStore, STORE_KEYS, type KeyValueStore } from '../../src/app/store';
-import { practiceSummary, songSoundSummary } from '../../src/app/view';
+import { linesSummary, songSoundSummary } from '../../src/app/view';
 import { normalize, type Song } from '../../src/core/song/model';
 
 /** localStorage in memory; it can be made full or blocked. */
@@ -99,17 +99,15 @@ describe('preferences', () => {
     }
   });
 
-  it('keep the Music library’s folded sections and the song’s sound unfolded, when set', () => {
+  it('keep the Music library’s folded sections, when set; the song’s sound fold is gone (2026-10-22)', () => {
     const S = new Memory();
     expect(loadPrefs(S)).not.toHaveProperty('libFold');
-    expect(loadPrefs(S)).not.toHaveProperty('songSoundOpen');
     S.setItem(STORE_KEYS.prefs, JSON.stringify({ libFold: { ex: true, mine: 'yes', other: true }, songSoundOpen: true }));
     expect(loadPrefs(S).libFold).toEqual({ ex: true });
-    expect(loadPrefs(S).songSoundOpen).toBe(true);
+    expect(loadPrefs(S)).not.toHaveProperty('songSoundOpen');
     for (const f of [{ mine: false }, [], 'ex', null]) {
-      S.setItem(STORE_KEYS.prefs, JSON.stringify({ libFold: f, songSoundOpen: 1 }));
+      S.setItem(STORE_KEYS.prefs, JSON.stringify({ libFold: f }));
       expect(loadPrefs(S)).not.toHaveProperty('libFold');
-      expect(loadPrefs(S)).not.toHaveProperty('songSoundOpen');
     }
     // The Music library is still stored as `songs`.
     S.setItem(STORE_KEYS.prefs, JSON.stringify({ tab: 'songs' }));
@@ -270,20 +268,15 @@ describe('songs', () => {
 });
 
 describe('the settings bars’ summaries', () => {
-  it('Practice settings: the guide, then the count-in and tempo trainer only when they differ from the defaults', () => {
-    expect(practiceSummary(DEFAULT_PREFS)).toBe('Guide full');
-    expect(practiceSummary({ ...DEFAULT_PREFS, guide: 'soft', guideLoop: 'alt', countIn: false, ramp: true, rampStep: 6, rampMax: 140 }))
-      .toBe('Guide soft, every other round when looping · No count-in · Speeds up by 6 to 140');
-    expect(practiceSummary({ ...DEFAULT_PREFS, guideLoop: 'first' })).toBe('Guide full, first round only when looping');
-    expect(practiceSummary({ ...DEFAULT_PREFS, guide: 'off', guideLoop: 'first' })).toBe('Guide off');
-    // The lines, the keys and the octave rule, named only when changed.
-    expect(practiceSummary(DEFAULT_PREFS, { plRows: 7, plAt: 3, plSize: 'normal', showKeys: false, pitchOctave: false })).toBe('Guide full');
-    expect(practiceSummary(DEFAULT_PREFS, { plRows: 12, plAt: 4, plSize: 'big', showKeys: true, pitchOctave: true }))
-      .toBe('Guide full · Keys shown · 12 lines, the 4th being sung · Bigger words · Octave must match');
-    expect(practiceSummary(DEFAULT_PREFS, { plRows: 9 })).toBe('Guide full · 9 lines');
-    expect(practiceSummary(DEFAULT_PREFS, { plAt: 1, plSize: 'small' })).toBe('Guide full · 7 lines, the 1st being sung · Smaller words');
-    // A song's sound is not in it.
-    expect(practiceSummary({ ...DEFAULT_PREFS, beat: 'kit', droneVol: 0.5 })).toBe('Guide full');
+  it('Practice settings, the lines’ alone since the top section (2026-10-22): how many, which is sung, the size when not normal', () => {
+    expect(linesSummary()).toBe('7 lines, the 3rd being sung');
+    expect(linesSummary({ plRows: 7, plAt: 3, plSize: 'normal' })).toBe('7 lines, the 3rd being sung');
+    expect(linesSummary({ plRows: 12, plAt: 4, plSize: 'big' })).toBe('12 lines, the 4th being sung · Bigger words');
+    expect(linesSummary({ plRows: 9 })).toBe('9 lines, the 3rd being sung');
+    expect(linesSummary({ plAt: 1, plSize: 'small' })).toBe('7 lines, the 1st being sung · Smaller words');
+    // The guide and the rest are in the top section, not in it.
+    const p: typeof DEFAULT_PREFS = { ...DEFAULT_PREFS, guide: 'off', countIn: false };
+    expect(linesSummary(p)).toBe('7 lines, the 3rd being sung');
   });
 
   it('a song’s sound: the harmonium, the drone, then the rhythm with its speed and added layers', () => {

@@ -4,7 +4,7 @@
  * screen. Pure, so it is tested in Node.
  */
 
-/** How the guide plays in an item: as the Practice settings say, or one of these. */
+/** How the guide plays in an item: as set at the top of the app, or one of these. */
 export type ItemGuide = 'all' | 'first' | 'alt' | 'off';
 
 export interface RoutineItem {
@@ -17,7 +17,7 @@ export interface RoutineItem {
   rounds: number;
   /** Matras per minute; absent: the song's own tempo. */
   tempo?: number;
-  /** Absent: as the Practice settings say. */
+  /** Absent: as set at the top of the app. */
   guide?: ItemGuide;
 }
 

@@ -38,6 +38,17 @@ export function oneTaal<T>(T: T, off: number): Taals<T> {
   return { runs: [r], line: () => r, beat: () => r, end: r, changes: false };
 }
 
+/**
+ * A song played in one taal picked over its own (the top section's taal picker, Rinat
+ * 2026-10-22): every section in it, its first beat as many beats before sam as in the song's own
+ * first taal, so a song coming in on the 13th beat of Teentaal comes in on the 5th of Keherwa.
+ */
+export function inOneTaal<T extends { cycle: number }>(own: Taals<T>, T: T): Taals<T> {
+  const r = own.runs[0]!;
+  const before = (r.T.cycle - (r.off % r.T.cycle)) % r.T.cycle;
+  return oneTaal(T, (T.cycle - (before % T.cycle)) % T.cycle);
+}
+
 /** What the notation functions take: a song's taal map, or one taal for the whole song with
  * its first beat on taal beat off + 1 (as the prototype's functions took them). */
 export const asTaals = <T extends object>(t: T | Taals<T>, off = 0): Taals<T> => ('runs' in t && 'line' in t ? (t as Taals<T>) : oneTaal(t as T, off));

@@ -4,10 +4,9 @@
  * the end). Names follow the prototype's, so the two read side by side.
  *
  * Changes from the prototype:
- * - The settings fold away behind bars that say what is on (Rinat kept this layout change,
- *   2026-10-10): the practice settings at the top of the Practice view, folded until the
- *   user unfolds them, then as they leave them; each song's sound in Edit notation (Rinat,
- *   2026-10-13).
+ * - The controls and settings are in the top section's four panels (Rinat, 2026-10-22): the
+ *   song and playing it, the guide and melody, the rhythm, the keyboard and this device; the
+ *   lines' settings fold away at the top of the Practice view.
  * - Songs and settings stay in this browser, with no claude.ai storage or downloads;
  *   store.ts explains how the prototype's saved songs are read. Changes saved in another
  *   tab show up here, as the claude.ai version's live sync did.
@@ -26,14 +25,14 @@ import { wavFile } from '../audio/dsp/pcm';
 import { createEngine, createLiveContext } from '../audio/engine';
 import { MicError, micProblemText } from '../audio/mic';
 import { Recorder } from '../audio/recorder';
-import type { DroneType, GuideLevel, GuideLoop, SoundSettings } from '../audio/sound';
+import { guideSlider, type BeatStyle, type GuideLevel, type GuideLoop, type SoundSettings, type TanTune } from '../audio/sound';
 import { Transport, type BeatEntry, type PlaySource } from '../audio/transport';
 import { EXERCISES } from '../core/exercises';
 import type { Exercise } from '../core/exercises/types';
 import { joinBeats, notesInRange, noteToken, shiftOctaves, splitBeats, type TextEdit } from '../core/notation/edit';
 import { parseSong } from '../core/notation/parse';
 import { playSeconds, sectionOfLine, sectionTempoAt, setHeadingTempo, songSections, type SongSection } from '../core/notation/sections';
-import { oneTaal, taalMap, type Taals } from '../core/notation/taalmap';
+import { inOneTaal, oneTaal, taalMap, type Taals } from '../core/notation/taalmap';
 import type { Beat, ParsedSong, Unit } from '../core/notation/types';
 import { analyse } from '../core/practice/insights';
 import { dayNumber, lastPractised, lengthText, MIN_LOG_SECS, noteTally, type LogEntry } from '../core/practice/log';
@@ -46,7 +45,8 @@ import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefi
 import { titleFixes, uniqueTitle } from '../core/song/library';
 import { cleanDismissed, cleanNotes, newId, normalize, parseTags, type Song } from '../core/song/model';
 import { SONG_SOUND_KEYS, soundOf, type SongSound } from '../core/song/sound';
-import { isTaalId, taalInfo, TAALS, type TaalInfo } from '../core/taal/taals';
+import { isTaalId, taalInfo, TAALS, type TaalId, type TaalInfo } from '../core/taal/taals';
+import { BACKUP_BYTES, BACKUP_FORMAT, backupParts, backupWords, readBackup, restoredPrefs, restorePlan, type Backup } from './backup';
 import { aiFileName, aiFileText, dayFileName, dayFileParts, practiceFileParts, type SessionFileInput } from './aifile';
 import { SessionStore } from './db';
 import { initPitch, type PitchUI } from './pitch';
@@ -64,7 +64,7 @@ import { takeBuffer, takeFileName, takesHTML, TakeStore } from './takes';
 import { initVoice, type SaChoice, type VoiceUI } from './voice';
 import { initSongs, LIB_ORDER } from './songs';
 import { firstDifference, TextUndo } from './undo';
-import { loadPrefs, LogStore, RoutineStore, savePrefs as writePrefs, SongStore, TABS, type KeyValueStore, type Tab, type WriteResult } from './store';
+import { loadPrefs, LogStore, RoutineStore, savePrefs as writePrefs, SongStore, STORE_KEYS, TABS, type KeyValueStore, type Tab, type WriteResult } from './store';
 import * as V from './view';
 
 const $ = <T extends HTMLElement = HTMLElement>(s: string, r: ParentNode = document) => r.querySelector(s) as T;
@@ -85,7 +85,7 @@ try {
 const prefs = loadPrefs(storage);
 const savePrefs = () => {
   writePrefs(storage, prefs);
-  renderSoundSummary();
+  renderLinesSummary();
 };
 const wanted = prefs.lastSong;
 
@@ -97,8 +97,13 @@ let parsed: ParsedSong = parseSong('');
 /** The song's sections (its headings), worked out with each parse. */
 let sections: SongSection[] = [];
 let taal: TaalInfo = taalInfo('dadra');
-/** Each beat's taal: the song's, or a section's own (taal pherta); worked out with each parse. */
-let taals: Taals = oneTaal(taal, 0);
+/** Each beat's taal as written: the song's, or a section's own (taal pherta); worked out with each
+ * parse. The editor, the checker and the printed sheet show it. */
+let ownTaals: Taals = oneTaal(taal, 0);
+/** A taal picked in the top section to play the song in, until another song opens ('' none). */
+let taalPick: TaalId | '' = '';
+/** Each beat's taal as played: the taal picked, else as written. */
+let taals: Taals = ownTaals;
 /** The taal the deck's strip shows. */
 let stripTaal: TaalInfo | null = null;
 let insOct = 0;
@@ -420,6 +425,17 @@ function userStop(): void {
   rewaz.cancel();
   clearOverride();
 }
+/** Restart: what is playing or paused, again from its start (not in a rewaz). */
+function userRestart(): void {
+  if (!active() || rewaz.active) return;
+  const ask = asked ?? paused?.ask;
+  const line = lineCheck;
+  const from = fromHere;
+  stop(true);
+  if (line >= 0) playLine(line);
+  else if (from >= 0) userPlay(from);
+  else if (ask) play(ask);
+}
 /** The line the editor's Play is playing on its own, and the line a "play from here" started
  * at, or −1. */
 let lineCheck = -1;
@@ -610,7 +626,7 @@ function startRun(from: number, to: number, loop: boolean): void {
   const s = soundSource;
   run = {
     song: current.id, title: current.title, from, to, loop, tempo: t, top: t, first: 0, wall: 0, seg: 0, done: 0, pass: 0, line: from, end: 0,
-    played: { title: current.title, taal: current.taal, tempo: current.tempo, text: current.text, saHz: saFreq(songSource), sa: V.saWords(songSource) },
+    played: { title: current.title, taal: taalPick || current.taal, tempo: current.tempo, text: current.text, saHz: saFreq(songSource), sa: V.saWords(songSource) },
     settings: { guide: s.guide, guideLoop: s.guideLoop, countIn: !!s.countIn, ramp: !!s.ramp, rampStep: s.rampStep, rampMax: s.rampMax },
   };
   $('#pAfter').hidden = true;
@@ -759,8 +775,7 @@ async function backfillNotes(): Promise<void> {
 
 /** All the practice data as one file (Progress): every session's summary, with the detail
  * kept, and a brief for an AI. */
-async function exportAll(): Promise<void> {
-  const say = (t: string) => setFileStatus(t, '#pgStatus');
+async function exportAll(say: (t: string) => void): Promise<void> {
   say('Gathering your practice data…');
   const log = logStore.load();
   let sessions: SessionDetail[] = [];
@@ -963,7 +978,7 @@ async function saveForAI(at: number, say: (t: string) => void): Promise<void> {
 
 /** The editor's preview sheet (Free text), and the Practice view's lines. */
 function renderSheets(): void {
-  $('#sheetE').innerHTML = V.sheetHTML(parsed, taals, 0, current.example, prefs.script);
+  $('#sheetE').innerHTML = V.sheetHTML(parsed, ownTaals, 0, current.example, prefs.script);
   beatEls.clear();
   for (const el of $$('#sheetE .beat[data-b]')) {
     const g = +el.dataset.b!;
@@ -1083,7 +1098,7 @@ let showDismissed = false;
  * while its line's notes stay the same (the dismissal is kept with the song). */
 function renderIssues(): void {
   const dis = current && !current.example ? { dismissed: new Set(current.dismissed || []), showDismissed } : undefined;
-  const r = V.issuesHTML(parsed, taals, 0, prefs.script, dis);
+  const r = V.issuesHTML(parsed, ownTaals, 0, prefs.script, dis);
   issueList = r.list;
   $('#issues').innerHTML = r.html;
 }
@@ -1147,7 +1162,8 @@ function renderLibrary(): void {
   if (current) select('#songSel').value = current.id;
   songsView.render();
 }
-/** The deck's buttons: Play (Pause while playing; Play again goes on after a pause) and Stop. */
+/** The deck's buttons: Play (Pause while playing; Play again goes on after a pause), Stop and
+ * Restart (not in a rewaz, which has its own Skip and Stop). */
 function setPlayUI(): void {
   const b = $('#playBtn');
   const on = playing();
@@ -1156,9 +1172,12 @@ function setPlayUI(): void {
   b.setAttribute('aria-label', on ? 'Pause' : paused ? 'Go on' : 'Play');
   b.title = on ? 'Pause' : paused ? 'Go on from here' : 'Play';
   $<HTMLButtonElement>('#stopBtn').disabled = !active();
+  $<HTMLButtonElement>('#restartBtn').disabled = !active() || rewaz.active;
 }
+/** The side instruments the rhythm's instrument can have (the one it goes back to, while muted). */
 function renderLayerChips(): void {
-  const r = V.layerChipsHTML(sound.beat, (sound.layers as Record<string, string[] | undefined>)[sound.beat] || []);
+  const st = sound.beat === 'off' ? beatWas : sound.beat;
+  const r = V.layerChipsHTML(st, (sound.layers as Record<string, string[] | undefined>)[st] || []);
   $('#layerRow').hidden = r.hidden;
   $('#layerChips').innerHTML = r.html;
 }
@@ -1166,44 +1185,45 @@ function setSeg(id: string, v: string | number): void {
   for (const b of $$('#' + id + ' button')) b.setAttribute('aria-pressed', String(b.dataset.v === String(v)));
 }
 
-/** The settings bars: what the folded settings are set to (the practice settings under the
- * deck, the open song's sound in Edit notation). */
-function renderSoundSummary(): void {
-  $('#soundSum').textContent = V.practiceSummary(sound, prefs);
-
-  if (current) $('#songSoundSum').textContent = V.songSoundSummary(sound);
+/** What the folded Practice settings (the lines' settings) say. */
+function renderLinesSummary(): void {
+  $('#soundSum').textContent = V.linesSummary(prefs);
 }
 
 // ── Each song's own sound ────────────────────────────────────────────────────
 
-/** The song's sound controls (in Edit notation), showing the open song's sound. */
+/** The rhythm's instrument to go back to when it is unmuted, which its picker shows meanwhile. */
+let beatWas: Exclude<BeatStyle, 'off'> = 'tabla';
+/** The drone picker's value: off, the tanpura with its first string, or the harmonium. */
+const droneValue = (): string => (sound.droneVol <= 0 ? 'off' : sound.droneType === 'harmonium' ? 'harmonium' : 'tanpura:' + sound.tanTune);
+
+/** The top section's harmonium, drone and rhythm controls, showing the open song's sound. */
 function renderSoundControls(): void {
   setSeg('reedSeg', sound.reeds);
-  setSeg('droneSeg', sound.droneType);
+  select('#droneSel').value = droneValue();
   input('#droneVol').value = String(sound.droneVol);
-  select('#tanTune').value = sound.tanTune;
-  select('#tanTune').hidden = sound.droneType !== 'tanpura';
-  setSeg('beatSeg', sound.beat);
+  if (sound.beat !== 'off') beatWas = sound.beat;
+  select('#beatSel').value = beatWas;
+  $('#beatMute').setAttribute('aria-pressed', String(sound.beat === 'off'));
   input('#tablaVol').value = String(sound.tablaVol);
-  setSeg('speedSeg', sound.speed);
+  select('#speedSel').value = sound.speed;
   input('#fillsChk').checked = !!sound.fills;
   renderLayerChips();
-  renderSoundSummary();
-  renderSoundNote();
+  renderUsualSound();
 }
 
-/** Whose sound the controls change: this song's, or the usual one. */
-function renderSoundNote(): void {
+/** The guide's slider and mute button (the device's, the same for every song). */
+function renderGuide(): void {
+  input('#guideVol').value = String(guideSlider(prefs));
+  $('#guideMute').setAttribute('aria-pressed', String(prefs.guide === 'off'));
+}
+
+/** "Use my usual sound", shown while one of the user's songs keeps a sound of its own. */
+function renderUsualSound(): void {
   if (!current) return;
   const own = !current.example && !!current.sound;
-  $('#songSoundHead').textContent = current.example ? 'Your usual sound' : 'Sound of this ' + what();
-  $('#toSongSound').textContent = current.example ? 'Change your usual sound' : 'Change this ' + what() + '’s sound';
-  $('#soundNoteText').textContent = current.example
-    ? "Built-in exercises play with your usual sound, and so does every song you haven't given a sound of its own. Changes here change your usual sound."
-    : own
-      ? 'Saved with this ' + what() + ': it keeps this sound whatever your usual sound is.'
-      : 'This ' + what() + ' plays with your usual sound until you change something here.';
   $('#soundForget').hidden = !own;
+  if (own) $('#soundForget').title = 'This ' + what() + ' keeps its own sound (' + V.songSoundSummary(sound) + '). Use your usual sound instead.';
 }
 
 /**
@@ -1218,12 +1238,11 @@ function setSound(patch: Partial<SongSound>): void {
     savePrefs();
   } else {
     changed('sound', { ...soundOf(sound), ...patch });
-    renderSoundSummary();
   }
-  renderSoundNote();
+  renderUsualSound();
 }
 
-/** "Use my usual sound": the song forgets its own, and plays with the usual one from now. */
+/** "Use my usual sound" (at the top): the song forgets its own, and plays with the usual one from now. */
 function forgetSound(): void {
   if (current.example || !current.sound) return;
   changed('sound', undefined);
@@ -1576,14 +1595,6 @@ function setSoundOpen(open: boolean): void {
   $('#mixer').hidden = !open;
   $('#soundAct').textContent = open ? 'Done' : 'Change';
 }
-/** The song's sound in Edit notation, unfolded or not (remembered on the device). */
-function setSongSoundOpen(open: boolean): void {
-  $('#songSoundBtn').setAttribute('aria-expanded', String(open));
-  $('#songMixer').hidden = !open;
-  $('#songSoundAct').textContent = open ? 'Done' : 'Change';
-  if (open) prefs.songSoundOpen = true;
-  else delete prefs.songSoundOpen;
-}
 /** Edit notation's Settings (the song's details, sound and files), unfolded or not
  * (remembered on the device). */
 function setEditSetOpen(open: boolean): void {
@@ -1675,13 +1686,22 @@ function songLength(id: string): number | null {
   lengths.set(id, { key, secs });
   return secs;
 }
-/** "Change this song's sound" in the Practice settings: Edit notation, with the song's sound open. */
-function showSongSound(): void {
-  switchTab('edit');
-  setSongSoundOpen(true);
-  savePrefs();
-  $('.songsound').scrollIntoView({ block: 'nearest' });
-  $('#songSoundBtn').focus({ preventScroll: true });
+/** The top section's taal picker: the song's own taal (its sections' too) first, or the taal
+ * picked to play it in. */
+let taalPickOwn = '';
+function renderTaalPick(): void {
+  const own = Array.from(new Set(ownTaals.runs.map((r) => r.T.name))).join(', ');
+  if (own !== taalPickOwn) {
+    taalPickOwn = own;
+    select('#taalPick').innerHTML = V.taalPickHTML(own);
+  }
+  select('#taalPick').value = taalPick;
+}
+/** Play the song in another taal (or its own again, ''), until another song opens. */
+function pickTaal(id: string): void {
+  taalPick = isTaalId(id) ? id : '';
+  reparse(true);
+  if (!playing()) renderTaal();
 }
 
 // ── Song loading and editing ─────────────────────────────────────────────────
@@ -1690,7 +1710,9 @@ function reparse(keepLines: boolean): void {
   parsed = parseSong(current.text);
   sections = songSections(current.text, parsed);
   taal = taalInfo(current.taal);
-  taals = taalMap(current.text, parsed, current.taal, current.startOn, sections);
+  ownTaals = taalMap(current.text, parsed, current.taal, current.startOn, sections);
+  taals = taalPick ? inOneTaal(ownTaals, taalInfo(taalPick)) : ownTaals;
+  renderTaalPick();
   renderSheets();
   renderLineSelects(keepLines);
   renderLength();
@@ -1848,6 +1870,8 @@ function loadSong(song: Song | Exercise): void {
     clearOverride();
   }
   current = normalize(song);
+  // A taal picked at the top was for the song that was open.
+  taalPick = '';
   // The last run's voice and scores belong to the song that was open, and so does undo.
   lines.clearRun();
   textUndo.clear();
@@ -2014,7 +2038,7 @@ function loadSongLabels(): void {
   $('#delBtn').textContent = 'Delete ' + what();
   $('#expBtn').textContent = 'Export this ' + what();
   $('#delConfirmText').textContent = 'Delete this ' + what() + '?';
-  renderSoundNote();
+  renderUsualSound();
 }
 
 function newSong(kind: 'song' | 'exercise' = 'song'): void {
@@ -2249,11 +2273,59 @@ async function offerFile(name: string, text: string | Blob, say: (t: string) => 
   }
 }
 
+/** The bar under the top section: what Import found or did, a backup saved, or one waiting to be
+ * restored with its buttons; '' hides it. */
+function showFileBar(text: string, buttons: { label: string; act: () => void; primary?: boolean }[] = []): void {
+  $('#fileBarText').textContent = text;
+  const box = $('#fileBarBtns');
+  box.innerHTML = '';
+  for (const b of buttons) {
+    const el = document.createElement('button');
+    el.type = 'button';
+    el.className = b.primary ? 'btn primary' : 'btn';
+    el.textContent = b.label;
+    el.addEventListener('click', b.act);
+    box.appendChild(el);
+  }
+  $('#fileBar').hidden = !text;
+}
+
+/** Back up or export → All my songs: the user's songs and exercises, as a song file. */
+function backupSongs(): void {
+  flushNow();
+  const own = ownSongs();
+  if (!own.length) {
+    showFileBar('You have no saved songs yet. Backups leave out the built-in exercises.');
+    return;
+  }
+  void offerFile(exportName(stamp(Date.now()), 'All my songs', 'Data'), songFileText(own, today()), showFileBar);
+}
+
+/** Back up or export → Everything: songs, routines, the practice log with each session's detail,
+ * and the settings, in one file (backup.ts). */
+async function backupAll(): Promise<void> {
+  flushNow();
+  showFileBar('Gathering everything…');
+  let sessions: SessionDetail[] = [];
+  try {
+    sessions = (await (await sessionsDB())?.all()) ?? [];
+  } catch {
+    sessions = [];
+  }
+  const now = Date.now();
+  const b: Backup = { at: now, songs: ownSongs(), routines: Array.from(routineStore.load().values()), log: logStore.load(), sessions, prefs: { ...prefs } };
+  void offerFile(exportName(stamp(now), 'Everything', 'Backup'), new Blob(backupParts(b), { type: 'application/json' }), (t) =>
+    showFileBar(t.startsWith('Saved') ? t + ': ' + backupWords(b) + '. Import restores it.' : t));
+}
+
+/** Import from file: songs (a song file, several, or plain text) are added; a backup is offered
+ * to restore, as it adds a lot at once. */
 async function importFiles(files: File[]): Promise<void> {
   const found: ImportedSong[] = [];
   const problems: string[] = [];
+  let backup: { name: string; b: Backup } | null = null;
   for (const f of files) {
-    if (f.size > IMPORT_LIMITS.fileBytes) {
+    if (f.size > BACKUP_BYTES) {
       problems.push(f.name + ' is too large');
       continue;
     }
@@ -2264,29 +2336,110 @@ async function importFiles(files: File[]): Promise<void> {
       problems.push(f.name + ' could not be read');
       continue;
     }
+    const b = txt.includes(BACKUP_FORMAT) ? readBackup(txt) : null;
+    if (b) {
+      if (!backup) backup = { name: f.name, b };
+      else problems.push(f.name + ' is a second backup: restore one at a time');
+      continue;
+    }
+    if (f.size > IMPORT_LIMITS.fileBytes) {
+      problems.push(f.name + ' is too large');
+      continue;
+    }
     const got = songsFromFile(txt, f.name);
     if (got.length) found.push(...got);
     else problems.push(f.name + ' has no songs the player can read');
   }
-  if (!found.length) {
-    setLibStatus(problems.join('. ') || 'Nothing to import.');
+  let said = '';
+  if (found.length) {
+    const list = found.slice(0, IMPORT_LIMITS.songs);
+    // Imports never overwrite, and get titles of their own: a song file imported twice gives "… (2)".
+    const taken = titlesBut();
+    const made = list.map((s) => {
+      const n = normalize({ ...s, example: false, id: newId(), updatedAt: Date.now() });
+      n.title = uniqueTitle(n.title, taken);
+      taken.push(n.title);
+      return n;
+    });
+    for (const n of made) songs.set(n.id, n);
+    writeSongs(made);
+    userPicked = true;
+    renderLibrary();
+    loadSong(made[0]!);
+    said = 'Imported ' + list.length + ' song' + (list.length === 1 ? '' : 's') + (found.length > list.length ? ' (the first 200)' : '') + '.';
+  }
+  if (problems.length) said += (said ? ' ' : '') + problems.join('. ') + '.';
+  if (backup) offerRestore(backup.name, backup.b, said);
+  else showFileBar(said || 'Nothing to import.');
+}
+
+/** A backup found by Import: what it holds, and Restore (adding what is not here), or Restore with
+ * its settings too (then the page opens again to use them). */
+function offerRestore(name: string, b: Backup, before: string): void {
+  const when = b.at ? new Date(b.at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  showFileBar(
+    (before ? before + ' ' : '') + '‘' + name + '’ is a backup' + (when ? ' from ' + when : '') + ' of ' + backupWords(b) +
+      '. Restoring adds what is not here already; nothing here is changed.',
+    [
+      { label: 'Restore', act: () => void restore(b, false), primary: true },
+      { label: 'Restore with its settings', act: () => void restore(b, true) },
+    ],
+  );
+}
+
+/** Restore a backup: the songs, routines, practice log and sessions not here already (backup.ts);
+ * with its settings, they replace these but for this device's own, and the page opens again. */
+async function restore(b: Backup, withPrefs: boolean): Promise<void> {
+  flushNow();
+  showFileBar('Restoring…');
+  const db = await sessionsDB();
+  let sessionAts: number[] = [];
+  try {
+    sessionAts = (await db?.keys()) ?? [];
+  } catch {
+    sessionAts = [];
+  }
+  const add = restorePlan(b, {
+    songIds: new Set(songs.keys()),
+    titles: titlesBut(),
+    routineIds: new Set(routineStore.load().keys()),
+    logAts: new Set(logStore.load().map((e) => e.at)),
+    sessionAts: new Set(sessionAts),
+  });
+  for (const s of add.songs) songs.set(s.id, s);
+  if (add.songs.length) writeSongs(add.songs);
+  for (const r of add.routines) routineStore.save(r);
+  if (add.log.length) logStore.addAll(add.log);
+  let lost = 0;
+  for (const d of add.sessions) {
+    try {
+      if (!db) throw new Error('no store');
+      await db.add(d);
+    } catch {
+      // The rest of the restore stands; that session keeps its summary in the log.
+      lost++;
+    }
+  }
+  const n = add.songs.length + add.routines.length + add.log.length;
+  const said = n
+    ? 'Restored ' + backupWords(add) + (lost ? ' (' + lost + ' without their detail)' : '') + '; the rest were here already.'
+    : 'Everything in this backup is here already.';
+  if (withPrefs) {
+    const own = prefs as unknown as Record<string, unknown>;
+    const S = new Map([[STORE_KEYS.prefs as string, JSON.stringify(restoredPrefs(own, b.prefs))]]);
+    const clean = loadPrefs({ getItem: (k) => S.get(k) ?? null, setItem: () => {}, removeItem: () => {} });
+    for (const k of Object.keys(own)) delete own[k];
+    Object.assign(prefs, clean);
+    savePrefs();
+    showFileBar(said + ' Its settings are in use: the app opens again.');
+    window.setTimeout(() => location.reload(), 1500);
     return;
   }
-  const list = found.slice(0, IMPORT_LIMITS.songs);
-  // Imports never overwrite, and get titles of their own: a backup imported twice gives "… (2)".
-  const taken = titlesBut();
-  const made = list.map((s) => {
-    const n = normalize({ ...s, example: false, id: newId(), updatedAt: Date.now() });
-    n.title = uniqueTitle(n.title, taken);
-    taken.push(n.title);
-    return n;
-  });
-  for (const n of made) songs.set(n.id, n);
-  writeSongs(made);
-  userPicked = true;
+  practised = lastPractised(logStore.load());
   renderLibrary();
-  loadSong(made[0]!);
-  setLibStatus('Imported ' + list.length + ' song' + (list.length === 1 ? '' : 's') + (found.length > list.length ? ' (the first 200)' : '') + (problems.length ? '. ' + problems.join('. ') : '.'));
+  rewaz.render();
+  progressView.render();
+  showFileBar(said);
 }
 
 // ── Wiring ───────────────────────────────────────────────────────────────────
@@ -2383,15 +2536,14 @@ export function init(): void {
   // The song's sound controls show each song's sound as it opens (loadSong).
   setSeg('scriptSeg', prefs.script);
   applyTheme();
-  setSeg('guideSeg', prefs.guide);
+  renderGuide();
   input('#countIn').checked = !!prefs.countIn;
-  setSeg('guideLoopSeg', prefs.guideLoop);
+  select('#guideLoopSel').value = prefs.guideLoop;
   input('#rampChk').checked = !!prefs.ramp;
   select('#rampStep').value = String(prefs.rampStep);
   input('#rampMax').value = String(prefs.rampMax);
   renderNoteButtons();
   setSoundOpen(prefs.soundOpen ?? false);
-  setSongSoundOpen(!!prefs.songSoundOpen);
   setEditSetOpen(!!prefs.editSetOpen);
   setPadOpen(!prefs.padFold);
   songsView = initSongs({
@@ -2599,7 +2751,7 @@ export function init(): void {
       else prefs.pgOrder = o;
       savePrefs();
     },
-    exportLog: () => void exportAll(),
+    exportLog: () => void exportAll((t) => setFileStatus(t, '#pgStatus')),
     wipe: wipePractice,
     removeSession,
     songReport: (id) => void openSongReport(id),
@@ -2635,7 +2787,7 @@ export function init(): void {
     undo: undoText,
   });
   applyEditMode();
-  printSong = initPrint({ song: () => current, parsed: () => parsed, taals: () => taals, script: () => prefs.script });
+  printSong = initPrint({ song: () => current, parsed: () => parsed, taals: () => ownTaals, script: () => prefs.script });
   $('#printBtn2').addEventListener('click', () => printSong());
   const startSong = EXERCISES.find((e) => e.id === wanted) || EXERCISES[0]!;
   loadSong(startSong);
@@ -2644,6 +2796,18 @@ export function init(): void {
 
   $('#playBtn').addEventListener('click', userToggle);
   $('#stopBtn').addEventListener('click', userStop);
+  $('#restartBtn').addEventListener('click', userRestart);
+  // On a phone: Guide, Rhythm and Keyboard open their panels, one at a time.
+  for (const b of $$('.dtab')) {
+    b.addEventListener('click', () => {
+      const open = b.getAttribute('aria-expanded') !== 'true';
+      for (const o of $$('.dtab')) {
+        const on = open && o === b;
+        o.setAttribute('aria-expanded', String(on));
+        $('#' + o.dataset.p).classList.toggle('open', on);
+      }
+    });
+  }
   $('#tDown').addEventListener('click', () => setTempo(shownTempo() - 4));
   $('#tUp').addEventListener('click', () => setTempo(shownTempo() + 4));
   input('#tempoRange').addEventListener('input', (e) => setTempo((e.target as HTMLInputElement).value));
@@ -2707,28 +2871,40 @@ export function init(): void {
       $('#dispBtn').focus();
     }
   });
-  $('#songSoundBtn').addEventListener('click', () => {
-    setSongSoundOpen(!!$('#songMixer').hidden);
-    savePrefs();
-  });
-  $('#toSongSound').addEventListener('click', showSongSound);
+  // The top section: the guide's and the rhythm's volume (moving a slider unmutes), the harmonium,
+  // the drone, the rhythm and the taal to play in.
   $('#soundForget').addEventListener('click', forgetSound);
-  $('#guideSeg').addEventListener('click', (e) => {
-    const b = segButton(e);
-    if (!b) return;
-    prefs.guide = b.dataset.v as GuideLevel;
+  input('#guideVol').addEventListener('input', (e) => {
+    prefs.guideVol = +(e.target as HTMLInputElement).value;
+    prefs.guide = 'full';
     savePrefs();
-    setSeg('guideSeg', prefs.guide);
+    renderGuide();
     T?.applyGuide();
   });
-  $('#beatSeg').addEventListener('click', (e) => {
-    const b = segButton(e);
-    if (!b) return;
-    setSound({ beat: b.dataset.v as SongSound['beat'] });
-    setSeg('beatSeg', sound.beat);
+  $('#guideMute').addEventListener('click', () => {
+    if (prefs.guide !== 'off') {
+      prefs.guideVol = guideSlider(prefs);
+      prefs.guide = 'off';
+    } else prefs.guide = 'full';
+    savePrefs();
+    renderGuide();
+    T?.applyGuide();
+  });
+  const setBeat = (patch: Partial<SongSound>) => {
+    setSound(patch);
+    renderSoundControls();
     renderTaal();
-    renderLayerChips();
     T?.applyBeatLevel();
+  };
+  select('#beatSel').addEventListener('change', (e) => setBeat({ beat: (e.target as HTMLSelectElement).value as BeatStyle }));
+  $('#beatMute').addEventListener('click', () => setBeat({ beat: sound.beat === 'off' ? beatWas : 'off' }));
+  input('#tablaVol').addEventListener('input', (e) => {
+    const tablaVol = +(e.target as HTMLInputElement).value;
+    if (sound.beat === 'off') setBeat({ tablaVol, beat: beatWas });
+    else {
+      setSound({ tablaVol });
+      T?.applyBeatLevel();
+    }
   });
   $('#reedSeg').addEventListener('click', (e) => {
     const b = segButton(e);
@@ -2737,11 +2913,9 @@ export function init(): void {
     setSeg('reedSeg', sound.reeds);
     T?.applyReeds();
   });
-  $('#speedSeg').addEventListener('click', (e) => {
-    const b = segButton(e);
-    if (!b) return;
-    setSound({ speed: b.dataset.v as SongSound['speed'] });
-    setSeg('speedSeg', sound.speed);
+  select('#speedSel').addEventListener('change', (e) => {
+    const v = (e.target as HTMLSelectElement).value;
+    setSound({ speed: v === 'half' || v === 'double' ? v : 'normal' });
     renderTaal();
   });
   input('#fillsChk').addEventListener('change', (e) => {
@@ -2751,7 +2925,7 @@ export function init(): void {
     const b = (e.target as Element).closest<HTMLElement>('button[data-layer]');
     if (!b) return;
     const id = b.dataset.layer!;
-    const st = sound.beat;
+    const st = sound.beat === 'off' ? beatWas : sound.beat;
     if (st !== 'tabla' && st !== 'dholak' && st !== 'kit') return;
     const layers = soundOf(sound).layers;
     const list = new Set(layers[st]);
@@ -2761,27 +2935,29 @@ export function init(): void {
     setSound({ layers });
     renderLayerChips();
   });
-  $('#droneSeg').addEventListener('click', (e) => {
-    const b = segButton(e);
-    if (!b) return;
-    const droneType = b.dataset.v as DroneType;
-    // Choosing a drone while none plays turns it on, at half volume.
-    setSound(sound.droneVol <= 0 ? { droneType, droneVol: 0.5 } : { droneType });
-    setSeg('droneSeg', sound.droneType);
-    select('#tanTune').hidden = sound.droneType !== 'tanpura';
-    input('#droneVol').value = String(sound.droneVol);
+  // The drone: off, the tanpura with its first string, or the harmonium; choosing one while none
+  // plays turns it on at half volume.
+  select('#droneSel').addEventListener('change', (e) => {
+    const v = (e.target as HTMLSelectElement).value;
+    const vol = sound.droneVol > 0 ? sound.droneVol : 0.5;
+    const tune = sound.tanTune;
+    if (v === 'off') setSound({ droneVol: 0 });
+    else if (v === 'harmonium') setSound({ droneType: 'harmonium', droneVol: vol });
+    else setSound({ droneType: 'tanpura', tanTune: v.slice(-1) as TanTune, droneVol: vol });
+    renderSoundControls();
+    T?.applyDrone();
+    if (sound.tanTune !== tune) T?.resetTanpura();
+  });
+  input('#droneVol').addEventListener('input', (e) => {
+    setSound({ droneVol: +(e.target as HTMLInputElement).value });
+    select('#droneSel').value = droneValue();
     T?.applyDrone();
   });
-  select('#tanTune').addEventListener('change', (e) => {
-    setSound({ tanTune: (e.target as HTMLSelectElement).value as SongSound['tanTune'] });
-    T?.resetTanpura();
-  });
-  $('#guideLoopSeg').addEventListener('click', (e) => {
-    const b = segButton(e);
-    if (!b) return;
-    prefs.guideLoop = b.dataset.v as typeof prefs.guideLoop;
+  select('#taalPick').addEventListener('change', (e) => pickTaal((e.target as HTMLSelectElement).value));
+  select('#guideLoopSel').addEventListener('change', (e) => {
+    const v = (e.target as HTMLSelectElement).value;
+    prefs.guideLoop = v === 'first' || v === 'alt' ? v : 'all';
     savePrefs();
-    setSeg('guideLoopSeg', prefs.guideLoop);
   });
   input('#rampChk').addEventListener('change', (e) => {
     prefs.ramp = (e.target as HTMLInputElement).checked;
@@ -2797,14 +2973,6 @@ export function init(): void {
     prefs.rampMax = clamp(Math.round(+el.value || 160), 30, 240);
     el.value = String(prefs.rampMax);
     savePrefs();
-  });
-  input('#tablaVol').addEventListener('input', (e) => {
-    setSound({ tablaVol: +(e.target as HTMLInputElement).value });
-    T?.applyBeatLevel();
-  });
-  input('#droneVol').addEventListener('input', (e) => {
-    setSound({ droneVol: +(e.target as HTMLInputElement).value });
-    T?.applyDrone();
   });
   input('#countIn').addEventListener('change', (e) => {
     prefs.countIn = (e.target as HTMLInputElement).checked;
@@ -3140,16 +3308,31 @@ export function init(): void {
     flushNow();
     void offerFile(fileName(stripExamplePrefix(current.title)), songFileText([current], today()));
   });
-  $('#expAllBtn').addEventListener('click', () => {
-    flushNow();
-    const own = ownSongs();
-    if (!own.length) {
-      setLibStatus('You have no saved songs yet. Backups leave out the examples.');
-      return;
-    }
-    const d = today();
-    void offerFile('gaaner-sathi-songs-' + d + '.json', songFileText(own, d), setLibStatus);
+  // Back up or export: a menu under its button, closed by a choice, Escape or a tap elsewhere.
+  const setBkOpen = (open: boolean) => {
+    $('#bkMenu').hidden = !open;
+    $('#bkBtn').setAttribute('aria-expanded', String(open));
+  };
+  $('#bkBtn').addEventListener('click', () => setBkOpen(!!$('#bkMenu').hidden));
+  document.addEventListener('click', (e) => {
+    if (!$('#bkMenu').hidden && !(e.target as Element).closest('.dbk')) setBkOpen(false);
   });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !$('#bkMenu').hidden) {
+      setBkOpen(false);
+      $('#bkBtn').focus();
+    }
+  });
+  $('#bkMenu').addEventListener('click', (e) => {
+    const b = (e.target as Element).closest<HTMLElement>('button[data-bk]');
+    if (!b) return;
+    setBkOpen(false);
+    $('#bkBtn').focus();
+    if (b.dataset.bk === 'all') void backupAll();
+    else if (b.dataset.bk === 'practice') void exportAll(showFileBar);
+    else backupSongs();
+  });
+  $('#fileBarClose').addEventListener('click', () => showFileBar(''));
   $('#impBtn').addEventListener('click', () => input('#impFile').click());
   input('#impFile').addEventListener('change', (e) => {
     const el = e.target as HTMLInputElement;

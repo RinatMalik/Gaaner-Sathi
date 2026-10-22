@@ -12,8 +12,8 @@
 <script type="module" src="./src/app/main.ts"></script>
 </head>
 <body>
-<!-- The prototype's page (reference/gaaner-sathi.html), with its settings in bars that fold them away (the
-     practice settings on the Practice view, each song's sound in Edit notation), and the features added since
+<!-- The prototype's page (reference/gaaner-sathi.html), with its controls and settings in the top section's
+     four panels (Rinat, 2026-10-22) and the lines' settings in a bar that folds them away, and the features added since
      (docs/ROADMAP.md → Phase 1): the Music library, pitch feedback, rewaz routines and the Progress view. -->
 <div class="wrap">
   <header class="top">
@@ -21,12 +21,7 @@
       <h1>Gaaner Sathi</h1>
       <div class="sub"><b>গানের সাথী</b> · harmonium and rhythm from your own notation</div>
     </div>
-    <div class="songbar">
-      <label class="sr-only" for="songSel">Song</label>
-      <select id="songSel" class="songsel"></select>
-      <button id="newBtn" class="btn" type="button">+ New song</button>
-      <span id="saveStatus" class="status" aria-live="polite"></span>
-    </div>
+    <span id="saveStatus" class="status" aria-live="polite"></span>
     <!-- How notes are written and the colours, for every view, in one small menu (Rinat, 2026-10-15). -->
     <div class="disp">
       <button type="button" class="btn dispbtn" id="dispBtn" aria-expanded="false" aria-controls="dispMenu" title="Notes and colours"><span class="sr-only">Notes and colours: </span><span id="dispSum"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -37,49 +32,116 @@
     </div>
   </header>
 
-  <section class="deck" aria-label="Playback">
-    <div class="transport">
-      <button id="playBtn" class="play" type="button" aria-label="Play" title="Play">
-        <svg class="ic-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/></svg>
-        <svg class="ic-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4.2" height="14" rx="1.2" fill="currentColor"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.2" fill="currentColor"/></svg>
-      </button>
-      <button id="stopBtn" class="stopbtn" type="button" aria-label="Stop" title="Stop" disabled>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor"/></svg>
-      </button>
-    </div>
-    <div class="ctl">
-      <span class="lab">Tempo · matras / min</span>
-      <div class="tempo">
-        <button id="tDown" class="dk" type="button" aria-label="Slower">−</button>
-        <input id="tempoNum" type="number" min="30" max="240" step="1" inputmode="numeric" aria-label="Tempo in matras per minute">
-        <button id="tUp" class="dk" type="button" aria-label="Faster">+</button>
+  <!-- The top section (Rinat, 2026-10-22, with a sketch): four panels of one size on the
+       rosewood deck: the song and playing it; the guide and the melody; the rhythm; the keyboard
+       and this device. On a phone the song's panel shows, the other three a tap away. -->
+  <section class="deck" id="deck" aria-label="Song and sound">
+    <div class="dpanel dsong" role="group" aria-label="Song and playing">
+      <div class="dsongbar">
+        <label class="sr-only" for="songSel">Song</label>
+        <select id="songSel" class="songsel"></select>
+        <button id="newBtn" class="dbtn" type="button" title="Start a new song">+ New</button>
+        <button id="impBtn" class="dbtn dicon" type="button" title="Import songs from a file, or a backup to restore" aria-label="Import songs or a backup from a file"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 15v4h14v-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <input id="impFile" type="file" accept=".json,.txt,application/json,text/plain" multiple hidden>
       </div>
-      <input id="tempoRange" type="range" min="30" max="240" step="1" aria-label="Tempo slider">
-    </div>
-    <div class="ctl">
-      <span class="lab">Sa · your key</span>
+      <div class="transport">
+        <button id="playBtn" class="play" type="button" aria-label="Play" title="Play">
+          <svg class="ic-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/></svg>
+          <svg class="ic-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4.2" height="14" rx="1.2" fill="currentColor"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.2" fill="currentColor"/></svg>
+        </button>
+        <div class="tbtns">
+          <button id="stopBtn" class="tbtn" type="button" title="Stop" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor"/></svg>Stop</button>
+          <button id="restartBtn" class="tbtn" type="button" title="Start again from the beginning" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4.5v4.6h4.6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>Restart</button>
+        </div>
+      </div>
       <div class="row">
-        <select id="saKey" aria-label="Key of Sa"></select>
-        <select id="saOct" aria-label="Octave of Sa" title="C4 is middle C. C3 is the second C from the left on a 61-key keyboard, the third on an 88-key piano."></select>
+        <button id="micBtn" class="micbtn" type="button" aria-pressed="false" aria-controls="pitchBox"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="micLab">Check my pitch</span></button>
+        <button id="recBtn" class="micbtn recbtn" type="button" aria-pressed="false" aria-controls="takesBox"><span class="recdot" aria-hidden="true"></span><span id="recLab">Record me</span></button>
+      </div>
+      <div class="dfield">
+        <span class="lab">Lines to practise</span>
+        <div class="row"><label class="mini" for="fromLine">from</label><select id="fromLine" class="lines"></select></div>
+        <div class="row"><label class="chk"><input type="checkbox" id="loopChk"> loop to</label><select id="toLine" class="lines" aria-label="Loop until line"></select></div>
+      </div>
+      <label class="chk"><input type="checkbox" id="pOct"> The octave must match too</label>
+    </div>
+
+    <!-- On a phone: the other three panels, one open at a time. -->
+    <div class="dtabs" role="group" aria-label="More settings">
+      <button type="button" class="dtab" data-p="dpGuide" aria-controls="dpGuide" aria-expanded="false">Guide</button>
+      <button type="button" class="dtab" data-p="dpRhythm" aria-controls="dpRhythm" aria-expanded="false">Rhythm</button>
+      <button type="button" class="dtab" data-p="dpDevice" aria-controls="dpDevice" aria-expanded="false">Keyboard</button>
+    </div>
+
+    <div class="dpanel dmix" id="dpGuide" role="group" aria-label="Guide and melody">
+      <div class="vcol">
+        <label class="vlab" for="guideVol">Guide</label>
+        <input type="range" class="vrange" id="guideVol" min="0" max="1" step="0.01" orient="vertical">
+        <button type="button" class="mute" id="guideMute" aria-pressed="false" title="Mute the guide"><span class="sr-only">Mute the guide</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path class="ic-on" d="M15.5 9.2a4 4 0 0 1 0 5.6M18 6.8a7.5 7.5 0 0 1 0 10.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="ic-off" d="M15.5 9.5l5 5M20.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      </div>
+      <div class="dctl">
+        <div class="dfield"><span class="lab">Sa · your key</span>
+          <div class="row dpair"><select id="saKey" aria-label="Key of Sa"></select><select id="saOct" aria-label="Octave of Sa" title="C4 is middle C. C3 is the second C from the left on a 61-key keyboard, the third on an 88-key piano."></select></div></div>
+        <label class="chk"><input type="checkbox" id="countIn"> Count in one cycle</label>
+        <div class="drow"><span class="lab" id="reedLab">Reeds</span>
+          <div class="seg" id="reedSeg" role="group" aria-labelledby="reedLab"><button type="button" data-v="1" title="Male reed only">1</button><button type="button" data-v="2" title="Bass and male reeds">2</button><button type="button" data-v="3" title="Bass, male and female reeds">3</button></div></div>
+        <div class="row dpair">
+          <select id="droneSel" aria-label="Drone" title="The drone: a tanpura with its first string on Pa, Ma or Ni, or the harmonium"><option value="off">No drone</option><option value="tanpura:P">Tanpura · Pa</option><option value="tanpura:M">Tanpura · Ma</option><option value="tanpura:N">Tanpura · Ni</option><option value="harmonium">Harmonium drone</option></select>
+          <input type="range" id="droneVol" min="0" max="1" step="0.01" aria-label="Drone volume"></div>
+        <div class="dfield"><label class="lab" for="guideLoopSel">The guide when looping</label>
+          <select id="guideLoopSel"><option value="all">Every round</option><option value="first">First round only</option><option value="alt">Every other round</option></select></div>
+        <div class="row"><label class="chk"><input type="checkbox" id="rampChk"> Speed up each round by</label>
+          <select id="rampStep" aria-label="Tempo increase per round"><option value="2">2</option><option value="4">4</option><option value="6">6</option><option value="8">8</option><option value="10">10</option></select>
+          <label class="mini" for="rampMax">up to</label><input type="number" id="rampMax" class="dnum" min="30" max="240" step="1" inputmode="numeric"></div>
       </div>
     </div>
-    <div class="ctl">
-      <span class="lab">Microphone</span>
-      <div class="row">
-      <button id="micBtn" class="micbtn" type="button" aria-pressed="false" aria-controls="pitchBox"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="micLab">Check my pitch</span></button>
-      <button id="recBtn" class="micbtn recbtn" type="button" aria-pressed="false" aria-controls="takesBox"><span class="recdot" aria-hidden="true"></span><span id="recLab">Record me</span></button>
+
+    <div class="dpanel dmix" id="dpRhythm" role="group" aria-label="Rhythm">
+      <div class="vcol">
+        <label class="vlab" for="tablaVol">Rhythm</label>
+        <input type="range" class="vrange" id="tablaVol" min="0" max="1" step="0.01" orient="vertical">
+        <button type="button" class="mute" id="beatMute" aria-pressed="false" title="Mute the rhythm"><span class="sr-only">Mute the rhythm</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path class="ic-on" d="M15.5 9.2a4 4 0 0 1 0 5.6M18 6.8a7.5 7.5 0 0 1 0 10.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="ic-off" d="M15.5 9.5l5 5M20.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      </div>
+      <div class="vcol vtempo">
+        <label class="vlab" for="tempoNum" title="Matras a minute">Tempo</label>
+        <input id="tempoNum" type="number" min="30" max="240" step="1" inputmode="numeric" title="Matras a minute">
+        <input id="tempoRange" type="range" class="vrange" min="30" max="240" step="1" orient="vertical" aria-label="Tempo slider">
+        <div class="tpm"><button id="tDown" class="dk" type="button" aria-label="Slower">−</button><button id="tUp" class="dk" type="button" aria-label="Faster">+</button></div>
+      </div>
+      <div class="dctl">
+        <div class="dfield"><label class="lab" for="taalPick">Taal</label><select id="taalPick" title="Play this song in another taal, until another song opens. Its own taal is set in Edit notation."></select></div>
+        <select id="beatSel" aria-label="The rhythm’s instrument"><option value="tabla">Tabla</option><option value="dholak">Dholak</option><option value="kit">Drums</option><option value="click">Click</option></select>
+        <div class="dfield" id="layerRow"><span class="lab" id="layerLab">Add</span><div class="chips" id="layerChips" role="group" aria-labelledby="layerLab"></div></div>
+        <select id="speedSel" aria-label="The rhythm’s speed" title="The rhythm at half or double the matras"><option value="normal">Normal speed</option><option value="half">Half speed</option><option value="double">Double speed</option></select>
+        <label class="chk"><input type="checkbox" id="fillsChk"> Fill every 4th cycle</label>
+        <button type="button" class="dlink" id="soundForget" title="This song keeps its own harmonium, drone and rhythm. Use your usual sound instead." hidden>Use my usual sound</button>
       </div>
     </div>
-    <div class="ctl grow">
-      <span class="lab">Lines to practise</span>
-      <div class="row">
-        <label class="mini" for="fromLine">from</label>
-        <select id="fromLine" class="lines"></select>
-        <label class="chk"><input type="checkbox" id="loopChk"> loop to</label>
-        <select id="toLine" class="lines" aria-label="Loop until line"></select>
-      </div>
+
+    <div class="dpanel ddev" id="dpDevice" role="group" aria-label="Keyboard and this device">
+      <label class="chk"><input type="checkbox" id="keysChk"> Show the keys to press</label>
+      <div class="dfield"><span class="lab">Keyboard (MIDI)</span>
+        <div class="row"><span class="dstat" id="midiStatus" aria-live="polite"></span><button id="midiBtn" class="dbtn" type="button">Connect</button></div></div>
+      <fieldset class="dmidi" id="midiOpts">
+        <div class="dfield"><span class="lab" id="midiRouteLab">Guide plays on</span>
+          <div class="seg" id="midiRoute" role="group" aria-labelledby="midiRouteLab"><button type="button" data-v="app">This device</button><button type="button" data-v="kb">Keyboard</button><button type="button" data-v="both">Both</button></div></div>
+        <select id="midiSound" aria-label="The keyboard’s sound for the guide"><option value="keep">The keyboard’s own sound</option><option value="organ">Reed organ sound</option><option value="accordion">Accordion sound</option></select>
+        <select id="midiOut" aria-label="Which keyboard plays the guide" hidden></select>
+      </fieldset>
+      <div class="dfield">
+        <div class="row"><button type="button" class="dbtn" id="pMeasure" title="Plays eight clicks and times them through the microphone, so the delay of your headphones or speakers is not marked as singing late">Measure the delay</button></div>
+        <span class="dstat" id="pMeasureMsg" aria-live="polite"></span></div>
+      <div class="dfield dbk">
+        <div class="row"><button id="bkBtn" class="dbtn" type="button" aria-expanded="false" aria-controls="bkMenu">Back up or export<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+        <div class="dmenu" id="bkMenu" role="group" aria-label="Back up or export" hidden>
+          <button type="button" data-bk="all"><b>Everything</b><span>Songs, routines, practice and settings, to restore with Import</span></button>
+          <button type="button" data-bk="songs"><b>All my songs</b><span>Songs and exercises of your own</span></button>
+          <button type="button" data-bk="practice"><b>All practice data</b><span>Every session, also for an AI to read</span></button>
+        </div></div>
     </div>
   </section>
+  <!-- What Import found, and a backup waiting to be restored. -->
+  <div class="rbar fbar" id="fileBar" role="status" hidden><span class="rbtext" id="fileBarText"></span><span class="spacer"></span><span class="fbbtns" id="fileBarBtns"></span><button type="button" class="btn" id="fileBarClose" aria-label="Close">×</button></div>
 
   <div class="tabs">
     <div class="tabbtns" role="tablist" aria-label="View">
@@ -98,10 +160,6 @@
         <input id="libQ" class="libq" type="search" placeholder="Search titles, lyrics and tags" aria-label="Search the music library" autocomplete="off" spellcheck="false">
         <label class="lab2" for="libSort">Sort by</label>
         <select id="libSort" class="msel"><option value="practised">Recently practised</option><option value="changed">Recently added or changed</option><option value="title">Title</option></select>
-        <span class="spacer"></span>
-        <button id="impBtn" class="btn" type="button">Import from file</button>
-        <button id="expAllBtn" class="btn" type="button">Back up all my songs</button>
-        <input id="impFile" type="file" accept=".json,.txt,application/json,text/plain" multiple hidden>
       </div>
       <div class="libstat"><span id="libCount"></span><span id="libStatus" class="fstatus" aria-live="polite"></span></div>
       <div class="chips" id="libChips" role="group" aria-label="Show"></div>
@@ -117,34 +175,9 @@
           <span class="soundtext"><span class="mhead">Practice settings</span><span class="soundsum" id="soundSum"></span></span>
           <span class="soundact" aria-hidden="true"><span id="soundAct">Done</span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         </button>
+      <!-- What the top section does not hold (Rinat, 2026-10-22: "keep the ones not covered"):
+           how the lines show. -->
       <section class="mixer" id="mixer" aria-label="Practice settings">
-        <p class="snote"><span>The harmonium, drone and rhythm are set with each song, in Edit notation.</span><button id="toSongSound" class="ibtn" type="button">Change this song’s sound</button></p>
-        <div class="mgroup">
-          <span class="mhead">Guide</span><div class="mitems">
-          <div class="mx"><span class="sr-only" id="guideLab">Guide</span>
-            <div class="seg" id="guideSeg" role="group" aria-labelledby="guideLab"><button type="button" data-v="full">Full</button><button type="button" data-v="soft">Soft</button><button type="button" data-v="off">Off</button></div></div>
-          <div class="mx"><span class="lab2" id="glLab">When looping, the guide plays</span>
-            <div class="seg" id="guideLoopSeg" role="group" aria-labelledby="glLab"><button type="button" data-v="all">Every round</button><button type="button" data-v="first">First round only</button><button type="button" data-v="alt" title="Listen to the line, then sing it alone">Every other round</button></div></div>
-        </div></div>
-        <div class="mgroup">
-          <span class="mhead">Rounds</span><div class="mitems">
-          <label class="chk2"><input type="checkbox" id="countIn"> Count in one cycle</label>
-          <div class="mx"><label class="chk2"><input type="checkbox" id="rampChk"> Speed up each round by</label>
-            <select id="rampStep" class="msel" aria-label="Tempo increase per round"><option value="2">2</option><option value="4">4</option><option value="6">6</option><option value="8">8</option><option value="10">10</option></select>
-            <label class="lab2" for="rampMax">up to</label><input type="number" id="rampMax" class="mnum" min="30" max="240" step="1" inputmode="numeric"></div>
-        </div></div>
-        <div class="mgroup">
-          <span class="mhead">Keyboard</span><div class="mitems">
-          <label class="chk2"><input type="checkbox" id="keysChk"> Show the keys to press</label>
-          <button id="midiBtn" class="btn" type="button">Connect a keyboard (MIDI)</button>
-          <span class="lab2" id="midiStatus" aria-live="polite"></span>
-          <div class="mx" id="midiOpts" hidden>
-            <span class="lab2" id="midiRouteLab">Guide plays on</span>
-            <div class="seg" id="midiRoute" role="group" aria-labelledby="midiRouteLab"><button type="button" data-v="app">This device</button><button type="button" data-v="kb">The keyboard</button><button type="button" data-v="both">Both</button></div>
-            <select id="midiSound" class="msel" aria-label="The keyboard's sound for the guide"><option value="keep">In the keyboard's own sound</option><option value="organ">Reed organ (General MIDI)</option><option value="accordion">Accordion (General MIDI)</option></select>
-            <select id="midiOut" class="msel" aria-label="Which keyboard plays the guide" hidden></select>
-          </div>
-        </div></div>
         <div class="mgroup">
           <span class="mhead">Lines</span><div class="mitems">
           <div class="mx"><span class="lab2" id="plRowsLab">Lines shown</span>
@@ -153,11 +186,6 @@
             <div class="seg" id="plAtSeg" role="group" aria-labelledby="plAtLab"><button type="button" data-v="1">1st</button><button type="button" data-v="2">2nd</button><button type="button" data-v="3">3rd</button><button type="button" data-v="4">4th</button><button type="button" data-v="5">5th</button></div></div>
           <div class="mx"><span class="lab2" id="plSizeLab">Words and notes</span>
             <div class="seg" id="plSizeSeg" role="group" aria-labelledby="plSizeLab"><button type="button" data-v="small">Smaller</button><button type="button" data-v="normal">Normal</button><button type="button" data-v="big">Bigger</button></div></div>
-        </div></div>
-        <div class="mgroup">
-          <span class="mhead">Pitch</span><div class="mitems">
-          <label class="chk2"><input type="checkbox" id="pOct"> The octave must match too</label>
-          <div class="mx pmeasure"><button type="button" class="btn" id="pMeasure">Measure the delay</button><span class="phint" id="pMeasureMsg" aria-live="polite"></span></div>
         </div></div>
       </section>
       </div>
@@ -201,8 +229,8 @@
           <tr><td>The numbers</td><td>Each line’s score is in its number box. The number under the song is your score for the whole run, and is saved in Progress.</td></tr>
           <tr><td>See where it went wrong</td><td>Tap a line to open it. Under each note: how high or low you were (<b>+12</b> is a little high, <b>−8</b> a little low; a semitone is 100), and how late you reached it, if you did.</td></tr>
           <tr><td>Being late</td><td>Under the song it says how far behind the music you usually are, to help you sing on time. The app never moves your singing to hide it.</td></tr>
-          <tr><td>Your equipment</td><td>Headphones and microphones take a moment to pass sound along. Measure it once in Practice settings → Pitch → <b>Measure the delay</b>, so you are not marked late for it.</td></tr>
-          <tr><td>Octaves</td><td>The right note in a higher or lower octave counts, unless you turn on <b>The octave must match too</b> (Practice settings → Pitch).</td></tr>
+          <tr><td>Your equipment</td><td>Headphones and microphones take a moment to pass sound along. Measure it once with <b>Measure the delay</b>, at the top (under Keyboard on a phone), so you are not marked late for it.</td></tr>
+          <tr><td>Octaves</td><td>The right note in a higher or lower octave counts, unless you turn on <b>The octave must match too</b>, at the top under the lines to practise.</td></tr>
           <tr><td>Not scored</td><td>Rounds where the guide plays for you to listen first.</td></tr>
           <tr><td>Afterwards</td><td><b>Report</b>, under the song after a run and beside each session in Progress, opens a page on how it went: what went well, what to work on, your timing and each note. <b>For AI</b> saves everything about it as a file an AI such as Claude or ChatGPT can analyse: the tune the app heard, not a recording of you.</td></tr>
         </table>
@@ -285,35 +313,7 @@
         </div>
         </section>
       </div>
-      <div class="sound songsound">
-        <button id="songSoundBtn" class="soundbar" type="button" aria-expanded="false" aria-controls="songMixer">
-          <span class="soundtext"><span class="mhead" id="songSoundHead">Sound of this song</span><span class="soundsum" id="songSoundSum"></span></span>
-          <span class="soundact" aria-hidden="true"><span id="songSoundAct">Change</span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        </button>
-        <section class="mixer" id="songMixer" aria-labelledby="songSoundHead" hidden>
-          <p class="snote" id="soundNote"><span id="soundNoteText" aria-live="polite"></span><button id="soundForget" class="ibtn" type="button" hidden>Use my usual sound</button></p>
-          <div class="mgroup">
-            <span class="mhead">Melody</span><div class="mitems">
-            <div class="mx"><span class="lab2" id="reedLab">Harmonium</span>
-              <div class="seg" id="reedSeg" role="group" aria-labelledby="reedLab"><button type="button" data-v="1" title="Male reed only">1 reed</button><button type="button" data-v="2" title="Bass and male reeds">2 reeds</button><button type="button" data-v="3" title="Bass, male and female reeds">3 reeds</button></div></div>
-            <div class="mx"><span class="lab2" id="droneLab">Drone</span>
-              <div class="seg" id="droneSeg" role="group" aria-labelledby="droneLab"><button type="button" data-v="tanpura">Tanpura</button><button type="button" data-v="harmonium">Harmonium</button></div>
-              <input type="range" id="droneVol" min="0" max="1" step="0.01" aria-label="Drone volume">
-              <select id="tanTune" class="msel" aria-label="Tanpura first string"><option value="P">1st string Pa</option><option value="M">1st string Ma</option><option value="N">1st string Ni</option></select></div>
-          </div></div>
-          <div class="mgroup">
-            <span class="mhead">Rhythm</span><div class="mitems">
-            <div class="mx"><span class="sr-only" id="beatLab">Rhythm instrument</span>
-              <div class="seg" id="beatSeg" role="group" aria-labelledby="beatLab"><button type="button" data-v="tabla">Tabla</button><button type="button" data-v="dholak">Dholak</button><button type="button" data-v="kit">Drums</button><button type="button" data-v="click">Click</button><button type="button" data-v="off">Off</button></div>
-              <input type="range" id="tablaVol" min="0" max="1" step="0.01" aria-label="Rhythm volume"></div>
-            <div class="mx"><span class="lab2" id="speedLab">Speed</span>
-              <div class="seg" id="speedSeg" role="group" aria-labelledby="speedLab"><button type="button" data-v="half">Half</button><button type="button" data-v="normal">Normal</button><button type="button" data-v="double">Double</button></div></div>
-            <label class="chk2"><input type="checkbox" id="fillsChk"> Fill every 4th cycle</label>
-            <div class="mx" id="layerRow"><span class="lab2" id="layerLab">Add</span><div class="chips" id="layerChips" role="group" aria-labelledby="layerLab"></div></div>
-          </div></div>
-        </section>
-      </div>
-      <div class="exNote" id="exNote" hidden>This is a built-in exercise, so edits here are not kept. Press <b>Make a copy</b> in Settings to save your own version, or <b>+ New song</b> to start from your diary.</div>
+      <div class="exNote" id="exNote" hidden>This is a built-in exercise, so edits here are not kept. Press <b>Make a copy</b> in Settings to save your own version, or <b>+ New</b> at the top to start from your diary.</div>
       <div class="edgrid">
         <div class="edcol">
           <!-- Entering notes (Rinat, 2026-10-15): how to write them, and a pad of the twelve notes and

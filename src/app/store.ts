@@ -67,10 +67,9 @@ export interface Prefs extends SoundSettings {
   /** The song open last time. */
   lastSong: string;
   tab: Tab;
-  /** Whether the Practice settings are unfolded; unset until the user folds or unfolds them. */
+  /** Whether the Practice settings (the lines' settings) are unfolded; unset until the user
+   * folds or unfolds them. */
   soundOpen?: boolean;
-  /** Whether a song's sound is unfolded in Edit notation; unset: folded. */
-  songSoundOpen?: true;
   /** Whether Edit notation's Settings are unfolded (unset: folded), and its Enter notes
    * section folded (unset: unfolded). */
   editSetOpen?: true;
@@ -175,8 +174,8 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
     tab: oneOf(r.tab, TABS, d.tab),
     libSort: oneOf(r.libSort, ['practised', 'changed', 'title'] as const, d.libSort),
   };
+  if (typeof r.guideVol === 'number' && Number.isFinite(r.guideVol)) p.guideVol = num(r.guideVol, 0, 1, 1);
   if (typeof r.soundOpen === 'boolean') p.soundOpen = r.soundOpen;
-  if (r.songSoundOpen === true) p.songSoundOpen = true;
   if (r.editSetOpen === true) p.editSetOpen = true;
   if (r.padFold === true) p.padFold = true;
   const lo = r.libOrder;
@@ -331,6 +330,16 @@ export class LogStore {
     const raw = readJSON(this.S, STORE_KEYS.log);
     const list: unknown[] = Array.isArray(raw) ? raw : [];
     list.push(e);
+    return writeJSON(this.S, STORE_KEYS.log, list);
+  }
+
+  /** Add several entries (a backup restored), re-reading the stored log so another tab's entries
+   * survive, and keep it oldest first. */
+  addAll(es: readonly LogEntry[]): WriteResult {
+    const raw = readJSON(this.S, STORE_KEYS.log);
+    const list: unknown[] = Array.isArray(raw) ? [...raw, ...es] : [...es];
+    const at = (x: unknown) => (x && typeof x === 'object' && typeof (x as { at?: unknown }).at === 'number' ? (x as { at: number }).at : 0);
+    list.sort((a, b) => at(a) - at(b));
     return writeJSON(this.S, STORE_KEYS.log, list);
   }
 

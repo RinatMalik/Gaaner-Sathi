@@ -11,7 +11,11 @@ export type GuideLoop = 'all' | 'first' | 'alt';
 
 /** A song's own sound (SongSound), then the practice settings, which every song shares. */
 export interface SoundSettings extends SongSound {
+  /** On ('full'; 'soft' from before 2026-10-22) or muted ('off'). */
   guide: GuideLevel;
+  /** How loud the guide is, 0–1, set by the top section's slider (Rinat, 2026-10-22); unset:
+   * as 'full' or 'soft' said. */
+  guideVol?: number;
   countIn: boolean;
   guideLoop: GuideLoop;
   /** Tempo trainer: faster each round of a loop, up to rampMax. */
@@ -28,7 +32,11 @@ export const DEFAULT_SOUND: SoundSettings = {
 };
 
 const GUIDE_LEVELS: Record<GuideLevel, number> = { full: 0.9, soft: 0.3, off: 0 };
-export const guideLevel = (s: SoundSettings): number => GUIDE_LEVELS[s.guide] ?? 0.9;
+/** The guide's gain: muted, or the slider's level of the prototype's Full (0.9). */
+export const guideLevel = (s: SoundSettings): number =>
+  s.guide === 'off' ? 0 : s.guideVol != null ? 0.9 * s.guideVol : (GUIDE_LEVELS[s.guide] ?? 0.9);
+/** Where the guide's slider stands: its own level, or Full's or Soft's. */
+export const guideSlider = (s: SoundSettings): number => s.guideVol ?? (s.guide === 'soft' ? 1 / 3 : 1);
 export const beatLevel = (s: SoundSettings): number => (s.beat === 'off' ? 0 : s.tablaVol);
 export function droneLevels(s: SoundSettings): { harm: number; tan: number } {
   const v = s.droneVol || 0;

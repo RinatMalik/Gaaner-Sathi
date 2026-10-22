@@ -36,7 +36,7 @@ export function fileTitle(title: string): string {
   return (sp >= TITLE_MAX * 0.6 ? cut.slice(0, sp) : cut).join('').replace(/[\s.-]+$/, '') + '…';
 }
 
-const EXT = { Data: '.json', Report: '.html', Recording: '.wav' } as const;
+const EXT = { Data: '.json', Backup: '.json', Report: '.html', Recording: '.wav' } as const;
 
 /** "<when> - <title>[ <extra>] - <kind><ext>". */
 export const exportName = (when: string, title: string, kind: keyof typeof EXT, extra = ''): string =>
