@@ -16,7 +16,7 @@ Clearing a browser's site data ("cookies and site data") deletes it all.
 | Your songs: notation, title, taal, tempo, Sa, start beat, section tempos and taals, tags, star, notes, the song's own sound, whether it is listed under Exercises | `localStorage` | Yes: **Export this song** (one), **Back up or export → All my songs**, or **→ Everything** (below), then **Import** there |
 | The built-in exercises and the starter rewaz | The app itself | Everyone has them |
 | Your settings: your usual sound, your Sa, the guide and practice settings, script, theme, the editor view, the MIDI choice | `localStorage` | In **Everything**, restored with "Restore with its settings" (not this device's delay or keyboard) |
-| Practice log (Progress): each session's summary | `localStorage` | **Download all practice data** (foot of Progress, or **Back up or export → All practice data**) saves it, with each session's detail, as one file (below), not importable; **Everything** holds it too and restores it. **Start afresh** in Progress deletes both |
+| Practice log (Progress): each session's summary | `localStorage` | **Download all practice data** (foot of Progress, or the Music library's **Back up or export → All practice data**) saves it, with each session's detail, as one file (below), not importable; **Everything** holds it too and restores it. **Start afresh** in Progress deletes both |
 | Each session's detail: the song as played, every note's result, the pitch heard (since 2026-10-20) | IndexedDB, the newest 1,000 sessions | **Report** opens a page on it, **For AI** saves it as a file (below), a day's **For AI** a day's in one, and the downloads above hold them all; **Everything** restores them |
 | Rewaz routines | `localStorage` | In **Everything** |
 | Takes (recordings) | IndexedDB | Each downloads as a WAV file; not importable |
@@ -77,7 +77,7 @@ exactly as before.
 ```
 
 - **Export this song** (the editor) writes one song; **Back up or export → All my songs** (the
-  top section; the Music library until 2026-10-22) writes them all, built-in exercises excluded. `tags`, `fav`, `exercise`, `notes`,
+  Music library) writes them all, built-in exercises excluded. `tags`, `fav`, `exercise`, `notes`,
   `dismissed` and `sound` appear only when set; an exercise exported, built-in or your own, carries
   `exercise`, so it imports as an exercise of your own. They are optional, so files stay version 1: the prototype and older readers
   skip them.
@@ -142,8 +142,9 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `mySa` | Your Sa, `{ saKey, saOct }`: from the range finder's "Use as my Sa", or a Sa changed on an exercise. Exercises open in it and new songs start in it |
 | `voiceRange` | The lowest and highest notes the range finder heard, `{ lo, hi }`, MIDI numbers with fractions |
 | `holdNote`, `holdBest` | The hold trainer's note (cents from Sa: −500, −300, −100, 0, 200, 400, 500, 700, 900, 1100 or 1200) and the longest hold on each, `{ "700": 12.4 }` seconds |
-| `showKeys` | `true` to show the keys to press on the Practice view |
-| `plRows`, `plAt`, `plSize` | The Practice view's lines (set in the Practice settings): how many show, `5`, `9` or `12` (absent: 7); which of them, from the top, is the one being sung, `1`, `2`, `4` or `5` (absent: the 3rd); the size of their words and notes, `small` or `big` (absent: normal). |
+| `showKeys` | `true` to show the keys to press (the virtual keyboard, ticked under the lines to practise) on the Practice view |
+| `plRows`, `plAt` | The Practice view's lines (set in the Practice settings): how many show, `5`, `9` or `12` (absent: 7); which of them, from the top, is the one being sung, `1`, `2`, `4` or `5` (absent: the 3rd) |
+| `plSize` | The font size of the song's notes and words, `small` or `big` (absent: normal): in the header's menu since 2026-10-22 (Practice settings before), for the Practice view's lines and Edit notation's beat boxes, preview and free text, not the rest of the screen |
 | `midi` | A MIDI keyboard: `{ route: 'app' \| 'kb' \| 'both', sound: 'keep' \| 'organ' \| 'accordion', out?: id }`: where the guide plays, in what sound, on which keyboard |
 
 **Each song's own sound.** The harmonium, drone and rhythm settings (`reeds`, `droneType`,
@@ -161,8 +162,7 @@ all of these while it plays.
 
 ## Backups (everything, and restoring it)
 
-**Back up or export → Everything** (the top section's keyboard and device panel; Rinat,
-2026-10-22) saves `<when> - Everything - Backup.json` (src/app/backup.ts):
+**Back up or export → Everything** (the Music library, beside the sort; Rinat, 2026-10-22) saves `<when> - Everything - Backup.json` (src/app/backup.ts):
 
 ```json
 { "format": "gaaner-sathi-backup", "version": 1, "exported": "2026-10-22T10:00:00.000Z", "about": "…",

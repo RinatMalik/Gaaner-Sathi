@@ -49,6 +49,58 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-21 BST — Claude (Opus 5.5) — PH2-33 the voice line's last jumps
+
+- **Goal:** Rinat, with the day's file for AI (6 sessions) and two takes' Recording.wav in
+  `feedback/`: "the voice line still jumps but not as much"; "it might say two rounds but its
+  just one round with a few second of next round auto recorded as I had loop turned on";
+  "while investigating why the voice line jumps, also provide feedback on my singing quality and
+  anything else that you might notice".
+- **Inspected:** the day's readings: jumps of 600 cents or more 8/2/17/10/10 in sessions 2–6
+  (none in 1, which heard no voice at Sa C♯3), at ×2, ×3 and ×4, 0.2–1.4 s long, so past the
+  slip rule. The takes (22.05 kHz, so the browser ran at 44.1) run through the app's own detector
+  and lined up with the sessions (offsets 18.110 and 4.910 s): 5269 of 5274 and 11138 of 11157
+  voiced readings agree within 30 cents. At each jump the NSDF's key maxima: the voice at
+  0.94–0.999, its 2nd or 3rd harmonic at 0.90–0.97, chosen by McLeod's 0.9 rule; spectra: the
+  2nd harmonic 33 dB above the fundamental (231 Hz), the 3rd 24 dB (158 Hz). No guide bleed
+  (quiet frames never at the guide's note); peaks at full scale (74 of 359 seconds in session
+  6). Candidate rules scored on every frame of both takes (k 0.93–1, multiples with a lead of
+  0.005–0.05). Session 2 began an octave off for 1.1 s (41 readings): session 1's silent run at
+  C♯3 had saved octave 0. Session 3's "score fell in later rounds" came from a round 3 with one
+  note sung.
+- **Changed:** `bb1a3ce` (fix(pitch)): mpm.ts (`HARMONIC_LEAD`, `peak`), pitch-dsp tests.
+  `1b6b2f6` (fix(pitch)): track.ts (`octaveFor`), app.ts and store.ts (`voiceSa`), pitch.ts
+  (kept only from a run with singing), pitch-track and store tests. `1770a14` (fix(progress)):
+  insights.ts (a round under half sung left out and said; no singing heard said), session tests.
+  This commit: docs/ENGINE.md, DATA.md, ROADMAP row 33, HISTORY (the PH2-31 entry), this file.
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 38 files, 441
+  passed (the new detector test failed before at 1199 cents, the two findings tests before
+  too); `npm run build` → 349.8 kB JS; `bash reference/tests/run-all.sh` → parser 31, checker
+  11, join-split 10, rhythm 12, tanpura 5 passed, 12 exercises valid. Takes replayed (scratch
+  scripts bundled with rolldown, deleted): the old detector at 44.1 kHz matched the app's line
+  scores within 3 on all 17 and 69 lines; new: over 600 cents off 99/133 → 8/33 (22 kHz),
+  jumps of 1000 cents or more 10/5 → 0/0 (44.1 kHz), scores 55 → 56, 59 → 59, lines 3 and 4 of
+  session 5 49 → 54 and 54 → 61. Headless Edge (fake microphone: session 5's first 52 s at 44.1
+  kHz; the song as played, Sa C♯4, start beat 15), the live site against `npm run dev`: 8 jumps
+  of over 40 % of the strip and 104 points at its edge → 0 and 9, the average so far 49 → 55;
+  the song at Sa C♯3 with an old `voiceOct` −1 (live) against `voiceSa` 138.59 (dev): 2 jumps
+  and 51 at the edge → 0 and 0; `voiceSa` 138.59 kept after runs at C♯3 and at C♯4 (an old
+  `voiceOct` replaced). The findings rebuilt from the day's file: session 1 "No singing was
+  heard this time.", session 3 rounds 1–2 compared and round 3 said, session 6's few seconds of
+  round 2 said. CI run `39687233839` (`1770a14`): core, reference and deploy jobs green; the
+  live site's script carries `voiceSa`.
+- **Decisions made:** three rows (the detector checks its period's multiples; the voice's
+  octave kept as a pitch; a round hardly sung is not compared).
+- **Risks or disagreements:** Rinat's other sessions (2–4) have no takes, so they were not
+  replayed; their stored readings keep the old slips (session 2's line 14 partly). Readings
+  over 600 cents from the note that remain (8 and 30 in 52 s and 6 min, at 44.1 kHz) are mostly
+  1–3 readings, which the slip rule takes; a voice whose 2nd period is clearly more periodic
+  than its 1st (creak) now reads an octave low for those readings (3 and 12 in the two takes).
+  `octaveFor` guesses at a Sa exactly half an octave away. Not heard on Rinat's own singing
+  live yet: only replayed and in headless Edge.
+- **Next handoff:** Rinat sings with round thirty-three (the Scarlett's gain a notch lower) and
+  says whether the line still jumps; says whether session 1 was the microphone.
+
 ### 2026-10-21 BST — Claude (Opus 5.5) — PH2-32 Sa's octave named as a keyboard names it
 
 - **Goal:** Rinat, to Claude's question whether the Sa picker should name keyboard octaves:

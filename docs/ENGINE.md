@@ -46,6 +46,10 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
   follow it; Edit notation (beat boxes, preview, checker) and the printed sheet keep the
   taals as written. A song in another number of beats than its lines were written for plays,
   its lines simply no longer falling on whole cycles.
+- **The Lines to practise** (Rinat, 2026-10-22: "from {dropdown} to {dropdown} (in one line)",
+  with Loop beside the octave rule): from one line to another, once and stopping at the last
+  (`upTo`), or round and round with Loop. Elsewhere a play without a loop still goes on to the
+  song's end. Choosing the last line no longer ticks Loop.
 - **What plays** (Rinat, 2026-10-12): the deck's Play plays the Lines to practise; a line
   number on the sheet and the editor's "play from here" play from that line to the end of the
   song, once; a section button plays its section (looping it when "loop" is ticked); a rewaz
@@ -328,8 +332,8 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   under the lines ("your voice 250 ms behind the guide", "with the guide" within 20 ms) and
   never taken off anything.
 - **The device's delay, measured** (Rinat, 2026-10-19, a Scarlett 2i2: "let's solve it in
-  desktop for now"): "Measure the delay" (the top section's keyboard and device panel; in
-  Practice settings → Pitch until 2026-10-22) plays eight clicks
+  desktop for now"): "Measure the delay" (Practice settings → Delay; a set-up done once, so
+  not at the top, Rinat 2026-10-22) plays eight clicks
   (4 ms of falling noise, 0.6 s apart, the first 0.7 s after the microphone opens) and
   records the microphone on the AudioContext clock (`src/audio/latency.ts`). Each click is
   found in the recording differenced (hum and voice fall away): heard when its window's
@@ -338,8 +342,7 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   the middle ones within 10 ms, is the device's delay, sound out and back in (`deviceLag`);
   else it says how many were heard and to hold an earphone closer. Under the lines: "Device
   delay 50 ms (measured) · your voice 250 ms behind the guide"; unmeasured, "Device delay
-  62 ms, as it says: measure it with Measure the delay, at the top" (Bluetooth often
-  under-reports it). A
+  62 ms, as it says: measure it in Practice settings" (Bluetooth often under-reports it). A
   take plays back skipping the device's delay, so it is heard as it was sung. *Why clicks
   through an earphone held to the microphone:* with headphones the microphone cannot
   otherwise hear the app.
@@ -504,9 +507,10 @@ path as pitch feedback.
   device (USB "to host", or a MIDI interface) works the same; nothing is brand-specific, and
   there is no library. Chrome and Edge on a computer and Chrome on Android have Web MIDI;
   Firefox needs a site-permission add-on; Safari and iPhones have none (the Connect button
-  says so). Connecting is one button in the top section's keyboard panel (where the guide
-  plays and in what sound show there always, usable once a keyboard is connected); a keyboard
-  allowed before reconnects by itself.
+  says so). Connecting is one button in the Practice settings (Keyboard); a keyboard allowed
+  before reconnects by itself. Once one is found, where the guide plays and in what sound show
+  in the top section's song panel, under Show virtual keyboard (Rinat, 2026-10-22: "Only when a
+  keyboard is connected and found, then bring up the keyboard related setting").
 - **Typing:** while the editor is showing, each key pressed is a beat, written from the
   song's Sa (two octaves either side), into the beat boxes or at the caret. Keys pressed
   within 40 ms of each other (an octave) type the highest once. Holds and rests come from the

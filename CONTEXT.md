@@ -3,7 +3,7 @@
 > The project's shared state, for Rinat, Claude, Codex and any other LLM: what the app is
 > for, how we work, where things stand, the decisions in force and the newest work log.
 >
-> **Last updated:** 2026-10-22 (BST) by Claude (Opus 5.5)
+> **Last updated:** 2026-10-23 (BST) by Claude (Opus 5.5)
 
 ## How to use this file
 
@@ -75,16 +75,18 @@ wins, except a later explicit decision by Rinat, which always wins.
   thirty-one (PH2-31: a day's Report, For AI and bin on its row; files named by when, title and
   kind), thirty-two (PH2-32: Sa's octave named as a keyboard names it, C♯3) and thirty-three
   (PH2-33: the voice line's last jumps, the detector's harmonics and each song's first octave;
-  a round hardly sung left out) and thirty-four (PH2-34: the top section in four panels, from
-  Rinat's sketch; a taal picked to play a song in; Back up everything and restore it) are built
-  and live. Phase 1, features, was closed by Rinat ("That's it for features",
+  a round hardly sung left out), thirty-four (PH2-34: the top section in four panels, from
+  Rinat's sketch; a taal picked to play a song in; Back up everything and restore it) and
+  thirty-five (PH2-35: three panels; the lines to practise from one line to another; the font
+  size in the header's menu; a shorter note pad) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
-- **Next single action:** Rinat tries the new top section (round thirty-four): the four panels
-  at the top of every view, a taal picked in the rhythm panel (it lasts until another song
-  opens), the guide's and the rhythm's sliders and mutes, Restart, Back up or export →
-  Everything and restoring it through Import; on a phone, the Guide, Rhythm and Keyboard
-  buttons; says whether the top's height leaves enough of the Practice lines in view. Then
-  Rinat enters a song in the beat boxes again (rounds sixteen and
+- **Next single action:** Rinat tries rounds thirty-four and thirty-five: the three panels at
+  the top of every view, a taal picked in the rhythm panel (it lasts until another song opens),
+  the three sliders and the mutes, Restart, the lines to practise played from one line to
+  another, a MIDI keyboard's settings appearing once it is found, the font size in the header's
+  menu (Practice and Edit notation), the shorter note pad, Back up or export → Everything in
+  the Music library and restoring it through Import; on a phone, the Guide and Rhythm
+  buttons. Then Rinat enters a song in the beat boxes again (rounds sixteen and
   eighteen: Join, Split, Higher, Lower and New line; the lines centred; the dock of notes
   and tools at the foot of the screen), sings with rounds nineteen to twenty-one (the next
   line as big; the pitch gauge; opening lines after a run), measures the delay with the
@@ -413,6 +415,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-02 | Claude | Review | Design, round two: Pause and a separate Stop; nothing that plays changes the Lines to practise (play from here, sheet line numbers, sections, rewaz, takes); "Check my pitch" listens only while playing; beat box rows with the number and buttons (play this line, play from here, ×) full height, vibhag starts coloured instead of X/0, a tap anywhere on a row selects it, hover | 5 unit tests and the boxes' HTML tests; Edge scenarios `round6` (42 checks) and `rewaz6` (5), with a WAV microphone (Work log 2026-10-12 16:43) | Waiting for Rinat's use and two answers |
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
+| PH2-35 | Claude | Review | The top section in three panels (Rinat, 2026-10-23): the tempo's column like the others (slider, number at the foot; − + gone); Lines to practise "from … to …" on one line (`upTo` in transport.ts: once to the last line without Loop), Loop and Octave must match, Show virtual keyboard, a MIDI keyboard's settings shown once one is found (keyboard.ts); "When looping, play the guide"; Measure the delay and Connect a keyboard (MIDI) in Practice settings (its summary says the delay, `practiceSummary`); Back up or export in the Music library; Font size in the header's menu (`plSize`, `--ns` for Edit notation's boxes, preview and free text); Enter notes 462 → 316 px (keys 41 px, the octave's name 16 px, the hint beside Write in); under 900 px the song's panel with Guide and Rhythm | 1 new unit test (the lines to practise stop at the last without a loop; elsewhere on to the end) and 1 rewritten (the practice summary); the browser pane on `npm run dev` at 1280 px day and 360 px night: three panels (deck 334 px), lines 2–3 played and stopped, Loop no longer ticked by "to", a stand-in MIDI keyboard's settings appearing, font size Bigger (boxes 16 → 19.2 px), the library's menu, Practice settings (Work log 2026-10-23, round thirty-five) | Waiting for Rinat's use |
 | PH2-34 | Claude | Review | The top section in four panels (Rinat's sketch, 2026-10-22), index.html and styles.css (`.deck`, `.dpanel`): song and playing it (picker, + New, Import, Play, Stop, Restart `userRestart`, Check my pitch, Record me, lines to practise, the octave rule); guide and melody (the guide's volume `guideVol`/`guideLevel` as a tall slider with mute, Sa, count-in, reeds, drone `droneSel`, the guide when looping, speed up each round); rhythm (its volume with mute, `beatWas`; the tempo as a tall slider; a taal to play the song in until another opens, `taalPick`, `inOneTaal` in taalmap.ts; instrument, side instruments, speed, fills, "Use my usual sound"); keyboard and device (keys, keyboard with its options always shown, Measure the delay, Back up or export). Two to a row under 1100 px; under 640 px the song's panel and Guide, Rhythm, Keyboard one at a time. Sound of this song left Edit notation; Practice settings keep the lines' settings (`linesSummary`); the library's Import and Back up moved up. Back up everything and its restore (src/app/backup.ts; `LogStore.addAll`) | 10 new unit tests (tests/unit/topsection.test.ts: the taal picked, sam kept; the guide's level and slider, `guideVol` kept; a backup read back, told from a song file, damaged parts skipped, the restore plan, settings restored with this device's kept) and 2 rewritten (store.test.ts); the browser pane on `npm run dev` at 1280 px day and night, 900 px and 360 px night: the taal picked and reset, mutes, Restart, a backup made, part of it deleted and restored (Work log 2026-10-22, round thirty-four) | Waiting for Rinat's use |
 | PH2-33 | Claude | Review | The voice line's last jumps: a key maximum at 2, 3 or 4 times the lag McLeod's rule chose that is more than 0.02 higher is the period (`HARMONIC_LEAD`, src/audio/dsp/mpm.ts; a loud low voice's 2nd or 3rd harmonic 24–33 dB above its fundamental); each song starts drawing the voice in the octave nearest the Sa it sang on last time (`octaveFor` in track.ts, prefs `voiceSa` in store.ts and app.ts, kept only from a run with singing in pitch.ts); a round under half sung left out of the rounds compared and said so, and a pitch check that heard no singing says so (insights.ts) | 5 new unit tests (Rinat's two spectra at 44.1 and 48 kHz, steady and with vibrato, failing before; high voices left alone; `octaveFor`; `voiceSa` kept; a round hardly sung; no singing heard, both failing before). Rinat's two takes of 2026-10-21 replayed (the old detector matching the app's own line scores to within 3 on all 86 lines): over 600 cents off 181/270 → 22/85, jumps of an octave or more drawn 10/5 → 0/0 at 44.1 kHz, scores 55 → 56, 59 → 59. Headless Edge with session 5's take as the microphone, live site against `npm run dev`: 8 jumps and 104 points at the strip's edge → 0 and 9 (score so far 49 → 55); a song at Sa C♯3 after C♯4: 2 jumps and 51 at the edge → 0 and 0, `voiceSa` 138.59 kept, an old `voiceOct` replaced (Work log 2026-10-21, round thirty-three) | Waiting for Rinat to sing with it |
 | PH2-32 | Claude | Review | Sa's octave named as a keyboard names it: `saKeyName`, `saWords`, `octOptionsHTML(saKey)` in src/app/view.ts; the deck's octave picker "C♯3 · low", "C♯4 · middle", "C♯5 · high", relabelled when the key changes (`showSa` in app.ts), with a tooltip on where C3 is; Sa in words "C♯3 (Black 1), low octave" in the range finder, the printed sheet, a session's detail and file for AI; "Sa C♯3" in library rows (`LibrarySong.saOct`) | 5 tests changed (the octave picker against the prototype's values and order, and with C♯; the range finder's and the printed sheet's Sa; the library row); headless Edge on `npm run dev`: C · White 1 with C3 · low, C4 · middle, C5 · high; C♯ low chosen; G relabels to G3/G4/G5 keeping low; the tooltip; 1280 px day and 360 px night (360 px wide) (Work log 2026-10-21, round thirty-two) | Waiting for Rinat's use |
@@ -525,6 +528,10 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-22 | **A taal picked at the top lasts until another song opens.** The top section's taal picker shows the song's own taal first ("Song's own"); another taal picked there plays the whole song in it, over the song's and its sections' taals, until another song opens. The song's taal is still set in Edit notation, its sections' in their headings; the beat boxes and the checker keep to them. The song's first beat stays the same number of beats before sam. | Rinat, chat 2026-10-22 ("I found myself playing with it by choosing different ones so it is good to have it there always … the top section will override it if something else is selected"; to Claude's question, "Until another song opens"); keeping the beats before sam and leaving the editor on the song's taals are Claude's | src/core/notation/taalmap.ts, src/app/app.ts. |
 | 2026-10-22 | **Back up everything, and restore it:** one file with songs, exercises of your own, rewaz routines, the practice history (log and each session's detail) and settings; takes left out (large). Import from file reads it and adds what is missing, never overwriting. Restored songs keep their ids (a song import gives new ones), so the practice and routines that name them still do; safe because a song already here is never written over. "Restore with its settings" also takes the backup's settings, this device's delay and keyboard kept, and opens the app again. | Rinat, chat 2026-10-22 ("export all songs/ all progress data/ backup everything etc"; to Claude's question, "Backup and restore, no takes"); keeping ids, the settings as a second button and the 200 MB limit are Claude's | src/app/backup.ts; docs/DATA.md → Backups. A narrow exception to the "imports always get new ids" invariant, for restores only. |
 | 2026-10-22 | **On a phone the song panel shows, and Guide, Rhythm and Keyboard are three buttons under it,** one panel open at a time. | Rinat, chat 2026-10-22, answering Claude ("Song panel, others on tap") | src/app/styles.css, app.ts. |
+| 2026-10-23 | **Three panels at the top; what is set once goes elsewhere.** The tempo's column matches the guide's and the rhythm's: its slider, and its number at the foot where they have a mute (no − +). The song panel: the lines to practise "from … to …" on one line, then Loop and Octave must match, then Show virtual keyboard, and a MIDI keyboard's settings (where the guide plays, its sound) only once a keyboard is found. "When looping, play the guide". Measure the delay and Connect a keyboard move to the Practice settings (done once); Back up or export back to the Music library (Import stays at the top); the keyboard and device panel goes. | Rinat, chat 2026-10-23 ("tempo slider not matching with the other two is annoying … put the numeric value box at the bottom"; "from {dropdown} to {dropdown} (in one line) … [checkbox] Loop ; [checkbox] Octave must match … [checkbox] Show virtual keyboard … Only when a keyboard is connected and found, then bring up the keyboard related setting"; "so now it becomes 3 subsections"; "Bring back the 'Backup or export' button into music library"; "Measure the delay … Maybe is the Practice settings?"); Connect in the Practice settings is Claude's | Replaces the 2026-10-22 row's fourth panel. src/app/keyboard.ts, app.ts; index.html. |
+| 2026-10-23 | **The lines to practise play from one line to the other,** once and stopping at the last, or looped with Loop; choosing the last line no longer ticks Loop. Other plays without a loop (a line number, "play from here") still go on to the song's end. | Claude, following Rinat's "from {dropdown} to {dropdown}": until now the "to" counted only when looping, which that layout no longer says | src/audio/transport.ts (`upTo`), app.ts; docs/ENGINE.md → Transport. |
+| 2026-10-23 | **Font size in the header's menu** (Smaller, Normal, Bigger), with the script and the colours: it sizes the song's notes and words in the Practice view's lines and in Edit notation (beat boxes, preview, free text), not the rest of the screen. | Rinat, chat 2026-10-23 ("should bring up lang option, dark/light mode and also Font size with choice of smaller/normal/bigger … Should it affect everything? i don't know … I am trying to move this settings from the practice setting section"); notes and words only is Claude's recommendation: the need is seeing the song from a distance while singing, the panels would grow with everything else, and the browser's own zoom sizes the whole page | Setting `plSize` (docs/DATA.md); styles.css `--ns`. |
+| 2026-10-23 | **Enter notes about 70 % as tall** (462 → 316 px on a laptop), its buttons as wide: the keys 41 px (54 before), the octave's name on one 16 px line, the hint beside Write in, the tools beside the pad closer. | Rinat, chat 2026-10-23 ("reduce the height of the 'Enter notes' section. keep the buttons just as wide but reduce the height to 75% of the current height"); how is Claude's | styles.css. |
 | 2026-10-20 | **One session can be deleted, asked in its row**, removing its log entry and its detail together; nothing else changes. | Rinat, chat 2026-10-20 ("have a button next to each session line to delete that particular session data. as sometimes i might click play and inturrupted by a call or another human"); asking in the row, as the library does, is Claude's | src/app/progress.ts, app.ts (`removeSession`), store.ts, db.ts; docs/DATA.md → Practice log. |
 | 2026-10-20 | **No two songs share a title; Note by note is a harmonium's keys; each song has its own report.** New songs, copies and imports get " (2)" and so on; a title typed in use is said and numbered on leaving the box; songs already sharing one are numbered once on opening (the first made keeps it) and told. Notes are drawn on keys with Sa as C, komal and tivra black, coloured by score. A song's row in Progress opens a report of all its practice and saves its sessions for AI. Start afresh says "(delete all practice data)", not "Delete All Data": it keeps songs (decided the same day); its Delete it all waits 20 seconds. | Rinat, chat 2026-10-20 ("is it worth having a button next to each song to generate a combined report of that song?"; "Is it good to have a check and not have the exact same title on multiple songs?"; "maybe also add in bracket (Delete All Data). Have the delete all button greyed out until 20 seconds have passed"; "Do not like the visual on note by note ... should the alternative notes, komal, tivra etc be included?"); the keys, what the song report holds, numbering rather than refusing a title, and renaming songs already sharing one are Claude's | src/core/song/library.ts (`titleKey`, `uniqueTitle`, `titleFixes`), src/app/notekeys.ts, songreport.ts, progress.ts, app.ts; docs/DATA.md → Song files, Session detail. |
 | 2026-10-20 | **Start afresh stays as built:** it deletes the practice history only (the log and each session's detail); songs, exercises, rewaz routines, takes and settings stay. No "delete everything" option. | Rinat, chat 2026-10-20 ("Keep it as it is: Start afresh deletes only the practice history"), answering the question in round twenty-seven | Settles PH2-27's open question; nothing to change. |
@@ -588,6 +595,56 @@ Template:
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
 
+### 2026-10-23 BST — Claude (Opus 5.5) — PH2-35 the top section in three panels
+
+- **Goal:** Rinat, on round thirty-four: "tempo slider not matching with the other two is
+  annoying. get rid of the +/- and put the numeric value box at the bottom"; the lines to
+  practise "from {dropdown} to {dropdown} (in one line) … [checkbox] Loop ; [checkbox] Octave
+  must match … [checkbox] Show virtual keyboard … Only when a keyboard is connected and found,
+  then bring up the keyboard related setting"; "When looping, play the guide"; "so now it
+  becomes 3 subsections"; Back up or export back in the Music library; Measure the delay in the
+  Practice settings; the header's menu with the language, the colours and a font size; Enter
+  notes "75% of the current height", the buttons as wide; and Claude's opinion of the design.
+  The header's height: "didn't affect the visibility, in fact it made it better".
+- **Inspected:** the transport's `start` (without a loop it played on to the song's end, so "to"
+  counted only when looping); every call of `start` without a loop in the tests (they expect the
+  song's end, so the change is an option, not a new default); the note pad's measured heights in
+  beat boxes at 1280 px: the section 462 px, its keys 54–59 px, the octave's name 36 px (the
+  Bengali font's line box), the tools beside it 288 px.
+- **Changed:** index.html (three panels; the tempo's slider and number; the song panel's lines,
+  checkboxes and MIDI settings; "When looping, play the guide"; Practice settings with Lines,
+  Delay and Keyboard; Back up or export in the Music library; Font size in the header's menu;
+  the hint beside Write in), styles.css (three columns; the phone form under 900 px; equal
+  slider columns; the deck's controls 30 px; `--ns` for Edit notation; the note pad's heights),
+  transport.ts (`upTo`), app.ts (`upTo` from the Lines to practise; "to" no longer ticks Loop; the
+  length said for lines without a loop; − + gone; the font size on the root and in the menu's
+  summary), keyboard.ts (its settings hidden until a keyboard is found), view.ts
+  (`practiceSummary`: the lines and the delay), pitch.ts and insights.ts (the delay is measured
+  in Practice settings); tests. Docs: DATA.md, ENGINE.md, ROADMAP row 35, HISTORY (the PH2-33
+  entry), this file.
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 39 files, 452
+  passed (the new one: lines 2–3 without a loop play [1, 2] with `upTo`, [1, 2, 3] without);
+  `npm run build` → 356.1 kB JS; `bash reference/tests/run-all.sh` → parser 31, checker 11,
+  join-split 10, rhythm 12, tanpura 5 passed, 12 exercises valid. The browser pane on `npm run
+  dev`, 1280 px day: three panels, the deck 334 px; the three sliders alike; lines 2–3 at 240
+  per minute, sound muted: lines 2 and 3 shown, stopped after 9.5 s without reaching 4; "lines
+  2–3: 14 s", "… a round" with Loop, Loop not ticked by choosing "to"; a stand-in MIDI keyboard
+  (`navigator.requestMIDIAccess` replaced in the page): Connected: CT-X3000, the settings
+  appearing in the song panel (deck 381 px then); Font size Bigger: beat boxes 16 → 19.2 px,
+  the Practice lines' size big, the menu "বাংলা · Auto · Bigger"; the library's menu with its
+  three choices; Practice settings "Lines … Delay … Keyboard"; Enter notes 462 → 316 px, no key
+  overflowing. 360 px night: the song panel with Guide and Rhythm, the Rhythm panel, 360 px wide.
+  Every id app.ts, keyboard.ts, pitch.ts, songs.ts and rewaz.ts wire is in the page; a fresh
+  load runs `init` to its end (the Import button, wired last, works). One console error from a
+  hot reload mid-edit (the − + gone from the page before the code), stamped with that load.
+- **Decisions made:** four rows (three panels and what moved; the lines to practise from one
+  line to another; the font size in the header's menu; Enter notes shorter).
+- **Risks or disagreements:** Enter notes is at 68 %, a little under the 75 % asked for (the
+  tools beside the pad set its height; Rinat can say if the keys are now too short). Backup is
+  in the Music library and its restore (Import) at the top: two places for one pair. Not tried
+  on a real phone or with the Casio.
+- **Next handoff:** Rinat tries rounds thirty-four and thirty-five.
+
 ### 2026-10-22 BST — Claude (Opus 5.5) — PH2-34 the top section in four panels
 
 - **Goal:** Rinat, with a sketch of four boxes in the top bar: "revamp the top section and the
@@ -647,57 +704,5 @@ Template:
   slider; Full and Soft as before). Not tried on a real phone or with a MIDI keyboard.
 - **Next handoff:** Rinat tries round thirty-four and says whether the top's height suits the
   Practice view.
-
-### 2026-10-21 BST — Claude (Opus 5.5) — PH2-33 the voice line's last jumps
-
-- **Goal:** Rinat, with the day's file for AI (6 sessions) and two takes' Recording.wav in
-  `feedback/`: "the voice line still jumps but not as much"; "it might say two rounds but its
-  just one round with a few second of next round auto recorded as I had loop turned on";
-  "while investigating why the voice line jumps, also provide feedback on my singing quality and
-  anything else that you might notice".
-- **Inspected:** the day's readings: jumps of 600 cents or more 8/2/17/10/10 in sessions 2–6
-  (none in 1, which heard no voice at Sa C♯3), at ×2, ×3 and ×4, 0.2–1.4 s long, so past the
-  slip rule. The takes (22.05 kHz, so the browser ran at 44.1) run through the app's own detector
-  and lined up with the sessions (offsets 18.110 and 4.910 s): 5269 of 5274 and 11138 of 11157
-  voiced readings agree within 30 cents. At each jump the NSDF's key maxima: the voice at
-  0.94–0.999, its 2nd or 3rd harmonic at 0.90–0.97, chosen by McLeod's 0.9 rule; spectra: the
-  2nd harmonic 33 dB above the fundamental (231 Hz), the 3rd 24 dB (158 Hz). No guide bleed
-  (quiet frames never at the guide's note); peaks at full scale (74 of 359 seconds in session
-  6). Candidate rules scored on every frame of both takes (k 0.93–1, multiples with a lead of
-  0.005–0.05). Session 2 began an octave off for 1.1 s (41 readings): session 1's silent run at
-  C♯3 had saved octave 0. Session 3's "score fell in later rounds" came from a round 3 with one
-  note sung.
-- **Changed:** `bb1a3ce` (fix(pitch)): mpm.ts (`HARMONIC_LEAD`, `peak`), pitch-dsp tests.
-  `1b6b2f6` (fix(pitch)): track.ts (`octaveFor`), app.ts and store.ts (`voiceSa`), pitch.ts
-  (kept only from a run with singing), pitch-track and store tests. `1770a14` (fix(progress)):
-  insights.ts (a round under half sung left out and said; no singing heard said), session tests.
-  This commit: docs/ENGINE.md, DATA.md, ROADMAP row 33, HISTORY (the PH2-31 entry), this file.
-- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 38 files, 441
-  passed (the new detector test failed before at 1199 cents, the two findings tests before
-  too); `npm run build` → 349.8 kB JS; `bash reference/tests/run-all.sh` → parser 31, checker
-  11, join-split 10, rhythm 12, tanpura 5 passed, 12 exercises valid. Takes replayed (scratch
-  scripts bundled with rolldown, deleted): the old detector at 44.1 kHz matched the app's line
-  scores within 3 on all 17 and 69 lines; new: over 600 cents off 99/133 → 8/33 (22 kHz),
-  jumps of 1000 cents or more 10/5 → 0/0 (44.1 kHz), scores 55 → 56, 59 → 59, lines 3 and 4 of
-  session 5 49 → 54 and 54 → 61. Headless Edge (fake microphone: session 5's first 52 s at 44.1
-  kHz; the song as played, Sa C♯4, start beat 15), the live site against `npm run dev`: 8 jumps
-  of over 40 % of the strip and 104 points at its edge → 0 and 9, the average so far 49 → 55;
-  the song at Sa C♯3 with an old `voiceOct` −1 (live) against `voiceSa` 138.59 (dev): 2 jumps
-  and 51 at the edge → 0 and 0; `voiceSa` 138.59 kept after runs at C♯3 and at C♯4 (an old
-  `voiceOct` replaced). The findings rebuilt from the day's file: session 1 "No singing was
-  heard this time.", session 3 rounds 1–2 compared and round 3 said, session 6's few seconds of
-  round 2 said. CI run `39687233839` (`1770a14`): core, reference and deploy jobs green; the
-  live site's script carries `voiceSa`.
-- **Decisions made:** three rows (the detector checks its period's multiples; the voice's
-  octave kept as a pitch; a round hardly sung is not compared).
-- **Risks or disagreements:** Rinat's other sessions (2–4) have no takes, so they were not
-  replayed; their stored readings keep the old slips (session 2's line 14 partly). Readings
-  over 600 cents from the note that remain (8 and 30 in 52 s and 6 min, at 44.1 kHz) are mostly
-  1–3 readings, which the slip rule takes; a voice whose 2nd period is clearly more periodic
-  than its 1st (creak) now reads an octave low for those readings (3 and 12 in the two takes).
-  `octaveFor` guesses at a Sa exactly half an octave away. Not heard on Rinat's own singing
-  live yet: only replayed and in headless Edge.
-- **Next handoff:** Rinat sings with round thirty-three (the Scarlett's gain a notch lower) and
-  says whether the line still jumps; says whether session 1 was the microphone.
 
 Older entries: `docs/HISTORY.md`.
