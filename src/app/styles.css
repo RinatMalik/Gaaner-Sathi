@@ -216,12 +216,11 @@ button{cursor:pointer}
 .tabbtns button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--brass)}
 
 /* diary sheet */
-.sheetHead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 16px}
+.sheetHead{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px}
 .sheetHead h2{font-family:var(--f-note);font-weight:400;font-size:22px;margin:0;text-wrap:balance;min-width:0}
 /* How long the song plays at its tempo (Rinat, 2026-10-20), after the title. */
 .songlen{margin-right:auto;font-size:13px;color:var(--ink-2)}
 .tag{font-family:var(--f-ui);font-size:11px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:1px 8px;margin-left:8px;color:var(--ink-2);vertical-align:middle}
-.hint{font-size:13px;color:var(--ink-2)}
 .sheet{position:relative;background:var(--sheet);border:1px solid var(--line);border-radius:14px;overflow:auto;max-height:56vh;overscroll-behavior:contain}
 #sheetE{max-height:72vh}
 #sheetE .nt{font-size:calc(18px * var(--ns))}
@@ -882,6 +881,15 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .tkwarn{flex-basis:100%;font-size:13px;color:var(--warn)}
 .tkacts{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto}
 .tkempty{color:var(--ink-2);font-size:14px;padding:4px 0}
+/* Every song's takes, on the Voice page (Rinat, 2026-10-23). */
+.alltakes{display:grid;gap:14px;min-width:0}
+.tksum{margin:0;color:var(--ink-2);font-size:14px}
+.tkhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
+.tksong{margin:0;font-family:var(--f-note);font-weight:400;font-size:19px;min-width:0}
+.tkhead .n{color:var(--ink-2);font-size:14px}
+.tkhead .ibtn{margin-left:auto}
+.tkgone{margin-left:auto;color:var(--ink-2);font-size:13px}
+.alltakes .tklist{margin:4px 0 0}
 
 /* The keyboard (new): the keys to press on the Practice view. */
 /* In a section of its own, as wide as the others: keys of a natural width, more of them on a

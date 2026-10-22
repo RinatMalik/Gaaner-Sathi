@@ -171,7 +171,7 @@
     <div style="display:grid;gap:14px">
       <div class="rbar" id="rwBar" hidden aria-live="polite"><span class="rbtext" id="rwBarText"></span><span class="spacer"></span><button id="rwSkip" class="btn" type="button">Skip</button><button id="rwStop" class="btn" type="button">Stop rewaz</button></div>
 
-      <div class="sheetHead"><h2 id="songTitle"></h2><span class="songlen" id="songLen" title="How long it plays at this tempo, without the count-in"></span><span class="hint">Tap a section or a line number to play from there · Space bar plays and pauses</span></div>
+      <div class="sheetHead"><h2 id="songTitle"></h2><span class="songlen" id="songLen" title="How long it plays at this tempo, without the count-in"></span></div>
       <!-- The practice settings in one line under the title (Rinat, 2026-10-23: "make the practice
            settings just one line … lines shown, being sung and measure delay"). -->
       <div class="psets" role="group" aria-label="Practice settings">
@@ -264,7 +264,15 @@
         </div>
         <p class="phint" id="hBest"></p>
       </section>
-      <p class="phint">The microphone is on only while listening. Nothing is recorded or sent anywhere.</p>
+      <p class="phint">Finding your Sa and holding a note use the microphone only while listening, and record nothing.</p>
+      <!-- Every song's takes in one place (Rinat, 2026-10-23: "if i wanted to see all my takes of
+           various songs in one place - there is no way"). -->
+      <section class="vcard" aria-labelledby="vTakesHead">
+        <h3 id="vTakesHead">My takes</h3>
+        <p class="rwintro">Every song you have recorded, the newest first. Play a take on its own here; <b>With the guide</b> opens the song on the Practice view and plays the take along with it.</p>
+        <div id="allTakes" class="alltakes"></div>
+        <span class="fstatus" id="allTakesStatus" aria-live="polite"></span>
+      </section>
     </div>
   </main>
 

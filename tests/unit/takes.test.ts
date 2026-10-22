@@ -1,9 +1,10 @@
 // Takes: capturing a take in time with the guide (src/audio/dsp/pcm.ts → TakeCapture), the
-// take records (src/core/practice/take.ts) and the list on the Practice view (src/app/takes.ts).
+// take records (src/core/practice/take.ts), the list on the Practice view and every song's on the
+// Voice page (src/app/takes.ts).
 import { describe, expect, it } from 'vitest';
 import { TakeCapture } from '../../src/audio/dsp/pcm';
 import { cleanTake, clockText, MIN_TAKE_SECS, newTakeId, takeDetail, textSig, type Take } from '../../src/core/practice/take';
-import { takeFileName, takesHTML } from '../../src/app/takes';
+import { allTakesHTML, takeFileName, takesHTML } from '../../src/app/takes';
 
 /** Microphone blocks of 2048 frames, stamped like the capture worklet's, over a signal. */
 function blocks(signal: (frame: number) => number, first: number, count: number, skip: Set<number> = new Set()) {
@@ -90,5 +91,26 @@ describe('take records', () => {
     expect(takesHTML([], now, '')).toContain('No takes yet');
     // Named as a session's files are, so it lists beside them (Rinat, 2026-10-21).
     expect(takeFileName(T)).toMatch(/^2026\.10\.11_\d\d\.05\.\d\d - আমার -গান- - Recording\.wav$/);
+  });
+
+  it('are listed together on the Voice page, song by song, the newest first (Rinat, 2026-10-23)', () => {
+    const now = T.at + 3600_000;
+    const U: Take = { ...T, id: 'take-2', song: 's2', title: 'Old name', at: T.at + 60_000, secs: 40 };
+    const V: Take = { ...T, id: 'take-3', song: 'gone', title: 'Deleted song', at: T.at - 60_000, secs: 10 };
+    const song = (id: string) => (id === 's1' ? { title: 'আমার <গান>', sig: T.sig } : id === 's2' ? { title: 'New name', sig: 'changed' } : null);
+    const html = allTakesHTML([T, V, U], now, song);
+    // 83.4 + 40 + 10 s at 24 kHz, 16-bit.
+    expect(html).toContain('3 takes of 3 songs · 2:13 in all · 6 MB in this browser');
+    // The song with the newest take first; each under its title now, with a button to open it.
+    expect(html.indexOf('New name')).toBeLessThan(html.indexOf('আমার &lt;গান&gt;'));
+    expect(html.indexOf('আমার &lt;গান&gt;')).toBeLessThan(html.indexOf('Deleted song'));
+    expect(html).not.toContain('Old name');
+    expect(html).toContain('data-act="open" data-song="s2"');
+    expect(html).toContain('The notation has changed since');
+    // A deleted song's takes keep its old title and play only alone.
+    expect(html).toContain('The song has been deleted.');
+    expect(html).not.toContain('data-act="guide" data-id="take-3"');
+    expect(html).toContain('data-act="me" data-id="take-3"');
+    expect(allTakesHTML([], now, song)).toContain('No takes yet');
   });
 });

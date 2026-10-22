@@ -60,7 +60,7 @@ import { dayReportHTML, dayReportName } from './dayreport';
 import { exportName, stamp } from './filenames';
 import { songFileName, songReportHTML, type SongReportInput } from './songreport';
 import { initRewaz, type ItemSong, type Rewaz } from './rewaz';
-import { takeBuffer, takeFileName, takesHTML, TakeStore } from './takes';
+import { allTakesHTML, takeBuffer, takeFileName, takesHTML, TakeStore } from './takes';
 import { initVoice, type SaChoice, type VoiceUI } from './voice';
 import { initSongs, LIB_ORDER } from './songs';
 import { firstDifference, TextUndo } from './undo';
@@ -1281,6 +1281,8 @@ let takeRun: Omit<Take, 'id' | 'at' | 'secs' | 'rate' | 'rounds' | 'to'> & { at:
 /** The take playing back: with the guide (through the transport) or alone. */
 let takePlay: { take: Take; how: 'guide' | 'me'; src: AudioBufferSourceNode | null } | null = null;
 let takesShown: Take[] = [];
+/** Every song's takes, as last listed on the Voice page. */
+let allTakesShown: Take[] = [];
 let takeConfirm = '';
 
 async function takes(): Promise<TakeStore | null> {
@@ -1292,6 +1294,7 @@ async function takes(): Promise<TakeStore | null> {
 }
 const setTakeStatus = (t: string) => {
   $('#takesStatus').textContent = t;
+  $('#allTakesStatus').textContent = t;
 };
 
 function setRecUI(): void {
@@ -1398,6 +1401,17 @@ async function renderTakes(): Promise<void> {
   if (song !== current.id) return; // another song opened meanwhile
   takesShown = list;
   drawTakes();
+  if (!$('#voice').hidden) void renderAllTakes();
+}
+/** Every song's takes, on the Voice page. */
+async function renderAllTakes(): Promise<void> {
+  const store = await takes();
+  allTakesShown = store ? await store.all() : [];
+  const song = (id: string) => {
+    const s = id === current.id ? current : songs.get(id) || EXERCISES.find((x) => x.id === id);
+    return s ? { title: s.title, sig: textSig(s.text) } : null;
+  };
+  $('#allTakes').innerHTML = allTakesHTML(allTakesShown, Date.now(), song, { confirm: takeConfirm, playing: takePlay ? { id: takePlay.take.id, how: takePlay.how } : undefined });
 }
 /** The takes as last read (the notation changing only changes their notes). */
 function drawTakes(): void {
@@ -1487,14 +1501,23 @@ function stopTakeAlone(): void {
   void renderTakes();
 }
 
-async function onTakeClick(e: Event): Promise<void> {
+/** A click in a list of takes: the open song's, or every song's on the Voice page. */
+async function onTakeClick(e: Event, shown: readonly Take[]): Promise<void> {
   const b = (e.target as Element).closest<HTMLElement>('button[data-act]');
-  const t = b && takesShown.find((x) => x.id === b.dataset.id);
+  if (b?.dataset.act === 'open') {
+    openInPractice(b.dataset.song ?? '');
+    return;
+  }
+  const t = b && shown.find((x) => x.id === b.dataset.id);
   if (!b || !t) return;
   const act = b.dataset.act;
   if (act === 'guide') {
     if (takePlay?.take.id === t.id && takePlay.how === 'guide') stop();
-    else await playTakeWithGuide(t);
+    else {
+      // From the Voice page: the guide plays on the Practice view, with the song's lines.
+      if (t.song !== current.id || $('#practice').hidden) openInPractice(t.song);
+      if (t.song === current.id) await playTakeWithGuide(t);
+    }
   } else if (act === 'me') {
     if (takePlay?.take.id === t.id && takePlay.how === 'me') stopTakeAlone();
     else await playTakeAlone(t);
@@ -2472,8 +2495,18 @@ function switchTab(t: Tab): void {
   progressView.render();
 
   if (boxesShown()) boxes.render();
-  if (t === 'voice') voiceUI.render();
-  else voiceUI.stop();
+  if (t === 'voice') {
+    voiceUI.render();
+    void renderAllTakes();
+  } else voiceUI.stop();
+}
+/** Open a song (or exercise) on the Practice view. */
+function openInPractice(id: string): void {
+  const s = songs.get(id) || EXERCISES.find((x) => x.id === id);
+  if (!s) return;
+  userPicked = true;
+  if (s.id !== current.id) loadSong(s);
+  switchTab('practice');
 }
 /** The tempo shown on the deck: a rewaz item's while one plays, else the song's. */
 const shownTempo = () => itemOverride?.tempo ?? deckSection()?.tempo ?? current.tempo;
@@ -2725,13 +2758,7 @@ export function init(): void {
       const s = id === current?.id ? current : songs.get(id) || EXERCISES.find((x) => x.id === id);
       return s ? { title: s.title, exercise: !!(s.example || s.exercise) } : null;
     },
-    open: (id) => {
-      const s = songs.get(id) || EXERCISES.find((x) => x.id === id);
-      if (!s) return;
-      userPicked = true;
-      if (s.id !== current.id) loadSong(s);
-      switchTab('practice');
-    },
+    open: openInPractice,
     folded: () => prefs.pgFold ?? {},
     setFolded: (id, fold) => {
       const f = { ...prefs.pgFold };
@@ -3011,7 +3038,8 @@ export function init(): void {
     applyLinesPrefs();
     renderDisp();
   });
-  $('#takesList').addEventListener('click', (e) => void onTakeClick(e));
+  $('#takesList').addEventListener('click', (e) => void onTakeClick(e, takesShown));
+  $('#allTakes').addEventListener('click', (e) => void onTakeClick(e, allTakesShown));
   $('#themeSeg').addEventListener('click', (e) => {
     const b = segButton(e);
     if (!b) return;
