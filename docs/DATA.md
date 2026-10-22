@@ -323,7 +323,8 @@ in IndexedDB, never in song files; Download writes one as a mono 16-bit WAV file
 
 The samples are 16-bit, at `rate`, starting at the run's first scheduled beat (count-in
 included). Takes are checked when read; damaged ones are skipped. Takes shorter than 3 s are
-not kept.
+not kept. A take outlives its song: it keeps the title it was recorded under, and is listed on
+the Voice page with every other song's (2026-10-23).
 
 ## Session detail, reports and the file for AI
 

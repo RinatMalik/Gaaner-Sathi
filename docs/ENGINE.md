@@ -498,6 +498,12 @@ path as pitch feedback.
   through the same output, so they line up. It stops when the voice ends. "Just me" plays the
   voice alone. Playing a take back is not practice, so it is not logged.
 - A take of a song whose notation has changed since says so (a fingerprint of the text).
+- **Where they are listed:** the open song's under its sheet on the Practice view; every
+  song's on the Voice page, under My takes (Rinat, 2026-10-23: "no way to see all the recorded
+  audios in one go"): how many, how long and how much room they take, then song by song, the
+  song with the newest take first, each with Open the song. There a take plays alone, and With
+  the guide opens its song on the Practice view and plays it there. A deleted song's takes stay
+  under the title they had, to play alone, download or delete.
 - How well it lines up depends on `lag`, which is only as good as the device's figure until
   pitch feedback has heard the singer once.
 

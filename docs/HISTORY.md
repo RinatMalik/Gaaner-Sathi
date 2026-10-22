@@ -49,6 +49,62 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-23 BST — Claude (Opus 5.5) — PH2-35 the top section in three panels
+
+- **Goal:** Rinat, on round thirty-four: "tempo slider not matching with the other two is
+  annoying. get rid of the +/- and put the numeric value box at the bottom"; the lines to
+  practise "from {dropdown} to {dropdown} (in one line) … [checkbox] Loop ; [checkbox] Octave
+  must match … [checkbox] Show virtual keyboard … Only when a keyboard is connected and found,
+  then bring up the keyboard related setting"; "When looping, play the guide"; "so now it
+  becomes 3 subsections"; Back up or export back in the Music library; Measure the delay in the
+  Practice settings; the header's menu with the language, the colours and a font size; Enter
+  notes "75% of the current height", the buttons as wide; and Claude's opinion of the design.
+  The header's height: "didn't affect the visibility, in fact it made it better".
+- **Inspected:** the transport's `start` (without a loop it played on to the song's end, so "to"
+  counted only when looping); every call of `start` without a loop in the tests (they expect the
+  song's end, so the change is an option, not a new default); the note pad's measured heights in
+  beat boxes at 1280 px: the section 462 px, its keys 54–59 px, the octave's name 36 px (the
+  Bengali font's line box), the tools beside it 288 px.
+- **Changed:** index.html (three panels; the tempo's slider and number; the song panel's lines,
+  checkboxes and MIDI settings; "When looping, play the guide"; Practice settings with Lines,
+  Delay and Keyboard; Back up or export in the Music library; Font size in the header's menu;
+  the hint beside Write in), styles.css (three columns; the phone form under 900 px; equal
+  slider columns; the deck's controls 30 px; `--ns` for Edit notation; the note pad's heights),
+  transport.ts (`upTo`), app.ts (`upTo` from the Lines to practise; "to" no longer ticks Loop; the
+  length said for lines without a loop; − + gone; the font size on the root and in the menu's
+  summary), keyboard.ts (its settings hidden until a keyboard is found), view.ts
+  (`practiceSummary`: the lines and the delay), pitch.ts and insights.ts (the delay is measured
+  in Practice settings); tests. Docs: DATA.md, ENGINE.md, ROADMAP row 35, HISTORY (the PH2-33
+  entry), this file.
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 39 files, 452
+  passed (the new one: lines 2–3 without a loop play [1, 2] with `upTo`, [1, 2, 3] without);
+  `npm run build` → 356.1 kB JS; `bash reference/tests/run-all.sh` → parser 31, checker 11,
+  join-split 10, rhythm 12, tanpura 5 passed, 12 exercises valid. The browser pane on `npm run
+  dev`, 1280 px day: three panels, the deck 334 px; the three sliders alike; lines 2–3 at 240
+  per minute, sound muted: lines 2 and 3 shown, stopped after 9.5 s without reaching 4; "lines
+  2–3: 14 s", "… a round" with Loop, Loop not ticked by choosing "to"; a stand-in MIDI keyboard
+  (`navigator.requestMIDIAccess` replaced in the page): Connected: CT-X3000, the settings
+  appearing in the song panel (deck 381 px then); Font size Bigger: beat boxes 16 → 19.2 px,
+  the Practice lines' size big, the menu "বাংলা · Auto · Bigger"; the library's menu with its
+  three choices; Practice settings "Lines … Delay … Keyboard"; Enter notes 462 → 316 px, no key
+  overflowing. 360 px night: the song panel with Guide and Rhythm, the Rhythm panel, 360 px wide.
+  Every id app.ts, keyboard.ts, pitch.ts, songs.ts and rewaz.ts wire is in the page; a fresh
+  load runs `init` to its end (the Import button, wired last, works). One console error from a
+  hot reload mid-edit (the − + gone from the page before the code), stamped with that load.
+- **Decisions made:** four rows (three panels and what moved; the lines to practise from one
+  line to another; the font size in the header's menu; Enter notes shorter).
+- **Risks or disagreements:** Enter notes is at 68 %, a little under the 75 % asked for (the
+  tools beside the pad set its height; Rinat can say if the keys are now too short). Not tried
+  on a real phone or with the Casio.
+- **Next handoff:** Rinat tries rounds thirty-four and thirty-five.
+- **Follow-up, same day:** Claude asked whether Import should sit beside Back up in the library
+  too; Rinat: "Yes … (keep it at the top as well)". index.html (`libImpBtn`, "Import from
+  file"), app.ts (wired to the same file picker), DATA.md. `npm run typecheck` exit 0; `npx
+  vitest run` → 39 files, 452 passed; `npm run build` ok. The browser pane on `npm run dev`:
+  the library's button opens the file picker; a song file through it → "Imported 1 song." in
+  the bar above the tabs and the song opened; 360 px night: Import from file and Back up or
+  export side by side, 360 px wide; the test song removed afterwards.
+
 ### 2026-10-22 BST — Claude (Opus 5.5) — PH2-34 the top section in four panels
 
 - **Goal:** Rinat, with a sketch of four boxes in the top bar: "revamp the top section and the
