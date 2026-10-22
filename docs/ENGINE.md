@@ -332,8 +332,9 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   under the lines ("your voice 250 ms behind the guide", "with the guide" within 20 ms) and
   never taken off anything.
 - **The device's delay, measured** (Rinat, 2026-10-19, a Scarlett 2i2: "let's solve it in
-  desktop for now"): "Measure the delay" (Practice settings → Delay; a set-up done once, so
-  not at the top, Rinat 2026-10-22) plays eight clicks
+  desktop for now"): "Measure the delay" (in the line of practice settings under the
+  Practice view's title; a set-up done once, so not at the top, Rinat 2026-10-22 and 23) plays
+  eight clicks
   (4 ms of falling noise, 0.6 s apart, the first 0.7 s after the microphone opens) and
   records the microphone on the AudioContext clock (`src/audio/latency.ts`). Each click is
   found in the recording differenced (hum and voice fall away): heard when its window's
@@ -342,7 +343,8 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   the middle ones within 10 ms, is the device's delay, sound out and back in (`deviceLag`);
   else it says how many were heard and to hold an earphone closer. Under the lines: "Device
   delay 50 ms (measured) · your voice 250 ms behind the guide"; unmeasured, "Device delay
-  62 ms, as it says: measure it in Practice settings" (Bluetooth often under-reports it). A
+  62 ms, as it says: measure it with Measure the delay, under the title" (Bluetooth often
+  under-reports it). A
   take plays back skipping the device's delay, so it is heard as it was sung. *Why clicks
   through an earphone held to the microphone:* with headphones the microphone cannot
   otherwise hear the app.
@@ -507,10 +509,13 @@ path as pitch feedback.
   device (USB "to host", or a MIDI interface) works the same; nothing is brand-specific, and
   there is no library. Chrome and Edge on a computer and Chrome on Android have Web MIDI;
   Firefox needs a site-permission add-on; Safari and iPhones have none (the Connect button
-  says so). Connecting is one button in the Practice settings (Keyboard); a keyboard allowed
-  before reconnects by itself. Once one is found, where the guide plays and in what sound show
-  in the top section's song panel, under Show virtual keyboard (Rinat, 2026-10-22: "Only when a
-  keyboard is connected and found, then bring up the keyboard related setting").
+  says so). The song panel at the top ends with a line, "No keyboard connected. Connect"
+  (Rinat, 2026-10-23); a keyboard allowed before reconnects by itself. Once one is found that
+  line goes and a strip across the top section says which keyboard is connected, where the
+  guide plays and in what sound (Rinat: "Only when a keyboard is connected and found, then
+  bring up the keyboard related setting"; "Once a device is connected, a new section should
+  appear"). It is named Keyboard, not "This device", as its first choice of where the guide
+  plays is already "This device" (the computer or phone).
 - **Typing:** while the editor is showing, each key pressed is a beat, written from the
   song's Sa (two octaves either side), into the beat boxes or at the caret. Keys pressed
   within 40 ms of each other (an octave) type the highest once. Holds and rests come from the

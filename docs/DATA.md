@@ -81,8 +81,8 @@ exactly as before.
   `dismissed` and `sound` appear only when set; an exercise exported, built-in or your own, carries
   `exercise`, so it imports as an exercise of your own. They are optional, so files stay version 1: the prototype and older readers
   skip them.
-- **Import** (the top section, beside the song picker; and **Import from file** in the Music
-  library, beside Back up or export) accepts that envelope, a bare array of songs, a single song object, or
+- **Import from file** (the Music library, beside Back up or export; at the top of the app too
+  on 2026-10-22 and 23) accepts that envelope, a bare array of songs, a single song object, or
   a plain `.txt`, which becomes one song titled from the file name. Limits: 2 MB per file,
   200 songs per import, 200 000 characters per song. Imports always get new ids, so they
   never overwrite; importing the same file twice gives two copies, the second titled
@@ -124,7 +124,7 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `ramp`, `rampStep`, `rampMax` | The tempo trainer: on or off, the step and the top |
 | `lastSong` | The song open last |
 | `tab` | The view open last: `practice`, `songs` (the Music library), `edit`, `rewaz`, `voice` or `progress` |
-| `soundOpen` | Whether the Practice settings (the lines' settings since 2026-10-22), at the top of the Practice view, are unfolded; unset: folded. (`songSoundOpen`, the song's sound unfolded in Edit notation until 2026-10-22, is no longer read) |
+| `soundOpen` | No longer read (2026-10-23): whether the Practice settings were unfolded; they are one line under the title now. (`songSoundOpen`, the song's sound unfolded in Edit notation until 2026-10-22, is no longer read either) |
 | `editSetOpen` | `true` while Edit notation's Settings are unfolded; absent: folded |
 | `padFold` | `true` while Edit notation's Enter notes section (the note pad) is folded away; absent: unfolded. (`palOpen`, from 2026-10-15's "+ Add notes", is no longer read) |
 | `libSort` | How the Music library sorts: `practised`, `changed` or `title` |
@@ -176,7 +176,7 @@ all of these while it plays.
 - **What it holds:** your songs and exercises with their ids (so the practice and routines that
   name them still do), the rewaz routines, the practice log, each session's detail (its
   readings to the millisecond and the hundredth of a hertz) and the settings, but not this
-  device's own (`deviceLag`, `pitchLag`, `midi`, `lastSong`, `tab`, `soundOpen`). Takes
+  device's own (`deviceLag`, `pitchLag`, `midi`, `lastSong`, `tab`). Takes
   (recordings) are left out: they are large (Rinat chose "no takes"). Its songs are a song
   file's, so an import of songs alone reads them.
 - **Restoring:** **Import** recognises it (by `format`; up to 200 MB, where song files stop

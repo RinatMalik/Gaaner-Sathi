@@ -49,6 +49,66 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-22 BST — Claude (Opus 5.5) — PH2-34 the top section in four panels
+
+- **Goal:** Rinat, with a sketch of four boxes in the top bar: "revamp the top section and the
+  settings sections under each pages and combine things where it makes sense … The sizes of
+  each subsection should be same"; the taal "good to have it there always … the top section
+  will override it if something else is selected"; "All the settings of 'Sound of the song' is
+  covered here so we could do away with it. Most of practice settings is also covered so
+  remove the duplicates, keep the ones not covered"; "let me know first" of anything unclear.
+  Claude set out its reading of the sketch and three clashes (a taal of another length, the
+  height, a backup being new) and asked four questions; Rinat chose each recommendation: each
+  song keeps its own sound, a taal picked lasts until another song opens, backup and restore
+  without takes, on a phone the song's panel with the others on tap.
+- **Inspected:** index.html's header, deck, Practice settings and Sound of this song; app.ts's
+  wiring of each control, the transport's `taalAt` (every beat's taal read live, so a taal map
+  swapped in plays at once), taalmap.ts, sound.ts's `guideLevel`, keyboard.ts and pitch.ts's
+  use of the moved ids, the song file reader, the log, routine and session stores.
+- **Changed:** index.html (the four panels, the phone's three buttons, the file bar; Practice
+  settings with the lines' group alone; Sound of this song and the library's Import and Back up
+  removed; the scoring help's places), styles.css (the deck as a grid of panels, tall sliders
+  by `writing-mode`, mutes, the menu; two to a row under 1100 px, the phone's form under 640),
+  app.ts (the controls' wiring, `taalPick` with `ownTaals` for the editor, checker and print,
+  `userRestart`, `beatWas`, `showFileBar`, `backupSongs`, `backupAll`, `importFiles` telling a
+  backup, `offerRestore`, `restore`), backup.ts (new), taalmap.ts (`inOneTaal`), sound.ts
+  (`guideVol`, `guideLevel`, `guideSlider`), store.ts (`guideVol`; `songSoundOpen` dropped;
+  `LogStore.addAll`), view.ts (`taalPickHTML`, `linesSummary` for `practiceSummary`),
+  keyboard.ts (its options shown always, usable once connected; the unsupported message no
+  longer cleared), pitch.ts (shorter delay messages), filenames.ts (`Backup`), "Practice
+  settings" wording in rewaz.ts, routine.ts, insights.ts; tests. Docs: DATA.md (what travels,
+  `sound`, files, settings, Backups), ENGINE.md (guide level, Restart, a taal picked, the
+  delay and the keyboard's place), ROADMAP row 34, HISTORY (the PH2-32 entry), this file.
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 39 files, 451
+  passed; `npm run build` → 356.1 kB JS; `bash reference/tests/run-all.sh` → parser 31,
+  checker 11, join-split 10, rhythm 12, tanpura 5 passed, 12 exercises valid. The browser pane
+  on `npm run dev`: 1280 px day, the four panels of one size, the deck 426 px tall at first and
+  346 px after putting paired controls on a row and dropping labels a control says itself;
+  1280 px night with the backup menu open; 900 px, two to a row; 360 px night, the song's
+  panel with Guide, Rhythm, Keyboard opening one at a time, 360 px wide. Dadra picked on a
+  Keherwa exercise: the figure says Dadra, the count-in counts 6; another song opens on its
+  own taal. Guide mute → `guide` off, back to full; its slider → `guideVol` 0.4; the rhythm's
+  mute keeps Tabla in its picker. Playing: Restart enabled, from "In 2" back to "In 6", disabled
+  once stopped. With 2 songs, a routine, a log entry and a session's detail seeded: Everything
+  saved "2026.10.22_22.43.30 - Everything - Backup.json" (2 songs, 1 routine, 3 log entries, 1
+  session, readings rounded, no device settings); one song, the routine, the entry and the
+  detail deleted and the other song renamed; Import offered it, Restore → "Restored 1 song, 1
+  routine and 1 practice session; the rest were here already.", the renamed song left as it
+  was; Restore with its settings → 12 lines and night taken, the backup's `deviceLag` not, the
+  app opened again. No console errors. The test data removed afterwards.
+- **Decisions made:** five rows (the four panels; each song keeps its own sound; a taal picked
+  lasts until another song opens; backups and restore; the phone's form).
+- **Risks or disagreements:** the top is about 346 px tall on a laptop against about 110
+  before, on every view, so fewer Practice lines show without scrolling (Rinat to judge). A
+  taal of another length plays, but the song's lines no longer fall on whole cycles. The tall
+  sliders need Chrome or Edge 124+, Firefox 120+ or Safari 16.5+ (older ones show them across).
+  Restored songs keep their ids, a narrow exception to new ids on import (recorded). A backup
+  of hundreds of sessions, and a restore near the 1,000 kept (the oldest let go), are not
+  tried; only small ones were. The guide slider's levels are not heard here (0.9 times the
+  slider; Full and Soft as before). Not tried on a real phone or with a MIDI keyboard.
+- **Next handoff:** Rinat tries round thirty-four and says whether the top's height suits the
+  Practice view.
+
 ### 2026-10-21 BST — Claude (Opus 5.5) — PH2-33 the voice line's last jumps
 
 - **Goal:** Rinat, with the day's file for AI (6 sessions) and two takes' Recording.wav in
