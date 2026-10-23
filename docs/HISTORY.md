@@ -49,6 +49,38 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-23 BST — Claude (Opus 5.5) — PH2-37 every take in one place
+
+- **Goal:** Rinat: "there is no way to see all the recorded audios in one go … if i wanted to
+  see all my takes of various songs in one place - there is no way. i don't which section would
+  be best to show this, maybe the Voice page? do what you think is best"; and "Remove this line
+  'Tap a section or a line number to play from there · Space bar plays and pauses'".
+- **Inspected:** takes.ts (the open song's list, the store's `song` index), app.ts's takes code
+  (play alone, with the guide through the transport, delete asked, download), the Voice page,
+  Progress's `open` (a song opened on the Practice view).
+- **Changed:** takes.ts (`TakeStore.all`; `allTakesHTML`: the count, length and room, then song
+  by song; one take's row shared with the Practice list; a deleted song's takes play only
+  alone), app.ts (`renderAllTakes` when the Voice page shows and whenever the takes change; one
+  click handler for both lists; With the guide from the Voice page opens the song on the Practice
+  view first; `openInPractice`, shared with Progress; the takes' messages in both places),
+  index.html (My takes on the Voice page, its microphone note reworded as takes are recordings;
+  the Practice title's hint gone), styles.css (the groups; the song's length beside its title,
+  `.hint` gone); tests. Docs: ENGINE.md → Takes, DATA.md → Takes, ROADMAP row 37, HISTORY (the
+  PH2-35 entry), this file.
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 39 files, 452
+  passed; `npm run build` → 357.4 kB JS; `bash reference/tests/run-all.sh` → parser 31,
+  checker 11, join-split 10, rhythm 12, tanpura 5 passed, 12 exercises valid. The browser pane
+  on `npm run dev` (hidden, so measured rather than seen), four stand-in takes in IndexedDB (two
+  songs and a deleted one): "4 takes of 3 songs · 0:16 in all · 768 KB in this browser", the
+  groups newest first, the deleted song's take with Just me only; Just me → ■ Stop; Delete
+  asked, Keep; With the guide opened আরোহ-অবরোহ on the Practice view and played; Open the song;
+  Delete removed one ("Take deleted."); the title and its length side by side; 360 px night, no
+  sideways scroll; no console errors. The stand-in takes deleted afterwards.
+- **Decisions made:** two rows (every take on the Voice page; no hint under the title).
+- **Risks or disagreements:** the Voice page rather than Progress: takes are the singer's voice,
+  Progress is numbers (said to Rinat). Not seen as pixels: the pane was hidden.
+- **Next handoff:** Rinat tries rounds thirty-four to thirty-seven.
+
 ### 2026-10-23 BST — Claude (Opus 5.5) — PH2-36 Import in the library; the practice settings in a line; the keyboard
 
 - **Goal:** Rinat: "get a better icon for import in the header, currently it looks like a

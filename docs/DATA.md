@@ -122,6 +122,8 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `countIn` | boolean |
 | `guideLoop` | `all`, `first` or `alt` |
 | `ramp`, `rampStep`, `rampMax` | The tempo trainer: on or off, the step and the top |
+| `loopGap` | Seconds of break between rounds when looping on the Practice view, 1–120; absent: none (2026-10-23) |
+| `tkGroup` | `date` while the Voice page's takes are grouped by the day taken; absent: by song (2026-10-23) |
 | `lastSong` | The song open last |
 | `tab` | The view open last: `practice`, `songs` (the Music library), `edit`, `rewaz`, `voice` or `progress` |
 | `soundOpen` | No longer read (2026-10-23): whether the Practice settings were unfolded; they are one line at the foot of the Practice view's lines now. (`songSoundOpen`, the song's sound unfolded in Edit notation until 2026-10-22, is no longer read either) |
@@ -285,6 +287,8 @@ routines, takes and settings stay.
 ```
 
 `gap` is the routine's break between items, 0–120 seconds; absent: 4 (Rinat, 2026-10-15).
+`roundGap` is its break between an item's rounds, 1–120 seconds (each followed by the count-in
+again, when on); absent: none (Rinat, 2026-10-23).
 
 | Item field | Meaning |
 |---|---|
@@ -318,6 +322,7 @@ in IndexedDB, never in song files; Download writes one as a mono 16-bit WAV file
 | `from`, `to`, `loop`, `rounds` | Lines played, whether they looped, rounds begun |
 | `tempo`, `flat` | The song's tempo then; a rewaz item's tempo, which every beat took, if one played |
 | `countIn`, `ramp`, `rampStep`, `rampMax` | The count-in and tempo trainer as they were, so playback is the same run |
+| `gap` | Seconds of break between rounds, when there were any (0–120; absent: none), so playback has the same breaks |
 | `lag` | Seconds from a beat to the voice reaching the app; playback skips that much of the take. From 2026-10-19 the device's delay only (`deviceLag`, else its own figure), so a take is heard as it was sung; before, the delay fitted to the singing |
 | `sig` | A fingerprint of the notation then, to say when it has changed since |
 
@@ -348,7 +353,7 @@ only the summary: their report and file say so, and show what the log has (score
 |---|---|
 | `at`, `song` | The log entry's `at` (the key) and the song's id |
 | `played` | The song as it was played (it may change later): title, taal, tempo, notation, Sa |
-| `settings` | The guide, the guide when looping, the count-in and the tempo trainer |
+| `settings` | The guide, the guide when looping, the count-in, the tempo trainer and `gap`, the break between rounds when there was one (the file for AI's `break_between_rounds_s`, 0 for none) |
 | `pitch` | Only with **Check my pitch**: the device's delay and whether it was measured; whether any octave counted and the octave sung in; every judged note's result (the scores shown while singing, never worked out again); each line's score per round; every reading as `[t, Hz]` pairs (0: no voice; a glitch is 0); every beat `[t, song beat, round, seconds a beat]` |
 
 Times are seconds from the first beat after the count-in. A note at `t0` is heard at `t0`; a

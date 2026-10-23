@@ -80,12 +80,15 @@ wins, except a later explicit decision by Rinat, which always wins.
   thirty-five (PH2-35: three panels; the lines to practise from one line to another; the font
   size in the header's menu; a shorter note pad), thirty-six (PH2-36: Import in the library
   only; the practice settings one line under the title; the keyboard's line and strip),
-  thirty-seven (PH2-37: every song's takes on the Voice page) and thirty-eight (PH2-38: the
-  practice settings at the foot of the lines; the beat boxes on one row at every font size)
-  are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
+  thirty-seven (PH2-37: every song's takes on the Voice page), thirty-eight (PH2-38: the
+  practice settings at the foot of the lines; the beat boxes on one row at every font size) and
+  thirty-nine (PH2-39: a break between rounds, looping and in a rewaz; My takes as a table,
+  ticked and deleted together; the routine picker's buttons at its top) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
-- **Next single action:** Rinat tries rounds thirty-four to thirty-eight (My takes on the
-  Voice page; the practice settings under the lines; an 8-beat line at Bigger): the three panels at
+- **Next single action:** Rinat answers Open question 6 (may the built-in exercises be changed
+  and deleted?) and tries rounds thirty-four to thirty-nine (a break between rounds on the Guide
+  panel and in a routine; My takes as a table; the routine picker's buttons at its top; My takes
+  on the Voice page; the practice settings under the lines; an 8-beat line at Bigger): the three panels at
   the top of every view, a taal picked in the rhythm panel (it lasts until another song opens),
   the three sliders and the mutes, Restart, the lines to practise played from one line to
   another, a MIDI keyboard's settings appearing once it is found, the font size in the header's
@@ -109,7 +112,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   C♯3) was the microphone; tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `b0bc5db` (CI run `39871837884`: core, reference and deploy jobs green; the live page has the practice settings line `psets`, the keyboard line `kbLine` and the strip's `midiConn`).
+- **Last known-good commit:** `91504ea` (CI run `39936350065` green: round thirty-eight live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -420,6 +423,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-02 | Claude | Review | Design, round two: Pause and a separate Stop; nothing that plays changes the Lines to practise (play from here, sheet line numbers, sections, rewaz, takes); "Check my pitch" listens only while playing; beat box rows with the number and buttons (play this line, play from here, ×) full height, vibhag starts coloured instead of X/0, a tap anywhere on a row selects it, hover | 5 unit tests and the boxes' HTML tests; Edge scenarios `round6` (42 checks) and `rewaz6` (5), with a WAV microphone (Work log 2026-10-12 16:43) | Waiting for Rinat's use and two answers |
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
+| PH2-39 | Claude | Review | Breaks and a table of takes (Rinat, 2026-10-23): a break between rounds (src/audio/transport.ts: `gap`, `BreakEntry`, the count-in and pickup again, the note before it fading; the Guide panel's `#loopGap`, prefs `loopGap`, live on a loop playing; a routine's `roundGap` beside its break between items, `routineSeconds` counting it; takes, session settings and the file for AI keep it; "Break 3" in the line's box, a pause in a break going on with the next round); My takes as a table (src/app/takes.ts: `takeGroups`, `allTakesHTML` by song or date, folding, tick boxes on takes, groups and all, Delete all N asked in the bar; app.ts: `takeSel`, `takeOpen`, `onAllTakesClick`, `onAllTakesTick`, `TakeStore.remove` of several); one take deleted unasked with Undo (both lists); the routine picker's head sticky with Add and Cancel, its lists not scrolling on their own (`.rwr` `overflow: clip`); `RoutineStore.save` keeping `roundGap` | Tests: 40 files, 460 passed (6 new in breaks.test.ts: the break's timings, no count-in at sam, the pickup again, none without a loop or on resume, the routine's length and records, prefs; takes.test.ts rewritten for the table: groups by song and date, three open, ticks and asking; rewaz.test.ts: `roundGap` stored); headless Edge on `npm run dev` (the pane hidden), all measured and screenshots seen: six stand-in takes, by song and by date, a day ticked (4) plus one (group "some"), Delete all 5 asked, Keep, then Delete → 1 left; the last deleted unasked with Undo, put back and playing; a group folded; Practice looping line 1 at 200 with a 4 s break: In 6 … Now, Break 4 … 1, In 6 … Round 2, paused in the second break and going on with Round 3; a routine of 3 rounds with 3 s breaks: Break 3 … 1, the count-in, Round 2, Round 3, then the 2 s break between items; the picker's head at the top while the page scrolled (lists 539/539, no inner scroll); 1280 px day and night, 360 px night, page 345 px wide; no console errors (Work log 2026-10-23, round thirty-nine) | Waiting for Rinat's use and Open question 6 |
 | PH2-38 | Claude | Review | Small fixes (Rinat, 2026-10-23): the practice settings line (`.psets`) moved from under the title to the foot of the Practice view's lines, inside `#pl`'s frame, under the pitch check's line; the delay's messages say where (pitch.ts, insights.ts, the scoring help); "No physical keyboard connected: plug it in with a USB cable." (keyboard.ts); the beat boxes' block width (`--bxw`) measured again by `refresh()` and when web fonts load (boxes.ts), as a font size change left it at the old size and an 8-beat line broke in two; the Voice page's microphone note removed | Tests: 39 files, 452 passed (no new unit test: the beat boxes' layout has no DOM in Node; the check is a headless Edge scenario); headless Edge on `npm run dev`, 1280 px: before the fix, Bigger left `--bxw` 286 px for 334 px of boxes, rows on 2 lines in a 1131 px box; after, `--bxw` 374 → 442 → 324 px at Normal, Bigger, Smaller and again after Smaller, a reload and Normal, no row wrapped; the settings line the last thing in `#pl`, its bottom 1 px above the frame's; Connect with a stand-in MIDI and no keyboard gives the new words; 1280 px day and 360 px night (no sideways scroll) (Work log 2026-10-23, round thirty-eight) | Waiting for Rinat's use |
 | PH2-37 | Claude | Review | Every take in one place (Rinat, 2026-10-23): My takes on the Voice page (`#allTakes`; `TakeStore.all`, `allTakesHTML` in src/app/takes.ts; `renderAllTakes`, `openInPractice` in app.ts): the count, length and room taken, then song by song, newest first, Open the song, a take alone or With the guide on the Practice view, a deleted song's takes kept under their title; the Practice title's hint gone | Tests: 39 files, 452 passed (1 new: the list song by song, a deleted song's); the browser pane on `npm run dev` with four stand-in takes: grouped, Just me playing, Delete asked and kept, With the guide opening the Practice view and playing, Open the song, Delete removing one; 360 px night no sideways scroll; no console errors (Work log 2026-10-23, round thirty-seven) | Waiting for Rinat's use |
 | PH2-36 | Claude | Review | Tidier still (Rinat, 2026-10-23): Import leaves the header (the library's Import from file stays); the Practice settings bar (fold, Done, summary, `soundOpen`, `practiceSummary`) becomes one line under the title (`.psets`: lines shown, line being sung, Measure the delay with a shorter message); the keyboard's line at the foot of the song panel (`#kbLine`: status and Connect), and once one is found a Keyboard strip across the deck (`#midiOpts`, `#midiConn`; keyboard.ts) | Tests: 39 files, 451 passed (the practice summary's test removed with it); the browser pane on `npm run dev`, 1280 px day and 360 px night: the settings one line (39 px) under the title, the keyboard's line, a stand-in MIDI keyboard's strip (48 px) with the line gone, no sideways scroll; every wired id in the page (Work log 2026-10-23, round thirty-six) | Waiting for Rinat's use |
@@ -537,6 +541,10 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-22 | **Back up everything, and restore it:** one file with songs, exercises of your own, rewaz routines, the practice history (log and each session's detail) and settings; takes left out (large). Import from file reads it and adds what is missing, never overwriting. Restored songs keep their ids (a song import gives new ones), so the practice and routines that name them still do; safe because a song already here is never written over. "Restore with its settings" also takes the backup's settings, this device's delay and keyboard kept, and opens the app again. | Rinat, chat 2026-10-22 ("export all songs/ all progress data/ backup everything etc"; to Claude's question, "Backup and restore, no takes"); keeping ids, the settings as a second button and the 200 MB limit are Claude's | src/app/backup.ts; docs/DATA.md → Backups. A narrow exception to the "imports always get new ids" invariant, for restores only. |
 | 2026-10-22 | **On a phone the song panel shows, and Guide, Rhythm and Keyboard are three buttons under it,** one panel open at a time. | Rinat, chat 2026-10-22, answering Claude ("Song panel, others on tap") | src/app/styles.css, app.ts. |
 | 2026-10-23 | **Three panels at the top; what is set once goes elsewhere.** The tempo's column matches the guide's and the rhythm's: its slider, and its number at the foot where they have a mute (no − +). The song panel: the lines to practise "from … to …" on one line, then Loop and Octave must match, then Show virtual keyboard, and a MIDI keyboard's settings (where the guide plays, its sound) only once a keyboard is found. "When looping, play the guide". Measure the delay and Connect a keyboard move to the Practice settings (done once); Back up or export back to the Music library (Import stays at the top, and from the same day is in the library too, next row); the keyboard and device panel goes. | Rinat, chat 2026-10-23 ("tempo slider not matching with the other two is annoying … put the numeric value box at the bottom"; "from {dropdown} to {dropdown} (in one line) … [checkbox] Loop ; [checkbox] Octave must match … [checkbox] Show virtual keyboard … Only when a keyboard is connected and found, then bring up the keyboard related setting"; "so now it becomes 3 subsections"; "Bring back the 'Backup or export' button into music library"; "Measure the delay … Maybe is the Practice settings?"); Connect in the Practice settings is Claude's | Replaces the 2026-10-22 row's fourth panel. src/app/keyboard.ts, app.ts; index.html. |
+| 2026-10-23 | **A break between rounds,** when looping on the Practice view (the Guide panel's "Break between rounds", seconds) and in a rewaz (each routine's "Break between rounds", separate from its break between items): silence with the drone going on, then the count-in again when it is on, and any pickup, then the next round; the line's box counts it down; none after the last round; the note before it fades as at an ending. A pause in a break goes on with the next round. Takes keep it. | Rinat, chat 2026-10-23 ("i'd like the option to add some delay between loops and also between rounds when doing rewaz with multiple rounds"); the count-in again, the drone going on, the countdown, a setting on the Guide panel and per routine are Claude's | transport.ts `gap`; prefs `loopGap`; Routine `roundGap`; Take `gap`; session settings `gap`; docs/ENGINE.md → Transport, DATA.md |
+| 2026-10-23 | **My takes as a table:** grouped by song or by date, each group folding (the first three open), a tick box on each take, on each song's or day's group and Tick all; the takes ticked are deleted together, asked first in the table's bar. | Rinat, chat 2026-10-23 ("needs all the bells and whistles of a table - should be collapsible the song name or the date taken. want to be able to select all the takes in a particular day and delete together. also all the takes of a particular song"; "if multiple takes are deleted together, only then confirmation is fine") | takes.ts `takeGroups`, `allTakesHTML`; prefs `tkGroup`; docs/ENGINE.md → Takes |
+| 2026-10-23 | **One take is deleted at once, unasked,** on the Voice page and the Practice view; the message offers Undo, which puts the take and its recording back. | Rinat, chat 2026-10-23 ("no need for delete confirmation when deleting just one take"); Undo is Claude's, so a slip loses nothing (Invariants → Never lose a song) | app.ts `takeUndo`, `undoTakeDelete`; the "Delete this take?" question gone |
+| 2026-10-23 | **The routine picker's head stays at the top:** its hint, find box, Add N to this routine and Cancel are at the top of the picker (Add and Cancel no longer at its foot) and stay in view while the page scrolls; the My songs and Exercises lists no longer scroll in boxes of their own, so the mouse wheel scrolls the page straight through them. | Rinat, chat 2026-10-23 ("the 'Add to this routine' and Cancel button - bring them to the top of the song picker"; "ideally it would scroll to the end of the first section then continue scrolling the whole page"); the head kept in view and the lists unboxed are Claude's | rewaz.ts `pickerHTML`; styles.css `.rwpickhead` sticky, `.rwr` `overflow: clip` |
 | 2026-10-23 | **The practice settings at the foot of the lines:** the line of lines shown, the line being sung and Measure the delay is the last thing inside the frame of the Practice view's lines, under the pitch check's line when it shows; the delay's messages point there. | Rinat, chat 2026-10-23 ("move the line which has the lines shown, being sung, measure delay to the end of the notation window. like a footer of that window, included within the boundary of the section"); under the pitch check's line is Claude's | Amends "The practice settings one line under the Practice title" below. index.html, styles.css (`.psets`), pitch.ts, insights.ts; docs/ENGINE.md, DATA.md. |
 | 2026-10-23 | **"No physical keyboard connected: plug it in with a USB cable."** after Connect finds none (was "No keyboard found yet: …"). | Rinat, chat 2026-10-23 | keyboard.ts; docs/ENGINE.md → MIDI keyboards. |
 | 2026-10-23 | **No microphone note on the Voice page** ("Finding your Sa and holding a note use the microphone only while listening, and record nothing."). | Rinat, chat 2026-10-23 ("i know public likes to be assured but I will cover that in marketing material if it ever comes to it") | index.html. The privacy invariant is unchanged; only the note goes. |
@@ -595,6 +603,14 @@ records were folded into on 2026-10-11 (the last rows say where).*
 5. **Two taal forms.** Khemta is the 12-matra form of the Bengali tabla books, not Tagore's
    6-matra Kashmiri Khemta; Dhamar is divided as in Rabindrasangeet (3+2+2+3+4), not the
    classical 5+2+3+4 (the checker accepts bars written either way). Default: as built.
+6. **Built-in exercises changed and deleted?** Rinat, 2026-10-23: "why is it that the
+   preloaded exercises can't be deleted or modified? … what would be the problem if user is
+   allowed to delete them all?" Nothing would break; read-only is an Invariant (Never lose a
+   song) so that the app always opens on an exercise, a slip cannot spoil one, and corrections
+   to them reach everyone. Claude's proposal (in chat): change one in place (it becomes the
+   user's own copy, keeping its id, so routines and the practice log follow it), hide or
+   delete any or all, and a "Bring back the built-in exercises" button in the Music library.
+   Default: read-only, copied to edit, until Rinat says.
 
 ## Work log
 
@@ -611,6 +627,61 @@ Template:
     - **Decisions made:** rows added above.
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
+
+### 2026-10-23 BST — Claude (Opus 5.5) — PH2-39 breaks between rounds; My takes as a table; the picker's buttons at its top
+
+- **Goal:** Rinat: "i'd like the option to add some delay between loops and also between
+  rounds when doing rewaz with multiple rounds"; "My takes table in the Voice page, needs all
+  the bells and whistles of a table - should be collapsible the song name or the date taken.
+  want to be able to select all the takes in a particular day and delete together. also all
+  the takes of a particular song and delete together. no need for delete confirmation when
+  deleting just one take. if multiple takes are deleted together, only then confirmation is
+  fine"; "why is it that the preloaded exercises can't be deleted or modified?" (a question:
+  answered in chat, Open question 6); in the rewaz picker the wheel scrolls one list's box and
+  stops, "ideally it would scroll … the whole page … the 'Add to this routine' and Cancel
+  button - bring them to the top of the song picker".
+- **Inspected:** transport.ts's `tick` (rounds, count-in beats with `pass` −1, the fade on
+  the last note), the rewaz runner's break between items, takes.ts and app.ts's takes code,
+  the picker's markup and styles (`.rwpicklist` with its own max-height and scroll), History's
+  folding days (reused for the takes' groups), the Invariants on built-in exercises.
+- **Changed:** transport.ts (`gap`, `BreakEntry`, the count-in and pickup again after a break,
+  the note before it fading), app.ts (the break shown and counted down, a pause in it; the
+  Guide panel's setting, live; takes keep it; the takes table's state and handlers; one take
+  deleted with Undo), takes.ts (`takeGroups`, the table, `TakeStore.remove` of several),
+  progress.ts (`dayLabel` shared), rewaz.ts (`roundGap`'s field; the picker's head with Add and
+  Cancel), routine.ts (`roundGap`, `routineSeconds`), take.ts, session.ts, aifile.ts, store.ts
+  (prefs `loopGap`, `tkGroup`; `RoutineStore.save` keeping `roundGap`: found by the Edge check,
+  it had been dropped), index.html (the Guide panel's row; My takes' intro), styles.css (the
+  table; the picker's sticky head; With the guide on one line); tests. Docs: ENGINE.md →
+  Transport and Takes, DATA.md (prefs, routines, takes, session settings), ROADMAP row 39,
+  HISTORY (the PH2-37 entry), this file.
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 40 files, 460
+  passed; `npm run build` → 364.90 kB JS; `bash reference/tests/run-all.sh` → parser 31,
+  checker 11, join-split 10, rhythm 12, tanpura 5 passed, 12 exercises valid. Headless Edge
+  on `npm run dev` (the pane hidden; scratchpad `cdp.mjs`, now with mouse-wheel steps), each
+  step measured and the screenshots seen. Takes (six stand-ins in IndexedDB over two days, one
+  of a deleted song): "6 takes of 3 songs · 0:24 in all · 1 MB"; by song 3/2/1; by date
+  "Today, Fri 23 Oct" 4 and "Yesterday, Thu 22 Oct" 2; the day's box ticks 4 (focus kept), one
+  more makes yesterday's "some"; "Delete all 5" asks "Delete these 5 takes?" (focus on Keep),
+  Keep, then Delete → "Deleted 5 takes."; the last one's bin deletes it unasked with Undo, Undo
+  puts it back ("The take is back.", its 192 000-byte recording) and Just me plays it (■ Stop);
+  a group folded hides its list; 1280 px day and night, 360 px night. Practice, ex-alankar-bn
+  line 1 looped at 200 with a 4 s break: In 6 … In 1, Now, Break 4, 3, 2, 1 (1 s apart), In 6
+  … In 1, Round 2; paused in the second break and Play → Round 3 with no break before it; the
+  line's box shows "BREAK 4". A routine (ex-scale line 1, 3 rounds at 200, 3 s breaks, then
+  ex-long-notes after 2 s): Break 3 … 1, In 8 … 1, Round 2, the same, Round 3, Done, "starting
+  in 2 s". The picker: its lists 539/539 px (no inner scroll), the head at the top of the
+  screen while the page scrolled to its end, "Add 2 to this routine" there; 360 px night page
+  345 px wide. A routine's break typed as 5 was not kept before the store fix; after it, kept
+  (unit test). No console errors. The stand-in takes and routine deleted afterwards.
+- **Decisions made:** four rows (a break between rounds; My takes as a table; one take deleted
+  unasked with Undo; the picker's head at the top). Open question 6 added.
+- **Risks or disagreements:** the break's sound (the drone on, the count-in again) is not
+  heard here: Rinat to say whether the count-in after every break is wanted. The rewaz bar
+  says the round just sung until the next starts. Undo was not asked for: it keeps "never
+  lose work" without a question. Built-in exercises not changed: they are an
+  Invariant, so Rinat decides (Open question 6).
+- **Next handoff:** Rinat answers Open question 6 and tries rounds thirty-four to thirty-nine.
 
 ### 2026-10-23 BST — Claude (Opus 5.5) — PH2-38 the settings at the foot of the lines; beat boxes at every font size
 
@@ -651,37 +722,5 @@ Template:
   check. Not tried on Rinat's own 8-beat songs with words (the measure counts the words' boxes
   too). The settings now sit under the pitch check's line when that shows (Claude's choice).
 - **Next handoff:** Rinat tries rounds thirty-four to thirty-eight.
-
-### 2026-10-23 BST — Claude (Opus 5.5) — PH2-37 every take in one place
-
-- **Goal:** Rinat: "there is no way to see all the recorded audios in one go … if i wanted to
-  see all my takes of various songs in one place - there is no way. i don't which section would
-  be best to show this, maybe the Voice page? do what you think is best"; and "Remove this line
-  'Tap a section or a line number to play from there · Space bar plays and pauses'".
-- **Inspected:** takes.ts (the open song's list, the store's `song` index), app.ts's takes code
-  (play alone, with the guide through the transport, delete asked, download), the Voice page,
-  Progress's `open` (a song opened on the Practice view).
-- **Changed:** takes.ts (`TakeStore.all`; `allTakesHTML`: the count, length and room, then song
-  by song; one take's row shared with the Practice list; a deleted song's takes play only
-  alone), app.ts (`renderAllTakes` when the Voice page shows and whenever the takes change; one
-  click handler for both lists; With the guide from the Voice page opens the song on the Practice
-  view first; `openInPractice`, shared with Progress; the takes' messages in both places),
-  index.html (My takes on the Voice page, its microphone note reworded as takes are recordings;
-  the Practice title's hint gone), styles.css (the groups; the song's length beside its title,
-  `.hint` gone); tests. Docs: ENGINE.md → Takes, DATA.md → Takes, ROADMAP row 37, HISTORY (the
-  PH2-35 entry), this file.
-- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 39 files, 452
-  passed; `npm run build` → 357.4 kB JS; `bash reference/tests/run-all.sh` → parser 31,
-  checker 11, join-split 10, rhythm 12, tanpura 5 passed, 12 exercises valid. The browser pane
-  on `npm run dev` (hidden, so measured rather than seen), four stand-in takes in IndexedDB (two
-  songs and a deleted one): "4 takes of 3 songs · 0:16 in all · 768 KB in this browser", the
-  groups newest first, the deleted song's take with Just me only; Just me → ■ Stop; Delete
-  asked, Keep; With the guide opened আরোহ-অবরোহ on the Practice view and played; Open the song;
-  Delete removed one ("Take deleted."); the title and its length side by side; 360 px night, no
-  sideways scroll; no console errors. The stand-in takes deleted afterwards.
-- **Decisions made:** two rows (every take on the Voice page; no hint under the title).
-- **Risks or disagreements:** the Voice page rather than Progress: takes are the singer's voice,
-  Progress is numbers (said to Rinat). Not seen as pixels: the pane was hidden.
-- **Next handoff:** Rinat tries rounds thirty-four to thirty-seven.
 
 Older entries: `docs/HISTORY.md`.

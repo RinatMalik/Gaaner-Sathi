@@ -96,6 +96,18 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
   section of a Dadra song plays call for call as a song in Kaharwa plays the same line, and a
   song naming no taal exactly as without `taalAt`.
 - **Rounds:** the transport can stop a loop after N rounds (rewaz routines).
+- **A break between rounds** (`gap` in `start`; Rinat, 2026-10-23: "add some delay between
+  loops and also between rounds when doing rewaz with multiple rounds"): when looping, each
+  round after the first waits `gap` seconds, then counts in again (when the count-in is on)
+  and plays any pickup again, so the singer knows when to come in. The drone goes on through
+  it; the rhythm and the guide stop. The note before a break lets go gently, as at an ending.
+  The queue gets a `BreakEntry` (`brk`, `until`, the round it leads to) and the line's box
+  counts the seconds down ("Break 3"). No break after the last round, without a loop, or
+  before the round a pause goes on in: paused in a break, Play goes on with the next round at
+  once. Set on the Guide panel ("Break between rounds", for the Lines to practise and a
+  section looped, changing a loop already playing) and per routine for its items' rounds
+  (`roundGap`, separate from the break between items). A take keeps it, so it plays back with
+  the same breaks.
 - **Hooks:** `onBeat` reports every scheduled matra (pitch feedback, takes); `onNote(t, dur,
   midi)` hears each guide note as it is scheduled, and `localGuide = false` leaves the
   harmonium out (MIDI keyboards).
@@ -504,6 +516,15 @@ path as pitch feedback.
   song with the newest take first, each with Open the song. There a take plays alone, and With
   the guide opens its song on the Practice view and plays it there. A deleted song's takes stay
   under the title they had, to play alone, download or delete.
+- **My takes as a table** (Rinat, 2026-10-23: "needs all the bells and whistles of a table"):
+  grouped by Song or by Date (the day taken, "Today, Fri 23 Oct"; a day's rows name their
+  song), the choice kept (`tkGroup`); each group folds by its heading, the first three open
+  until the user folds or opens one. A tick box on each take, on each group (all of a song's or
+  a day's; "some" when only some are ticked) and Tick all; the bar then offers Delete all N,
+  asked in the bar ("Delete these 5 takes?", Delete or Keep), and Untick. One take's bin deletes
+  it at once, unasked (Rinat: "no need for delete confirmation when deleting just one take"),
+  and the message offers Undo, which puts the take and its recording back; it lasts until
+  another take is deleted. The Practice view's list deletes the same way.
 - How well it lines up depends on `lag`, which is only as good as the device's figure until
   pitch feedback has heard the singer once.
 
