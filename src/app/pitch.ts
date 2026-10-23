@@ -347,7 +347,7 @@ export function initPitch(host: PitchHost): PitchUI {
       // The device's delay, measured or as it says; and how far behind the guide the voice
       // has been coming (measured from the singing, not taken off anything).
       const b = tracker.behind;
-      const lag = (host.devLag.get() != null ? 'Device delay ' + ms(tracker.lag) + ' (measured)' : 'Device delay ' + ms(tracker.lag) + ', as it says: measure it with Measure the delay, under the title') +
+      const lag = (host.devLag.get() != null ? 'Device delay ' + ms(tracker.lag) + ' (measured)' : 'Device delay ' + ms(tracker.lag) + ', as it says: measure it with Measure the delay, below') +
         (b == null ? '' : ' · your voice ' + (Math.abs(b) < 0.02 ? 'with the guide' : ms(Math.abs(b)) + (b > 0 ? ' behind' : ' ahead of') + ' the guide'));
       if (lagEl.textContent !== lag) lagEl.textContent = lag;
       drawVoice(sa);

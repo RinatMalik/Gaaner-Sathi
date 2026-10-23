@@ -128,7 +128,7 @@ export function initKeyboard(host: KeyboardHost): KeyboardUI {
     line.hidden = found;
     opts.hidden = !found;
     conn.textContent = found ? Array.from(new Set([...ins, ...outs].map((x) => x.name))).join(', ') + ' connected' : '';
-    status.textContent = !midi ? (Midi.supported() ? 'No keyboard connected.' : 'No MIDI keyboards in this browser.') : found ? '' : 'No keyboard found yet: plug it in with a USB cable.';
+    status.textContent = !midi ? (Midi.supported() ? 'No keyboard connected.' : 'No MIDI keyboards in this browser.') : found ? '' : 'No physical keyboard connected: plug it in with a USB cable.';
     status.title = !midi ? (Midi.supported() ? '' : midiProblemText('unsupported')) : found ? '' : 'Connect it with a USB cable (the keyboard’s USB port that goes to a computer), and it shows up here.';
     for (const b of document.querySelectorAll<HTMLElement>('#midiRoute button')) b.setAttribute('aria-pressed', String(b.dataset.v === p.route));
     $<HTMLSelectElement>('#midiSound').value = p.sound;

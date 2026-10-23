@@ -172,15 +172,6 @@
       <div class="rbar" id="rwBar" hidden aria-live="polite"><span class="rbtext" id="rwBarText"></span><span class="spacer"></span><button id="rwSkip" class="btn" type="button">Skip</button><button id="rwStop" class="btn" type="button">Stop rewaz</button></div>
 
       <div class="sheetHead"><h2 id="songTitle"></h2><span class="songlen" id="songLen" title="How long it plays at this tempo, without the count-in"></span></div>
-      <!-- The practice settings in one line under the title (Rinat, 2026-10-23: "make the practice
-           settings just one line … lines shown, being sung and measure delay"). -->
-      <div class="psets" role="group" aria-label="Practice settings">
-        <div class="mx"><span class="lab2" id="plRowsLab">Lines shown</span>
-          <div class="seg" id="plRowsSeg" role="group" aria-labelledby="plRowsLab"><button type="button" data-v="5">5</button><button type="button" data-v="7">7</button><button type="button" data-v="9">9</button><button type="button" data-v="12">12</button></div></div>
-        <div class="mx"><span class="lab2" id="plAtLab" title="Which of the lines shown, from the top, is the one being sung">Line being sung</span>
-          <div class="seg" id="plAtSeg" role="group" aria-labelledby="plAtLab"><button type="button" data-v="1">1st</button><button type="button" data-v="2">2nd</button><button type="button" data-v="3">3rd</button><button type="button" data-v="4">4th</button><button type="button" data-v="5">5th</button></div></div>
-        <div class="mx pmeasure"><button type="button" class="btn" id="pMeasure" title="Hold an earphone to the microphone (or turn the speakers up), keep quiet, and press it: eight clicks are played and timed, so the delay of your headphones or speakers is not marked as singing late">Measure the delay</button><span class="phint" id="pMeasureMsg" aria-live="polite"></span></div>
-      </div>
       <div class="chips secs" id="secChips" role="group" aria-label="Sections: tap one to play from there" hidden></div>
       <details class="about" id="aboutBox" hidden><summary>About this song</summary><div class="abouttext" id="aboutText"></div></details>
       <!-- The song line by line (Rinat, 2026-10-15): about seven lines in view, the line being sung
@@ -195,6 +186,16 @@
           <span class="spacer"></span>
           <span class="phint">Headphones help: otherwise the microphone also hears the harmonium.</span>
           <span class="phint" id="pLag"></span>
+        </div>
+        <!-- The practice settings in one line, the foot of the lines (Rinat, 2026-10-23: "make the
+             practice settings just one line … lines shown, being sung and measure delay"; then
+             "move the line … to the end of the notation window. like a footer of that window"). -->
+        <div class="psets" role="group" aria-label="Practice settings">
+          <div class="mx"><span class="lab2" id="plRowsLab">Lines shown</span>
+            <div class="seg" id="plRowsSeg" role="group" aria-labelledby="plRowsLab"><button type="button" data-v="5">5</button><button type="button" data-v="7">7</button><button type="button" data-v="9">9</button><button type="button" data-v="12">12</button></div></div>
+          <div class="mx"><span class="lab2" id="plAtLab" title="Which of the lines shown, from the top, is the one being sung">Line being sung</span>
+            <div class="seg" id="plAtSeg" role="group" aria-labelledby="plAtLab"><button type="button" data-v="1">1st</button><button type="button" data-v="2">2nd</button><button type="button" data-v="3">3rd</button><button type="button" data-v="4">4th</button><button type="button" data-v="5">5th</button></div></div>
+          <div class="mx pmeasure"><button type="button" class="btn" id="pMeasure" title="Hold an earphone to the microphone (or turn the speakers up), keep quiet, and press it: eight clicks are played and timed, so the delay of your headphones or speakers is not marked as singing late">Measure the delay</button><span class="phint" id="pMeasureMsg" aria-live="polite"></span></div>
         </div>
       </section>
       <section class="keyscard" id="keysRow" aria-label="The keys to press" hidden><div id="keysBoard"></div><span class="keyname" id="keyName" aria-live="off"></span></section>
@@ -219,7 +220,7 @@
           <tr><td>The numbers</td><td>Each line’s score is in its number box. The number under the song is your score for the whole run, and is saved in Progress.</td></tr>
           <tr><td>See where it went wrong</td><td>Tap a line to open it. Under each note: how high or low you were (<b>+12</b> is a little high, <b>−8</b> a little low; a semitone is 100), and how late you reached it, if you did.</td></tr>
           <tr><td>Being late</td><td>Under the song it says how far behind the music you usually are, to help you sing on time. The app never moves your singing to hide it.</td></tr>
-          <tr><td>Your equipment</td><td>Headphones and microphones take a moment to pass sound along. Measure it once with <b>Measure the delay</b>, under the song’s title, so you are not marked late for it.</td></tr>
+          <tr><td>Your equipment</td><td>Headphones and microphones take a moment to pass sound along. Measure it once with <b>Measure the delay</b>, at the foot of the song’s lines, so you are not marked late for it.</td></tr>
           <tr><td>Octaves</td><td>The right note in a higher or lower octave counts, unless you tick <b>Octave must match</b>, at the top under the lines to practise.</td></tr>
           <tr><td>Not scored</td><td>Rounds where the guide plays for you to listen first.</td></tr>
           <tr><td>Afterwards</td><td><b>Report</b>, under the song after a run and beside each session in Progress, opens a page on how it went: what went well, what to work on, your timing and each note. <b>For AI</b> saves everything about it as a file an AI such as Claude or ChatGPT can analyse: the tune the app heard, not a recording of you.</td></tr>
@@ -264,7 +265,6 @@
         </div>
         <p class="phint" id="hBest"></p>
       </section>
-      <p class="phint">Finding your Sa and holding a note use the microphone only while listening, and record nothing.</p>
       <!-- Every song's takes in one place (Rinat, 2026-10-23: "if i wanted to see all my takes of
            various songs in one place - there is no way"). -->
       <section class="vcard" aria-labelledby="vTakesHead">

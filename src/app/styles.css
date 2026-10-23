@@ -413,8 +413,8 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .micbtn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 13px 0 9px;border-radius:999px;border:1px solid var(--deck-line);background:var(--deck-field);color:var(--on-wood);font-size:14px;font-weight:600;white-space:nowrap}
 .micbtn svg{width:18px;height:18px;flex:none}
 .micbtn[aria-pressed="true"]{background:var(--brass);border-color:var(--brass);color:var(--brass-ink)}
-/* The practice settings, one line under the title (Rinat, 2026-10-23). */
-.psets{display:flex;flex-wrap:wrap;align-items:center;gap:8px 22px;margin-top:-6px}
+/* The practice settings, one line at the foot of the lines (Rinat, 2026-10-23). */
+.psets{display:flex;flex-wrap:wrap;align-items:center;gap:8px 22px;padding:8px 14px;border-top:1px solid var(--rule)}
 .psets .pmeasure .phint{max-width:none}
 .pmeasure{flex-wrap:nowrap}
 .pmeasure .phint{min-width:0;max-width:46ch}
