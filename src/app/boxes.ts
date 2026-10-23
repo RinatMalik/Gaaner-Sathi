@@ -134,7 +134,8 @@ export interface BoxesHost {
 }
 
 export interface Boxes {
-  /** Draw again if the text changed elsewhere. */
+  /** Draw again if the text changed elsewhere; else measure the lines again (the font size
+   * changed, or a box grew as it was typed in). */
   refresh(): void;
   /** Draw now (a song opened, the view shown). */
   render(): void;
@@ -211,7 +212,9 @@ export function initBoxes(host: BoxesHost): Boxes {
 
   /** Each line's boxes centred between its number and its buttons, as one block as wide as the
    * longest line's, so the beats stay one under another (Rinat, 2026-10-16). Measured when the
-   * boxes show (a hidden box measures nothing; they are measured again once shown). */
+   * boxes show (a hidden box measures nothing; they are measured again once shown), and again
+   * when their width or their font changes: a block measured at a smaller font made a line
+   * that fits break in two (Rinat, 2026-10-23). */
   function centre(): void {
     if (!box.offsetParent) return;
     let w = 0;
@@ -228,6 +231,7 @@ export function initBoxes(host: BoxesHost): Boxes {
     if (w && w !== shownW) centre();
     shownW = w;
   }).observe(box);
+  document.fonts?.addEventListener('loadingdone', centre);
 
   function markCurrent(): void {
     for (const e of box.querySelectorAll('.bx.cur')) e.classList.remove('cur');
@@ -1031,7 +1035,7 @@ export function initBoxes(host: BoxesHost): Boxes {
         pending = null;
         extraVerse.clear();
         render(activeFocus());
-      }
+      } else centre();
     },
     render() {
       render(activeFocus());
