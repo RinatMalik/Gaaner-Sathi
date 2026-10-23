@@ -124,7 +124,7 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `ramp`, `rampStep`, `rampMax` | The tempo trainer: on or off, the step and the top |
 | `lastSong` | The song open last |
 | `tab` | The view open last: `practice`, `songs` (the Music library), `edit`, `rewaz`, `voice` or `progress` |
-| `soundOpen` | No longer read (2026-10-23): whether the Practice settings were unfolded; they are one line under the title now. (`songSoundOpen`, the song's sound unfolded in Edit notation until 2026-10-22, is no longer read either) |
+| `soundOpen` | No longer read (2026-10-23): whether the Practice settings were unfolded; they are one line at the foot of the Practice view's lines now. (`songSoundOpen`, the song's sound unfolded in Edit notation until 2026-10-22, is no longer read either) |
 | `editSetOpen` | `true` while Edit notation's Settings are unfolded; absent: folded |
 | `padFold` | `true` while Edit notation's Enter notes section (the note pad) is folded away; absent: unfolded. (`palOpen`, from 2026-10-15's "+ Add notes", is no longer read) |
 | `libSort` | How the Music library sorts: `practised`, `changed` or `title` |

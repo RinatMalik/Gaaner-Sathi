@@ -201,7 +201,9 @@ buttons"). After a note from either, the info names the box now lit.
 - A line to a row, whatever the width: two to a row (2026-10-16) was too crowded for Rinat
   and was taken out the same day. Instead each line's boxes are centred between its number
   and its buttons, in a block as wide as the longest line's (measured, `--bxw`), so the
-  beats stay one under another (Rinat, 2026-10-16); the empty row keeps a line's button
+  beats stay one under another (Rinat, 2026-10-16); measured again when the font size or the
+  web fonts change, as a block measured at a smaller size broke lines that fit in two
+  (2026-10-23); the empty row keeps a line's button
   room so its boxes line up too. On a phone the boxes fill the row as before.
 - **Typing:** a space or a bar moves to the next box. Several beats typed or pasted into a
   box write over the boxes after it, then fill the line's empty boxes, then make new lines

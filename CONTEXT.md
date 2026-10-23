@@ -79,11 +79,13 @@ wins, except a later explicit decision by Rinat, which always wins.
   Rinat's sketch; a taal picked to play a song in; Back up everything and restore it) and
   thirty-five (PH2-35: three panels; the lines to practise from one line to another; the font
   size in the header's menu; a shorter note pad), thirty-six (PH2-36: Import in the library
-  only; the practice settings one line under the title; the keyboard's line and strip) and
-  thirty-seven (PH2-37: every song's takes on the Voice page) are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
+  only; the practice settings one line under the title; the keyboard's line and strip),
+  thirty-seven (PH2-37: every song's takes on the Voice page) and thirty-eight (PH2-38: the
+  practice settings at the foot of the lines; the beat boxes on one row at every font size)
+  are built and live. Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
-- **Next single action:** Rinat tries rounds thirty-four to thirty-seven (My takes on the
-  Voice page): the three panels at
+- **Next single action:** Rinat tries rounds thirty-four to thirty-eight (My takes on the
+  Voice page; the practice settings under the lines; an 8-beat line at Bigger): the three panels at
   the top of every view, a taal picked in the rhythm panel (it lasts until another song opens),
   the three sliders and the mutes, Restart, the lines to practise played from one line to
   another, a MIDI keyboard's settings appearing once it is found, the font size in the header's
@@ -418,6 +420,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-02 | Claude | Review | Design, round two: Pause and a separate Stop; nothing that plays changes the Lines to practise (play from here, sheet line numbers, sections, rewaz, takes); "Check my pitch" listens only while playing; beat box rows with the number and buttons (play this line, play from here, ×) full height, vibhag starts coloured instead of X/0, a tap anywhere on a row selects it, hover | 5 unit tests and the boxes' HTML tests; Edge scenarios `round6` (42 checks) and `rewaz6` (5), with a WAV microphone (Work log 2026-10-12 16:43) | Waiting for Rinat's use and two answers |
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
+| PH2-38 | Claude | Review | Small fixes (Rinat, 2026-10-23): the practice settings line (`.psets`) moved from under the title to the foot of the Practice view's lines, inside `#pl`'s frame, under the pitch check's line; the delay's messages say where (pitch.ts, insights.ts, the scoring help); "No physical keyboard connected: plug it in with a USB cable." (keyboard.ts); the beat boxes' block width (`--bxw`) measured again by `refresh()` and when web fonts load (boxes.ts), as a font size change left it at the old size and an 8-beat line broke in two; the Voice page's microphone note removed | Tests: 39 files, 452 passed (no new unit test: the beat boxes' layout has no DOM in Node; the check is a headless Edge scenario); headless Edge on `npm run dev`, 1280 px: before the fix, Bigger left `--bxw` 286 px for 334 px of boxes, rows on 2 lines in a 1131 px box; after, `--bxw` 374 → 442 → 324 px at Normal, Bigger, Smaller and again after Smaller, a reload and Normal, no row wrapped; the settings line the last thing in `#pl`, its bottom 1 px above the frame's; Connect with a stand-in MIDI and no keyboard gives the new words; 1280 px day and 360 px night (no sideways scroll) (Work log 2026-10-23, round thirty-eight) | Waiting for Rinat's use |
 | PH2-37 | Claude | Review | Every take in one place (Rinat, 2026-10-23): My takes on the Voice page (`#allTakes`; `TakeStore.all`, `allTakesHTML` in src/app/takes.ts; `renderAllTakes`, `openInPractice` in app.ts): the count, length and room taken, then song by song, newest first, Open the song, a take alone or With the guide on the Practice view, a deleted song's takes kept under their title; the Practice title's hint gone | Tests: 39 files, 452 passed (1 new: the list song by song, a deleted song's); the browser pane on `npm run dev` with four stand-in takes: grouped, Just me playing, Delete asked and kept, With the guide opening the Practice view and playing, Open the song, Delete removing one; 360 px night no sideways scroll; no console errors (Work log 2026-10-23, round thirty-seven) | Waiting for Rinat's use |
 | PH2-36 | Claude | Review | Tidier still (Rinat, 2026-10-23): Import leaves the header (the library's Import from file stays); the Practice settings bar (fold, Done, summary, `soundOpen`, `practiceSummary`) becomes one line under the title (`.psets`: lines shown, line being sung, Measure the delay with a shorter message); the keyboard's line at the foot of the song panel (`#kbLine`: status and Connect), and once one is found a Keyboard strip across the deck (`#midiOpts`, `#midiConn`; keyboard.ts) | Tests: 39 files, 451 passed (the practice summary's test removed with it); the browser pane on `npm run dev`, 1280 px day and 360 px night: the settings one line (39 px) under the title, the keyboard's line, a stand-in MIDI keyboard's strip (48 px) with the line gone, no sideways scroll; every wired id in the page (Work log 2026-10-23, round thirty-six) | Waiting for Rinat's use |
 | PH2-35 | Claude | Review | The top section in three panels (Rinat, 2026-10-23): the tempo's column like the others (slider, number at the foot; − + gone); Lines to practise "from … to …" on one line (`upTo` in transport.ts: once to the last line without Loop), Loop and Octave must match, Show virtual keyboard, a MIDI keyboard's settings shown once one is found (keyboard.ts); "When looping, play the guide"; Measure the delay and Connect a keyboard (MIDI) in Practice settings (its summary says the delay, `practiceSummary`); Back up or export in the Music library, Import from file beside it (and at the top); Font size in the header's menu (`plSize`, `--ns` for Edit notation's boxes, preview and free text); Enter notes 462 → 316 px (keys 41 px, the octave's name 16 px, the hint beside Write in); under 900 px the song's panel with Guide and Rhythm | 1 new unit test (the lines to practise stop at the last without a loop; elsewhere on to the end) and 1 rewritten (the practice summary); the browser pane on `npm run dev` at 1280 px day and 360 px night: three panels (deck 334 px), lines 2–3 played and stopped, Loop no longer ticked by "to", a stand-in MIDI keyboard's settings appearing, font size Bigger (boxes 16 → 19.2 px), the library's menu, Practice settings (Work log 2026-10-23, round thirty-five) | Waiting for Rinat's use |
@@ -534,6 +537,9 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-22 | **Back up everything, and restore it:** one file with songs, exercises of your own, rewaz routines, the practice history (log and each session's detail) and settings; takes left out (large). Import from file reads it and adds what is missing, never overwriting. Restored songs keep their ids (a song import gives new ones), so the practice and routines that name them still do; safe because a song already here is never written over. "Restore with its settings" also takes the backup's settings, this device's delay and keyboard kept, and opens the app again. | Rinat, chat 2026-10-22 ("export all songs/ all progress data/ backup everything etc"; to Claude's question, "Backup and restore, no takes"); keeping ids, the settings as a second button and the 200 MB limit are Claude's | src/app/backup.ts; docs/DATA.md → Backups. A narrow exception to the "imports always get new ids" invariant, for restores only. |
 | 2026-10-22 | **On a phone the song panel shows, and Guide, Rhythm and Keyboard are three buttons under it,** one panel open at a time. | Rinat, chat 2026-10-22, answering Claude ("Song panel, others on tap") | src/app/styles.css, app.ts. |
 | 2026-10-23 | **Three panels at the top; what is set once goes elsewhere.** The tempo's column matches the guide's and the rhythm's: its slider, and its number at the foot where they have a mute (no − +). The song panel: the lines to practise "from … to …" on one line, then Loop and Octave must match, then Show virtual keyboard, and a MIDI keyboard's settings (where the guide plays, its sound) only once a keyboard is found. "When looping, play the guide". Measure the delay and Connect a keyboard move to the Practice settings (done once); Back up or export back to the Music library (Import stays at the top, and from the same day is in the library too, next row); the keyboard and device panel goes. | Rinat, chat 2026-10-23 ("tempo slider not matching with the other two is annoying … put the numeric value box at the bottom"; "from {dropdown} to {dropdown} (in one line) … [checkbox] Loop ; [checkbox] Octave must match … [checkbox] Show virtual keyboard … Only when a keyboard is connected and found, then bring up the keyboard related setting"; "so now it becomes 3 subsections"; "Bring back the 'Backup or export' button into music library"; "Measure the delay … Maybe is the Practice settings?"); Connect in the Practice settings is Claude's | Replaces the 2026-10-22 row's fourth panel. src/app/keyboard.ts, app.ts; index.html. |
+| 2026-10-23 | **The practice settings at the foot of the lines:** the line of lines shown, the line being sung and Measure the delay is the last thing inside the frame of the Practice view's lines, under the pitch check's line when it shows; the delay's messages point there. | Rinat, chat 2026-10-23 ("move the line which has the lines shown, being sung, measure delay to the end of the notation window. like a footer of that window, included within the boundary of the section"); under the pitch check's line is Claude's | Amends "The practice settings one line under the Practice title" below. index.html, styles.css (`.psets`), pitch.ts, insights.ts; docs/ENGINE.md, DATA.md. |
+| 2026-10-23 | **"No physical keyboard connected: plug it in with a USB cable."** after Connect finds none (was "No keyboard found yet: …"). | Rinat, chat 2026-10-23 | keyboard.ts; docs/ENGINE.md → MIDI keyboards. |
+| 2026-10-23 | **No microphone note on the Voice page** ("Finding your Sa and holding a note use the microphone only while listening, and record nothing."). | Rinat, chat 2026-10-23 ("i know public likes to be assured but I will cover that in marketing material if it ever comes to it") | index.html. The privacy invariant is unchanged; only the note goes. |
 | 2026-10-23 | **Every song's takes on the Voice page,** under My takes, song by song; a take plays alone there, or With the guide on the Practice view (it needs the song's lines). A deleted song's takes stay. | Rinat, chat 2026-10-23 ("no way to see all the recorded audios in one go … maybe the Voice page? do what you think is best"); Claude agreed: takes are the singer's voice, and Progress is numbers | src/app/takes.ts; docs/ENGINE.md → Takes. |
 | 2026-10-23 | **No hint under the Practice title** ("Tap a section or a line number to play from there · Space bar plays and pauses"). | Rinat, chat 2026-10-23 ("Remove this line") | The song's length sits beside its title. |
 | 2026-10-23 | **Import only in the Music library;** the header's import icon goes. | Rinat, chat 2026-10-23 ("get a better icon for import in the header, currently it looks like a download button … I might consider removing it from the header if you agree"); Claude agreed: importing is done now and then, and the top holds what is touched while practising | Replaces the next row's "two places". |
@@ -606,6 +612,46 @@ Template:
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
 
+### 2026-10-23 BST — Claude (Opus 5.5) — PH2-38 the settings at the foot of the lines; beat boxes at every font size
+
+- **Goal:** Rinat: "in practice page, move the line which has the lines shown, being sung,
+  measure delay to the end of the notation window. like a footer of that window, included
+  within the boundary of the section"; "change 'No keyboard found yet:...' to 'No physical
+  keyboard connected:...'"; "In the edit notation page, if i increase the font size to even
+  medium, on an 8 beat notation, the line breaks into two lines even though there is enough
+  space to fit"; remove "Finding your Sa and holding a note use the microphone only while
+  listening, and record nothing."
+- **Inspected:** the Practice view's markup (`.psets` under the title, `#pl` with its pitch
+  footer `.plfoot`); keyboard.ts's status line; boxes.ts's `centre()` (`--bxw`, measured on
+  each draw and when the box's width changes) and `refresh()` (draws only when the text's
+  shape changed), which the font size's handler calls through `applyLinesPrefs`. Reproduced
+  in headless Edge at 1280 px: Bigger left `--bxw` at 286 px for 334 px of boxes, each row on
+  two lines in a 1131 px box (Smaller then Normal does the same).
+- **Changed:** index.html (the settings line moved into `#pl` as its last child; the scoring
+  help says "at the foot of the song’s lines"; the Voice page's note gone), styles.css
+  (`.psets` a footer: padding and a rule above, no negative margin), pitch.ts and insights.ts
+  (the delay's messages: "below", "at the foot of the song’s lines"), keyboard.ts (the
+  words), boxes.ts (`refresh()` measures again when it does not draw; `centre()` also on
+  `document.fonts` `loadingdone`). Docs: ENGINE.md, DATA.md, NOTATION.md, ROADMAP row 38,
+  HISTORY (the PH2-36 entry), this file.
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 39 files, 452
+  passed; `npm run build` → 357.45 kB JS; `bash reference/tests/run-all.sh` → parser 31,
+  checker 11, join-split 10, rhythm 12, tanpura 5 passed, 12 exercises valid. Headless Edge on
+  `npm run dev` (the pane hidden), ex-scale in Edit notation at 1280 px: `--bxw` 374 px
+  (Normal), 442 (Bigger), 324 (Smaller), then after a reload at Smaller 324 → 374 (Normal) →
+  442 (Bigger), no row on two lines at any step. Practice at 1280 px day and night: the
+  settings line the last child of `#pl`, inside its frame (56 px tall, one row), screenshots
+  seen; 360 px night: four short rows, page 345 px wide. A stand-in `requestMIDIAccess` with no
+  ports: "No keyboard connected." then, after Connect, "No physical keyboard connected: plug it
+  in with a USB cable." The Voice page has no "record nothing" note. No console errors.
+- **Decisions made:** three rows (the settings at the foot of the lines; the keyboard's words;
+  no microphone note on the Voice page).
+- **Risks or disagreements:** no unit test for the beat boxes' width: Vitest runs in Node with
+  no DOM, and a DOM library would be a new dependency; the headless Edge scenario is the
+  check. Not tried on Rinat's own 8-beat songs with words (the measure counts the words' boxes
+  too). The settings now sit under the pitch check's line when that shows (Claude's choice).
+- **Next handoff:** Rinat tries rounds thirty-four to thirty-eight.
+
 ### 2026-10-23 BST — Claude (Opus 5.5) — PH2-37 every take in one place
 
 - **Goal:** Rinat: "there is no way to see all the recorded audios in one go … if i wanted to
@@ -637,44 +683,5 @@ Template:
 - **Risks or disagreements:** the Voice page rather than Progress: takes are the singer's voice,
   Progress is numbers (said to Rinat). Not seen as pixels: the pane was hidden.
 - **Next handoff:** Rinat tries rounds thirty-four to thirty-seven.
-
-### 2026-10-23 BST — Claude (Opus 5.5) — PH2-36 Import in the library; the practice settings in a line; the keyboard
-
-- **Goal:** Rinat: "get a better icon for import in the header, currently it looks like a
-  download button … I might consider removing it from the header if you agree"; "make the
-  practice settings just one line … so the collapsibleness and done button goes … lines shown,
-  being sung and measure delay. have this settings section located after the title"; "The info
-  line 'No keyboard found ....' write this at the end of the first panel in the header … Once a
-  device is connected, a new section should appear as per what you said - 'The Device'".
-- **Inspected:** the header's import button and the library's; the Practice settings bar and
-  what still read `soundOpen`; keyboard.ts's status and the unsupported message (cleared at
-  start until 2026-10-22); the prototype comparison that holds the song picker's empty text
-  ("Press + New song"), so it stays.
-- **Changed:** index.html (the header's import gone, its file input beside the library's
-  button; the Practice settings bar replaced by one line under the title; the keyboard's line at
-  the foot of the song panel; the Keyboard strip after the panels; the scoring help's place for
-  the delay), app.ts (the bar's fold, summary and `#impBtn` gone), keyboard.ts (the line, the
-  strip and their texts, short with the long ones as tooltips), pitch.ts and insights.ts (the
-  delay's messages and place), view.ts (`practiceSummary` gone), store.ts (`soundOpen` no
-  longer read), backup.ts (`soundOpen` out of the device's settings), styles.css (`.psets`,
-  `.dkb`, `.dkbd`; the deck's rows no longer all one height, so the strip is as tall as it
-  needs); tests. Docs: DATA.md, ENGINE.md, ROADMAP row 36, HISTORY (the PH2-34 entry), this
-  file.
-- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 39 files, 451 passed
-  (the practice summary's test removed with it; two prefs tests use `editSetOpen` for
-  `soundOpen`); `npm run build` → 355.7 kB JS; `bash reference/tests/run-all.sh` → parser 31,
-  checker 11, join-split 10, rhythm 12, tanpura 5 passed, 12 exercises valid; every id app.ts,
-  keyboard.ts and pitch.ts wire is in the page. The browser pane on `npm run dev`, 1280 px
-  day: the deck 334 px with "No keyboard connected. Connect" at the foot of the song panel; the
-  settings one line of 39 px under the title, the delay's message beside its button; a stand-in
-  MIDI keyboard: the line gone, the strip "KEYBOARD CT-X3000 connected · GUIDE PLAYS ON …" 48 px
-  across the deck (deck 392 px). 360 px night: the strip under Guide and Rhythm, the settings
-  in four short rows, 360 px wide. No errors on a fresh load.
-- **Decisions made:** three rows (Import only in the library; the practice settings in a line;
-  the keyboard's line and strip).
-- **Risks or disagreements:** the strip is named Keyboard rather than "This device", as its
-  first choice of where the guide plays is "This device" (said to Rinat). Not tried with the
-  Casio itself.
-- **Next handoff:** Rinat tries rounds thirty-four to thirty-six.
 
 Older entries: `docs/HISTORY.md`.

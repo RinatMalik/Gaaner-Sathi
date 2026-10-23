@@ -49,6 +49,45 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-23 BST — Claude (Opus 5.5) — PH2-36 Import in the library; the practice settings in a line; the keyboard
+
+- **Goal:** Rinat: "get a better icon for import in the header, currently it looks like a
+  download button … I might consider removing it from the header if you agree"; "make the
+  practice settings just one line … so the collapsibleness and done button goes … lines shown,
+  being sung and measure delay. have this settings section located after the title"; "The info
+  line 'No keyboard found ....' write this at the end of the first panel in the header … Once a
+  device is connected, a new section should appear as per what you said - 'The Device'".
+- **Inspected:** the header's import button and the library's; the Practice settings bar and
+  what still read `soundOpen`; keyboard.ts's status and the unsupported message (cleared at
+  start until 2026-10-22); the prototype comparison that holds the song picker's empty text
+  ("Press + New song"), so it stays.
+- **Changed:** index.html (the header's import gone, its file input beside the library's
+  button; the Practice settings bar replaced by one line under the title; the keyboard's line at
+  the foot of the song panel; the Keyboard strip after the panels; the scoring help's place for
+  the delay), app.ts (the bar's fold, summary and `#impBtn` gone), keyboard.ts (the line, the
+  strip and their texts, short with the long ones as tooltips), pitch.ts and insights.ts (the
+  delay's messages and place), view.ts (`practiceSummary` gone), store.ts (`soundOpen` no
+  longer read), backup.ts (`soundOpen` out of the device's settings), styles.css (`.psets`,
+  `.dkb`, `.dkbd`; the deck's rows no longer all one height, so the strip is as tall as it
+  needs); tests. Docs: DATA.md, ENGINE.md, ROADMAP row 36, HISTORY (the PH2-34 entry), this
+  file.
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 39 files, 451 passed
+  (the practice summary's test removed with it; two prefs tests use `editSetOpen` for
+  `soundOpen`); `npm run build` → 355.7 kB JS; `bash reference/tests/run-all.sh` → parser 31,
+  checker 11, join-split 10, rhythm 12, tanpura 5 passed, 12 exercises valid; every id app.ts,
+  keyboard.ts and pitch.ts wire is in the page. The browser pane on `npm run dev`, 1280 px
+  day: the deck 334 px with "No keyboard connected. Connect" at the foot of the song panel; the
+  settings one line of 39 px under the title, the delay's message beside its button; a stand-in
+  MIDI keyboard: the line gone, the strip "KEYBOARD CT-X3000 connected · GUIDE PLAYS ON …" 48 px
+  across the deck (deck 392 px). 360 px night: the strip under Guide and Rhythm, the settings
+  in four short rows, 360 px wide. No errors on a fresh load.
+- **Decisions made:** three rows (Import only in the library; the practice settings in a line;
+  the keyboard's line and strip).
+- **Risks or disagreements:** the strip is named Keyboard rather than "This device", as its
+  first choice of where the guide plays is "This device" (said to Rinat). Not tried with the
+  Casio itself.
+- **Next handoff:** Rinat tries rounds thirty-four to thirty-six.
+
 ### 2026-10-23 BST — Claude (Opus 5.5) — PH2-35 the top section in three panels
 
 - **Goal:** Rinat, on round thirty-four: "tempo slider not matching with the other two is
