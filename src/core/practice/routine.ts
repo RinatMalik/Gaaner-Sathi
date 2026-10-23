@@ -27,6 +27,9 @@ export interface Routine {
   items: RoutineItem[];
   /** Seconds of break between items, 0–120 (Rinat, 2026-10-15); absent: ITEM_GAP. */
   gap?: number;
+  /** Seconds of break between an item's rounds, 0–120 (Rinat, 2026-10-23), then the count-in
+   * again; absent: none. */
+  roundGap?: number;
   /** ms since epoch. */
   updatedAt: number;
 }
@@ -76,6 +79,8 @@ export function cleanRoutine(id: string, v: unknown): Routine | null {
   const r: Routine = { id, name, items, updatedAt: typeof o.updatedAt === 'number' && Number.isFinite(o.updatedAt) ? o.updatedAt : 0 };
   const gap = int(o.gap, 0, ROUTINE_LIMITS.gap);
   if (gap != null) r.gap = gap;
+  const roundGap = int(o.roundGap, 0, ROUTINE_LIMITS.gap);
+  if (roundGap) r.roundGap = roundGap;
   return r;
 }
 
@@ -97,6 +102,8 @@ export interface SongShape {
 export const ITEM_GAP = 4;
 /** A routine's break between items, seconds. */
 export const gapOf = (r: Routine): number => r.gap ?? ITEM_GAP;
+/** A routine's break between an item's rounds, seconds. */
+export const roundGapOf = (r: Routine): number => r.roundGap ?? 0;
 
 /** The lines an item plays, clamped to the song: [from, to]. */
 export function itemLines(it: RoutineItem, lines: number): [number, number] {
@@ -107,7 +114,8 @@ export function itemLines(it: RoutineItem, lines: number): [number, number] {
 
 /**
  * Roughly how long a routine takes, seconds: each item's beats × rounds at its tempo, a
- * count-in cycle, and the gap after it. Items whose song is gone count nothing.
+ * count-in cycle, the breaks between its rounds (each with a count-in cycle again), and the gap
+ * after it. Items whose song is gone count nothing.
  */
 export function routineSeconds(r: Routine, shapeOf: (id: string) => SongShape | null, countIn: boolean): number {
   let t = 0;
@@ -118,7 +126,8 @@ export function routineSeconds(r: Routine, shapeOf: (id: string) => SongShape | 
     let beats = 0;
     for (let k = a; k <= b; k++) beats += s.lineBeats[k]!;
     const spb = 60 / (it.tempo ?? s.tempo);
-    t += (beats * it.rounds + (countIn ? s.cycle : 0)) * spb + (i < r.items.length - 1 ? gapOf(r) : 0);
+    const breaks = roundGapOf(r) ? it.rounds - 1 : 0;
+    t += (beats * it.rounds + (countIn ? s.cycle * (1 + breaks) : 0)) * spb + breaks * roundGapOf(r) + (i < r.items.length - 1 ? gapOf(r) : 0);
   });
   return t;
 }

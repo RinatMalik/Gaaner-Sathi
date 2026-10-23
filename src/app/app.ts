@@ -26,7 +26,7 @@ import { createEngine, createLiveContext } from '../audio/engine';
 import { MicError, micProblemText } from '../audio/mic';
 import { Recorder } from '../audio/recorder';
 import { guideSlider, type BeatStyle, type GuideLevel, type GuideLoop, type SoundSettings, type TanTune } from '../audio/sound';
-import { Transport, type BeatEntry, type PlaySource } from '../audio/transport';
+import { Transport, type BeatEntry, type BreakEntry, type PlaySource } from '../audio/transport';
 import { EXERCISES } from '../core/exercises';
 import type { Exercise } from '../core/exercises/types';
 import { joinBeats, notesInRange, noteToken, shiftOctaves, splitBeats, type TextEdit } from '../core/notation/edit';
@@ -179,6 +179,8 @@ interface PlayAsk {
   loop: boolean;
   rounds?: number;
   upTo?: boolean;
+  /** With a loop: seconds of break between rounds (Rinat, 2026-10-23). */
+  gap?: number;
   check?: boolean;
 }
 /** What is playing, as asked (for Pause). */
@@ -189,6 +191,10 @@ let paused: { ask: PlayAsk; at: { s: number; pass: number } | null } | null = nu
 const active = () => playing() || !!paused;
 /** The beat showing, for Pause. */
 let shownQ: BeatEntry | null = null;
+/** A break between rounds showing (until the next round's first beat), and the seconds left
+ * shown in its line's box; Pause in it goes on at that round. */
+let shownBrk: BreakEntry | null = null;
+let brkShown = -1;
 
 /** The song as played: a rewaz item's tempo over the song's own. */
 const songSource = {
@@ -264,7 +270,7 @@ function ensureAudio(): Transport {
 function pickedLines(): PlayAsk {
   const last = Math.max(0, parsed.noteLines.length - 1);
   const from = clamp(+select('#fromLine').value || 0, 0, last);
-  return { from, to: Math.max(from, clamp(+select('#toLine').value || 0, 0, last)), loop: input('#loopChk').checked, upTo: true };
+  return { from, to: Math.max(from, clamp(+select('#toLine').value || 0, 0, last)), loop: input('#loopChk').checked, upTo: true, gap: prefs.loopGap };
 }
 
 /** Play what is asked (the Lines to practise unless told otherwise). `at` goes on from a
@@ -294,6 +300,7 @@ function play(ask: PlayAsk = pickedLines(), at: { s: number; pass: number } | nu
   lastLine = -1;
   deckBeat = -1;
   shownQ = null;
+  shownBrk = null;
   // Before start: starting schedules the first beat, and pitch feedback must hear of it.
   if (!ask.check) {
     if (at) pitchUI.resume();
@@ -301,7 +308,7 @@ function play(ask: PlayAsk = pickedLines(), at: { s: number; pass: number } | nu
   }
   keyboard.playStarting(tr);
   runFirst = -1;
-  const r = tr.start(source, { from, to, loop, rounds: ask.rounds, upTo: ask.upTo, at: at ?? undefined });
+  const r = tr.start(source, { from, to, loop, rounds: ask.rounds, upTo: ask.upTo, gap: ask.check ? 0 : ask.gap, at: at ?? undefined });
   if (!r) return;
   asked = { ...ask, from: r.from, to: r.to, loop };
   if (!ask.check && !at) {
@@ -327,6 +334,7 @@ function stop(silent?: boolean, ended = false): void {
   paused = null;
   asked = null;
   shownQ = null;
+  shownBrk = null;
   if (wasPlaying) endTakeRun(run?.end || T.E.ctx.currentTime, run);
   endRun(T.E.ctx.currentTime, pitchUI.endRun());
   if (wasPlaying) {
@@ -378,7 +386,7 @@ function pause(): void {
   }
   const now = T.E.ctx.currentTime;
   const q = shownQ;
-  paused = { ask: asked, at: q && q.pass >= 0 ? { s: q.s, pass: q.pass } : null };
+  paused = { ask: asked, at: q && q.pass >= 0 ? { s: q.s, pass: q.pass } : shownBrk ? { s: T.secStart, pass: shownBrk.pass } : null };
   asked = null;
   endTakeRun(now, run);
   if (run && run.seg) {
@@ -499,7 +507,7 @@ function clearOverride(): void {
 }
 
 /** Play a rewaz item: its song, its lines for its rounds, at its tempo, with its guide. */
-function playItem(it: RoutineItem): boolean {
+function playItem(it: RoutineItem, gap: number): boolean {
   const s = songs.get(it.song) || EXERCISES.find((x) => x.id === it.song);
   if (!s) return false;
   runnerLoading = true;
@@ -514,7 +522,7 @@ function playItem(it: RoutineItem): boolean {
   const g = it.guide;
   itemOverride = { tempo: it.tempo, guide: g === 'off' ? 'off' : g && sound.guide === 'off' ? 'full' : undefined, guideLoop: g && g !== 'off' ? g : undefined };
   showTempo(shownTempo());
-  play({ from: a, to: b, loop: true, rounds: it.rounds });
+  play({ from: a, to: b, loop: true, rounds: it.rounds, gap });
   return playing();
 }
 
@@ -559,9 +567,27 @@ function frame(): void {
       lines.playhead(-1, 0);
       if (lastLine >= 0) lines.current(lastLine, 'Done', false);
       markTaal(cur.p);
+    } else if ('brk' in cur) {
+      // A break between rounds: the first line waits, counting down the seconds.
+      shownQ = null;
+      shownBrk = cur;
+      brkShown = -1;
+      clearHighlight();
+      lines.playhead(-1, 0);
+      markTaal(-1);
+      boxes.markBeat(-1);
+      if (prefs.showKeys) markKeys(-1, T.secStart);
     } else {
+      if (cur.pass >= 0) shownBrk = null;
       trackRun(cur, ctx.currentTime);
       showBeat(cur);
+    }
+  }
+  if (shownBrk && !shownQ) {
+    const left = Math.max(1, Math.ceil(shownBrk.until - now));
+    if (left !== brkShown) {
+      brkShown = left;
+      lines.current(parsed.lineOfBeat[T.secStart] ?? 0, 'Break ' + left, true);
     }
   }
   // The playhead moves through the beat sounding, and the taal figure's edges draw on.
@@ -628,7 +654,7 @@ function startRun(from: number, to: number, loop: boolean): void {
   run = {
     song: current.id, title: current.title, from, to, loop, tempo: t, top: t, first: 0, wall: 0, seg: 0, done: 0, pass: 0, line: from, end: 0,
     played: { title: current.title, taal: taalPick || current.taal, tempo: current.tempo, text: current.text, saHz: saFreq(songSource), sa: V.saWords(songSource) },
-    settings: { guide: s.guide, guideLoop: s.guideLoop, countIn: !!s.countIn, ramp: !!s.ramp, rampStep: s.rampStep, rampMax: s.rampMax },
+    settings: { guide: s.guide, guideLoop: s.guideLoop, countIn: !!s.countIn, ramp: !!s.ramp, rampStep: s.rampStep, rampMax: s.rampMax, ...(T?.gap ? { gap: T.gap } : {}) },
   };
   $('#pAfter').hidden = true;
 }
@@ -1283,7 +1309,12 @@ let takePlay: { take: Take; how: 'guide' | 'me'; src: AudioBufferSourceNode | nu
 let takesShown: Take[] = [];
 /** Every song's takes, as last listed on the Voice page. */
 let allTakesShown: Take[] = [];
-let takeConfirm = '';
+/** The Voice page's table: the takes ticked, the groups opened or folded, whether deleting the
+ * ticked ones is being asked; and the take last deleted alone, for Undo. */
+const takeSel = new Set<string>();
+const takeOpen = new Map<string, boolean>();
+let takeAsk = false;
+let takeUndo: { take: Take; pcm: Int16Array } | null = null;
 
 async function takes(): Promise<TakeStore | null> {
   if (!takeStoreTried) {
@@ -1292,9 +1323,12 @@ async function takes(): Promise<TakeStore | null> {
   }
   return takeStore;
 }
-const setTakeStatus = (t: string) => {
-  $('#takesStatus').textContent = t;
-  $('#allTakesStatus').textContent = t;
+/** The takes' message, in both lists; `undo` adds an Undo button (a take deleted alone). */
+const setTakeStatus = (t: string, undo = false) => {
+  for (const el of [$('#takesStatus'), $('#allTakesStatus')]) {
+    el.textContent = t;
+    if (undo) el.insertAdjacentHTML('beforeend', ' <button type="button" class="ibtn" data-act="undo">Undo</button>');
+  }
 };
 
 function setRecUI(): void {
@@ -1361,6 +1395,7 @@ function startTakeRun(from: number, loop: boolean): void {
     lag: prefs.deviceLag ?? recorder.latency(), sig: textSig(current.text),
   };
   if (itemOverride?.tempo) takeRun.flat = itemOverride.tempo;
+  if (T?.gap) takeRun.gap = T.gap;
   recorder.begin(runFirst);
   setRecUI();
 }
@@ -1411,14 +1446,21 @@ async function renderAllTakes(): Promise<void> {
     const s = id === current.id ? current : songs.get(id) || EXERCISES.find((x) => x.id === id);
     return s ? { title: s.title, sig: textSig(s.text) } : null;
   };
-  $('#allTakes').innerHTML = allTakesHTML(allTakesShown, Date.now(), song, { confirm: takeConfirm, playing: takePlay ? { id: takePlay.take.id, how: takePlay.how } : undefined });
+  for (const id of Array.from(takeSel)) if (!allTakesShown.some((t) => t.id === id)) takeSel.delete(id);
+  if (!takeSel.size) takeAsk = false;
+  const box = $('#allTakes');
+  box.innerHTML = allTakesHTML(allTakesShown, Date.now(), song, {
+    by: prefs.tkGroup ?? 'song', selected: takeSel, open: takeOpen, asking: takeAsk,
+    playing: takePlay ? { id: takePlay.take.id, how: takePlay.how } : undefined,
+  });
+  for (const b of box.querySelectorAll<HTMLInputElement>('input[data-mixed]')) b.indeterminate = true;
 }
 /** The takes as last read (the notation changing only changes their notes). */
 function drawTakes(): void {
   const list = takesShown;
   $('#takesBox').hidden = !list.length && !recArmed && !$('#takesStatus').textContent;
   $('#takesCount').textContent = list.length ? String(list.length) : '';
-  $('#takesList').innerHTML = takesHTML(list, Date.now(), textSig(current.text), { confirm: takeConfirm, playing: takePlay ? { id: takePlay.take.id, how: takePlay.how } : undefined });
+  $('#takesList').innerHTML = takesHTML(list, Date.now(), textSig(current.text), { playing: takePlay ? { id: takePlay.take.id, how: takePlay.how } : undefined });
 }
 
 async function takeSamples(t: Take): Promise<AudioBuffer | null> {
@@ -1446,7 +1488,7 @@ async function playTakeWithGuide(t: Take): Promise<void> {
   if (t.flat) itemOverride.tempo = t.flat;
   takePlay = { take: t, how: 'guide', src: null };
   takeBuf = buf;
-  play({ from: t.from, to: t.to, loop: t.loop, rounds: t.loop ? t.rounds : undefined });
+  play({ from: t.from, to: t.to, loop: t.loop, rounds: t.loop ? t.rounds : undefined, gap: t.gap });
   if (!playing()) {
     takePlay = null;
     clearOverride();
@@ -1525,21 +1567,93 @@ async function onTakeClick(e: Event, shown: readonly Take[]): Promise<void> {
     const pcm = await (await takes())?.samples(t.id);
     if (pcm) void offerFile(takeFileName(t), new Blob([wavFile(pcm, t.rate) as BlobPart], { type: 'audio/wav' }), setTakeStatus);
   } else if (act === 'del') {
-    takeConfirm = t.id;
-    void renderTakes();
-  } else if (act === 'no') {
-    takeConfirm = '';
-    void renderTakes();
-  } else if (act === 'yes') {
-    takeConfirm = '';
-    if (takePlay?.take.id === t.id) {
-      if (takePlay.how === 'me') stopTakeAlone();
-      else stop();
-    }
-    await (await takes())?.remove(t.id);
-    setTakeStatus('Take deleted.');
+    // One take goes at once, with an Undo (Rinat, 2026-10-23: "no need for delete confirmation
+    // when deleting just one take").
+    const store = await takes();
+    const pcm = await store?.samples(t.id);
+    stopTakesPlaying([t.id]);
+    await store?.remove(t.id);
+    takeSel.delete(t.id);
+    takeUndo = pcm ? { take: t, pcm } : null;
+    setTakeStatus('Deleted a take of ‘' + (t.title || 'a song') + '’ (' + clockText(t.secs) + ').', !!pcm);
     void renderTakes();
   }
+}
+
+/** A take playing back that is about to be deleted stops first. */
+function stopTakesPlaying(ids: readonly string[]): void {
+  if (!takePlay || !ids.includes(takePlay.take.id)) return;
+  if (takePlay.how === 'me') stopTakeAlone();
+  else stop();
+}
+
+/** Undo: the take deleted alone comes back, its recording with it. */
+async function undoTakeDelete(): Promise<void> {
+  const u = takeUndo;
+  takeUndo = null;
+  if (!u) return;
+  try {
+    await (await takes())!.add(u.take, u.pcm);
+    setTakeStatus('The take is back.');
+  } catch {
+    setTakeStatus('The take could not be put back: this browser’s storage may be full.');
+  }
+  void renderTakes();
+}
+
+/** The Voice page's table: grouping, folding, deleting the ticked takes; a take's own buttons
+ * as in the Practice view's list. */
+async function onAllTakesClick(e: Event): Promise<void> {
+  const b = (e.target as Element).closest<HTMLElement>('button[data-act]');
+  const act = b?.dataset.act;
+  if (!b || !act) return;
+  if (act === 'by') {
+    if (b.dataset.v === 'date') prefs.tkGroup = 'date';
+    else delete prefs.tkGroup;
+    savePrefs();
+    await renderAllTakes();
+    $<HTMLElement>('#allTakes [data-act="by"][data-v="' + (prefs.tkGroup ?? 'song') + '"]')?.focus();
+  } else if (act === 'fold') {
+    const open = b.getAttribute('aria-expanded') !== 'true';
+    takeOpen.set(b.dataset.key ?? '', open);
+    b.setAttribute('aria-expanded', String(open));
+    const list = document.getElementById(b.getAttribute('aria-controls') ?? '');
+    if (list) list.hidden = !open;
+  } else if (act === 'clearsel') {
+    takeSel.clear();
+    await renderAllTakes();
+    $<HTMLElement>('#allTakes [data-selall]')?.focus();
+  } else if (act === 'delsel' || act === 'delno') {
+    takeAsk = act === 'delsel';
+    await renderAllTakes();
+    $<HTMLElement>('#allTakes [data-act="' + (takeAsk ? 'delno' : 'delsel') + '"]')?.focus();
+  } else if (act === 'delyes') {
+    const ids = allTakesShown.filter((t) => takeSel.has(t.id)).map((t) => t.id);
+    takeAsk = false;
+    takeSel.clear();
+    stopTakesPlaying(ids);
+    await (await takes())?.remove(...ids);
+    takeUndo = null;
+    setTakeStatus(ids.length === 1 ? 'Deleted 1 take.' : 'Deleted ' + ids.length + ' takes.');
+    void renderTakes();
+  } else await onTakeClick(e, allTakesShown);
+}
+
+/** Ticking a take, a group (all its takes) or all of them. */
+function onAllTakesTick(e: Event): void {
+  const box = e.target as HTMLInputElement;
+  if (box.type !== 'checkbox') return;
+  const by = prefs.tkGroup ?? 'song';
+  const of = box.dataset.sel ? allTakesShown.filter((t) => t.id === box.dataset.sel)
+    : box.dataset.selgroup ? allTakesShown.filter((t) => (by === 'song' ? 's:' + t.song : 'd:' + dayNumber(t.at)) === box.dataset.selgroup)
+      : box.dataset.selall ? allTakesShown : [];
+  for (const t of of) {
+    if (box.checked) takeSel.add(t.id);
+    else takeSel.delete(t.id);
+  }
+  takeAsk = false;
+  const focus = box.dataset.sel ? '[data-sel="' + CSS.escape(box.dataset.sel) + '"]' : box.dataset.selgroup ? '[data-selgroup="' + CSS.escape(box.dataset.selgroup) + '"]' : '[data-selall]';
+  void renderAllTakes().then(() => $<HTMLElement>('#allTakes input' + focus)?.focus());
 }
 
 /** The keyboard on the Practice view, in a section of its own while Show the keys is ticked:
@@ -1921,7 +2035,6 @@ function loadSong(song: Song | Exercise): void {
   reparse(false);
   songsView.render();
   if (takePlay?.how === 'me') stopTakeAlone();
-  takeConfirm = '';
   setTakeStatus('');
   void renderTakes();
 }
@@ -2572,6 +2685,7 @@ export function init(): void {
   input('#rampChk').checked = !!prefs.ramp;
   select('#rampStep').value = String(prefs.rampStep);
   input('#rampMax').value = String(prefs.rampMax);
+  input('#loopGap').value = String(prefs.loopGap ?? 0);
   renderNoteButtons();
   setEditSetOpen(!!prefs.editSetOpen);
   setPadOpen(!prefs.padFold);
@@ -2988,6 +3102,16 @@ export function init(): void {
     el.value = String(prefs.rampMax);
     savePrefs();
   });
+  input('#loopGap').addEventListener('change', (e) => {
+    const el = e.target as HTMLInputElement;
+    const v = clamp(Math.round(+el.value || 0), 0, 120);
+    if (v) prefs.loopGap = v;
+    else delete prefs.loopGap;
+    el.value = String(v);
+    savePrefs();
+    // A loop playing now takes it from its next round (not a rewaz item's, or a take's).
+    if (T && asked && asked.loop && !asked.check && !rewaz.active && !takePlay) T.gap = asked.gap = v;
+  });
   input('#countIn').addEventListener('change', (e) => {
     prefs.countIn = (e.target as HTMLInputElement).checked;
     savePrefs();
@@ -3039,7 +3163,13 @@ export function init(): void {
     renderDisp();
   });
   $('#takesList').addEventListener('click', (e) => void onTakeClick(e, takesShown));
-  $('#allTakes').addEventListener('click', (e) => void onTakeClick(e, allTakesShown));
+  $('#allTakes').addEventListener('click', (e) => void onAllTakesClick(e));
+  $('#allTakes').addEventListener('change', onAllTakesTick);
+  for (const s of ['#takesStatus', '#allTakesStatus']) {
+    $(s).addEventListener('click', (e) => {
+      if ((e.target as Element).closest('[data-act="undo"]')) void undoTakeDelete();
+    });
+  }
   $('#themeSeg').addEventListener('click', (e) => {
     const b = segButton(e);
     if (!b) return;
@@ -3220,7 +3350,7 @@ export function init(): void {
     stop(true);
     rewaz.cancel();
     clearOverride();
-    play({ from: sec.first, to: sec.last, loop: input('#loopChk').checked });
+    play({ from: sec.first, to: sec.last, loop: input('#loopChk').checked, gap: prefs.loopGap });
   });
   document.addEventListener('click', (e) => {
     const b = (e.target as Element).closest<HTMLElement>('.ln[data-n],.pln[data-n]');

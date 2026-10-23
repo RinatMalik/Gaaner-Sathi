@@ -360,11 +360,12 @@ describe('routines in storage', () => {
     const b = new RoutineStore(S);
     a.save({ id: 'r1', name: 'Morning', items: [{ song: 'x', rounds: 2 }], updatedAt: 1 });
     b.save({ id: 'r2', name: 'Evening', items: [], updatedAt: 2 });
-    a.save({ id: 'r1', name: 'Morning 2', items: [], updatedAt: 3, gap: 12 });
+    a.save({ id: 'r1', name: 'Morning 2', items: [], updatedAt: 3, gap: 12, roundGap: 4 });
     expect(Array.from(b.load().values()).map((r) => r.name).sort()).toEqual(['Evening', 'Morning 2']);
-    // The break is kept only when given.
-    expect(b.load().get('r1')!.gap).toBe(12);
+    // The breaks are kept only when given.
+    expect(b.load().get('r1')).toMatchObject({ gap: 12, roundGap: 4 });
     expect(b.load().get('r2')).not.toHaveProperty('gap');
+    expect(b.load().get('r2')).not.toHaveProperty('roundGap');
     a.remove('r2');
     expect(Array.from(a.load().keys())).toEqual(['r1']);
     S.setItem(STORE_KEYS.routines, '{"bad": 5, "__proto__": {"name": "x"}}');

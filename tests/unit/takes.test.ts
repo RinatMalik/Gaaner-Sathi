@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import { TakeCapture } from '../../src/audio/dsp/pcm';
 import { cleanTake, clockText, MIN_TAKE_SECS, newTakeId, takeDetail, textSig, type Take } from '../../src/core/practice/take';
-import { allTakesHTML, takeFileName, takesHTML } from '../../src/app/takes';
+import { allTakesHTML, takeFileName, takeGroups, takesHTML, type AllTakesShown } from '../../src/app/takes';
 
 /** Microphone blocks of 2048 frames, stamped like the capture worklet's, over a signal. */
 function blocks(signal: (frame: number) => number, first: number, count: number, skip: Set<number> = new Set()) {
@@ -86,19 +86,25 @@ describe('take records', () => {
     expect(html).toContain('data-act="guide" data-id="take-1">▶ With the guide');
     expect(html).not.toContain('tkwarn');
     expect(takesHTML([T], now, 'other')).toContain('The notation has changed since');
-    expect(takesHTML([T], now, T.sig, { confirm: 'take-1' })).toContain('Delete this take?');
+    // Delete deletes at once, unasked (Rinat, 2026-10-23); the app offers Undo.
+    expect(html).toContain('data-act="del" data-id="take-1"');
+    expect(html).not.toContain('Delete this take?');
     expect(takesHTML([T], now, T.sig, { playing: { id: 'take-1', how: 'me' } })).toContain('data-act="me" data-id="take-1">■ Stop');
     expect(takesHTML([], now, '')).toContain('No takes yet');
     // Named as a session's files are, so it lists beside them (Rinat, 2026-10-21).
     expect(takeFileName(T)).toMatch(/^2026\.10\.11_\d\d\.05\.\d\d - আমার -গান- - Recording\.wav$/);
   });
 
+  const now = T.at + 3600_000;
+  const U: Take = { ...T, id: 'take-2', song: 's2', title: 'Old name', at: T.at + 60_000, secs: 40 };
+  const V: Take = { ...T, id: 'take-3', song: 'gone', title: 'Deleted song', at: T.at - 60_000, secs: 10 };
+  // Two days before: another take of s1.
+  const W: Take = { ...T, id: 'take-4', at: T.at - 2 * 86_400_000, secs: 20 };
+  const song = (id: string) => (id === 's1' ? { title: 'আমার <গান>', sig: T.sig } : id === 's2' ? { title: 'New name', sig: 'changed' } : null);
+  const shown = (o: Partial<AllTakesShown> = {}): AllTakesShown => ({ by: 'song', selected: new Set(), open: new Map(), ...o });
+
   it('are listed together on the Voice page, song by song, the newest first (Rinat, 2026-10-23)', () => {
-    const now = T.at + 3600_000;
-    const U: Take = { ...T, id: 'take-2', song: 's2', title: 'Old name', at: T.at + 60_000, secs: 40 };
-    const V: Take = { ...T, id: 'take-3', song: 'gone', title: 'Deleted song', at: T.at - 60_000, secs: 10 };
-    const song = (id: string) => (id === 's1' ? { title: 'আমার <গান>', sig: T.sig } : id === 's2' ? { title: 'New name', sig: 'changed' } : null);
-    const html = allTakesHTML([T, V, U], now, song);
+    const html = allTakesHTML([T, V, U], now, song, shown());
     // 83.4 + 40 + 10 s at 24 kHz, 16-bit.
     expect(html).toContain('3 takes of 3 songs · 2:13 in all · 6 MB in this browser');
     // The song with the newest take first; each under its title now, with a button to open it.
@@ -111,6 +117,49 @@ describe('take records', () => {
     expect(html).toContain('The song has been deleted.');
     expect(html).not.toContain('data-act="guide" data-id="take-3"');
     expect(html).toContain('data-act="me" data-id="take-3"');
-    expect(allTakesHTML([], now, song)).toContain('No takes yet');
+    expect(allTakesHTML([], now, song, shown())).toContain('No takes yet');
+  });
+
+  it('are a table: grouped by song or by day, each group folding, the first three open', () => {
+    const bySong = takeGroups([T, V, U, W], now, song, 'song');
+    expect(bySong.map((g) => [g.title, g.list.map((t) => t.id)])).toEqual([['New name', ['take-2']], ['আমার <গান>', ['take-1', 'take-4']], ['Deleted song', ['take-3']]]);
+    const byDate = takeGroups([T, V, U, W], now, song, 'date');
+    expect(byDate.map((g) => g.list.map((t) => t.id))).toEqual([['take-2', 'take-1', 'take-3'], ['take-4']]);
+    expect(byDate[0]!.title).toMatch(/^Today, \w{3} 11 Oct$/);
+    expect(byDate[1]!.title).toMatch(/^\w{3} 9 Oct$/);
+    const html = allTakesHTML([T, V, U, W], now, song, shown({ by: 'date' }));
+    expect(html).toContain('data-act="by" data-v="date" aria-pressed="true"');
+    // A day's rows name their song (as it is called now, or as it was); its time alone.
+    expect(html).toContain('<span class="pgsong">New name</span>');
+    expect(html).toContain('<span class="pgsong">Deleted song</span>');
+    expect(html).not.toContain('data-act="guide" data-id="take-3"');
+    expect(html).toContain('data-act="fold" data-key="d:');
+    // Folded and opened as the user left them; a fourth group starts folded.
+    const many = [0, 1, 2, 3].map((d) => ({ ...T, id: 'k' + d, at: T.at - d * 86_400_000 }));
+    const four = allTakesHTML(many, now, song, shown({ by: 'date' }));
+    expect(four.match(/aria-expanded="true"/g)).toHaveLength(3);
+    const firstKey = takeGroups(many, now, song, 'date')[0]!.key;
+    expect(allTakesHTML(many, now, song, shown({ by: 'date', open: new Map([[firstKey, false]]) })).match(/aria-expanded="true"/g)).toHaveLength(2);
+  });
+
+  it('are ticked, one by one or a group at a time, to delete together, asked first', () => {
+    const none = allTakesHTML([T, U, W], now, song, shown());
+    expect(none).toContain('data-selall="1"');
+    expect(none).toContain('data-selgroup="s:s1"');
+    expect(none).toContain('data-sel="take-4"');
+    expect(none).not.toContain('data-act="delsel"');
+    // Some of a group ticked: the group's box is "some" and the bar offers to delete them.
+    const one = allTakesHTML([T, U, W], now, song, shown({ selected: new Set(['take-4']) }));
+    expect(one).toMatch(/data-selgroup="s:s1"[^>]*data-mixed="1"/);
+    expect(one).toContain('1 ticked');
+    expect(one).toContain('data-act="delsel">Delete it</button>');
+    const group = allTakesHTML([T, U, W], now, song, shown({ selected: new Set(['take-1', 'take-4']) }));
+    expect(group).toMatch(/data-selgroup="s:s1"[^>]*checked/);
+    expect(group).toContain('data-act="delsel">Delete all 2</button>');
+    expect(group).toMatch(/data-selall="1" data-mixed="1"/);
+    const asking = allTakesHTML([T, U, W], now, song, shown({ selected: new Set(['take-1', 'take-4']), asking: true }));
+    expect(asking).toContain('Delete these 2 takes?');
+    expect(asking).toContain('data-act="delyes"');
+    expect(allTakesHTML([T, U, W], now, song, shown({ selected: new Set(['take-1', 'take-2', 'take-4']) }))).toMatch(/data-selall="1" checked/);
   });
 });

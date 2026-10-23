@@ -50,7 +50,14 @@ export interface EndEntry {
   end: true;
   p: number;
 }
-export type DisplayEntry = BeatEntry | EndEntry;
+/** A break between the rounds of a loop, from `time` to `until`, before round `pass`. */
+export interface BreakEntry {
+  time: number;
+  brk: true;
+  until: number;
+  pass: number;
+}
+export type DisplayEntry = BeatEntry | EndEntry | BreakEntry;
 
 const mod = (a: number, n: number) => ((a % n) + n) % n;
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
@@ -74,6 +81,9 @@ export class Transport {
   loop = false;
   /** With a loop: stop after this many rounds (0 loops on until stopped). */
   rounds = 0;
+  /** With a loop: seconds of break between rounds (Rinat, 2026-10-23), the drone going on and
+   * then the count-in again, if it is on. */
+  gap = 0;
   /** Display entries waiting for their time. */
   queue: DisplayEntry[] = [];
   /** When the song has ended: the time playback should stop. */
@@ -97,6 +107,11 @@ export class Transport {
   private resumeRaw = NaN;
   private resumeCarry: NoteEvent[] = [];
   private afterFill = false;
+  /** The last round a break was taken before; the count-in beats after a break, and still to
+   * play. */
+  private brkPass = 0;
+  private brkPre = 0;
+  private brkLeft = 0;
   private tanNext = 0;
   private tanStep = 0;
 
@@ -121,10 +136,11 @@ export class Transport {
    * song beat s in round `pass` instead (after a pause): at once, with no count-in, a note
    * held across that beat sounding again from it. `upTo`: without a loop, stop at the end of
    * line `to` (the Lines to practise, from one line to another, Rinat 2026-10-22) rather than
-   * the song's. Returns the lines used and the count-in length in beats, or null when there is
-   * nothing to play.
+   * the song's. `gap`: with a loop, seconds of break before each round after the first, then
+   * the count-in (and any pickup) again. Returns the lines used and the count-in length in
+   * beats, or null when there is nothing to play.
    */
-  start(src: PlaySource, opts: { from: number; to: number; loop: boolean; rounds?: number; upTo?: boolean; at?: { s: number; pass: number } }, now: number = this.E.ctx.currentTime): { from: number; to: number; pre: number } | null {
+  start(src: PlaySource, opts: { from: number; to: number; loop: boolean; rounds?: number; upTo?: boolean; gap?: number; at?: { s: number; pass: number } }, now: number = this.E.ctx.currentTime): { from: number; to: number; pre: number } | null {
     const L = src.parsed.noteLines;
     if (!L.length) return null;
     if (this.playing) this.stop();
@@ -141,6 +157,10 @@ export class Transport {
     const cyc = at.T.cycle;
     const pos = mod(this.secStart + at.off, cyc);
     let pre = pos + (src.sound.countIn ? cyc : 0);
+    this.gap = this.loop && opts.gap && opts.gap > 0 ? opts.gap : 0;
+    this.brkPass = 0;
+    this.brkPre = pre;
+    this.brkLeft = 0;
     this.s0 = this.secStart - pre;
     this.t = 0;
     this.queue = [];
@@ -156,6 +176,8 @@ export class Transport {
       pre = 0;
       this.s0 = this.secStart + pass * this.secLen + (s - this.secStart);
       this.resumeRaw = this.s0;
+      // Going on in a round: no break before it.
+      this.brkPass = pass;
       // At the section's start the loop's own carry already sounds them.
       if (s > this.secStart) this.resumeCarry = across(s);
     }
@@ -225,6 +247,22 @@ export class Transport {
         if (this.endFade > 0) for (const g of [this.sess!.out.gain, this.sess!.send.gain]) g.setTargetAtTime(0, this.endAt - this.endFade, this.endFade / 3);
         return;
       }
+      // A break before each round after the first, then the count-in again.
+      if (this.gap && pass > this.brkPass && raw === this.secStart + pass * this.secLen) {
+        this.brkPass = pass;
+        this.queue.push({ time: this.nextTime, brk: true, until: this.nextTime + this.gap, pass });
+        this.nextTime += this.gap;
+        this.brkLeft = this.brkPre;
+        continue;
+      }
+      if (this.brkLeft > 0) {
+        const c = this.secStart - this.brkLeft;
+        const spbIn = 60 / this.liveTempo(pass, this.secStart);
+        this.scheduleBeat(this.nextTime, c, c, -1, spbIn, this.taalOf(this.secStart));
+        this.nextTime += spbIn;
+        this.brkLeft--;
+        continue;
+      }
       // The count-in is in the taal of the beat it leads to.
       const at = this.taalOf(raw < this.secStart ? this.secStart : s);
       this.scheduleBeat(this.nextTime, s, raw, pass, spb, at);
@@ -254,9 +292,10 @@ export class Transport {
         if (d <= 0) continue;
         const at = time + (e.start - s) * spb;
         // The song's last note fades out gently (where it reaches the end of the song, or of
-        // the last of a set number of rounds), and so does a note followed by silence.
+        // the last of a set number of rounds, or of a round before a break), and so does a note
+        // followed by silence.
         const end = e.start + d;
-        const last = this.endFade > 0 && end >= this.secEnd - 1e-9 && (!this.loop || (this.rounds > 0 && pass === this.rounds - 1));
+        const last = this.endFade > 0 && end >= this.secEnd - 1e-9 && (!this.loop || this.gap > 0 || (this.rounds > 0 && pass === this.rounds - 1));
         const hush = this.endFade > 0 && end < this.secEnd - 1e-9 && silenceAt(this.src.parsed, end);
         if (this.localGuide) reed(this.E, sess, reedSet(this.src.sound.reeds), at, d * spb, noteFreq(this.src.song, e), 0.32, last || hush ? this.endFade / 3 : undefined);
         this.onNote?.(at, d * spb, saMidi(this.src.song) + e.semi + 12 * e.oct);

@@ -26,6 +26,8 @@ export interface Take {
   ramp: boolean;
   rampStep: number;
   rampMax: number;
+  /** Seconds of break before each round after the first, then the count-in again (absent: none). */
+  gap?: number;
   /** Seconds from a beat to the singer's voice reaching the app (sound out, singer, sound in):
    * the take starts at the first beat, so the voice is that much late in it. */
   lag: number;
@@ -70,6 +72,8 @@ export function cleanTake(v: unknown): Take | null {
   };
   const flat = num(o.flat, 30, 240);
   if (flat != null) t.flat = Math.round(flat);
+  const gap = num(o.gap, 0, 120);
+  if (gap) t.gap = gap;
   return t;
 }
 
@@ -79,5 +83,5 @@ export const clockText = (secs: number): string => Math.floor(secs / 60) + ':' +
 /** What a take was: its lines and rounds, tempo and length. */
 export function takeDetail(t: Take): string {
   const lines = t.from === t.to ? 'line ' + (t.from + 1) : 'lines ' + (t.from + 1) + '–' + (t.to + 1);
-  return [lines + (t.loop && t.rounds > 1 ? ' × ' + t.rounds + ' rounds' : ''), (t.flat ?? t.tempo) + ' per min', clockText(t.secs)].join(' · ');
+  return [lines + (t.loop && t.rounds > 1 ? ' × ' + t.rounds + ' rounds' + (t.gap ? ', ' + t.gap + ' s breaks' : '') : ''), (t.flat ?? t.tempo) + ' per min', clockText(t.secs)].join(' · ');
 }

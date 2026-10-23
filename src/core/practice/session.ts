@@ -29,6 +29,8 @@ export interface PlayedSettings {
   ramp: boolean;
   rampStep: number;
   rampMax: number;
+  /** Seconds of break before each round after the first, then the count-in again (absent: none). */
+  gap?: number;
 }
 
 /** One note the singer was asked to sing, and how it went. Times are seconds from the first
@@ -115,6 +117,7 @@ export function cleanSession(v: unknown): SessionDetail | null {
       ramp: s.ramp === true, rampStep: num(s.rampStep) ? s.rampStep : 4, rampMax: num(s.rampMax) ? s.rampMax : 160,
     },
   };
+  if (num(s.gap) && s.gap > 0) out.settings.gap = Math.min(s.gap, 120);
   const q = o.pitch as Record<string, unknown> | undefined;
   if (q && typeof q === 'object') {
     const rd = q.readings;

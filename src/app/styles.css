@@ -445,7 +445,8 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
    pointer and tapped anywhere, a full-height Start button at its end (Rinat, 2026-10-13). */
 .rwtitle{margin:0;font-family:var(--f-note);font-size:22px;font-weight:400;line-height:1.3;color:var(--ink)}
 .rwroutines{display:grid;gap:12px;min-width:0}
-.rwr{background:var(--sheet);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:0}
+/* clip, not hidden: the picker's head sticks to the top of the screen inside it. */
+.rwr{background:var(--sheet);border:1px solid var(--line);border-radius:14px;overflow:clip;min-width:0}
 .rwhead{display:flex;align-items:stretch;min-width:0}
 .rwh{flex:1 1 auto;min-width:0;margin:0;font:inherit}
 .rwfold{display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px;width:100%;height:100%;min-height:58px;padding:10px 14px 10px 10px;border:0;background:none;text-align:left;color:var(--ink)}
@@ -485,11 +486,14 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 /* Choosing several songs and exercises to add: rows ticked anywhere, numbered in the order
    ticked (Rinat, 2026-10-14). */
 .rwpick{display:grid;gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--paper);min-width:0}
-.rwpickhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font-size:14px;color:var(--ink-2)}
+/* Its box, Add and Cancel at the top, kept in view while the lists scroll with the page: no
+   list scrolls inside a box of its own (Rinat, 2026-10-23). */
+.rwpickhead{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:-12px -12px 0;padding:12px;border-bottom:1px solid var(--rule);border-radius:12px 12px 0 0;background:var(--paper);font-size:14px;color:var(--ink-2)}
+.rwpicktip{flex-basis:100%}
 .rwpickq{flex:1 1 220px;min-width:0;padding:6px 10px;border:1px solid var(--line);border-radius:9px;background:var(--sheet);font-size:15px}
 .rwpickgrp{display:grid;gap:6px;min-width:0}
 .rwpickgrp h4{margin:2px 0 0;font-family:var(--f-note);font-size:18px;font-weight:400;color:var(--ink)}
-.rwpicklist{list-style:none;margin:0;padding:0;max-height:40vh;overflow:auto;overscroll-behavior:contain;background:var(--sheet);border:1px solid var(--line);border-radius:10px}
+.rwpicklist{list-style:none;margin:0;padding:0;background:var(--sheet);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .rwpicklist li+li{border-top:1px solid var(--rule)}
 .rwpickrow{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 12px;cursor:pointer}
 .rwpickrow:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
@@ -881,15 +885,29 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .tkwarn{flex-basis:100%;font-size:13px;color:var(--warn)}
 .tkacts{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto}
 .tkempty{color:var(--ink-2);font-size:14px;padding:4px 0}
-/* Every song's takes, on the Voice page (Rinat, 2026-10-23). */
-.alltakes{display:grid;gap:14px;min-width:0}
+/* Every song's takes, on the Voice page (Rinat, 2026-10-23), as a table: grouped by song or by
+   day, each group folding as History's days do; tick boxes down the left, to delete several
+   together. */
+.alltakes{display:grid;gap:10px;min-width:0}
 .tksum{margin:0;color:var(--ink-2);font-size:14px}
-.tkhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
-.tksong{margin:0;font-family:var(--f-note);font-weight:400;font-size:19px;min-width:0}
-.tkhead .n{color:var(--ink-2);font-size:14px}
-.tkhead .ibtn{margin-left:auto}
-.tkgone{margin-left:auto;color:var(--ink-2);font-size:13px}
-.alltakes .tklist{margin:4px 0 0}
+.tkbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;min-height:38px}
+.tkbar .spacer{flex:1 1 auto}
+.tkall{display:inline-flex;align-items:center;gap:7px;font-size:14px;color:var(--ink-2);cursor:pointer}
+.tkall input,.tkchk input{flex:none;width:18px;height:18px;margin:0;accent-color:var(--brass);cursor:pointer}
+.tkseln{font-size:14px;font-weight:600}
+.tksure{font-weight:600;color:var(--red-ink)}
+.tkchk{flex:none;display:flex;align-items:center;justify-content:center;width:44px;border-right:1px solid var(--rule);cursor:pointer}
+.tkg .pgdayt b.tksong{font-family:var(--f-note);font-weight:400;font-size:18px}
+.tkgone{align-self:center;padding:6px 14px;color:var(--ink-2);font-size:13px}
+.tkrow.sel,.tkrow.sel:hover{background:color-mix(in srgb,var(--brass) 12%,transparent)}
+/* Wide enough for "With the guide" on one line. */
+@media (min-width:721px){.tkrow .lact.pgact:not(.sm){width:11.5em}}
+@media (max-width:720px){
+  /* On a phone the tick box and the take side by side, its buttons across under them. */
+  .pgsrow:is(.tkrow,.tkgh){display:grid;grid-template-columns:44px minmax(0,1fr)}
+  .pgsrow:is(.tkrow,.tkgh)>:is(.lacts,.tkgone){grid-column:1 / -1}
+  .tkgh .lacts{border-top:1px solid var(--rule)}
+}
 
 /* The keyboard (new): the keys to press on the Practice view. */
 /* In a section of its own, as wide as the others: keys of a natural width, more of them on a

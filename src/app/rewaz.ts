@@ -6,7 +6,7 @@
  * do (Rinat, 2026-10-13). The HTML builders are pure and tested in Node.
  */
 import { durationText } from '../core/practice/log';
-import { gapOf, itemLines, newRoutineId, ROUTINE_LIMITS, routineSeconds, STARTER, type ItemGuide, type Routine, type RoutineItem, type SongShape } from '../core/practice/routine';
+import { gapOf, itemLines, newRoutineId, ROUTINE_LIMITS, roundGapOf, routineSeconds, STARTER, type ItemGuide, type Routine, type RoutineItem, type SongShape } from '../core/practice/routine';
 import type { WriteResult } from './store';
 import { foldText } from '../core/song/model';
 import { esc } from './view';
@@ -47,7 +47,9 @@ function songOptions(own: readonly Choice[], exercises: readonly Choice[], selec
 /**
  * Choosing several songs and exercises to add to a routine at once (Rinat, 2026-10-14):
  * each a row ticked anywhere along it, numbered in the order ticked (the order they will
- * play), the open one marked; grouped as in the Music library, with a box to find one.
+ * play), the open one marked; grouped as in the Music library, with a box to find one. The
+ * box, Add and Cancel at its top, kept in view while the lists scroll with the page (Rinat,
+ * 2026-10-23: lists scrolling inside their own boxes caught the mouse wheel).
  */
 export function pickerHTML(own: readonly Choice[], exercises: readonly Choice[], exFirst: boolean, picked: readonly string[], openId: string): string {
   const row = (c: Choice) => {
@@ -58,9 +60,9 @@ export function pickerHTML(own: readonly Choice[], exercises: readonly Choice[],
   };
   const group = (title: string, list: readonly Choice[]) => (list.length ? '<div class="rwpickgrp"><h4>' + title + '</h4><ul class="rwpicklist">' + list.map(row).join('') + '</ul></div>' : '');
   const groups = exFirst ? group('Exercises', exercises) + group('My songs', own) : group('My songs', own) + group('Exercises', exercises);
-  return '<div class="rwpick"><div class="rwpickhead"><span>Tick what to add, in the order it should play.</span>' +
-    '<input type="search" class="rwpickq" data-act="pickq" placeholder="Find a song or exercise" aria-label="Find a song or exercise" autocomplete="off" spellcheck="false"></div>' +
-    groups + '<div class="rwfoot">' + pickedButton(picked.length) + '<button type="button" class="btn" data-act="pickcancel">Cancel</button></div></div>';
+  return '<div class="rwpick"><div class="rwpickhead"><span class="rwpicktip">Tick what to add, in the order it should play.</span>' +
+    '<input type="search" class="rwpickq" data-act="pickq" placeholder="Find a song or exercise" aria-label="Find a song or exercise" autocomplete="off" spellcheck="false">' +
+    pickedButton(picked.length) + '<button type="button" class="btn" data-act="pickcancel">Cancel</button></div>' + groups + '</div>';
 }
 
 /** The picker's Add button, for `n` ticked. */
@@ -120,8 +122,8 @@ export function metaText(r: Routine, saved: boolean, secs: number): string {
 
 /**
  * One routine: a heading row (its name and length; tapped anywhere it folds the routine
- * away) with a full-height Start button at its end; unfolded, its name and the break between
- * its items, its items, and a row to add songs and exercises (choosing several at once) or
+ * away) with a full-height Start button at its end; unfolded, its name, the break between its
+ * items and between an item's rounds, its items, and a row to add songs and exercises (choosing several at once) or
  * delete the routine. `n` numbers its parts on the page.
  */
 export function routineHTML(r: Routine, n: number, o: RoutineRow, song: (id: string) => ItemSong | null, own: readonly Choice[], exercises: readonly Choice[]): string {
@@ -140,7 +142,8 @@ export function routineHTML(r: Routine, n: number, o: RoutineRow, song: (id: str
     '<button type="button" class="rwgo" data-act="start"' + (count ? '' : ' disabled') + '>' + ICON.play + '<span>Start rewaz</span></button></div>' +
     '<div class="rwbody" id="rwb-' + n + '"' + (o.open ? '' : ' hidden') + '>' +
     '<div class="rwopts"><label class="rwf rwnamef"><span>Name</span><input type="text" data-act="name" value="' + esc(r.name) + '" maxlength="' + ROUTINE_LIMITS.name + '" autocomplete="off"></label>' +
-    '<label class="rwf rwnum rwgapf"><span>Break between items, seconds</span><input type="number" min="0" max="' + ROUTINE_LIMITS.gap + '" step="1" inputmode="numeric" data-act="gap" value="' + gapOf(r) + '"></label></div>' +
+    '<label class="rwf rwnum rwgapf"><span>Break between items, seconds</span><input type="number" min="0" max="' + ROUTINE_LIMITS.gap + '" step="1" inputmode="numeric" data-act="gap" value="' + gapOf(r) + '"></label>' +
+    '<label class="rwf rwnum rwgapf" title="Silence before each round after the first, the drone going on; then the count-in again, if it is on"><span>Break between rounds, seconds</span><input type="number" min="0" max="' + ROUTINE_LIMITS.gap + '" step="1" inputmode="numeric" data-act="roundgap" value="' + roundGapOf(r) + '"></label></div>' +
     '<ol class="rwlist">' + items + '</ol>' +
     (o.picking ? pickerHTML(own, exercises, o.exFirst, o.picking, o.openId) : '') +
     '<div class="rwfoot">' + (o.picking ? '' : '<button type="button" class="btn" data-act="pick"' + (count >= ROUTINE_LIMITS.items ? ' disabled' : '') + '>+ Add songs and exercises</button>') +
@@ -161,9 +164,9 @@ export interface RewazHost {
   remove(id: string): WriteResult;
   /** Which routines are unfolded, kept on the device. */
   unfolded: { has(id: string): boolean; set(id: string, open: boolean): void };
-  /** Load the item's song and play its lines for its rounds, with its tempo and guide;
-   * false when there is nothing to play. */
-  play(it: RoutineItem): boolean;
+  /** Load the item's song and play its lines for its rounds, with its tempo and guide and
+   * `roundGap` seconds of break between rounds; false when there is nothing to play. */
+  play(it: RoutineItem, roundGap: number): boolean;
   /** Stop playing (the routine continues: Skip). */
   stop(): void;
   playing(): boolean;
@@ -265,7 +268,7 @@ export function initRewaz(host: RewazHost): Rewaz {
     if (!run) return;
     run.i = i;
     showBar(itemText(i, run.r.items[i]!.rounds > 1 ? ' · round 1 of ' + run.r.items[i]!.rounds : ''));
-    if (!host.play(run.r.items[i]!)) next(i + 1, 0);
+    if (!host.play(run.r.items[i]!, roundGapOf(run.r))) next(i + 1, 0);
   }
 
   function next(from: number, gap: number): void {
@@ -435,19 +438,24 @@ export function initRewaz(host: RewazHost): Rewaz {
       return;
     }
     const id = routineOf(el);
-    if (el.dataset.act === 'gap') {
+    const act = el.dataset.act;
+    if (act === 'gap' || act === 'roundgap') {
       const got = routine(id);
       if (!got) return;
       const v = Math.round(Number(el.value));
-      got.r.gap = Number.isFinite(v) && el.value !== '' ? Math.max(0, Math.min(ROUTINE_LIMITS.gap, v)) : gapOf(got.r);
+      const was = act === 'gap' ? gapOf(got.r) : roundGapOf(got.r);
+      const to = Number.isFinite(v) && el.value !== '' ? Math.max(0, Math.min(ROUTINE_LIMITS.gap, v)) : was;
+      if (act === 'gap') got.r.gap = to;
+      else if (to) got.r.roundGap = to;
+      else delete got.r.roundGap;
       store(got.r);
       if (got.saved) {
-        el.value = String(got.r.gap);
+        el.value = String(to);
         const meta = el.closest('.rwr')?.querySelector('.rwmeta');
         if (meta) meta.textContent = metaText(got.r, true, routineSeconds(got.r, host.song, host.countIn()));
       } else {
         render();
-        refocus(id, 'gap');
+        refocus(id, act);
       }
       return;
     }

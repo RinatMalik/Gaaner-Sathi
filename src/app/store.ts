@@ -114,6 +114,10 @@ export interface Prefs extends SoundSettings {
   plRows?: 5 | 9 | 12;
   plAt?: 1 | 2 | 4 | 5;
   plSize?: 'small' | 'big';
+  /** Seconds of break between rounds when looping, 1–120 (Rinat, 2026-10-23); unset: none. */
+  loopGap?: number;
+  /** The Voice page's takes grouped by the day taken (unset: by song). */
+  tkGroup?: 'date';
   /** A MIDI keyboard: where the guide plays, in what sound, and on which keyboard. */
   midi?: { route: 'app' | 'kb' | 'both'; sound: 'keep' | 'organ' | 'accordion'; out?: string };
 }
@@ -214,6 +218,8 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
   if (r.plAt === 1 || r.plAt === 2 || r.plAt === 4 || r.plAt === 5) p.plAt = r.plAt;
 
   if (r.plSize === 'small' || r.plSize === 'big') p.plSize = r.plSize;
+  if (r.tkGroup === 'date') p.tkGroup = 'date';
+  if (typeof r.loopGap === 'number' && r.loopGap >= 1 && r.loopGap <= 120) p.loopGap = Math.round(r.loopGap);
   const mi = r.midi as Record<string, unknown> | undefined;
   if (mi && typeof mi === 'object') {
     p.midi = { route: oneOf(mi.route, ['app', 'kb', 'both'] as const, 'app'), sound: oneOf(mi.sound, ['keep', 'organ', 'accordion'] as const, 'keep') };
@@ -395,7 +401,7 @@ export class RoutineStore {
   /** Save one routine: re-read the stored ones and change only this, so another tab's survive. */
   save(r: Routine): WriteResult {
     const t = songTable(readJSON(this.S, STORE_KEYS.routines));
-    t[r.id] = { name: r.name, items: r.items, updatedAt: r.updatedAt, ...(r.gap != null ? { gap: r.gap } : {}) };
+    t[r.id] = { name: r.name, items: r.items, updatedAt: r.updatedAt, ...(r.gap != null ? { gap: r.gap } : {}), ...(r.roundGap ? { roundGap: r.roundGap } : {}) };
     return writeJSON(this.S, STORE_KEYS.routines, t);
   }
 

@@ -159,6 +159,7 @@ function sessionParts(o: SessionFileInput, texts: readonly { notes: string; word
           guide_when_looping: detail.settings.guideLoop,
           count_in: detail.settings.countIn,
           speed_up_each_round: detail.settings.ramp ? { by: detail.settings.rampStep, up_to: detail.settings.rampMax } : false,
+          break_between_rounds_s: detail.settings.gap ?? 0,
         }
       : null,
     equipment: p
@@ -359,7 +360,7 @@ export function practiceFileParts(log: readonly LogEntry[], sessions: readonly S
       detail: d
         ? {
             song_as_played: versionOf.get(e.at) ?? null,
-            settings: { guide: d.settings.guide, guide_when_looping: d.settings.guideLoop, count_in: d.settings.countIn, speed_up_each_round: d.settings.ramp ? { by: d.settings.rampStep, up_to: d.settings.rampMax } : false },
+            settings: { guide: d.settings.guide, guide_when_looping: d.settings.guideLoop, count_in: d.settings.countIn, speed_up_each_round: d.settings.ramp ? { by: d.settings.rampStep, up_to: d.settings.rampMax } : false, break_between_rounds_s: d.settings.gap ?? 0 },
             equipment: p ? { device_delay_s: r(p.lag, 3), delay_measured: p.measured, any_octave_counts: p.anyOctave, octave_sung_against_the_notes: p.octave } : null,
             notes: p ? notesTable(p) : null,
             beats: p ? beatsTable(p) : null,

@@ -41,6 +41,12 @@ const clock = (at: number) => {
   const d = new Date(at);
   return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
 };
+/** A day's heading, as History and the takes grouped by date name it: "Today, Thu 23 Oct". */
+export function dayLabel(day: number, now: number): string {
+  const date = dateOf(day);
+  const when = whenText(date.getTime(), now);
+  return (when === 'today' || when === 'yesterday' ? when[0]!.toUpperCase() + when.slice(1) + ', ' : '') + DAY_NAMES[date.getDay()] + ' ' + date.getDate() + ' ' + MONTHS[date.getMonth()] + (date.getFullYear() === new Date(now).getFullYear() ? '' : ' ' + date.getFullYear());
+}
 const shortDate = (day: number) => {
   const d = dateOf(day);
   return d.getDate() + ' ' + MONTHS[d.getMonth()];
@@ -226,9 +232,7 @@ function historyHTML(log: readonly LogEntry[], now: number, o: ProgressOptions):
   const days = byDay(log);
   let html = '<p class="pgsub">Each day and each session has <b>Report</b>, a page on how it went; <b>For AI</b>, everything about it in a file for an AI such as Claude or ChatGPT to analyse; and the bin, to delete it (one that was interrupted, say).</p>';
   days.slice(0, 60).forEach((d, i) => {
-    const date = dateOf(d.day);
-    const when = whenText(date.getTime(), now);
-    const label = (when === 'today' || when === 'yesterday' ? when[0]!.toUpperCase() + when.slice(1) + ', ' : '') + DAY_NAMES[date.getDay()] + ' ' + date.getDate() + ' ' + MONTHS[date.getMonth()] + (date.getFullYear() === new Date(now).getFullYear() ? '' : ' ' + date.getFullYear());
+    const label = dayLabel(d.day, now);
     const score = meanScore(d.entries);
     const meta = [durationText(d.secs), plural(d.entries.length, 'session'), score != null ? 'pitch ' + score : ''].filter(Boolean).join(' · ');
     // The day's row has a session's three buttons, for all its sessions (Rinat, 2026-10-21:

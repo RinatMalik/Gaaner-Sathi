@@ -93,6 +93,7 @@
         <div class="row"><label class="chk"><input type="checkbox" id="rampChk"> Speed up each round by</label>
           <select id="rampStep" aria-label="Tempo increase per round"><option value="2">2</option><option value="4">4</option><option value="6">6</option><option value="8">8</option><option value="10">10</option></select>
           <span class="nw"><label class="mini" for="rampMax">up to</label><input type="number" id="rampMax" class="dnum" min="30" max="240" step="1" inputmode="numeric"></span></div>
+        <div class="row" title="Silence before each round after the first, the drone going on; then the count-in again, if it is on"><label class="chk" for="loopGap">Break between rounds</label><span class="nw"><input type="number" id="loopGap" class="dnum" min="0" max="120" step="1" inputmode="numeric"> <span class="mini">seconds</span></span></div>
       </div>
     </div>
 
@@ -269,7 +270,7 @@
            various songs in one place - there is no way"). -->
       <section class="vcard" aria-labelledby="vTakesHead">
         <h3 id="vTakesHead">My takes</h3>
-        <p class="rwintro">Every song you have recorded, the newest first. Play a take on its own here; <b>With the guide</b> opens the song on the Practice view and plays the take along with it.</p>
+        <p class="rwintro">Every take you have recorded, by song or by day, the newest first. Play one on its own here; <b>With the guide</b> opens the song on the Practice view and plays the take along with it. Tick takes, or a whole song or day, to delete them together.</p>
         <div id="allTakes" class="alltakes"></div>
         <span class="fstatus" id="allTakesStatus" aria-live="polite"></span>
       </section>
