@@ -1,19 +1,19 @@
 // The new screen's HTML against the prototype's own rendering code (cut out of the HTML
 // and run against fake page elements), on the edge cases, every exercise and generated
 // songs: note glyphs, the diary sheet, line pickers, the checker panel, the taal's name, the
-// song picker, layer chips and the editor palette. (The now-singing panel, its chips and the
-// taal strip were compared too until the Practice view was redone, 2026-10-15.)
+// layer chips and the editor palette. (The now-singing panel, its chips and the taal strip were
+// compared too until the Practice view was redone, 2026-10-15; the song picker until it became
+// a list that folds, 2026-10-26.)
 import { describe, expect, it } from 'vitest';
 import * as V from '../../src/app/view';
 import { REFERENCE_EXERCISES as EXERCISES } from '../reference-exercises';
 import { parseSong } from '../../src/core/notation/parse';
 import type { ParsedSong } from '../../src/core/notation/types';
-import { normalize, type Song } from '../../src/core/song/model';
 import { LAYERS } from '../../src/core/taal/rhythm';
 import { taalInfo } from '../../src/core/taal/taals';
 import { canon, seeded } from '../helpers';
 import { EDGE_CASES, randomSong } from './generate';
-import { protoExamples, protoRhythm, protoViewWorld, type ProtoViewState } from './prototype';
+import { protoRhythm, protoViewWorld, type ProtoViewState } from './prototype';
 
 const rand = seeded(20261011);
 /** Held vowels in every spelling (০ 0 - – —), alone and mixed, which lyrics draw faded. */
@@ -127,19 +127,6 @@ describe('the screen matches the prototype', () => {
     // The generated songs exercise every kind of row.
     const html = cases.map(({ t, id, startOn, script }) => V.issuesHTML(parsed.get(t)![0], taalInfo(id), startOn - 1, script).html).join('');
     for (const bit of ['data-act="fix"', 'data-act="show"', 'should probably have', 'ends partway', 'is not a note', 'lyrics need', 'more. Fix these first', 'Checked: every bar']) expect(html).toContain(bit);
-  });
-
-  it('the song picker, with awkward titles', () => {
-    const r = seeded(6);
-    const words = ['আমার', 'সোনার', 'বাংলা', 'a', 'Z', '<b>', '&amp;', '"q"', 'é', '১২', ' '];
-    for (let k = 0; k < 60; k++) {
-      const list: Song[] = Array.from({ length: int(r, 8) }, (_, i) =>
-        normalize({ id: 'song-' + i + (r() < 0.2 ? '"<&>' : ''), title: Array.from({ length: 1 + int(r, 4) }, () => pick(r, words)).join(' '), text: '' }));
-      W.set(state({ songs: new Map(list.map((s) => [s.id, s])), EXAMPLES: protoExamples, current: null as unknown as Record<string, unknown> }));
-      W.renderLibrary();
-      const own = [...list].sort((a, b) => a.title.localeCompare(b.title));
-      expect(V.libraryHTML(own, EXERCISES)).toBe(W.el('#songSel').innerHTML);
-    }
   });
 
   it('the layer chips for each rhythm style', () => {

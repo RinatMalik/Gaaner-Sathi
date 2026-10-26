@@ -75,6 +75,8 @@ export interface Prefs extends SoundSettings {
   libSort: LibrarySort;
   /** The Music library's sections the user has folded away. */
   libFold?: { mine?: true; ex?: true };
+  /** The song picker's groups the user has folded away (Rinat, 2026-10-26). */
+  pickFold?: { mine?: true; ex?: true };
   /** The Music library's sections in the order the user dragged them; absent: the exercises
    * first. */
   libOrder?: ('mine' | 'ex')[];
@@ -114,8 +116,6 @@ export interface Prefs extends SoundSettings {
   plRows?: 5 | 9 | 12;
   plAt?: 1 | 2 | 4 | 5;
   plSize?: 'small' | 'big';
-  /** Seconds of break between rounds when looping, 1–120 (Rinat, 2026-10-23); unset: none. */
-  loopGap?: number;
   /** The Voice page's takes grouped by the day taken (unset: by song). */
   tkGroup?: 'date';
   /** A MIDI keyboard: where the guide plays, in what sound, and on which keyboard. */
@@ -219,7 +219,8 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
 
   if (r.plSize === 'small' || r.plSize === 'big') p.plSize = r.plSize;
   if (r.tkGroup === 'date') p.tkGroup = 'date';
-  if (typeof r.loopGap === 'number' && r.loopGap >= 1 && r.loopGap <= 120) p.loopGap = Math.round(r.loopGap);
+  const kf = r.pickFold as Record<string, unknown> | undefined;
+  if (kf && typeof kf === 'object' && (kf.mine === true || kf.ex === true)) p.pickFold = { ...(kf.mine === true ? { mine: true as const } : {}), ...(kf.ex === true ? { ex: true as const } : {}) };
   const mi = r.midi as Record<string, unknown> | undefined;
   if (mi && typeof mi === 'object') {
     p.midi = { route: oneOf(mi.route, ['app', 'kb', 'both'] as const, 'app'), sound: oneOf(mi.sound, ['keep', 'organ', 'accordion'] as const, 'keep') };

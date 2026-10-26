@@ -40,8 +40,14 @@
   <section class="deck" id="deck" aria-label="Song and sound">
     <div class="dpanel dsong" role="group" aria-label="Song and playing">
       <div class="dsongbar">
-        <label class="sr-only" for="songSel">Song</label>
-        <select id="songSel" class="songsel"></select>
+        <!-- A list that folds by My songs and Exercises, with a find box (Rinat, 2026-10-26). -->
+        <div class="spick" id="songPick">
+          <button type="button" class="songsel" id="songBtn" aria-haspopup="true" aria-expanded="false" aria-controls="songPop" title="Choose a song or exercise"><span class="sr-only">Song: </span><span class="spname" id="songName"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="spop" id="songPop" role="group" aria-label="Songs and exercises" hidden>
+            <input type="search" class="spfind" id="songFind" placeholder="Find a song or exercise" aria-label="Find a song or exercise" autocomplete="off" spellcheck="false">
+            <div class="spgroups" id="songGroups"></div>
+          </div>
+        </div>
         <button id="newBtn" class="dbtn" type="button" title="Start a new song">+ New</button>
       </div>
       <div class="transport">
@@ -59,8 +65,8 @@
         <button id="recBtn" class="micbtn recbtn" type="button" aria-pressed="false" aria-controls="takesBox"><span class="recdot" aria-hidden="true"></span><span id="recLab">Record me</span></button>
       </div>
       <div class="dfield">
-        <span class="lab">Lines to practise</span>
-        <div class="row dpair"><label class="mini" for="fromLine">from</label><select id="fromLine" class="lines"></select><label class="mini" for="toLine">to</label><select id="toLine" class="lines"></select></div>
+        <label class="lab" for="fromLine">Lines to practise</label>
+        <div class="row dpair"><select id="fromLine" class="lines"></select><label class="mini" for="toLine" id="toLab" hidden>to</label><select id="toLine" class="lines" hidden></select></div>
         <div class="row dchks"><label class="chk"><input type="checkbox" id="loopChk"> Loop</label><label class="chk" title="Otherwise the right note in a higher or lower octave counts"><input type="checkbox" id="pOct"> Octave must match</label></div>
       </div>
       <label class="chk"><input type="checkbox" id="keysChk"> Show virtual keyboard</label>
@@ -93,7 +99,6 @@
         <div class="row"><label class="chk"><input type="checkbox" id="rampChk"> Speed up each round by</label>
           <select id="rampStep" aria-label="Tempo increase per round"><option value="2">2</option><option value="4">4</option><option value="6">6</option><option value="8">8</option><option value="10">10</option></select>
           <span class="nw"><label class="mini" for="rampMax">up to</label><input type="number" id="rampMax" class="dnum" min="30" max="240" step="1" inputmode="numeric"></span></div>
-        <div class="row" title="Silence before each round after the first, the drone going on; then the count-in again, if it is on"><label class="chk" for="loopGap">Break between rounds</label><span class="nw"><input type="number" id="loopGap" class="dnum" min="0" max="120" step="1" inputmode="numeric"> <span class="mini">seconds</span></span></div>
       </div>
     </div>
 

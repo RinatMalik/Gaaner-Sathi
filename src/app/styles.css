@@ -94,8 +94,32 @@ button{cursor:pointer}
 .drow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;min-width:0}
 .drow .lab{min-width:42px}
 .dtabs{display:none}
-.dsongbar{display:flex;align-items:center;gap:6px;min-width:0}
-.dsongbar .songsel{flex:1 1 auto;min-width:0;font-family:var(--f-note);font-size:15px}
+.dsongbar{position:relative;display:flex;align-items:center;gap:6px;min-width:0}
+/* The song picker: a button with the title, opening a list that folds by My songs and Exercises
+   (Rinat, 2026-10-26). It drops onto the page in the sheet's colours, as the header's menu does,
+   as wide as the bar with + New. */
+.spick{flex:1 1 auto;min-width:0}
+.songsel{display:flex;align-items:center;gap:6px;width:100%;height:30px;padding:0 6px 0 8px;border:1px solid var(--deck-line);border-radius:8px;background:var(--deck-field);color:var(--on-wood);font-family:var(--f-note);font-size:15px;text-align:left;cursor:pointer}
+.songsel:hover{border-color:var(--brass)}
+.spname{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.songsel svg{flex:none;width:16px;height:16px;transition:transform .15s}
+.songsel[aria-expanded="true"] svg{transform:rotate(180deg)}
+.spop{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:40;display:flex;flex-direction:column;max-height:min(70vh,560px);background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px var(--shadow);overflow:hidden}
+.spfind{flex:none;margin:10px;padding:6px 10px;border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink);font-size:15px;min-width:0}
+.spgroups{overflow:auto;overscroll-behavior:contain;padding-bottom:6px}
+.sph{position:sticky;top:0;z-index:1;margin:0;background:var(--sheet);border-top:1px solid var(--rule)}
+.spfold{display:flex;align-items:center;gap:8px;width:100%;min-height:40px;padding:6px 12px;border:0;background:none;color:var(--ink-2);font-family:var(--f-ui);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;text-align:left}
+button.spfold:hover{color:var(--ink)}
+.spfold svg{flex:none;width:18px;height:18px;transition:transform .15s}
+.spfold[aria-expanded="false"] svg{transform:rotate(-90deg)}
+.spfold .n{padding:0 7px;border:1px solid var(--line);border-radius:999px;font-size:12px;letter-spacing:0;font-variant-numeric:tabular-nums}
+.splist{list-style:none;margin:0;padding:0 6px 6px}
+.spitem{display:flex;align-items:center;gap:8px;width:100%;min-height:40px;padding:6px 10px;border:0;border-radius:8px;background:none;color:var(--ink);font-family:var(--f-note);font-size:16px;line-height:1.3;text-align:left}
+.spitem:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.spitem[aria-current="true"]{font-weight:600;background:color-mix(in srgb,var(--brass) 16%,transparent)}
+.spitem span{flex:1 1 auto;min-width:0}
+.sptick{flex:none;width:18px;height:18px;color:var(--brass)}
+.spnone{margin:0;padding:8px 12px;color:var(--ink-2);font-size:14px}
 .dbtn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid var(--deck-line);border-radius:8px;background:var(--deck-field);color:var(--on-wood);font-size:13px;font-weight:600;white-space:nowrap}
 .dbtn:not(:disabled):hover{border-color:var(--brass)}
 .dbtn:disabled{opacity:.5;cursor:default}

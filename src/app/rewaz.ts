@@ -6,7 +6,7 @@
  * do (Rinat, 2026-10-13). The HTML builders are pure and tested in Node.
  */
 import { durationText } from '../core/practice/log';
-import { gapOf, itemLines, newRoutineId, ROUTINE_LIMITS, roundGapOf, routineSeconds, STARTER, type ItemGuide, type Routine, type RoutineItem, type SongShape } from '../core/practice/routine';
+import { gapOf, itemLines, newRoutineId, ROUTINE_LIMITS, roundGapOf, routineSeconds, STARTER, wholeIfAll, type ItemGuide, type Routine, type RoutineItem, type SongShape } from '../core/practice/routine';
 import type { WriteResult } from './store';
 import { foldText } from '../core/song/model';
 import { esc } from './view';
@@ -94,6 +94,12 @@ export function itemRowHTML(it: RoutineItem, i: number, count: number, song: Ite
     btn('remove', 'Remove from this routine', ICON.del, false, ' rwdel') + '</span></li>';
   return html;
 }
+
+/** The rewaz bar's round, 0-based `pass` of `rounds`: " · round 2 of 3", and while a break
+ * before it counts down " · round 2 of 3 starting in 3 s", as the break between items is
+ * (Rinat, 2026-10-26). */
+export const roundText = (pass: number, rounds: number, left = 0): string =>
+  ' · round ' + Math.min(pass + 1, rounds) + ' of ' + rounds + (left > 0 ? ' starting in ' + left + ' s' : '');
 
 /** What a routine's row shows besides the routine itself. */
 export interface RoutineRow {
@@ -184,6 +190,8 @@ export interface Rewaz {
   cancel(): void;
   /** A beat is showing in round `pass` (0-based). */
   beat(pass: number): void;
+  /** A break before round `pass` (0-based), `left` seconds to go; 0 once its count-in plays. */
+  rest(pass: number, left: number): void;
 }
 
 export function initRewaz(host: RewazHost): Rewaz {
@@ -494,9 +502,12 @@ export function initRewaz(host: RewazHost): Rewaz {
         } else {
           it.from = Number(v);
           it.to = Math.max(it.from, it.to ?? it.from);
+          wholeIfAll(it, host.song(it.song)?.labels.length ?? 0);
         }
-      } else if (key === 'to') it.to = Number(v);
-      else if (key === 'rounds') it.rounds = Math.max(1, Math.min(20, Math.round(Number(v)) || 1));
+      } else if (key === 'to') {
+        it.to = Number(v);
+        wholeIfAll(it, host.song(it.song)?.labels.length ?? 0);
+      } else if (key === 'rounds') it.rounds = Math.max(1, Math.min(20, Math.round(Number(v)) || 1));
       else if (key === 'tempo') {
         const t = Math.round(Number(v));
         if (v === '' || !t) delete it.tempo;
@@ -507,9 +518,11 @@ export function initRewaz(host: RewazHost): Rewaz {
       }
     };
     // Rounds, tempo, guide and the last line change in place, so Tab goes on to the next
-    // field. A new song or first line changes the other fields: the routine is drawn again
-    // and the focus put back on the same choice (as is the ready-made one, saved now).
-    if (got.saved && key !== 'song' && key !== 'from') {
+    // field. A new song or first line changes the other fields, as does a last line making it
+    // the whole song: the routine is drawn again and the focus put back on the same choice, or
+    // on the lines' first (as is the ready-made one, saved now).
+    const all = key === 'to' && (got.r.items[i]?.from ?? 0) <= 0 && Number(el.value) >= (host.song(got.r.items[i]?.song ?? '')?.labels.length ?? 0) - 1;
+    if (got.saved && key !== 'song' && key !== 'from' && !all) {
       edit(got.r);
       store(got.r);
       const it = got.r.items[i];
@@ -521,7 +534,7 @@ export function initRewaz(host: RewazHost): Rewaz {
     }
     change(id, edit);
     const sec = Array.from(list.querySelectorAll<HTMLElement>('.rwr')).find((s) => s.dataset.r === id);
-    sec?.querySelector<HTMLElement>('[data-i="' + i + '"][data-k="' + key + '"]')?.focus();
+    sec?.querySelector<HTMLElement>('[data-i="' + i + '"][data-k="' + (all ? 'from' : key) + '"]')?.focus();
   });
   // While an item plays, Skip moves on to the next; in the pause before one, it starts it now.
   $('#rwSkip').addEventListener('click', () => {
@@ -561,7 +574,11 @@ export function initRewaz(host: RewazHost): Rewaz {
     beat(pass) {
       if (!run || pass < 0) return;
       const it = run.r.items[run.i];
-      if (it && it.rounds > 1) showBar(itemText(run.i, ' · round ' + Math.min(pass + 1, it.rounds) + ' of ' + it.rounds));
+      if (it && it.rounds > 1) showBar(itemText(run.i, roundText(pass, it.rounds)));
+    },
+    rest(pass, left) {
+      const it = run?.r.items[run.i];
+      if (it) showBar(itemText(run!.i, roundText(pass, it.rounds, left)));
     },
   };
 }

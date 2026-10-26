@@ -146,6 +146,17 @@ export function lineOptionsHTML(P: ParsedSong, script: Script): string {
     : '<option value="0">no lines yet</option>';
 }
 
+/** The Lines to practise from the deck's pickers, `count` lines in the song: `from` null (its "The
+ * whole song") or the first line to the last is the whole song; otherwise from one line to
+ * another, `to` at least `from` (Rinat, 2026-10-26: as a rewaz item's lines). */
+export function linesPicked(from: number | null, to: number, count: number): { from: number; to: number; whole: boolean } {
+  const last = Math.max(0, count - 1);
+  if (from == null) return { from: 0, to: last, whole: true };
+  const a = Math.min(Math.max(0, from), last);
+  const b = Math.min(Math.max(a, to), last);
+  return { from: a, to: b, whole: a === 0 && b === last };
+}
+
 export const keyOptionsHTML = (): string => KEYS.map((k, i) => '<option value="' + i + '">' + k[0] + ' · ' + k[1] + '</option>').join('');
 /** The octaves of Sa, named with its key: "C♯3 · low", "C♯4 · middle", "C♯5 · high". */
 export const octOptionsHTML = (saKey = 0): string => OCTS.map((o) => '<option value="' + o[0] + '">' + saKeyName(saKey, o[0]) + ' · ' + o[1].toLowerCase() + '</option>').join('');
@@ -166,15 +177,6 @@ export function startOnOptionsHTML(T: TaalInfo): string {
     html += '<option value="' + (p + 1) + '">' + (p + 1) + (mk === 'X' ? ' · sam (X)' : mk === '0' ? ' · khali (0)' : '') + '</option>';
   }
   return html;
-}
-
-/** The song picker: "My songs" (already sorted by title), then the exercises; or the
- * exercises first, as the Music library shows them (new). */
-export function libraryHTML(own: readonly { id: string; title: string }[], exercises: readonly { id: string; title: string }[], exFirst = false): string {
-  const mine = '<optgroup label="My songs">' +
-    (own.length ? own.map((s) => '<option value="' + esc(s.id) + '">' + esc(s.title) + '</option>').join('') : '<option disabled value="">No songs yet. Press + New song</option>') + '</optgroup>';
-  const ex = '<optgroup label="Exercises">' + exercises.map((s) => '<option value="' + esc(s.id) + '">' + esc(s.title) + '</option>').join('') + '</optgroup>';
-  return exFirst ? ex + mine : mine + ex;
 }
 
 /** The layer chips for a rhythm style, pressed when on; hidden when the style has none. */

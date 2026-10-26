@@ -105,10 +105,8 @@ describe('a break between rounds', () => {
     expect(cleanTake({ id: 't', song: 's', at: 1, secs: 30, rate: 48000 })!.gap).toBeUndefined();
   });
 
-  it('is kept as a setting for looping on the Practice view', () => {
+  it('is a rewaz routine\'s only: the Practice view\'s setting is dropped', () => {
     const prefs = (o: object) => loadPrefs({ getItem: (k) => (k === STORE_KEYS.prefs ? JSON.stringify(o) : null), setItem() {}, removeItem() {} });
-    expect(prefs({ loopGap: 6 }).loopGap).toBe(6);
-    expect(prefs({ loopGap: 0 }).loopGap).toBeUndefined();
-    expect(prefs({ loopGap: 900 }).loopGap).toBeUndefined();
+    expect('loopGap' in prefs({ loopGap: 6 })).toBe(false);
   });
 });

@@ -112,6 +112,15 @@ export function itemLines(it: RoutineItem, lines: number): [number, number] {
   return [from, it.from == null ? last : Math.max(from, Math.min(it.to ?? from, last))];
 }
 
+/** An item's lines from the first to the last are the whole song: kept as none, so it says
+ * "The whole song" (Rinat, 2026-10-26). */
+export function wholeIfAll(it: RoutineItem, lines: number): void {
+  if (it.from != null && it.from <= 0 && (it.to ?? 0) >= lines - 1) {
+    delete it.from;
+    delete it.to;
+  }
+}
+
 /**
  * Roughly how long a routine takes, seconds: each item's beats × rounds at its tempo, a
  * count-in cycle, the breaks between its rounds (each with a count-in cycle again), and the gap

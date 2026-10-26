@@ -60,6 +60,7 @@ import { dayReportHTML, dayReportName } from './dayreport';
 import { exportName, stamp } from './filenames';
 import { songFileName, songReportHTML, type SongReportInput } from './songreport';
 import { initRewaz, type ItemSong, type Rewaz } from './rewaz';
+import { initSongPick, type SongPick } from './songpick';
 import { allTakesHTML, takeBuffer, takeFileName, takesHTML, TakeStore } from './takes';
 import { initVoice, type SaChoice, type VoiceUI } from './voice';
 import { initSongs, LIB_ORDER } from './songs';
@@ -114,9 +115,11 @@ const logStore = new LogStore(storage);
 let practised = lastPractised(logStore.load());
 /** The Songs view and pitch feedback, wired up by init. */
 let songsView: { render(): void } = { render() {} };
+/** The song picker at the top of the deck, wired up by init. */
+let songPick: SongPick = { render() {} };
 let pitchUI: PitchUI = { on: false, startRun() {}, pause() {}, resume() {}, beat() {}, endRun: () => null };
 /** Rewaz routines and the Progress view, wired up by init. */
-let rewaz: Rewaz = { render() {}, active: false, name: '', finished() {}, cancel() {}, beat() {} };
+let rewaz: Rewaz = { render() {}, active: false, name: '', finished() {}, cancel() {}, beat() {}, rest() {} };
 let progressView: { render(): void } = { render() {} };
 /** The Practice view's lines, wired up first by init (every parse draws them). */
 let lines!: LinesUI;
@@ -268,9 +271,9 @@ function ensureAudio(): Transport {
 
 /** The Lines to practise, as the deck's pickers show them. */
 function pickedLines(): PlayAsk {
-  const last = Math.max(0, parsed.noteLines.length - 1);
-  const from = clamp(+select('#fromLine').value || 0, 0, last);
-  return { from, to: Math.max(from, clamp(+select('#toLine').value || 0, 0, last)), loop: input('#loopChk').checked, upTo: true, gap: prefs.loopGap };
+  const f = select('#fromLine').value;
+  const { from, to } = V.linesPicked(f === '' ? null : +f, +select('#toLine').value, parsed.noteLines.length);
+  return { from, to, loop: input('#loopChk').checked, upTo: true };
 }
 
 /** Play what is asked (the Lines to practise unless told otherwise). `at` goes on from a
@@ -588,6 +591,7 @@ function frame(): void {
     if (left !== brkShown) {
       brkShown = left;
       lines.current(parsed.lineOfBeat[T.secStart] ?? 0, 'Break ' + left, true);
+      rewaz.rest(shownBrk.pass, left);
     }
   }
   // The playhead moves through the beat sounding, and the taal figure's edges draw on.
@@ -1089,7 +1093,9 @@ function showBeat(q: BeatEntry): void {
   const t = shownTempo();
   const busy = document.activeElement === input('#tempoRange') || document.activeElement === input('#tempoNum');
   if (!busy && input('#tempoNum').value !== String(t)) showTempo(t);
-  rewaz.beat(q.pass);
+  // The count-in after a break is the next round's.
+  if (q.pass < 0 && shownBrk) rewaz.rest(shownBrk.pass, 0);
+  else rewaz.beat(q.pass);
 }
 function showIdle(): void {
   // Paused, the lines stay where they were.
@@ -1107,15 +1113,20 @@ function showIdle(): void {
   showMessage('');
 }
 
+/** The Lines to practise: "The whole song", or a line picked and "to" another from it on, as a
+ * rewaz item's are; kept when the song's text changes (`keep`), else the whole song. */
 function renderLineSelects(keep: boolean): void {
-  const L = parsed.noteLines;
-  const prevFrom = keep ? +select('#fromLine').value || 0 : 0;
-  const prevTo = keep ? +select('#toLine').value : L.length - 1;
-  const opts = V.lineOptionsHTML(parsed, prefs.script);
-  select('#fromLine').innerHTML = opts;
-  select('#toLine').innerHTML = opts;
-  select('#fromLine').value = String(clamp(prevFrom, 0, Math.max(0, L.length - 1)));
-  select('#toLine').value = String(clamp(isNaN(prevTo) ? L.length - 1 : prevTo, 0, Math.max(0, L.length - 1)));
+  const f = select('#fromLine').value;
+  const was = keep && f !== '' ? { from: +f, to: +select('#toLine').value } : null;
+  select('#fromLine').innerHTML = '<option value="">The whole song</option>' + (parsed.noteLines.length ? V.lineOptionsHTML(parsed, prefs.script) : '');
+  setLinePick(was ? was.from : null, was ? was.to : 0);
+}
+function setLinePick(from: number | null, to: number): void {
+  const p = V.linesPicked(from, to, parsed.noteLines.length);
+  select('#fromLine').value = p.whole ? '' : String(p.from);
+  select('#toLine').innerHTML = p.whole ? '' : lineLabels(parsed).map((t, n) => (n >= p.from ? '<option value="' + n + '">' + V.esc(t) + '</option>' : '')).join('');
+  select('#toLine').value = String(p.to);
+  select('#toLine').hidden = $('#toLab').hidden = p.whole;
 }
 
 let issueList: V.IssueTarget[] = [];
@@ -1184,9 +1195,7 @@ function pickerGroups(): { own: Song[]; exercises: readonly (Song | Exercise)[];
 const what = () => (current.example || current.exercise ? 'exercise' : 'song');
 /** The song picker, and the Music library when it is showing. */
 function renderLibrary(): void {
-  const g = pickerGroups();
-  select('#songSel').innerHTML = V.libraryHTML(g.own, g.exercises, g.exFirst);
-  if (current) select('#songSel').value = current.id;
+  if (current) songPick.render();
   songsView.render();
 }
 /** The deck's buttons: Play (Pause while playing; Play again goes on after a pause), Stop and
@@ -2030,7 +2039,7 @@ function loadSong(song: Song | Exercise): void {
   $('#delBtn').hidden = current.example;
   renderEditSummary();
   $('#delConfirm').hidden = true;
-  select('#songSel').value = current.id;
+  songPick.render();
   selTouched = false;
   reparse(false);
   songsView.render();
@@ -2685,7 +2694,6 @@ export function init(): void {
   input('#rampChk').checked = !!prefs.ramp;
   select('#rampStep').value = String(prefs.rampStep);
   input('#rampMax').value = String(prefs.rampMax);
-  input('#loopGap').value = String(prefs.loopGap ?? 0);
   renderNoteButtons();
   setEditSetOpen(!!prefs.editSetOpen);
   setPadOpen(!prefs.padFold);
@@ -2970,12 +2978,16 @@ export function init(): void {
     else if (paused) stop();
     else if (!playing()) showIdle();
   };
+  // A line picked from the whole song plays alone until "to" says more, as in a rewaz item.
   select('#fromLine').addEventListener('change', () => {
-    if (+select('#toLine').value < +select('#fromLine').value) select('#toLine').value = select('#fromLine').value;
+    const f = select('#fromLine').value;
+    setLinePick(f === '' ? null : +f, select('#toLine').hidden ? +f : Math.max(+f, +select('#toLine').value));
     linesChanged();
   });
   select('#toLine').addEventListener('change', () => {
-    if (+select('#toLine').value < +select('#fromLine').value) select('#fromLine').value = select('#toLine').value;
+    setLinePick(+select('#fromLine').value, +select('#toLine').value);
+    // The first line to the last is the whole song: "to" goes, so the focus stays on the lines.
+    if (select('#toLine').hidden) select('#fromLine').focus();
     linesChanged();
   });
   input('#loopChk').addEventListener('change', linesChanged);
@@ -3102,16 +3114,6 @@ export function init(): void {
     el.value = String(prefs.rampMax);
     savePrefs();
   });
-  input('#loopGap').addEventListener('change', (e) => {
-    const el = e.target as HTMLInputElement;
-    const v = clamp(Math.round(+el.value || 0), 0, 120);
-    if (v) prefs.loopGap = v;
-    else delete prefs.loopGap;
-    el.value = String(v);
-    savePrefs();
-    // A loop playing now takes it from its next round (not a rewaz item's, or a take's).
-    if (T && asked && asked.loop && !asked.check && !rewaz.active && !takePlay) T.gap = asked.gap = v;
-  });
   input('#countIn').addEventListener('change', (e) => {
     prefs.countIn = (e.target as HTMLInputElement).checked;
     savePrefs();
@@ -3192,13 +3194,25 @@ export function init(): void {
     if (!playing()) showIdle();
   });
 
-  select('#songSel').addEventListener('change', (e) => {
-    const id = (e.target as HTMLSelectElement).value;
-    const s = songs.get(id) || EXERCISES.find((x) => x.id === id);
-    if (s) {
-      userPicked = true;
-      loadSong(s);
-    }
+  songPick = initSongPick({
+    choices: pickerGroups,
+    current: () => current,
+    folded: () => prefs.pickFold ?? {},
+    fold: (g, fold) => {
+      const f = { ...prefs.pickFold };
+      if (fold) f[g] = true;
+      else delete f[g];
+      if (f.mine || f.ex) prefs.pickFold = f;
+      else delete prefs.pickFold;
+      savePrefs();
+    },
+    pick: (id) => {
+      const s = songs.get(id) || EXERCISES.find((x) => x.id === id);
+      if (s) {
+        userPicked = true;
+        loadSong(s);
+      }
+    },
   });
   $('#newBtn').addEventListener('click', () => newSong());
   $('#copyBtn').addEventListener('click', () => {
@@ -3350,7 +3364,7 @@ export function init(): void {
     stop(true);
     rewaz.cancel();
     clearOverride();
-    play({ from: sec.first, to: sec.last, loop: input('#loopChk').checked, gap: prefs.loopGap });
+    play({ from: sec.first, to: sec.last, loop: input('#loopChk').checked });
   });
   document.addEventListener('click', (e) => {
     const b = (e.target as Element).closest<HTMLElement>('.ln[data-n],.pln[data-n]');
