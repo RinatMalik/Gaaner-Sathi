@@ -122,7 +122,7 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `countIn` | boolean |
 | `guideLoop` | `all`, `first` or `alt` |
 | `ramp`, `rampStep`, `rampMax` | The tempo trainer: on or off, the step and the top |
-| `loopGap` | Seconds of break between rounds when looping on the Practice view, 1–120; absent: none (2026-10-23) |
+| `loopGap` | No longer read (2026-10-26): the seconds of break between rounds when looping on the Practice view, set on the Guide panel from 2026-10-23; a rewaz routine's `roundGap` stays |
 | `tkGroup` | `date` while the Voice page's takes are grouped by the day taken; absent: by song (2026-10-23) |
 | `lastSong` | The song open last |
 | `tab` | The view open last: `practice`, `songs` (the Music library), `edit`, `rewaz`, `voice` or `progress` |
@@ -132,6 +132,7 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `libSort` | How the Music library sorts: `practised`, `changed` or `title` |
 | `libFold` | The Music library's sections folded away, `{ mine?: true, ex?: true }`; absent: both open. A search shows every section |
 | `libOrder` | The Music library's sections in the order dragged, `["mine", "ex"]`; absent: the exercises first. The song pickers follow it |
+| `pickFold` | The song picker's groups folded away (the list at the top of the deck), `{ mine?: true, ex?: true }`; absent: both open. Its find box shows every group (2026-10-26) |
 | `pgFold` | Progress's sections folded away, `{ week?, pitch?, songs?, history?: true }`; absent: all open (2026-10-20) |
 | `pgOrder` | Progress's sections in the order dragged, all four of `"week"`, `"pitch"`, `"songs"`, `"history"`; absent: that order |
 | `pitchOctave` | `true` when pitch feedback counts the octave too |
@@ -293,7 +294,7 @@ again, when on); absent: none (Rinat, 2026-10-23).
 | Item field | Meaning |
 |---|---|
 | `song` | A song or exercise id. A song deleted later is skipped when the routine runs |
-| `from`, `to` | Lines to practise, 0-based and inclusive; absent: the whole song |
+| `from`, `to` | Lines to practise, 0-based and inclusive; absent: the whole song, as is the first line to the last (2026-10-26) |
 | `rounds` | Times through, 1–20 |
 | `tempo` | Matras per minute, 30–240; absent: the song's own. It never changes the song |
 | `guide` | `all` (every round), `first` (first round only), `alt` (every other round: call and response) or `off`; absent: as set at the top of the app |

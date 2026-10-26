@@ -49,7 +49,12 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
 - **The Lines to practise** (Rinat, 2026-10-22: "from {dropdown} to {dropdown} (in one line)",
   with Loop beside the octave rule): from one line to another, once and stopping at the last
   (`upTo`), or round and round with Loop. Elsewhere a play without a loop still goes on to the
-  song's end. Choosing the last line no longer ticks Loop.
+  song's end. Choosing the last line no longer ticks Loop. Since 2026-10-26 they read as a
+  rewaz item's lines do (Rinat: "adopt the same kind of UI as in the rewaz section"): one picker
+  saying "The whole song", and once a line is picked "to" beside it, offering that line and the
+  ones after (a line picked from the whole song plays alone until "to" says more). The first
+  line to the last is the whole song again, "to" going (`linesPicked` in view.ts; a rewaz
+  item's `wholeIfAll` in routine.ts).
 - **What plays** (Rinat, 2026-10-12): the deck's Play plays the Lines to practise; a line
   number on the sheet and the editor's "play from here" play from that line to the end of the
   song, once; a section button plays its section (looping it when "loop" is ticked); a rewaz
@@ -104,10 +109,12 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
   The queue gets a `BreakEntry` (`brk`, `until`, the round it leads to) and the line's box
   counts the seconds down ("Break 3"). No break after the last round, without a loop, or
   before the round a pause goes on in: paused in a break, Play goes on with the next round at
-  once. Set on the Guide panel ("Break between rounds", for the Lines to practise and a
-  section looped, changing a loop already playing) and per routine for its items' rounds
-  (`roundGap`, separate from the break between items). A take keeps it, so it plays back with
-  the same breaks.
+  once. Set per routine for its items' rounds (`roundGap`, separate from the break between
+  items); the rewaz bar counts it down as it does the break between items ("round 2 of 3
+  starting in 3 s", then "round 2 of 3" through the count-in; `roundText` in rewaz.ts). The
+  Guide panel's own "Break between rounds", for the Lines to practise and a section looped, was
+  taken out on 2026-10-26 (Rinat: "Just in the rewaz is good enough"). A take keeps it, so it
+  plays back with the same breaks.
 - **Hooks:** `onBeat` reports every scheduled matra (pitch feedback, takes); `onNote(t, dur,
   midi)` hears each guide note as it is scheduled, and `localGuide = false` leaves the
   harmonium out (MIDI keyboards).

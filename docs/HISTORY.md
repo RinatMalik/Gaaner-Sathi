@@ -49,6 +49,46 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-23 BST — Claude (Opus 5.5) — PH2-38 the settings at the foot of the lines; beat boxes at every font size
+
+- **Goal:** Rinat: "in practice page, move the line which has the lines shown, being sung,
+  measure delay to the end of the notation window. like a footer of that window, included
+  within the boundary of the section"; "change 'No keyboard found yet:...' to 'No physical
+  keyboard connected:...'"; "In the edit notation page, if i increase the font size to even
+  medium, on an 8 beat notation, the line breaks into two lines even though there is enough
+  space to fit"; remove "Finding your Sa and holding a note use the microphone only while
+  listening, and record nothing."
+- **Inspected:** the Practice view's markup (`.psets` under the title, `#pl` with its pitch
+  footer `.plfoot`); keyboard.ts's status line; boxes.ts's `centre()` (`--bxw`, measured on
+  each draw and when the box's width changes) and `refresh()` (draws only when the text's
+  shape changed), which the font size's handler calls through `applyLinesPrefs`. Reproduced
+  in headless Edge at 1280 px: Bigger left `--bxw` at 286 px for 334 px of boxes, each row on
+  two lines in a 1131 px box (Smaller then Normal does the same).
+- **Changed:** index.html (the settings line moved into `#pl` as its last child; the scoring
+  help says "at the foot of the song’s lines"; the Voice page's note gone), styles.css
+  (`.psets` a footer: padding and a rule above, no negative margin), pitch.ts and insights.ts
+  (the delay's messages: "below", "at the foot of the song’s lines"), keyboard.ts (the
+  words), boxes.ts (`refresh()` measures again when it does not draw; `centre()` also on
+  `document.fonts` `loadingdone`). Docs: ENGINE.md, DATA.md, NOTATION.md, ROADMAP row 38,
+  HISTORY (the PH2-36 entry), this file.
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 39 files, 452
+  passed; `npm run build` → 357.45 kB JS; `bash reference/tests/run-all.sh` → parser 31,
+  checker 11, join-split 10, rhythm 12, tanpura 5 passed, 12 exercises valid. Headless Edge on
+  `npm run dev` (the pane hidden), ex-scale in Edit notation at 1280 px: `--bxw` 374 px
+  (Normal), 442 (Bigger), 324 (Smaller), then after a reload at Smaller 324 → 374 (Normal) →
+  442 (Bigger), no row on two lines at any step. Practice at 1280 px day and night: the
+  settings line the last child of `#pl`, inside its frame (56 px tall, one row), screenshots
+  seen; 360 px night: four short rows, page 345 px wide. A stand-in `requestMIDIAccess` with no
+  ports: "No keyboard connected." then, after Connect, "No physical keyboard connected: plug it
+  in with a USB cable." The Voice page has no "record nothing" note. No console errors.
+- **Decisions made:** three rows (the settings at the foot of the lines; the keyboard's words;
+  no microphone note on the Voice page).
+- **Risks or disagreements:** no unit test for the beat boxes' width: Vitest runs in Node with
+  no DOM, and a DOM library would be a new dependency; the headless Edge scenario is the
+  check. Not tried on Rinat's own 8-beat songs with words (the measure counts the words' boxes
+  too). The settings now sit under the pitch check's line when that shows (Claude's choice).
+- **Next handoff:** Rinat tries rounds thirty-four to thirty-eight.
+
 ### 2026-10-23 BST — Claude (Opus 5.5) — PH2-37 every take in one place
 
 - **Goal:** Rinat: "there is no way to see all the recorded audios in one go … if i wanted to
