@@ -49,6 +49,63 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-23 BST — Claude (Opus 5.5) — PH2-39 breaks between rounds; My takes as a table; the picker's buttons at its top
+
+- **Goal:** Rinat: "i'd like the option to add some delay between loops and also between
+  rounds when doing rewaz with multiple rounds"; "My takes table in the Voice page, needs all
+  the bells and whistles of a table - should be collapsible the song name or the date taken.
+  want to be able to select all the takes in a particular day and delete together. also all
+  the takes of a particular song and delete together. no need for delete confirmation when
+  deleting just one take. if multiple takes are deleted together, only then confirmation is
+  fine"; "why is it that the preloaded exercises can't be deleted or modified?" (a question:
+  answered in chat, Open question 6); in the rewaz picker the wheel scrolls one list's box and
+  stops, "ideally it would scroll … the whole page … the 'Add to this routine' and Cancel
+  button - bring them to the top of the song picker".
+- **Inspected:** transport.ts's `tick` (rounds, count-in beats with `pass` −1, the fade on
+  the last note), the rewaz runner's break between items, takes.ts and app.ts's takes code,
+  the picker's markup and styles (`.rwpicklist` with its own max-height and scroll), History's
+  folding days (reused for the takes' groups), the Invariants on built-in exercises.
+- **Changed:** transport.ts (`gap`, `BreakEntry`, the count-in and pickup again after a break,
+  the note before it fading), app.ts (the break shown and counted down, a pause in it; the
+  Guide panel's setting, live; takes keep it; the takes table's state and handlers; one take
+  deleted with Undo), takes.ts (`takeGroups`, the table, `TakeStore.remove` of several),
+  progress.ts (`dayLabel` shared), rewaz.ts (`roundGap`'s field; the picker's head with Add and
+  Cancel), routine.ts (`roundGap`, `routineSeconds`), take.ts, session.ts, aifile.ts, store.ts
+  (prefs `loopGap`, `tkGroup`; `RoutineStore.save` keeping `roundGap`: found by the Edge check,
+  it had been dropped), index.html (the Guide panel's row; My takes' intro), styles.css (the
+  table; the picker's sticky head; With the guide on one line); tests. Docs: ENGINE.md →
+  Transport and Takes, DATA.md (prefs, routines, takes, session settings), ROADMAP row 39,
+  HISTORY (the PH2-37 entry), this file.
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 40 files, 460
+  passed; `npm run build` → 364.90 kB JS; `bash reference/tests/run-all.sh` → parser 31,
+  checker 11, join-split 10, rhythm 12, tanpura 5 passed, 12 exercises valid. Headless Edge
+  on `npm run dev` (the pane hidden; scratchpad `cdp.mjs`, now with mouse-wheel steps), each
+  step measured and the screenshots seen. Takes (six stand-ins in IndexedDB over two days, one
+  of a deleted song): "6 takes of 3 songs · 0:24 in all · 1 MB"; by song 3/2/1; by date
+  "Today, Fri 23 Oct" 4 and "Yesterday, Thu 22 Oct" 2; the day's box ticks 4 (focus kept), one
+  more makes yesterday's "some"; "Delete all 5" asks "Delete these 5 takes?" (focus on Keep),
+  Keep, then Delete → "Deleted 5 takes."; the last one's bin deletes it unasked with Undo, Undo
+  puts it back ("The take is back.", its 192 000-byte recording) and Just me plays it (■ Stop);
+  a group folded hides its list; 1280 px day and night, 360 px night. Practice, ex-alankar-bn
+  line 1 looped at 200 with a 4 s break: In 6 … In 1, Now, Break 4, 3, 2, 1 (1 s apart), In 6
+  … In 1, Round 2; paused in the second break and Play → Round 3 with no break before it; the
+  line's box shows "BREAK 4". A routine (ex-scale line 1, 3 rounds at 200, 3 s breaks, then
+  ex-long-notes after 2 s): Break 3 … 1, In 8 … 1, Round 2, the same, Round 3, Done, "starting
+  in 2 s". The picker: its lists 539/539 px (no inner scroll), the head at the top of the
+  screen while the page scrolled to its end, "Add 2 to this routine" there; 360 px night page
+  345 px wide. A routine's break typed as 5 was not kept before the store fix; after it, kept
+  (unit test). No console errors. The stand-in takes and routine deleted afterwards.
+- **Decisions made:** four rows (a break between rounds; My takes as a table; one take deleted
+  unasked with Undo; the picker's head at the top). Open question 6 added.
+- **Risks or disagreements:** the break's sound (the drone on, the count-in again) is not
+  heard here: Rinat to say whether the count-in after every break is wanted. The rewaz bar
+  says the round just sung until the next starts. Undo was not asked for: it keeps "never
+  lose work" without a question. Built-in exercises not changed: they are an
+  Invariant, so Rinat decides (Open question 6).
+- **Next handoff:** Rinat answers Open question 6 and tries rounds thirty-four to thirty-nine.
+
+Older entries: `docs/HISTORY.md`.
+
 ### 2026-10-23 BST — Claude (Opus 5.5) — PH2-38 the settings at the foot of the lines; beat boxes at every font size
 
 - **Goal:** Rinat: "in practice page, move the line which has the lines shown, being sung,

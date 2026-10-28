@@ -338,7 +338,14 @@ Rinat, 2026-10-20: "Have two buttons for each session": **Report** and **For AI*
 session in Progress (and under the lines after a run with the pitch check). They need more
 than the log's summary, so from 2026-10-20 each logged session also keeps its detail in
 IndexedDB (store `sessions`), written when the log entry is. Sessions logged before then have
-only the summary: their report and file say so, and show what the log has (score, lines).
+only the summary: their report and file say so, and show what the log has (score, lines). If
+the browser will not store a run's detail, a run with the pitch check says so under the lines.
+
+Each store is opened once (`openOnce` in src/app/db.ts) and every caller waits for that opening.
+Until 2026-10-28 a flag was set before the await, so callers at the same moment got no store:
+a day's report or file for AI, made first after the page opened, read its sessions together
+and had the detail of its first session only (Rinat's file of 2026-10-27: 1 of 29; the detail
+itself was kept, and a second save had it all).
 
 ```json
 { "at": 1791655308398, "song": "song-mv2pb608-a4kmn",
