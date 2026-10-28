@@ -14,7 +14,7 @@ import { centsFromSa, judged } from '../core/pitch/track';
 import { taalInfo } from '../core/taal/taals';
 import type { SessionFileInput } from './aifile';
 import { exportName, stamp } from './filenames';
-import { noteKeysHTML, noteKeysLegend, NOTEKEYS_CSS } from './notekeys';
+import { keyOfHz, noteKeysHTML, noteKeysLegend, NOTEKEYS_CSS, saOnText } from './notekeys';
 import { beatNoteHTML, esc, lyricHTML, type Script } from './view';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -360,8 +360,9 @@ export function reportHTML(o: SessionFileInput & { script: Script }): string {
       '<p class="sub">' + cents.length + ' notes; point at a column for how many.</p><ul class="legend"><li><span class="sw good"></span>In tune</li><li><span class="sw ok"></span>Close</li><li><span class="sw off"></span>Off</li></ul></section>';
     if (ins.swaras.length) {
       const most = Math.max(30, ...ins.swaras.map((x) => Math.abs(x.cents)));
-      html += '<section class="card"><h2>Note by note</h2><p class="sub">Each note you sang on a harmonium’s keys, Sa as the first white key (komal and tivra are the black keys), coloured by its score; ▲ and ▼ mark notes usually sharp or flat.</p>' +
-        noteKeysHTML(ins.swaras, script) + noteKeysLegend(ins.swaras) + '<div class="scroll" style="margin-top:12px"><table><thead><tr><th>Note</th><th class="num">Times</th><th class="num">Score</th><th>Usually</th><th class="num">Cents</th></tr></thead><tbody>' +
+      const key = { key: song ? keyOfHz(song.saHz) : 0, mixed: false };
+      html += '<section class="card"><h2>Note by note</h2><p class="sub">Each note you sang on a harmonium’s keys, ' + saOnText(key, true) + ', coloured by its score; ▲ and ▼ mark notes usually sharp or flat.</p>' +
+        noteKeysHTML(ins.swaras, script, false, key.key) + noteKeysLegend(ins.swaras) + '<div class="scroll" style="margin-top:12px"><table><thead><tr><th>Note</th><th class="num">Times</th><th class="num">Score</th><th>Usually</th><th class="num">Cents</th></tr></thead><tbody>' +
         ins.swaras.map((x) => {
           const w = (Math.min(Math.abs(x.cents), most) / most) * 50;
           return '<tr><td><span class="note">' + beatNoteHTML({ units: [{ k: 'note', semi: x.semi, oct: x.oct }] }, script) + '</span><span class="sub nw">' + esc(noteWords(x.semi, x.oct)) + '</span></td><td class="num">' + x.n + '</td>' +

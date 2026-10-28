@@ -9,7 +9,7 @@
 import { lengthText, meanScore, noteScores, type LogEntry } from '../core/practice/log';
 import type { SessionFileInput } from './aifile';
 import { dayTitle, exportName, stamp } from './filenames';
-import { FEW, noteBrief, noteHighlights, noteKeysHTML, noteKeysLegend, noteTableHTML } from './notekeys';
+import { FEW, keyOfHz, mainKey, noteBrief, noteHighlights, noteKeysHTML, noteKeysLegend, noteTableHTML, saOnText } from './notekeys';
 import { dayText, grade, msText, reportHead, reportScript, scoreLine } from './report';
 import { esc, type Script } from './view';
 
@@ -143,9 +143,13 @@ export function dayReportHTML(o: DayReportInput): string {
   const ns = noteScores(E);
   if (ns.length) {
     const h = noteHighlights(ns);
-    html += '<section class="card"><h2>Note by note</h2><p class="sub">Each note you sang today, in every session, on a harmonium’s keys with Sa as the first white key (komal and tivra are the black keys), coloured by its average score; ▲ and ▼ mark notes usually sharp or flat.' +
+    const key = mainKey(o.inputs.flatMap((x) => {
+      const song = x.detail?.played ?? x.songNow;
+      return x.e.notes && song ? [[keyOfHz(song.saHz), x.e.secs] as const] : [];
+    }));
+    html += '<section class="card"><h2>Note by note</h2><p class="sub">Each note you sang today, in every session, on a harmonium’s keys with ' + saOnText(key) + ', coloured by its average score; ▲ and ▼ mark notes usually sharp or flat.' +
       (h ? ' Best: ' + esc(listText(h.best.map(noteBrief))) + '.' + (h.weak.length ? ' Needs the most work: ' + esc(listText(h.weak.map(noteBrief))) + '.' : '') : '') + '</p>' +
-      noteKeysHTML(ns, o.script) + noteKeysLegend(ns) + '<div class="scroll" style="margin-top:12px">' + noteTableHTML(ns, o.script) + '</div></section>';
+      noteKeysHTML(ns, o.script, false, key.key) + noteKeysLegend(ns) + '<div class="scroll" style="margin-top:12px">' + noteTableHTML(ns, o.script) + '</div></section>';
   }
 
   // Each session, as sung.

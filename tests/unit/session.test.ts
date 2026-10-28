@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { aiFile, aiFileName, aiFileText, AI_BRIEF, DAY_BRIEF, dayFileName, dayFileParts, practiceFileParts, PRACTICE_BRIEF, type SessionFileInput } from '../../src/app/aifile';
 import { progressHTML } from '../../src/app/progress';
-import { noteKeysHTML, noteKeysLegend } from '../../src/app/notekeys';
+import { keyOfHz, mainKey, noteKeysHTML, noteKeysLegend, saOnText } from '../../src/app/notekeys';
 import { reportHTML } from '../../src/app/report';
 import { dayFindings, dayReportHTML, dayReportName, daySummary } from '../../src/app/dayreport';
 import { dayTitle, exportName, fileTitle, stamp, TITLE_MAX } from '../../src/app/filenames';
@@ -333,6 +333,54 @@ describe('note by note on the keys', () => {
     expect(html).toContain('grid-template-columns:1fr 7fr 1fr');
     expect(noteKeysLegend([{ semi: 0, oct: 0, n: 2, score: 90, cents: 0 }])).toContain('Sung under 5 times');
     expect(noteKeysHTML([], 'lat')).toBe('');
+  });
+
+  it('puts Sa on the key the songs were played in: on C♯ it is a black key, as on the keyboard (Rinat, 2026-10-28)', () => {
+    const ns = [
+      { semi: 11, oct: -1, n: 6, score: 70, cents: 20 },
+      { semi: 0, oct: 0, n: 9, score: 60, cents: 0 },
+      { semi: 2, oct: 0, n: 9, score: 50, cents: 0 },
+      { semi: 4, oct: 0, n: 9, score: 80, cents: 0 },
+      { semi: 5, oct: 0, n: 9, score: 52, cents: 0 },
+      { semi: 0, oct: 1, n: 9, score: 66, cents: 0 },
+    ];
+    const keys = (h: string) => Array.from(h.matchAll(/class="nk (w|b)[^"]*"[^>]*?data-k="(-?\d+)"/g)).map((m) => m[1]! + m[2]!);
+    // On C♯: lower Ni on C, white; Sa, Re, Ma and upper Sa black; Ga on F, white; up to D.
+    const on = noteKeysHTML(ns, 'lat', false, 1);
+    expect(keys(on)).toEqual(['w-1', 'w4', 'b0', 'b2', 'b5', 'b12']);
+    expect(Array.from(on.matchAll(/class="nk w/g))).toHaveLength(9);
+    expect(Array.from(on.matchAll(/class="nk b/g))).toHaveLength(6);
+    // On C, as until then: Sa, Re, Ga and Ma white.
+    expect(keys(noteKeysHTML(ns, 'lat'))).toEqual(['w-1', 'w0', 'w2', 'w4', 'w5', 'w12']);
+    // The key from Sa's frequency: C♯4 and C♯3 are C♯, C4 is C, A4 is A.
+    expect([277.18, 138.59, 261.63, 440].map(keyOfHz)).toEqual([1, 1, 0, 9]);
+    expect(mainKey([[1, 300], [0, 100], [1, 50]])).toEqual({ key: 1, mixed: true });
+    expect(mainKey([[1, 30]])).toEqual({ key: 1, mixed: false });
+    expect(mainKey([])).toEqual({ key: 0, mixed: false });
+    expect(saOnText({ key: 1, mixed: false })).toBe('Sa on C♯, the key they were played in');
+    expect(saOnText({ key: 1, mixed: true })).toBe('Sa on C♯, the key most of them were played in');
+    expect(saOnText({ key: 6, mixed: false }, true)).toBe('Sa on F♯, the key it was played in');
+  });
+
+  it('draws Progress’s, a session’s and a day’s keys on the key they were played in', () => {
+    const notes: [number, number, number, number][] = [[0, 10, 92, 2], [2, 8, 94, 0], [4, 9, 90, 1]];
+    const log = [entry({ at: T0, score: 90, notes, secs: 120 })];
+    const pg = progressHTML(log, T0 + 1000, { song: () => ({ title: 'X', exercise: false, saKey: 1 }) });
+    expect(pg).toContain('on a harmonium’s keys with Sa on C♯, the key they were played in.');
+    expect(pg).toMatch(/class="nk b [^"]*"[^>]*data-k="0"/);
+    expect(progressHTML(log, T0 + 1000, { song: () => ({ title: 'X', exercise: false }) })).toMatch(/class="nk w [^"]*" data-k="0"/);
+    // A session's, by the Sa it was played in; a day's, by the Sa most of it was in.
+    const d = sing();
+    const onCs = { ...d, played: { ...d.played, saHz: 277.18 } };
+    const one = reportHTML({ ...input(onCs, [entry({ notes })]), script: 'lat' });
+    expect(one).toContain('Each note you sang on a harmonium’s keys, Sa on C♯, the key it was played in,');
+    expect(one).toMatch(/class="nk b [^"]*"[^>]*data-k="0"/);
+    expect(reportHTML({ ...input(d, [entry({ notes })]), script: 'lat' })).toMatch(/class="nk w [^"]*" data-k="0"/);
+    const day = [entry({ at: T0, notes, secs: 300, score: 90 }), entry({ at: T0 + 600_000, notes, secs: 60, score: 90 })];
+    const ins = day.map((e, i): SessionFileInput => ({ e, detail: i ? d : onCs, ins: analyse(e, i ? d : onCs, day), songNow: null, earlier: [], made: T0 }));
+    const dh = dayReportHTML({ inputs: ins, now: T0 + 3_600_000, script: 'lat' });
+    expect(dh).toContain('with Sa on C♯, the key most of them were played in,');
+    expect(dh).toMatch(/class="nk b [^"]*"[^>]*data-k="0"/);
   });
 });
 

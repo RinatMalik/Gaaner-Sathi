@@ -751,10 +751,7 @@ async function sessionInput(at: number): Promise<SessionFileInput | null> {
   } catch {
     detail = null;
   }
-  const found = e.song === current.id ? current : songs.get(e.song) || EXERCISES.find((x) => x.id === e.song);
-  // A built-in exercise plays in your Sa, as opening it does (2026-10-28: a day's file without its
-  // sessions' detail said the exercises were in C, the Sa they are stored in).
-  const s = found?.example && found !== current && prefs.mySa ? { ...found, ...prefs.mySa } : found;
+  const s = asPlayed(e.song === current.id ? current : songs.get(e.song) || EXERCISES.find((x) => x.id === e.song));
   const songNow = s ? { title: s.title, taal: s.taal, tempo: s.tempo, text: s.text, saHz: saFreq(s), sa: V.saWords(s) } : null;
   return { e, detail, ins: analyse(e, detail, log), songNow, earlier: log.filter((x) => x.song === e.song && x.at < e.at), made: Date.now() };
 }
@@ -866,6 +863,12 @@ async function wipePractice(): Promise<void> {
   say('Your practice history is deleted: Progress starts afresh with your next practice.');
 }
 
+/** A song as it plays: a built-in exercise in your Sa, as opening it does (2026-10-28: a day's
+ * file without its sessions' detail said the exercises were in C, the Sa they are stored in). */
+function asPlayed<S extends { example?: boolean }>(found: S | undefined): S | undefined {
+  return found?.example && (found as object) !== current && prefs.mySa ? { ...found, ...prefs.mySa } : found;
+}
+
 /** All a song's report and its file for AI need: its sessions, with the detail kept of the
  * latest `most`. */
 async function songInput(id: string, most = 60): Promise<SongReportInput | null> {
@@ -885,10 +888,10 @@ async function songInput(id: string, most = 60): Promise<SongReportInput | null>
   } catch {
     // The report and the file say what the log has.
   }
-  const s = id === current.id ? current : songs.get(id) || EXERCISES.find((x) => x.id === id);
+  const s = asPlayed(id === current.id ? current : songs.get(id) || EXERCISES.find((x) => x.id === id));
   return {
     song: id, title: s?.title ?? entries[entries.length - 1]!.title, exercise: !!(s && (s.example || s.exercise)),
-    songNow: s ? { taal: s.taal, tempo: s.tempo, text: s.text } : null, entries, details, now: Date.now(), script: prefs.script,
+    songNow: s ? { taal: s.taal, tempo: s.tempo, text: s.text, saKey: s.saKey } : null, entries, details, now: Date.now(), script: prefs.script,
   };
 }
 
@@ -2875,8 +2878,8 @@ export function init(): void {
   progressView = initProgress({
     log: () => logStore.load(),
     song: (id) => {
-      const s = id === current?.id ? current : songs.get(id) || EXERCISES.find((x) => x.id === id);
-      return s ? { title: s.title, exercise: !!(s.example || s.exercise) } : null;
+      const s = asPlayed(id === current?.id ? current : songs.get(id) || EXERCISES.find((x) => x.id === id));
+      return s ? { title: s.title, exercise: !!(s.example || s.exercise), saKey: s.saKey } : null;
     },
     open: openInPractice,
     folded: () => prefs.pgFold ?? {},

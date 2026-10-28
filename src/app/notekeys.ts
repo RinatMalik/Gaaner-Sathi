@@ -1,9 +1,10 @@
 /**
  * How each note of the scale went, drawn on a harmonium's keys (Rinat, 2026-10-20: "Do not like
  * the visual on note by note. is there a more elegant/stylish way to represent this? should the
- * alternative notes, komal, tivra etc be included?"): Sa is the first white key, as C, so the
- * shuddha notes are the white keys and komal Re, komal Ga, tivra Ma, komal Dha and komal Ni the
- * black ones, from the lowest note sung to the highest, by octave. Each key sung is coloured by
+ * alternative notes, komal, tivra etc be included?"), from the lowest note sung to the highest, by
+ * octave. Sa is on the key the songs were played in (Rinat, 2026-10-28: "The note by note shows
+ * my Sa as c not c#"), so with Sa on C♯ it is a black key, Re and Ma too, as on the keyboard;
+ * until then Sa was always the first white key, as C. Each key sung is coloured by
  * its average score (in tune, close, off, as the Practice view), with the score on it and ▲ or ▼
  * when it is usually sharp or flat; keys not sung stay plain. Used by Progress (the keys are
  * buttons that say their numbers), the session report and the song report. Pure, so it is
@@ -11,7 +12,7 @@
  */
 import { noteWords } from '../core/practice/insights';
 import type { NoteScore } from '../core/practice/log';
-import { beatNoteHTML, esc, PAD_OCTAVES, type Script } from './view';
+import { beatNoteHTML, esc, KEYS, PAD_OCTAVES, type Script } from './view';
 
 /** A note sung fewer times than this says little: hatched, and left out of the summaries. */
 export const FEW = 5;
@@ -34,18 +35,38 @@ export function leanText(cents: number): string {
 export const noteKeyText = (s: NoteScore): string =>
   cap(noteWords(s.semi, s.oct)) + ': sung ' + plural(s.n, 'time') + ', average score ' + s.score + ', usually ' + leanText(s.cents) + '.';
 
-/** The keys, from the lowest note sung to the highest (white keys at both ends), each sung one
- * coloured by its score; `interactive` makes them buttons (Progress says a key's numbers when
- * it is tapped). */
-export function noteKeysHTML(ns: readonly NoteScore[], script: Script, interactive = false): string {
+/** The key Sa is on, 0 (C) to 11 (B), from its frequency. */
+export const keyOfHz = (hz: number): number => mod(Math.round(12 * Math.log2(hz / 440)) + 9, 12);
+
+/** The key most of the singing was on, from each session's [key, seconds], and whether some was
+ * on another; C when there is none. */
+export function mainKey(ks: readonly (readonly [number, number])[]): { key: number; mixed: boolean } {
+  const t = new Map<number, number>();
+  for (const [k, secs] of ks) t.set(k, (t.get(k) ?? 0) + Math.max(secs, 1));
+  let key = 0;
+  let most = -1;
+  for (const [k, v] of t) if (v > most) [key, most] = [k, v];
+  return { key, mixed: t.size > 1 };
+}
+
+/** "Sa on C♯, the key they were played in", for the keys' description; `it`: of one song or
+ * session ("the key it was played in", "most of its sessions were"). */
+export const saOnText = (k: { key: number; mixed: boolean }, it = false): string =>
+  'Sa on ' + (KEYS[k.key]?.[0] ?? 'C') + ', the key ' + (k.mixed ? (it ? 'most of its sessions were' : 'most of them were') : it ? 'it was' : 'they were') + ' played in';
+
+/** The keys, from the lowest note sung to the highest (white keys at both ends), Sa on key
+ * `saKey` (0, C, to 11, B), each sung one coloured by its score; `interactive` makes them
+ * buttons (Progress says a key's numbers when it is tapped). */
+export function noteKeysHTML(ns: readonly NoteScore[], script: Script, interactive = false, saKey = 0): string {
   if (!ns.length) return '';
   const by = new Map(ns.map((s) => [s.semi + 12 * s.oct, s]));
+  const white = (k: number) => WHITE.has(mod(k + saKey, 12));
   let lo = Math.min(...by.keys());
   let hi = Math.max(...by.keys());
-  while (!WHITE.has(mod(lo, 12))) lo--;
-  while (!WHITE.has(mod(hi, 12))) hi++;
+  while (!white(lo)) lo--;
+  while (!white(hi)) hi++;
   const whites: number[] = [];
-  for (let k = lo; k <= hi; k++) if (WHITE.has(mod(k, 12))) whites.push(k);
+  for (let k = lo; k <= hi; k++) if (white(k)) whites.push(k);
   const w = 100 / whites.length;
   const key = (k: number, black: boolean, style = '') => {
     const s = by.get(k);
@@ -61,7 +82,7 @@ export function noteKeysHTML(ns: readonly NoteScore[], script: Script, interacti
   let html = '<div class="nkwrap" style="--nw:' + whites.length + '"><div class="nkb" role="group" aria-label="' + esc('Your notes on a keyboard, from ' + noteWords(mod(lo, 12), Math.floor(lo / 12)) + ' to ' + noteWords(mod(hi, 12), Math.floor(hi / 12))) + '">';
   html += whites.map((k) => key(k, false)).join('');
   whites.forEach((k, i) => {
-    if (k + 1 < hi && !WHITE.has(mod(k + 1, 12))) html += key(k + 1, true, ' style="left:' + ((i + 1) * w - w * 0.3).toFixed(3) + '%;width:' + (w * 0.6).toFixed(3) + '%"');
+    if (k + 1 < hi && !white(k + 1)) html += key(k + 1, true, ' style="left:' + ((i + 1) * w - w * 0.3).toFixed(3) + '%;width:' + (w * 0.6).toFixed(3) + '%"');
   });
   html += '</div>';
   // The octaves under their keys.
@@ -141,5 +162,5 @@ export const NOTEKEYS_CSS = `
 .nkleg .sw.ok,.nkd.ok{background:var(--ok);border-color:var(--ok)}
 .nkleg .sw.off,.nkd.off{background:var(--off);border-color:var(--off)}
 .nkt th .nkg{font-size:18px;margin-right:4px}
-@media (max-width:560px){.nkb{height:128px}.nks{font-size:12.5px}.nk.b .nks{font-size:10.5px}.nk.b .nks i{display:none}.nkg{font-size:14px}.nk.b .nkg{display:none}.nkoct .bn{display:none}}
+@media (max-width:560px){.nkb{height:128px}.nks{font-size:12.5px}.nk.b .nks{font-size:10.5px}.nk.b .nks i{display:none}.nkg{font-size:14px}.nk.b .nkg{font-size:11px;line-height:1.3}.nkoct .bn{display:none}}
 `;

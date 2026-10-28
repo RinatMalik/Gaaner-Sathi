@@ -22,7 +22,7 @@ import { byDay, dailyScores, dayNumber, durationText, lastDays, lastDaysOf, mean
 import { whenText } from '../core/song/library';
 import { foldSectionHTML, initSectionDrag, inOrder } from './fold';
 import { scoreLine } from './report';
-import { noteBrief, noteHighlights, noteKeysHTML, noteKeysLegend, noteTableHTML } from './notekeys';
+import { mainKey, noteBrief, noteHighlights, noteKeysHTML, noteKeysLegend, noteTableHTML, saOnText } from './notekeys';
 import { esc, type Script } from './view';
 
 /** The sections, and their order until the user drags one. */
@@ -70,9 +70,9 @@ export function entryDetail(e: LogEntry): string {
 }
 
 export interface ProgressOptions {
-  /** A song's current title and whether it is an exercise; null when it has been deleted (the
-   * title logged is shown). */
-  song(id: string): { title: string; exercise: boolean } | null;
+  /** A song's current title, whether it is an exercise and the key its Sa is on (0, C, to 11,
+   * B); null when it has been deleted (the title logged is shown). */
+  song(id: string): { title: string; exercise: boolean; saKey?: number } | null;
   order?: readonly PgSection[];
   folded?: Partial<Record<PgSection, boolean>>;
   /** Notes in Bengali or Sa Re Ga. */
@@ -173,10 +173,11 @@ function pitchHTML(log: readonly LogEntry[], now: number, o: ProgressOptions): s
   const es = lastDaysOf(log, now, days).filter((e) => e.score != null && (!song || e.song === song.song));
   const ns = noteScores(es);
   const without = es.filter((e) => !e.notes).length;
+  const key = mainKey(es.flatMap((e) => (e.notes ? [[o.song(e.song)?.saKey ?? -1, e.secs] as const] : [])).filter(([k]) => k >= 0));
   html += '<div class="pgcard"><h4 class="pgh">Note by note</h4>';
   if (ns.length) {
-    html += '<p class="pgsub">Each note you sang ' + (song ? 'in ' : 'across ') + of + ' over ' + when + ', on a harmonium’s keys with Sa as the first white key: komal and tivra notes are the black keys. A key’s colour and number are its average score; ▲ and ▼ say you usually sing it sharp (high) or flat (low).</p>' +
-      noteSummaryHTML(ns) + '<div class="pgkeys">' + noteKeysHTML(ns, o.script ?? 'bn', true) + '<p class="nkinfo" aria-live="polite">Tap a key for its numbers.</p>' + noteKeysLegend(ns) + '</div>' +
+    html += '<p class="pgsub">Each note you sang ' + (song ? 'in ' : 'across ') + of + ' over ' + when + ', on a harmonium’s keys with ' + saOnText(key) + '. A key’s colour and number are its average score; ▲ and ▼ say you usually sing it sharp (high) or flat (low).</p>' +
+      noteSummaryHTML(ns) + '<div class="pgkeys">' + noteKeysHTML(ns, o.script ?? 'bn', true, key.key) + '<p class="nkinfo" aria-live="polite">Tap a key for its numbers.</p>' + noteKeysLegend(ns) + '</div>' +
       '<details class="pgnums"><summary>The numbers</summary>' + noteTableHTML(ns, o.script ?? 'bn') + '</details>';
     if (without) html += '<p class="pgsub">' + plural(without, 'session') + ' with a pitch score ' + (without === 1 ? 'is' : 'are') + ' not counted: the app has kept each note only since 20 Oct 2026.</p>';
   } else {
@@ -300,7 +301,7 @@ export function progressHTML(log: readonly LogEntry[], now: number, o: ProgressO
 
 export interface ProgressHost {
   log(): readonly LogEntry[];
-  song(id: string): { title: string; exercise: boolean } | null;
+  song(id: string): { title: string; exercise: boolean; saKey?: number } | null;
   /** Save all the practice data as one file, reporting in the view. */
   exportLog(): void;
   /** Delete the practice log and every session's detail, reporting in the view. */

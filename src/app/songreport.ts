@@ -13,7 +13,7 @@ import { whenText } from '../core/song/library';
 import { taalInfo } from '../core/taal/taals';
 import { lineTexts } from './aifile';
 import { exportName, stamp } from './filenames';
-import { FEW, noteBrief, noteHighlights, noteKeysHTML, noteKeysLegend, noteTableHTML } from './notekeys';
+import { FEW, keyOfHz, mainKey, noteBrief, noteHighlights, noteKeysHTML, noteKeysLegend, noteTableHTML, saOnText } from './notekeys';
 import { dayText, grade, msText, reportHead, reportScript, scoreLine, shortDay } from './report';
 import { esc, type Script } from './view';
 
@@ -23,7 +23,7 @@ export interface SongReportInput {
   song: string;
   title: string;
   exercise: boolean;
-  songNow: { taal: string; tempo: number; text: string } | null;
+  songNow: { taal: string; tempo: number; text: string; saKey?: number } | null;
   /** Its sessions, oldest first, and the detail of those that kept it. */
   entries: readonly LogEntry[];
   details: ReadonlyMap<number, SessionDetail>;
@@ -200,9 +200,15 @@ export function songReportHTML(o: SongReportInput): string {
   const ns = noteScores(E);
   if (ns.length) {
     const h = noteHighlights(ns);
-    html += '<section class="card"><h2>Note by note</h2><p class="sub">Each note you sang in it, on a harmonium’s keys with Sa as the first white key (komal and tivra are the black keys), coloured by its average score; ▲ and ▼ mark notes usually sharp or flat.' +
+    // Each session's key as it was played, or the song's now for one without its detail.
+    const key = mainKey(E.flatMap((e) => {
+      const hz = o.details.get(e.at)?.played.saHz;
+      const k = hz ? keyOfHz(hz) : o.songNow?.saKey;
+      return e.notes && k != null ? [[k, e.secs] as const] : [];
+    }));
+    html += '<section class="card"><h2>Note by note</h2><p class="sub">Each note you sang in it, on a harmonium’s keys with ' + saOnText(key, true) + ', coloured by its average score; ▲ and ▼ mark notes usually sharp or flat.' +
       (h ? ' Best: ' + esc(listText(h.best.map(noteBrief))) + '.' + (h.weak.length ? ' Needs the most work: ' + esc(listText(h.weak.map(noteBrief))) + '.' : '') : '') + '</p>' +
-      noteKeysHTML(ns, o.script) + noteKeysLegend(ns) + '<div class="scroll" style="margin-top:12px">' + noteTableHTML(ns, o.script) + '</div></section>';
+      noteKeysHTML(ns, o.script, false, key.key) + noteKeysLegend(ns) + '<div class="scroll" style="margin-top:12px">' + noteTableHTML(ns, o.script) + '</div></section>';
   }
 
   // Every session, newest first.
