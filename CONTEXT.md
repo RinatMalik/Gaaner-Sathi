@@ -135,7 +135,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   C♯3) was the microphone; tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `dafb469` (CI run `40676535872` green: round forty-one live).
+- **Last known-good commit:** `f6f9e3e` (CI run `40681066615` green: round forty-two live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -702,7 +702,11 @@ Template:
   take.", 5 s of line 1 looped (7 s a round) kept (5.3 s); then an exercise's log entry without
   detail: the day's For AI gives it "C♯4 (Black 1), middle octave". The sliders at 1280 px day
   and 360 px night (page 360 px wide): 30 px knobs on the grooves, a mouse press near each end
-  moving it there (rhythm 0.7 → 0.98, tempo 110 → 236, drone 0 → 0.96).
+  moving it there (rhythm 0.7 → 0.98, tempo 110 → 236, drone 0 → 0.96). CI run `40680802173`
+  (`80aca47`) failed at the type-check: the session test read `ins.behind` (Insights has
+  `ins.timing.behind`), which passed in Vitest as undefined is not null; `f6f9e3e` (test) checks
+  `ins.timing.behind`, failing without `below` in `bestShift` and passing with it; CI run
+  `40681066615` green, the live site serving `index-UUFnttpw.js` as built here.
 - **Decisions made:** three rows (the octave below with a bass reed; takes from 15 %; the knobs).
 - **Risks or disagreements:** the octave rule now accepts two octaves with 2 or 3 reeds, as the
   guide sounds both; a strict check of one octave needs 1 reed (the tooltip says so). The knobs
