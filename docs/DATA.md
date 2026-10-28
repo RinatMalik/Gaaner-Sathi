@@ -328,8 +328,8 @@ in IndexedDB, never in song files; Download writes one as a mono 16-bit WAV file
 | `sig` | A fingerprint of the notation then, to say when it has changed since |
 
 The samples are 16-bit, at `rate`, starting at the run's first scheduled beat (count-in
-included). Takes are checked when read; damaged ones are skipped. Takes shorter than 3 s are
-not kept. A take outlives its song: it keeps the title it was recorded under, and is listed on
+included). Takes are checked when read; damaged ones are skipped. Takes shorter than 3 s, or
+than 15 % of one pass of the lines they played, are not kept (2026-10-28; ENGINE.md → Takes). A take outlives its song: it keeps the title it was recorded under, and is listed on
 the Voice page with every other song's (2026-10-23).
 
 ## Session detail, reports and the file for AI
@@ -362,7 +362,7 @@ itself was kept, and a second save had it all).
 | `at`, `song` | The log entry's `at` (the key) and the song's id |
 | `played` | The song as it was played (it may change later): title, taal, tempo, notation, Sa |
 | `settings` | The guide, the guide when looping, the count-in, the tempo trainer and `gap`, the break between rounds when there was one (the file for AI's `break_between_rounds_s`, 0 for none) |
-| `pitch` | Only with **Check my pitch**: the device's delay and whether it was measured; whether any octave counted and the octave sung in; every judged note's result (the scores shown while singing, never worked out again); each line's score per round; every reading as `[t, Hz]` pairs (0: no voice; a glitch is 0); every beat `[t, song beat, round, seconds a beat]` |
+| `pitch` | Only with **Check my pitch**: the device's delay and whether it was measured; whether any octave counted, else `below` when the octave below counted too (the guide's bass reed; from 2026-10-28), and the octave sung in; every judged note's result (the scores shown while singing, never worked out again); each line's score per round; every reading as `[t, Hz]` pairs (0: no voice; a glitch is 0); every beat `[t, song beat, round, seconds a beat]` |
 
 Times are seconds from the first beat after the count-in. A note at `t0` is heard at `t0`; a
 reading at `t` was sung at `t − lag`. Readings are stored as 32-bit floats: a session with the
@@ -388,7 +388,7 @@ kept; an older one's goes, and its summary stays in the log. Details are checked
 | `file` | `{ kind: "Gaaner Sathi practice session, for AI analysis", version: 1, made }` |
 | `session` | When (ISO with the offset), seconds, title, lines, looped, rounds, tempo, tempo reached, routine, whether the pitch check was on, score, share sung, whether detail was kept |
 | `song` | Title, taal in words, tempo, Sa and its Hz, whether as played, the notation, and each line's notes and words as text |
-| `settings`, `equipment` | As played; the device's delay, measured or not, any octave, octave sung |
+| `settings`, `equipment` | As played; the device's delay, measured or not, any octave; when not, `octave_below_counts` (the guide's bass reed; from 2026-10-28); octave sung |
 | `findings_by_the_app` | The headline, what went well, what to work on, what to bear in mind, and the numbers behind them |
 | `lines`, `rounds`, `notes_of_the_scale` | Summaries (lines and rounds from 1) |
 | `earlier_sessions_of_this_song` | Each earlier log entry of the song: when, seconds, lines, rounds, tempo, score |

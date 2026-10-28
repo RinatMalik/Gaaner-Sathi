@@ -226,6 +226,12 @@ Every style becomes one cycle of hits `{pos, lane, vel}` with `pos` in matras fr
 
   The gains were set by rendering each set offline and matching RMS loudness to the original
   voicing, so switching reeds does not jump in volume.
+
+  With 2 or 3 reeds the bass reed sets the sound's period, so the guide is heard an octave
+  below Sa as named: the app's own detector reads a 3-reed note at Sa C♯4 as 138.5 Hz (C♯3);
+  2 reeds 138.5 Hz; 1 reed 277.2 Hz (the reeds summed as built, the set's lowpass, `mpm.ts`;
+  2026-10-28). A singer matching the guide may sing in either octave, so when the octave must
+  match, the bass reed's counts too (The octave sung in, below).
 - **Melody chain:** lowpass (Q 0.5) → low shelf at 260 Hz → peaking 850 Hz +3 dB (Q 0.8) →
   out, with a 0.22 reverb send.
 
@@ -335,7 +341,13 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   stretches were the detector's own (Harmonics taken for the voice, above), fixed there since;
   this rule stays for the short ones at onsets and consonants.
 - **The octave sung in** (`octave`, when any octave counts): the voice is drawn moved by it,
-  all of it the same. It starts in the octave nearest the Sa the voice sang on last time
+  all of it the same. When the octave must match, it is 0, or −1 where the guide sounds the
+  octave below (`below`: a harmonium of 2 or 3 reeds, playing on the device, the guide not off):
+  a note is then judged from the nearer of its octave and the one below (`judged`), and the
+  voice found and drawn in one of those two, the same way (Rinat, 2026-10-28: singing Sa on
+  C♯3 with the bass reed, under songs named C♯4, "Octave must match" wanted an octave higher;
+  headless Edge with that voice as the microphone, the old build scored its Sa 0 at −1200
+  cents, the new 100; with 1 reed still 0). It starts in the octave nearest the Sa the voice sang on last time
   (`octaveFor`; `voiceSa`, kept on the device as a pitch, the song's Sa moved by the octave
   sung, and only from a run where something was sung), so a song with Sa an octave away starts
   right too (Rinat, 2026-10-21, one song at C♯3 and the next at C♯4: kept as an octave against
@@ -504,7 +516,12 @@ path as pitch feedback.
   worklet as pitch feedback (voice processing off), whose blocks carry AudioContext frame
   numbers. A take keeps the frames from the run's first scheduled beat (count-in included) to
   a moment after it stops; missing blocks become silence, so later samples keep their time.
-  At most 15 minutes. *Why not MediaRecorder:* its start time is not on the AudioContext
+  At most 15 minutes. A take is kept only if it lasts 3 s and 15 % of one pass of the lines
+  it played (`keepsTake`; `playSeconds` of the lines to practise at their tempo, to the end
+  of the song when they run on; Rinat, 2026-10-28: "if the length of the recording is less
+  than 15% of the length of the track that is being sang, then discard that recording"; eight
+  of Rinat's 52 takes of 25–27 Oct were 3.6–9 s of songs 2 to 6 minutes long). A line looped
+  needs only 3 s. *Why not MediaRecorder:* its start time is not on the AudioContext
   clock, and its encoders add an unknown delay; a take is only useful against the guide if
   the voice lands where it was sung.
 - **Size:** the rate is halved as samples arrive (a 31-tap half-band filter, then every other

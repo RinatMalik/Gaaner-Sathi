@@ -49,6 +49,69 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-26 GMT — Claude (Opus 5.5) — PH2-40 rewaz breaks counted; the lines as in a rewaz; a song list that folds
+
+- **Goal:** Rinat: "get rid of the break between rounds in the top panel. Just in the rewaz is
+  good enough"; "The break between rounds in Rewaz doensn't show countdown, the break between
+  songs does"; "Tell me what is this drone thing? … how does one use it? what are the
+  benefits?" (a question: answered in chat); "The first panel in the header, in the lines to
+  practice - adopt the same kind of UI as in the rewaz section. where it says the whole song when
+  the first to last line is selected and only specifies the lines otherwise"; "The drop down to
+  choose current song … is it possible to make it collapsible by song and exercises? i found
+  myself spending time looking for songs and the list was too long".
+- **Inspected:** the Guide panel's `#loopGap` and its wiring; app.ts's `frame()` (a break's
+  "Break N" in the line's box) and rewaz.ts's bar (its round set from beats only, so through a
+  break it kept "round 1 of 3", while the break between items counts down "starting in 2 s");
+  a rewaz item's lines (`itemRowHTML`: "The whole song", or a line and "to"); the deck's
+  `#fromLine` and `#toLine` and every reader of them; the song picker, a native `<select>`
+  with optgroups (`libraryHTML`), which cannot fold.
+- **Changed:** index.html (the Guide panel's row gone; the lines' pickers; the song picker's
+  button, list and find box), app.ts (no `loopGap`; `rewaz.rest` from a break and its count-in;
+  `pickedLines`, `renderLineSelects`, `setLinePick` and the pickers' handlers; `initSongPick`
+  in place of the select's), rewaz.ts (`roundText`, `rest`; an item's lines from the first to
+  the last kept as the whole song, drawn again with the focus on its lines), routine.ts
+  (`wholeIfAll`), view.ts (`linesPicked`; `libraryHTML` removed), songpick.ts (new:
+  `songPickHTML`, `initSongPick`), store.ts (prefs `pickFold`; `loopGap` no longer kept),
+  styles.css (the picker); tests (picker.test.ts new; breaks.test.ts's prefs test; the
+  differential comparison of the old picker removed). Docs: ENGINE.md (the Lines to practise;
+  the break between rounds), DATA.md (prefs `loopGap`, `pickFold`; an item's `from`, `to`),
+  ROADMAP row 40, HISTORY (the PH2-38 entry), this file (with the record of 2026-10-23's answer
+  on built-in exercises, waiting since then).
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 41 files, 467
+  passed; `npm run build` → 368.61 kB JS; `bash reference/tests/run-all.sh` → parser 31,
+  checker 11, join-split 10, rhythm 12, tanpura 5 passed, 12 exercises valid. Headless Edge on
+  `npm run dev` (the pane hidden), each step measured and the screenshots seen. A routine
+  (ex-scale line 1, 3 rounds at 200, 3 s round breaks, then ex-long-notes after 2 s): the bar
+  "round 1 of 3", then "round 2 of 3 starting in 3 s", "2 s", "1 s" a second apart beside the
+  box's Break 3 … 1, "round 2 of 3" through In 8 … In 1, the same before round 3, then "Next: …
+  starting in 2 s". Practice (ex-alankar, 9 lines): no `#loopGap`; "The whole song", "to"
+  hidden ("26 s long"); line 3 picked → "to" offers lines 3 to 9 at line 3 ("line 3: 3 s"); to
+  5 → "lines 3–5: 10 s"; from 4 and then from 1 keep 5; to the last → "The whole song", "to"
+  gone, the focus on the first picker; lines 2–3 looped at 240: In 6 … Now on 2 and 3, Round 2
+  on 2, no break. A rewaz item of ex-scale (2 lines) from line 1 to 1, "to" line 2 → "The whole
+  song", stored with no `from` or `to`, the focus on its lines; another from 2 to 2, from
+  line 1 → the whole song. The song list with 14 seeded songs: 26 titles under "Exercises 12"
+  and "My songs 14" (the library's order), the open exercise focused and ticked; ↓ to the next,
+  End to the last, Home to the find box; a letter typed on the list goes into it ("l": 2 found),
+  "long": none, said; "সোনার" and Enter open আমার সোনার বাংলা, the focus back on the button.
+  Folding Exercises closed the whole list at first (the outside-tap check looked at the heading
+  tapped, already drawn again; fixed to use the event's path): after the fix the list stays
+  open, the focus on the heading, `pickFold` `{ex: true}`, still folded after a reload;
+  Escape, a tap elsewhere and Tab out close it; an exercise tapped opens it. 1280 px day and
+  night: the list 342 × 560 px under the title; 360 px night with touch: the list reached the
+  screen's edge (320 px wide), so it is now as wide as the song's bar with + New (282 px,
+  inside the panel), the two line pickers 127 px each, the page 360 px wide. No console errors.
+  The seeded songs and routines deleted afterwards.
+- **Decisions made:** four rows (the break only in a rewaz; a round's break counted down in the
+  bar; the Lines to practise as a rewaz item's; the song picker a list that folds).
+- **Risks or disagreements:** the song list is a control of the app's own (a native select
+  cannot fold), so on a phone it is a list under the title rather than the phone's own picker;
+  tried with touch emulation, not on a real phone. Its folds are kept apart from the Music
+  library's, and a rewaz item's first to last line now says "The whole song" too (both
+  Claude's choices). A `loopGap` saved since 2026-10-23 is dropped on the next save of the
+  settings.
+- **Next handoff:** Rinat tries round forty, and rounds thirty-four to thirty-nine.
+
 ### 2026-10-23 BST — Claude (Opus 5.5) — PH2-39 breaks between rounds; My takes as a table; the picker's buttons at its top
 
 - **Goal:** Rinat: "i'd like the option to add some delay between loops and also between
