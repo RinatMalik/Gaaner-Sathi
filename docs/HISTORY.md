@@ -21,6 +21,7 @@ historical interest.
 
 | Date | Decision | Authority / evidence | Consequence |
 |---|---|---|---|
+| 2026-10-28 | **The sliders' knobs 30 px,** brass on a groove, each slider 32 px across (the browser's own knob was about 16 px). | Rinat, chat 2026-10-28 ("make the slider handles a lot bigger so they are easy to click on") | The deck's four sliders; drawn by hand for Chromium, Safari and Firefox. |
 | 2026-10-09 | Handover pack merged into the framework: kickoff → this file, `docs/ROADMAP.md`, `docs/PARITY.md`; specs → `docs/`; prototype and suites → `reference/`; `handover/` deleted. | Rinat, chat 2026-10-09 | The original pack stays in git history at `e0ea8d8`. This file is the hot path; `docs/` is cold. |
 | 2026-10-09 | Stack and architecture baseline: TypeScript, React, Vite, Vitest, Playwright, Node 24 LTS; one package with a DOM-free core. | Kickoff §5 defaults; `docs/adr/ADR-001-stack.md` | Node 24 needed on every dev machine; core tests run in plain Node. |
 | 2026-10-09 | Decision records: every decision gets a row here; one with a real architectural trade-off also gets a short ADR in `docs/adr/`, linked from its row. | Claude, reconciling kickoff §2 with this log; confirmed by Rinat 2026-10-10 | One index of decisions, with depth where it is needed. |
@@ -48,6 +49,50 @@ historical interest.
 - 2026-10-09: `handover/`, merged into the framework (the original pack is at `e0ea8d8`).
 
 ## Work log, older entries
+
+### 2026-10-28 GMT — Claude (Opus 5.5) — review of 25–27 Oct; PH2-41 a day's sessions read whole
+
+- **Goal:** Rinat, with three days of day files and 52 takes in `feedback/`: "review them and
+  provide feedback"; "let me know if i shouldn't bother with providing the recorded wav files";
+  then, to the review's finding that 27 Oct's file had the detail of 1 of 29 sessions: "Yes, fix
+  it".
+- **Inspected:** the three day files (scratch Node scripts, deleted): scores by song and day,
+  every note's result by note of the scale, interval, length and place in the phrase, long notes
+  second by second, lines weak on two days, notes sung as a neighbouring note on both 25 and 26
+  Oct; all 52 takes' levels; four takes through the app's detector (rolldown bundle of
+  src/audio/dsp/mpm.ts), lined up with their sessions (offsets 3.71–11.15 s, 99.3–99.7 % of
+  readings within 30 cents). The singing feedback went to Rinat in chat. The lost detail: the 25th
+  and 26th files had all 15 each, the 27th 1 of 29; the 27th's file was made first (10:20:33,
+  then the 26th at 10:20:37 and the 25th at 10:20:40). `dayInputs` reads a day's sessions in
+  parallel, and `sessionsDB` set its flag before awaiting the store, so every caller but the
+  first got null at that moment; `takes()` had the same pattern (and `renderTakes` read the
+  store directly once the flag was set).
+- **Changed:** `92dfda7` (fix(sessions)): db.ts (`openOnce`), app.ts (`sessionsDB` and `takes` through
+  it; `keepSession` says under the lines when a run with the pitch check could not keep its
+  detail), tests/unit/db.test.ts (new). Docs: DATA.md (the stores opened once; the message),
+  ROADMAP row 41, HISTORY (the PH2-39 entry), this file (with the review's note in Current
+  state).
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 42 files, 469
+  passed (db.test.ts's first test failed with the old pattern in `openOnce`: "expected [ { name:
+  'sessions' } ] to have a length of 29 but got 1"); `npm run build` → 368.75 kB JS; `bash
+  reference/tests/run-all.sh` → parser 31, checker 11, join-split 10, rhythm 12, tanpura 5
+  passed, 12 exercises valid. The browser pane on `npm run dev`: two sessions of লম্বা স্বর
+  played (both details in IndexedDB); before the fix, after a reload, the day's For AI as the
+  first use: `sessions_with_detail` 1 of 2, `detail_kept` [true, false], and saved again 2 of
+  2; after the fix, after a reload, 2 of 2 at once, the Voice page's takes drawn, no errors;
+  the two test sessions deleted afterwards. Headless Edge on `npm run dev` with a fake
+  microphone, the pitch check on, an exercise played 17 s and stopped: with the sessions'
+  `put` throwing, the run logged, its detail not kept, `#pMsg` "This run’s note-by-note detail
+  could not be kept: this browser would not store it. The session itself is still in
+  Progress." beside Report and For AI (360 px night, page 360 px wide; 1280 px day); with `put`
+  working, the detail kept and the usual message.
+- **Decisions made:** one row (each store opened once; a detail not kept said).
+- **Risks or disagreements:** the message is shown only for runs with the pitch check (the
+  detail of a run without it is the song as played and its settings). The review's other
+  findings (the exercises in C4 on 27 Oct; the Scarlett's gain) wait on Rinat. The review's
+  claims rest on the 25th and 26th's detail (the 27th's lines only), and four of the 52 takes
+  were lined up, not all.
+- **Next handoff:** Rinat saves 27 Oct's For AI again; answers on the exercises' C.
 
 ### 2026-10-26 GMT — Claude (Opus 5.5) — PH2-40 rewaz breaks counted; the lines as in a rewaz; a song list that folds
 

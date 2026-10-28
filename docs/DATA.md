@@ -288,8 +288,8 @@ routines, takes and settings stay.
 ```
 
 `gap` is the routine's break between items, 0–120 seconds; absent: 4 (Rinat, 2026-10-15).
-`roundGap` is its break between an item's rounds, 1–120 seconds (each followed by the count-in
-again, when on); absent: none (Rinat, 2026-10-23).
+Until 2026-10-28 a routine's `roundGap` was the break between its items' rounds; it is read as
+the `roundGap` of each item without one, and saved there.
 
 | Item field | Meaning |
 |---|---|
@@ -298,6 +298,7 @@ again, when on); absent: none (Rinat, 2026-10-23).
 | `rounds` | Times through, 1–20 |
 | `tempo` | Matras per minute, 30–240; absent: the song's own. It never changes the song |
 | `guide` | `all` (every round), `first` (first round only), `alt` (every other round: call and response) or `off`; absent: as set at the top of the app |
+| `roundGap` | Seconds of break between its rounds, 1–120, each followed by the count-in again when it is on (Rinat, 2026-10-23; each item its own from 2026-10-28); absent: none |
 
 A routine has at most 40 items. Until one is saved, a starter "Daily warm-up" (exercises 1, 2,
 3 and 12) is on offer; it stays on offer like the exercises, and changing it saves it as the

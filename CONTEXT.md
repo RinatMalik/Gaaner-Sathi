@@ -88,7 +88,8 @@ wins, except a later explicit decision by Rinat, which always wins.
   item's; the song list folding by My songs and Exercises) and forty-one (PH2-41: a day's
   sessions read whole, the stores opened once; a detail not kept said) and forty-two (PH2-42: the
   octave below counted with the guide's bass reed; takes from 15 % of the lines; 30 px slider
-  knobs) are built and live.
+  knobs) and forty-three (PH2-43: a pitch grid for each line; Note by note with Sa on its key; a
+  break between rounds for each rewaz item; fader caps) are built and live.
   Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
 - **Review of 25–27 Oct (Claude, 2026-10-28, in chat):** the three day files and 52 takes in
@@ -105,8 +106,10 @@ wins, except a later explicit decision by Rinat, which always wins.
   61-key keyboard); the songs and exercises are at Sa C♯4, and the default 3-reed guide is heard
   at C♯3 (its bass reed: the app's detector reads it at 138.5 Hz), so Rinat matches the guide.
   "Octave must match" judged against C♯4; from round forty-two the bass reed's octave counts too.
-- **Next single action:** Rinat sings with Octave must match ticked (round forty-two), says
-  whether the slider knobs are easy to grab, and turns the Scarlett's gain down; then tries
+- **Next single action:** Rinat sings with round forty-three's grid (each line its own) and
+  says whether it shows the voice's ups and downs; tries the fader caps, Note by note on C♯ and
+  a break on one rewaz item; sings with Octave must match ticked (round forty-two); turns the
+  Scarlett's gain down; says whether to set up a REAPER or FL Studio MCP server; then tries
   rounds thirty-four to forty (the song list folding by My
   songs and Exercises, with its find box; the Lines to practise as a rewaz item's, "The whole
   song" or from one line to another; a break between rounds in a routine, counted down in the
@@ -446,6 +449,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-02 | Claude | Review | Design, round two: Pause and a separate Stop; nothing that plays changes the Lines to practise (play from here, sheet line numbers, sections, rewaz, takes); "Check my pitch" listens only while playing; beat box rows with the number and buttons (play this line, play from here, ×) full height, vibhag starts coloured instead of X/0, a tap anywhere on a row selects it, hover | 5 unit tests and the boxes' HTML tests; Edge scenarios `round6` (42 checks) and `rewaz6` (5), with a WAV microphone (Work log 2026-10-12 16:43) | Waiting for Rinat's use and two answers |
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
+| PH2-43 | Claude | Review | A grid for each line, Sa on its key, a break for each item, fader caps (Rinat, 2026-10-28): the Practice view's pitch strip for each line from its lowest note to its highest, a semitone beyond, 600 cents at least (`lineRange`, `MIN_SPAN` in lines.ts); Note by note with Sa on the key it was played in, a phone's black keys named (`keyOfHz`, `mainKey`, `saOnText` in notekeys.ts; progress.ts, report.ts, dayreport.ts, songreport.ts; `asPlayed` in app.ts); the break between rounds on each rewaz item (`roundGap` on RoutineItem, a routine's own read onto its items; rewaz.ts, store.ts); the deck's sliders with fader caps (styles.css) | Tests: 42 files, 476 passed; headless Edge at 1280 px day and 360 px night: the caps pressed and moving; a fake voice on C♯3, each line's range (−300..300 cents for Sa alone) and the voice on its grid; a 3 s break on one item counted down in the rewaz bar; an old routine's 6 s on both items; the keys on C♯ (Work log 2026-10-28, PH2-43) | Waiting for Rinat to sing with the new grid and try the caps, the keys and a break per item |
 | PH2-42 | Claude | Review | The octave the guide is heard in, short takes, bigger knobs (Rinat, 2026-10-28): with a guide of 2 or 3 reeds (on the device, not off), "Octave must match" counts the octave below the notes too, where the bass reed sounds (`judged`, the tracker's `below` in track.ts; `host.below()` in pitch.ts and app.ts; the detail's `below`, the report's note, the AI file's `octave_below_counts`; the tooltip and scoring note); a take kept only from 3 s and 15 % of one pass of the lines it played (`keepsTake` in take.ts, `track` from `playSeconds` in app.ts); the deck's slider knobs 30 px (styles.css); a day's file gives a built-in exercise without its session's detail your Sa (`sessionInput`) | Tests: 42 files, 472 passed (5 new or extended); headless Edge with a fake microphone on C♯3 and Sa C♯4, Octave must match: 3 reeds Sa 100 (the old build, live: 0 at −1200 cents), 1 reed 0; takes of 20 s kept, 6 s of the whole exercise not, 5 s of one looped line kept; the day file's exercise C♯4; the knobs at 1280 px day and 360 px night, pressed and moving (Work log 2026-10-28, PH2-42) | Waiting for Rinat to sing with Octave must match, and to try the knobs |
 | PH2-41 | Claude | Review | A day's sessions read whole (Rinat, 2026-10-28, "Yes, fix it", after the review of 25–27 Oct): `openOnce` in src/app/db.ts; app.ts's `sessionsDB` and `takes` opened once, every caller waiting (a flag set before the await let callers at the same moment through with no store: a day's report or For AI made first after the page opened had its first session's detail only, and the takes list could be drawn empty); `keepSession` says under the lines (`#pMsg`) when a run with the pitch check could not keep its detail | Tests: 42 files, 469 passed (2 new in db.test.ts; the first failed on the old pattern, "1 of 29"); the browser pane on `npm run dev`: two sessions both in IndexedDB, a day's For AI as the first use after a reload gave 1 of 2 before the fix, 2 of 2 after (and a second save 2 of 2 before); headless Edge with a fake microphone and the sessions' `put` refusing: the run logged, its detail not kept, the message shown (360 px night, page 360 px wide; 1280 px day); with `put` working, kept and not said (Work log 2026-10-28) | Waiting for Rinat to save 27 Oct's For AI again |
 | PH2-40 | Claude | Review | Rewaz breaks counted, the lines as in a rewaz, a song list that folds (Rinat, 2026-10-26): the Guide panel's break between rounds removed (prefs `loopGap` no longer read; a routine's `roundGap` stays); the rewaz bar counting a round's break down (`roundText`, `Rewaz.rest` in src/app/rewaz.ts); the Lines to practise "The whole song" or from one line to another, the first to the last the whole song again (`linesPicked` in view.ts, `setLinePick` in app.ts; a rewaz item's `wholeIfAll` in routine.ts); the song picker a list under the title folding by My songs and Exercises, with a find box (src/app/songpick.ts, prefs `pickFold`) | Tests: 41 files, 467 passed (8 new in picker.test.ts; the prototype comparison of the old song picker removed; breaks.test.ts's prefs test rewritten); headless Edge on `npm run dev` (the pane hidden), all measured and screenshots seen: a routine of 3 rounds with 3 s breaks, its bar "round 2 of 3 starting in 3 s" … "1 s", then "round 2 of 3" through the count-in; the Guide panel without the break; the lines whole → line 3 (to offering lines 3 on) → 3–5 → the whole song again at 1 to the last, lines 2–3 looped with no break; a rewaz item's first to last line kept as the whole song; the list: two groups, the open one focused and ticked, arrows, Home, End, a letter into the find box, Enter opening the first found, Exercises folded and kept after a reload, Escape, a tap elsewhere and Tab out closing it; 1280 px day and night, 360 px night (the list inside the panel, no sideways scroll); no console errors (Work log 2026-10-26, round forty) | Waiting for Rinat's use |
@@ -574,7 +578,10 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-28 | **Each browser store opened once, every caller waiting for it;** a run with the pitch check whose detail the browser will not store says so under the lines ("This run’s note-by-note detail could not be kept: this browser would not store it. The session itself is still in Progress."). | Rinat's day file of 2026-10-27 (1 of 29 sessions with detail) and "Yes, fix it" (chat 2026-10-28); reproduced on `npm run dev` (a day's For AI as the first use after a reload: 1 of 2, then 2 of 2) | `openOnce` in src/app/db.ts for `sessionsDB` and `takes` in app.ts (the takes list could be drawn empty the same way); `keepSession` no longer silent. The detail Rinat thought lost is in the browser: saving the day again gives it whole. |
 | 2026-10-28 | **With a bass reed, the octave below counts when the octave must match.** A guide of 2 or 3 reeds sounds the octave under the keys (the bass reed sets its pitch: the app's detector reads a 3-reed C♯4 as C♯3), so a voice in that octave or the keys' is judged right; with 1 reed, a MIDI keyboard's guide or the guide off, only the keys' octave. Sa keeps its name (the keys pressed, as on a harmonium and a keyboard). | Rinat, chat 2026-10-28 ("I hear myself match with the second octave from left in the keyboard ... When i tried octaves must match ... i had to go really high"); measured by Claude (Rinat's voice on C♯3; the guide's period); the choice of counting both octaves rather than renaming Sa or moving the reeds is Claude's, as renaming would change every song's octave and the keys a keyboard plays | ENGINE.md → Reed sets, The octave sung in. Rinat need not change any song's Sa; a strict one-octave check needs 1 reed. |
 | 2026-10-28 | **A take is kept only from 15 % of one pass of the lines it played,** and from 3 s as before (one pass: the lines to practise at their tempo, to the end of the song when they run on). | Rinat, chat 2026-10-28 ("if the length of the recording is less than 15% of the length of the track that is being sang, then discard that recording") | `keepsTake`; "That play was too short to keep as a take." as before. |
-| 2026-10-28 | **The sliders' knobs 30 px,** brass on a groove, each slider 32 px across (the browser's own knob was about 16 px). | Rinat, chat 2026-10-28 ("make the slider handles a lot bigger so they are easy to click on") | The deck's four sliders; drawn by hand for Chromium, Safari and Firefox. |
+| 2026-10-28 | **Each Practice line its own pitch strip:** from the lowest note sounding in it to its highest, a semitone beyond each, and half an octave (600 cents) across at least, widened evenly by semitones; it changes with each line. Replaces the grid of 2026-10-19's "one grid per song" (its judging stays). | Rinat, chat 2026-10-28 ("please make it so that the grid is more zoomed in. Maybe the logic could be that for each line, the grid covers a little more than the highest and lowest note in that line and it changes with each line. if there is a better logic, then tell me or just go with that"); the half-octave least, so a line of one note is not drawn so close that every waver fills it, is Claude's | lines.ts `lineRange`, `MIN_SPAN`; ENGINE.md → Pitch feedback, Shown. |
+| 2026-10-28 | **Note by note with Sa on its key:** the keys drawn as the keyboard with Sa on the key the songs were played in (the key sung longest over what is shown: each session's own Sa where its detail is kept, a song's Sa now in Progress, your Sa for a built-in exercise), so on C♯ Sa, Re, Ma, Pa and Dha are black keys; the description says which ("with Sa on C♯, the key they were played in"); a phone's black keys show their names. Replaces "Sa as C" in 2026-10-20's row. | Rinat, chat 2026-10-28 ("The note by note shows my Sa as c not c#."); the key sung longest, and naming the black keys on a phone, are Claude's | notekeys.ts, progress.ts, report.ts, dayreport.ts, songreport.ts, app.ts `asPlayed`. |
+| 2026-10-28 | **The break between rounds set on each rewaz item** ("Break between rounds, seconds" after its Rounds), the routine keeping only its break between items. A routine stored with one break for all its items gives that break to each item without its own. Replaces the routine-wide half of 2026-10-23's and 2026-10-26's rows. | Rinat, chat 2026-10-28 ("make it so that the break between rounds can be set for each song/exercises. so put the text box in each line instead of at the top. Break between items can stay where it is.") | routine.ts (`roundGap` on RoutineItem, `cleanRoutine`), rewaz.ts, store.ts; DATA.md → Routines; ENGINE.md → Transport. |
+| 2026-10-28 | **The deck's sliders end in fader caps,** as on a mixing desk: brass, 34 × 20 px, a dark line across the middle, on a dark slot with a light rim; the tall sliders' caps lie across them, the drone's stands up. Replaces the 30 px round knobs of the same day. | Rinat, chat 2026-10-28 ("make the sliders like a sliding know similar to reaper of FL studio instead of the circle", with screenshots of both); brass on the rosewood, for the deck's identity, is Claude's | styles.css; drawn by hand for Chromium, Safari and Firefox. |
 | 2026-10-23 | **Built-in exercises stay read-only for now** (Open question 6 answered): they cannot be changed or deleted; copy one to change it. Claude's proposal (changed in place as the user's own, deleted or hidden, a "Bring back the built-in exercises" button) is not built. | Rinat, chat 2026-10-23 ("Keep the built-in exercises read-only for now.") | Invariants → Never lose a song unchanged; Open question 6 removed. |
 | 2026-10-23 | **A break between rounds,** when looping on the Practice view (the Guide panel's "Break between rounds", seconds) and in a rewaz (each routine's "Break between rounds", separate from its break between items): silence with the drone going on, then the count-in again when it is on, and any pickup, then the next round; the line's box counts it down; none after the last round; the note before it fades as at an ending. A pause in a break goes on with the next round. Takes keep it. | Rinat, chat 2026-10-23 ("i'd like the option to add some delay between loops and also between rounds when doing rewaz with multiple rounds"); the count-in again, the drone going on, the countdown, a setting on the Guide panel and per routine are Claude's | transport.ts `gap`; prefs `loopGap`; Routine `roundGap`; Take `gap`; session settings `gap`; docs/ENGINE.md → Transport, DATA.md |
 | 2026-10-23 | **My takes as a table:** grouped by song or by date, each group folding (the first three open), a tick box on each take, on each song's or day's group and Tick all; the takes ticked are deleted together, asked first in the table's bar. | Rinat, chat 2026-10-23 ("needs all the bells and whistles of a table - should be collapsible the song name or the date taken. want to be able to select all the takes in a particular day and delete together. also all the takes of a particular song"; "if multiple takes are deleted together, only then confirmation is fine") | takes.ts `takeGroups`, `allTakesHTML`; prefs `tkGroup`; docs/ENGINE.md → Takes |
@@ -655,6 +662,62 @@ Template:
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
 
+### 2026-10-28 GMT — Claude (Opus 5.5) — PH2-43 a grid for each line; Sa on its key; a break for each item; fader caps
+
+- **Goal:** Rinat: "make the sliders like a sliding know similar to reaper of FL studio instead
+  of the circle" (with screenshots of FL Studio's and Reaper's faders); "I got a notification
+  from github saying something failed?"; "is there MCP for reaper or FL studio?"; "The note by
+  note shows my Sa as c not c#"; "in rewaz page, make it so that the break between rounds can be
+  set for each song/exercises. so put the text box in each line instead of at the top. Break
+  between items can stay where it is"; "the upper and lower notes and the voice line is not
+  demonstrating my performance properly ... please make it so that the grid is more zoomed in.
+  Maybe the logic could be that for each line, the grid covers a little more than the highest
+  and lowest note in that line and it changes with each line. if there is a better logic, then
+  tell me or just go with that."
+- **Inspected:** the public API's runs: `40680802173` (`80aca47`) failed at the type-check, the
+  test fixed in `f6f9e3e`; `40681066615` and `40681294442` green since. The registry of
+  connectors (nothing for either); a web search: community MCP servers for REAPER (OSC,
+  ReaScript or python-reapy) and FL Studio (its MIDI scripting, a virtual MIDI cable), none
+  installed. lines.ts (`songRange`: one strip per song since 2026-10-19), notekeys.ts (Sa as C),
+  routine.ts and rewaz.ts (`roundGap` the routine's), the deck's slider rules in styles.css.
+- **Changed:** `feat(practice)`: lines.ts `lineRange` and `MIN_SPAN` (each line's strip from its
+  lowest note sounding to its highest, a semitone beyond, 600 cents at least, widened evenly by
+  semitones), lines tests. `feat(progress)`: notekeys.ts (`keyOfHz`, `mainKey`, `saOnText`; the
+  keys drawn with Sa on key `saKey`; a phone's black keys named, 11 px), progress.ts (a song's
+  `saKey`, the most-sung key), report.ts, dayreport.ts and songreport.ts (each session's played
+  Sa, or the song's now), app.ts (`asPlayed`: a built-in exercise in your Sa, shared by
+  sessionInput, songInput and Progress's host), session tests. `feat(rewaz)`: routine.ts
+  (`roundGap` on RoutineItem; a routine's own read onto its items; `roundGapOf(item)`,
+  `routineSeconds`), rewaz.ts (the field on each item after Rounds, the routine's taken out),
+  store.ts, breaks and rewaz tests. `feat(deck)`: styles.css (fader caps, the slot). This
+  commit: ENGINE.md, DATA.md, ROADMAP row 43, HISTORY, this file.
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 42 files, 476 passed
+  (new: each line's range, widened and held over; the keys on C♯ and C, `keyOfHz`, `mainKey`,
+  `saOnText`, Progress's, a session's and a day's keys on C♯; an item's break, its field, an
+  old routine's read onto its items and saved there); `npm run build` → 370.47 kB JS; `bash
+  reference/tests/run-all.sh` → parser 31, checker 11, join-split 10, rhythm 12, tanpura 5
+  passed, 12 exercises valid. Headless Edge on `npm run dev` (the pane hidden), 1280 px day and
+  360 px night (page 1265 and 360 px wide): the sliders' fader caps, a press near each end
+  moving it (rhythm 0.7 → 0.96, tempo 110 → 232, drone 0 → 0.89); a fake microphone wandering
+  ±25 cents round C♯3, the long-notes exercise at Sa C♯4: the lines' ranges −300..300,
+  −100..500, 100..700, 200..800, 400..1000, 600..1200 cents, the line being sung with 5
+  semitone lines and the voice drawn on them; a routine with a 3 s break on item 1 (line 1, 2
+  rounds at 240): the bar "round 2 of 2 starting in 3 s", 2 s, 1 s, then "round 2 of 2", then
+  "Next: … 2 of 2 · লম্বা স্বর · starting in 2 s"; an old routine's break of 6 s shown on both
+  its items, no routine-wide field; item 2 set to 5 stored on the item; Progress's Note by note
+  "with Sa on C♯, the key they were played in", the keys w4 w11 b0 b2 b5 b7 b9 b12.
+- **Decisions made:** four rows (a strip for each line; Sa on its key; a break for each item;
+  fader caps), the knobs row moved to HISTORY.
+- **Risks or disagreements:** a voice more than a semitone beyond a line's notes is drawn at
+  the strip's edge; notes move height from one line to the next, as they did before
+  2026-10-19. Progress takes a song's Sa as it is now (the log keeps no Sa); the reports use
+  each session's own. On C♯ most notes are black keys, narrower than white ones. The fader
+  caps were seen in Edge (Chromium) only, not Firefox or Safari (their own rules are in place).
+  No MCP server was installed: each is third-party code to run on Rinat's computer.
+- **Next handoff:** Rinat sings with the new grid and says whether it shows the voice's ups and
+  downs; tries the fader caps, Note by note on C♯ and a break on one rewaz item; says whether
+  to set up a REAPER or FL Studio MCP server.
+
 ### 2026-10-28 GMT — Claude (Opus 5.5) — PH2-42 the octave the guide is heard in; short takes; bigger knobs; 27 Oct whole
 
 - **Goal:** Rinat: "make the slider handles a lot bigger so they are easy to click on"; "if
@@ -715,47 +778,3 @@ Template:
   at Sa C♯4 as named: the guide's keys and a MIDI keyboard play C♯4, the bass reed C♯3.
 - **Next handoff:** Rinat ticks Octave must match and sings as usual; says whether the slider
   knobs are easy to grab on the laptop and the phone; turns the Scarlett's gain down.
-
-### 2026-10-28 GMT — Claude (Opus 5.5) — review of 25–27 Oct; PH2-41 a day's sessions read whole
-
-- **Goal:** Rinat, with three days of day files and 52 takes in `feedback/`: "review them and
-  provide feedback"; "let me know if i shouldn't bother with providing the recorded wav files";
-  then, to the review's finding that 27 Oct's file had the detail of 1 of 29 sessions: "Yes, fix
-  it".
-- **Inspected:** the three day files (scratch Node scripts, deleted): scores by song and day,
-  every note's result by note of the scale, interval, length and place in the phrase, long notes
-  second by second, lines weak on two days, notes sung as a neighbouring note on both 25 and 26
-  Oct; all 52 takes' levels; four takes through the app's detector (rolldown bundle of
-  src/audio/dsp/mpm.ts), lined up with their sessions (offsets 3.71–11.15 s, 99.3–99.7 % of
-  readings within 30 cents). The singing feedback went to Rinat in chat. The lost detail: the 25th
-  and 26th files had all 15 each, the 27th 1 of 29; the 27th's file was made first (10:20:33,
-  then the 26th at 10:20:37 and the 25th at 10:20:40). `dayInputs` reads a day's sessions in
-  parallel, and `sessionsDB` set its flag before awaiting the store, so every caller but the
-  first got null at that moment; `takes()` had the same pattern (and `renderTakes` read the
-  store directly once the flag was set).
-- **Changed:** `92dfda7` (fix(sessions)): db.ts (`openOnce`), app.ts (`sessionsDB` and `takes` through
-  it; `keepSession` says under the lines when a run with the pitch check could not keep its
-  detail), tests/unit/db.test.ts (new). Docs: DATA.md (the stores opened once; the message),
-  ROADMAP row 41, HISTORY (the PH2-39 entry), this file (with the review's note in Current
-  state).
-- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 42 files, 469
-  passed (db.test.ts's first test failed with the old pattern in `openOnce`: "expected [ { name:
-  'sessions' } ] to have a length of 29 but got 1"); `npm run build` → 368.75 kB JS; `bash
-  reference/tests/run-all.sh` → parser 31, checker 11, join-split 10, rhythm 12, tanpura 5
-  passed, 12 exercises valid. The browser pane on `npm run dev`: two sessions of লম্বা স্বর
-  played (both details in IndexedDB); before the fix, after a reload, the day's For AI as the
-  first use: `sessions_with_detail` 1 of 2, `detail_kept` [true, false], and saved again 2 of
-  2; after the fix, after a reload, 2 of 2 at once, the Voice page's takes drawn, no errors;
-  the two test sessions deleted afterwards. Headless Edge on `npm run dev` with a fake
-  microphone, the pitch check on, an exercise played 17 s and stopped: with the sessions'
-  `put` throwing, the run logged, its detail not kept, `#pMsg` "This run’s note-by-note detail
-  could not be kept: this browser would not store it. The session itself is still in
-  Progress." beside Report and For AI (360 px night, page 360 px wide; 1280 px day); with `put`
-  working, the detail kept and the usual message.
-- **Decisions made:** one row (each store opened once; a detail not kept said).
-- **Risks or disagreements:** the message is shown only for runs with the pitch check (the
-  detail of a run without it is the song as played and its settings). The review's other
-  findings (the exercises in C4 on 27 Oct; the Scarlett's gain) wait on Rinat. The review's
-  claims rest on the 25th and 26th's detail (the 27th's lines only), and four of the 52 takes
-  were lined up, not all.
-- **Next handoff:** Rinat saves 27 Oct's For AI again; answers on the exercises' C.

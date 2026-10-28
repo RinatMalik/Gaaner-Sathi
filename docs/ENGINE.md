@@ -109,8 +109,9 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
   The queue gets a `BreakEntry` (`brk`, `until`, the round it leads to) and the line's box
   counts the seconds down ("Break 3"). No break after the last round, without a loop, or
   before the round a pause goes on in: paused in a break, Play goes on with the next round at
-  once. Set per routine for its items' rounds (`roundGap`, separate from the break between
-  items); the rewaz bar counts it down as it does the break between items ("round 2 of 3
+  once. Set for each rewaz item (`roundGap` on the item, from 2026-10-28: Rinat, "the break between
+  rounds can be set for each song/exercises"; until then one for the whole routine, read now as
+  each item's), separate from the routine's break between items; the rewaz bar counts it down as it does the break between items ("round 2 of 3
   starting in 3 s", then "round 2 of 3" through the count-in; `roundText` in rewaz.ts). The
   Guide panel's own "Break between rounds", for the Lines to practise and a section looped, was
   taken out on 2026-10-26 (Rinat: "Just in the rewaz is good enough"). A take keeps it, so it
@@ -400,9 +401,11 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   100 ms in to its last 10 %.)
 - **Shown** (Rinat, 2026-10-15) on the Practice view's lines (`src/app/lines.ts`): each
   reading is placed on its beat (from the beats scheduled, moved back by the delay) and drawn
-  on that line's pitch strip over the note bars (every line of a song the same strip, its
-  lowest note to its highest with a semitone beyond each, so a note sits at the same height
-  in every line: Rinat, 2026-10-19), green within 15 cents of the note expected,
+  on that line's pitch strip over the note bars (each line its own strip, from its lowest
+  note to its highest with a semitone beyond each and half an octave at least, so the voice's
+  ups and downs show: Rinat, 2026-10-28, `lineRange`; from 2026-10-19 every line of a song had
+  the same strip, a note at the same height in every line, but a song over two octaves left a
+  semitone a few pixels high), green within 15 cents of the note expected,
   amber within 35, red beyond, grey while sliding into a note or where no note is expected; at
   its own pitch, moved by the octave the voice sings in when any octave counts (`octave`, the
   most common over the last 10 s, so the whole line moves together: until 2026-10-20 each
