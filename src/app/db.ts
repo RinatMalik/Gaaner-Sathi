@@ -42,6 +42,15 @@ export function openDB(): Promise<IDBDatabase | null> {
   return opening;
 }
 
+/** `open` run once, on first use; every caller, at the same moment or later, waits for that one
+ * opening and gets what it gave. (A flag set before the await let callers at the same moment
+ * through with nothing yet: a day's sessions, read together, got their detail for the first
+ * session only.) */
+export function openOnce<T>(open: () => Promise<T>): () => Promise<T> {
+  let p: Promise<T> | null = null;
+  return () => (p ??= open());
+}
+
 /** One transaction: `fn` makes its requests; the result of the one it returns. */
 export function inTx<T>(db: IDBDatabase, stores: string[], mode: IDBTransactionMode, fn: (tx: IDBTransaction) => IDBRequest<T> | void): Promise<T | undefined> {
   return new Promise((resolve, reject) => {

@@ -48,7 +48,7 @@ import { SONG_SOUND_KEYS, soundOf, type SongSound } from '../core/song/sound';
 import { isTaalId, taalInfo, TAALS, type TaalId, type TaalInfo } from '../core/taal/taals';
 import { BACKUP_BYTES, BACKUP_FORMAT, backupParts, backupWords, readBackup, restoredPrefs, restorePlan, type Backup } from './backup';
 import { aiFileName, aiFileText, dayFileName, dayFileParts, practiceFileParts, type SessionFileInput } from './aifile';
-import { SessionStore } from './db';
+import { openOnce, SessionStore } from './db';
 import { initPitch, type PitchUI } from './pitch';
 import { initBoxes, withNewHeading, type Boxes } from './boxes';
 import { initKeyboard, keyboardHTML, keyName, keyRange, keysToFill, type KeyboardUI } from './keyboard';
@@ -718,27 +718,26 @@ function endRun(at: number, pitch: { score: number; lines: [number, number][]; d
 
 // ── Sessions: each one's detail, its report and its file for AI ──────────────
 
-let sessionStore: SessionStore | null = null;
-let sessionStoreTried = false;
 /** The session last logged with the pitch check, for the buttons under the lines. */
 let lastSession = 0;
 
-async function sessionsDB(): Promise<SessionStore | null> {
-  if (!sessionStoreTried) {
-    sessionStoreTried = true;
-    sessionStore = typeof indexedDB === 'undefined' ? null : await SessionStore.open();
-  }
-  return sessionStore;
-}
+/** The sessions' store, opened once; a day's sessions read together all wait for it. */
+const sessionsDB = openOnce(() => (typeof indexedDB === 'undefined' ? Promise.resolve(null) : SessionStore.open()));
 
-/** Keep a session's detail (Rinat, 2026-10-20); if the browser's storage is full, the log still
- * has its summary. */
+/** Keep a session's detail (Rinat, 2026-10-20); if the browser will not store it, the log still
+ * has its summary, and a run with the pitch check says so under the lines. */
 async function keepSession(d: SessionDetail): Promise<void> {
+  let kept = false;
   try {
-    await (await sessionsDB())?.add(d);
+    const db = await sessionsDB();
+    if (db) {
+      await db.add(d);
+      kept = true;
+    }
   } catch {
-    // Nothing more to do: the report says the detail is missing.
+    // Not kept: said below.
   }
+  if (!kept && d.pitch) setFileStatus('This run’s note-by-note detail could not be kept: this browser would not store it. The session itself is still in Progress.', '#pMsg');
 }
 
 /** All a session's report and file for AI need, by its log entry's `at`. */
@@ -1304,8 +1303,6 @@ function rememberExerciseSa(): void {
 
 // ── Takes: record while playing, play back against the guide ──────────────────
 
-let takeStore: TakeStore | null = null;
-let takeStoreTried = false;
 let recorder: Recorder | null = null;
 /** "Record me" is on: each play is a take. */
 let recArmed = false;
@@ -1325,13 +1322,8 @@ const takeOpen = new Map<string, boolean>();
 let takeAsk = false;
 let takeUndo: { take: Take; pcm: Int16Array } | null = null;
 
-async function takes(): Promise<TakeStore | null> {
-  if (!takeStoreTried) {
-    takeStoreTried = true;
-    takeStore = typeof indexedDB === 'undefined' ? null : await TakeStore.open();
-  }
-  return takeStore;
-}
+/** The takes' store, opened once; the lists drawn at the same moment all wait for it. */
+const takes = openOnce(() => (typeof indexedDB === 'undefined' ? Promise.resolve(null) : TakeStore.open()));
 /** The takes' message, in both lists; `undo` adds an Undo button (a take deleted alone). */
 const setTakeStatus = (t: string, undo = false) => {
   for (const el of [$('#takesStatus'), $('#allTakesStatus')]) {
@@ -1439,7 +1431,7 @@ async function saveTake(rec: Recorder, at: number, r: typeof run): Promise<void>
 
 /** The open song's takes, under the sheet. */
 async function renderTakes(): Promise<void> {
-  const store = takeStoreTried ? takeStore : await takes();
+  const store = await takes();
   const song = current.id;
   const list = store ? await store.list(song) : [];
   if (song !== current.id) return; // another song opened meanwhile
