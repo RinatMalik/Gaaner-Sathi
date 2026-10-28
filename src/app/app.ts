@@ -751,7 +751,10 @@ async function sessionInput(at: number): Promise<SessionFileInput | null> {
   } catch {
     detail = null;
   }
-  const s = e.song === current.id ? current : songs.get(e.song) || EXERCISES.find((x) => x.id === e.song);
+  const found = e.song === current.id ? current : songs.get(e.song) || EXERCISES.find((x) => x.id === e.song);
+  // A built-in exercise plays in your Sa, as opening it does (2026-10-28: a day's file without its
+  // sessions' detail said the exercises were in C, the Sa they are stored in).
+  const s = found?.example && found !== current && prefs.mySa ? { ...found, ...prefs.mySa } : found;
   const songNow = s ? { title: s.title, taal: s.taal, tempo: s.tempo, text: s.text, saHz: saFreq(s), sa: V.saWords(s) } : null;
   return { e, detail, ins: analyse(e, detail, log), songNow, earlier: log.filter((x) => x.song === e.song && x.at < e.at), made: Date.now() };
 }
