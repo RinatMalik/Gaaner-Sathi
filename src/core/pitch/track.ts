@@ -90,6 +90,13 @@ export const centsFromSa = (hz: number, saHz: number): number => 1200 * Math.log
 /** The same distance moved into −600…+600 by whole octaves (for "any octave"). */
 export const foldOctave = (c: number): number => c - 1200 * Math.round(c / 1200);
 
+/** Cents from a note as judged: folded when any octave counts; else as sung, or an octave up
+ * where that is nearer and the octave below counts too (`below`: the guide sounds it, as a 2- or
+ * 3-reed harmonium's bass reed does. Rinat, 2026-10-28: singing with that reed at C♯3, under a
+ * guide named C♯4, "Octave must match" wanted the voice an octave higher). */
+export const judged = (c: number, anyOctave: boolean, below = false): number =>
+  anyOctave ? foldOctave(c) : below && Math.abs(c + 1200) < Math.abs(c) ? c + 1200 : c;
+
 /** The nearest note to a pitch: semitones above Sa (any octave) and how far off it is. */
 export function nearestNote(centsFromSaValue: number): { semi: number; oct: number; off: number } {
   const n = Math.round(centsFromSaValue / 100);
@@ -278,6 +285,8 @@ export interface TrackerOptions {
   lag: number;
   /** Any octave counts as the right note. */
   anyOctave: boolean;
+  /** When the octave must match, the octave below the notes counts too: the guide sounds it. */
+  below?: boolean;
   /** Sa, Hz. */
   saHz: number;
   /** The octave the voice sang in last time, against the notes, when any octave counts. */
@@ -316,10 +325,12 @@ export class PitchTracker {
    * octaves reading by reading. It starts as last time (Rinat, 2026-10-21: until 2026-10-20 it
    * started at 0 and was found only after a second or more of singing, so a voice an octave
    * below was drawn at the foot of the strip and then jumped up), and changes when another is
-   * clearly the most common over the last 10 s. */
+   * clearly the most common over the last 10 s. When the octave must match it is 0, or −1 where
+   * the octave below counts too. */
   octave: number;
   /** Can change while singing: later notes follow it. */
   anyOctave: boolean;
+  readonly below: boolean;
   readonly saHz: number;
   /** Expected notes not yet scored, in time order. */
   private pending: ExpectedNote[] = [];
@@ -336,8 +347,9 @@ export class PitchTracker {
   constructor(o: TrackerOptions) {
     this.lag = o.lag;
     this.anyOctave = o.anyOctave;
+    this.below = !!o.below;
     this.saHz = o.saHz;
-    this.octave = o.anyOctave ? (o.octave ?? 0) : 0;
+    this.octave = o.anyOctave ? (o.octave ?? 0) : this.below && (o.octave ?? 0) < 0 ? -1 : 0;
   }
 
   /** Add the note pieces of a scheduled beat; a piece continuing the last note extends it. */
@@ -368,10 +380,10 @@ export class PitchTracker {
     return null;
   }
 
-  /** Cents from the note expected, folded when any octave counts. */
+  /** Cents from the note expected, as judged (`judged`). */
   errorFor(hz: number, n: ExpectedNote): number {
     const c = centsFromSa(hz, this.saHz) - (100 * n.semi + 1200 * n.oct);
-    return this.anyOctave ? foldOctave(c) : c;
+    return judged(c, this.anyOctave, this.below);
   }
 
   addReading(r: Reading): void {
@@ -552,12 +564,13 @@ export class PitchTracker {
 
   /** The octave sung in, from the last 10 s: among readings within a semitone of an octave of
    * their note, the most common, once it has `OCTAVE_MIN` of them and `OCTAVE_LEAD` times as
-   * many as the octave it was. */
+   * many as the octave it was; when the octave must match, the notes' or the one below. */
   private measureOctave(latest: number): void {
-    if (!this.anyOctave) {
+    if (!this.anyOctave && !this.below) {
       this.octave = 0;
       return;
     }
+    if (!this.anyOctave) this.octave = this.octave < 0 ? -1 : 0;
     const tally = new Map<number, number>();
     for (const r of this.readings) {
       if (!(r.hz > 0) || r.t - this.lag < latest - 10) continue;
@@ -565,6 +578,7 @@ export class PitchTracker {
       if (!n) continue;
       const c = centsFromSa(r.hz, this.saHz) - (100 * n.semi + 1200 * n.oct);
       const k = Math.round(c / 1200);
+      if (!this.anyOctave && k !== 0 && k !== -1) continue;
       if (Math.abs(c - 1200 * k) < 100) tally.set(k, (tally.get(k) ?? 0) + 1);
     }
     let best = this.octave;

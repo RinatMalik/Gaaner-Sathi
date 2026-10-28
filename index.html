@@ -67,7 +67,7 @@
       <div class="dfield">
         <label class="lab" for="fromLine">Lines to practise</label>
         <div class="row dpair"><select id="fromLine" class="lines"></select><label class="mini" for="toLine" id="toLab" hidden>to</label><select id="toLine" class="lines" hidden></select></div>
-        <div class="row dchks"><label class="chk"><input type="checkbox" id="loopChk"> Loop</label><label class="chk" title="Otherwise the right note in a higher or lower octave counts"><input type="checkbox" id="pOct"> Octave must match</label></div>
+        <div class="row dchks"><label class="chk"><input type="checkbox" id="loopChk"> Loop</label><label class="chk" title="Otherwise the right note in a higher or lower octave counts. With 2 or 3 reeds the guide’s bass reed plays an octave below the notes, so that octave counts too."><input type="checkbox" id="pOct"> Octave must match</label></div>
       </div>
       <label class="chk"><input type="checkbox" id="keysChk"> Show virtual keyboard</label>
       <div class="row dkb" id="kbLine"><span class="dstat" id="midiStatus" aria-live="polite"></span><button id="midiBtn" class="dlink" type="button" title="Connect a MIDI keyboard, such as a Casio, by its USB cable">Connect</button></div>
@@ -227,7 +227,7 @@
           <tr><td>See where it went wrong</td><td>Tap a line to open it. Under each note: how high or low you were (<b>+12</b> is a little high, <b>−8</b> a little low; a semitone is 100), and how late you reached it, if you did.</td></tr>
           <tr><td>Being late</td><td>Under the song it says how far behind the music you usually are, to help you sing on time. The app never moves your singing to hide it.</td></tr>
           <tr><td>Your equipment</td><td>Headphones and microphones take a moment to pass sound along. Measure it once with <b>Measure the delay</b>, at the foot of the song’s lines, so you are not marked late for it.</td></tr>
-          <tr><td>Octaves</td><td>The right note in a higher or lower octave counts, unless you tick <b>Octave must match</b>, at the top under the lines to practise.</td></tr>
+          <tr><td>Octaves</td><td>The right note in a higher or lower octave counts, unless you tick <b>Octave must match</b>, at the top under the lines to practise. Then only the octave the guide plays counts: with 2 or 3 reeds its bass reed plays an octave below the notes, so that one counts too.</td></tr>
           <tr><td>Not scored</td><td>Rounds where the guide plays for you to listen first.</td></tr>
           <tr><td>Afterwards</td><td><b>Report</b>, under the song after a run and beside each session in Progress, opens a page on how it went: what went well, what to work on, your timing and each note. <b>For AI</b> saves everything about it as a file an AI such as Claude or ChatGPT can analyse: the tune the app heard, not a recording of you.</td></tr>
         </table>

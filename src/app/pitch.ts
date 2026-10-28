@@ -42,6 +42,9 @@ export interface PitchHost {
   section(): (Section & { listen: boolean }) | null;
   /** Whether the octave must match. */
   octave: { get(): boolean; set(v: boolean): void };
+  /** Whether the guide sounds the octave below the notes too (a harmonium of 2 or 3 reeds: its
+   * bass reed), so that octave counts when the octave must match. */
+  below(): boolean;
   /** The device's own delay (sound out and back in) as last measured, seconds. */
   devLag: { get(): number | undefined; set(v: number): void };
   /** The octave to start the voice in against this song's notes, from where it sang last time
@@ -301,7 +304,7 @@ export function initPitch(host: PitchHost): PitchUI {
     parsedAt = host.parsed();
     byBeat = eventsByBeat(parsedAt);
     slips = new SlipFilter<MicReading>();
-    tracker = new PitchTracker({ lag: host.devLag.get() ?? mic?.latency() ?? 0.05, anyOctave: !host.octave.get(), saHz: host.saHz(), octave: host.voiceOct.get() });
+    tracker = new PitchTracker({ lag: host.devLag.get() ?? mic?.latency() ?? 0.05, anyOctave: !host.octave.get(), below: host.below(), saHz: host.saHz(), octave: host.voiceOct.get() });
     void listen();
   }
 
@@ -377,7 +380,7 @@ export function initPitch(host: PitchHost): PitchUI {
   }
 
   /** The readings that came in since the last frame, onto the lines' strips, when they were
-   * sung: at their pitch, moved by the octave the voice sings in when any octave counts (the
+   * sung: at their pitch, moved by the octave the voice sings in when another octave counts (the
    * same for all, so it never flips between octaves); coloured by how close they are to the note
    * playing then, grey while sliding into it or with no note playing. */
   function drawVoice(sa: number): void {
@@ -394,7 +397,7 @@ export function initPitch(host: PitchHost): PitchUI {
         slidePrev = null;
         continue;
       }
-      const y = centsFromSa(r.hz, sa) - (tracker.anyOctave ? 1200 * tracker.octave : 0);
+      const y = centsFromSa(r.hz, sa) - 1200 * tracker.octave;
       const n = tracker.expectedAt(t);
       if (n) {
         if (n !== slideNote) {
@@ -427,6 +430,7 @@ export function initPitch(host: PitchHost): PitchUI {
       lag: r3(tr.lag) ?? 0,
       measured: host.devLag.get() != null,
       anyOctave: tr.anyOctave,
+      ...(tr.below ? { below: true } : {}),
       octave: tr.octave,
       notes: tr.results.map((x) => ({
         t0: r3(x.note.t0 - base)!, t1: r3(x.note.t1 - base)!, semi: x.note.semi, oct: x.note.oct, g: x.note.g, line: x.note.line, pass: x.note.pass,
@@ -518,7 +522,7 @@ export function initPitch(host: PitchHost): PitchUI {
       if (!tracker) return null;
       settle(true);
       // Only from singing: a run with none heard keeps where the voice sang before.
-      if (tracker.anyOctave && tracker.results.some((r) => r.status === 'sung')) host.voiceOct.set(tracker.octave);
+      if ((tracker.anyOctave || tracker.below) && tracker.results.some((r) => r.status === 'sung')) host.voiceOct.set(tracker.octave);
       const s = tracker.summary();
       showAverage(true);
       if (s) message(REVIEW);

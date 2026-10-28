@@ -2749,6 +2749,7 @@ export function init(): void {
     beatEls: (g) => lines.cells(g),
     lines,
     section: () => (T && T.playing ? { secStart: T.secStart, secEnd: T.secEnd, loop: T.loop, listen: T.loop && soundSource.guideLoop === 'alt' && soundSource.guide !== 'off' } : null),
+    below: () => soundSource.reeds > 1 && soundSource.guide !== 'off' && (T?.localGuide ?? true),
     octave: {
       get: () => !!prefs.pitchOctave,
       set: (v) => {

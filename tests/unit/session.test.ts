@@ -168,6 +168,18 @@ describe('what a session shows', () => {
     expect(ins.notes[0]).toContain('check the microphone');
     expect(analyse(entry(), sing({ pitch: false }), []).headline).toBe('No pitch check this time.');
   });
+
+  it('says a voice an octave below counted with the guide’s bass reed, and keeps that in the detail and the file (Rinat, 2026-10-28)', () => {
+    const d = sing();
+    d.pitch = { ...d.pitch!, anyOctave: false, below: true, octave: -1, readings: d.pitch!.readings.map((v, i) => (i % 2 ? v / 2 : v)) };
+    const ins = analyse(entry(), d, [entry()]);
+    expect(ins.notes.join(' ')).toContain('You sang an octave below the notes, with the guide’s bass reed, which counts as right.');
+    // The timing is still found from the readings an octave down.
+    expect(ins.behind).not.toBeNull();
+    expect(cleanSession(JSON.parse(JSON.stringify(d)))!.pitch).toMatchObject({ anyOctave: false, below: true, octave: -1 });
+    expect(cleanSession({ ...d, pitch: { ...d.pitch, below: undefined } })!.pitch!.below).toBeUndefined();
+    expect((aiFile(input(d)) as Record<string, any>).equipment).toEqual({ device_delay_s: 0.05, delay_measured: true, any_octave_counts: false, octave_below_counts: true, octave_sung_against_the_notes: -1 });
+  });
 });
 
 describe('the file for AI', () => {

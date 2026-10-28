@@ -10,7 +10,7 @@
 import { parseSong } from '../core/notation/parse';
 import { CLOSE, IN_TUNE, LATE, ON_TIME, noteWords } from '../core/practice/insights';
 import { lengthText } from '../core/practice/log';
-import { centsFromSa, foldOctave } from '../core/pitch/track';
+import { centsFromSa, judged } from '../core/pitch/track';
 import { taalInfo } from '../core/taal/taals';
 import type { SessionFileInput } from './aifile';
 import { exportName, stamp } from './filenames';
@@ -269,12 +269,12 @@ function stripSVG(o: SessionFileInput, line: number, pass: number, lo: number, h
     if (t < a || t > b) continue;
     if (!(hz > 0) || t - lastT > 0.08) flush();
     if (!(hz > 0)) continue;
-    const y = centsFromSa(hz, saHz) - (p.anyOctave ? 1200 * p.octave : 0);
+    const y = centsFromSa(hz, saHz) - 1200 * p.octave;
     const n = at(t);
     let k = 'none';
     if (n) {
       const e = centsFromSa(hz, saHz) - (100 * n.semi + 1200 * n.oct);
-      k = band(p.anyOctave ? foldOctave(e) : e);
+      k = band(judged(e, p.anyOctave, p.below));
     }
     const pt = X(t) + ',' + Y(y);
     if (k !== cls && run.length) {

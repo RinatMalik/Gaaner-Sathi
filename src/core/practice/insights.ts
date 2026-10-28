@@ -5,7 +5,7 @@
  * good, what needs improving, whether i kept to the note well but came in too late"). Nothing
  * is re-scored: the notes' scores are the ones shown while singing. Pure, so tested in Node.
  */
-import { centsFromSa, foldOctave } from '../pitch/track';
+import { centsFromSa, judged } from '../pitch/track';
 import { noteTally, type LogEntry } from './log';
 import type { NoteRow, SessionDetail } from './session';
 
@@ -103,7 +103,7 @@ const ms = (s: number) => Math.round(Math.abs(s) * 100) * 10 + ' ms';
  * one nearest none. As the tracker measures it while singing, over the whole session (or the
  * `windows` given, seconds as sung). Null under 30 readings or a fit under 40 %.
  */
-export function bestShift(d: Pick<NonNullable<SessionDetail['pitch']>, 'readings' | 'notes' | 'lag' | 'anyOctave'>, saHz: number, windows?: readonly [number, number][]): number | null {
+export function bestShift(d: Pick<NonNullable<SessionDetail['pitch']>, 'readings' | 'notes' | 'lag' | 'anyOctave' | 'below'>, saHz: number, windows?: readonly [number, number][]): number | null {
   const notes = d.notes.filter((n) => n.status !== 'short').sort((a, b) => a.t0 - b.t0);
   const rs: [number, number][] = [];
   for (let i = 0; i + 1 < d.readings.length; i += 2) {
@@ -136,7 +136,7 @@ export function bestShift(d: Pick<NonNullable<SessionDetail['pitch']>, 'readings
       const n = at(t - s);
       if (!n) continue;
       const c = centsFromSa(hz, saHz) - (100 * n.semi + 1200 * n.oct);
-      if (Math.abs(d.anyOctave ? foldOctave(c) : c) < 50) hit++;
+      if (Math.abs(judged(c, d.anyOctave, d.below)) < 50) hit++;
     }
     const f = hit / use.length;
     if (f > bestFit + 1e-9 || (Math.abs(f - bestFit) <= 1e-9 && Math.abs(s) < Math.abs(best))) {
@@ -350,7 +350,7 @@ function findings(ins: Insights, e: LogEntry, detail: SessionDetail | null): voi
   else if (!detail.pitch || !detail.pitch.notes.length) notes.push('Check my pitch was off, so there is nothing on pitch or timing. Switch it on before you play to get them.');
   else if (!ins.counts.sung) notes.unshift('The pitch check was on but heard no singing. If you were singing, check the microphone: plugged in, its level up, and the one the browser is using.');
   if (detail?.pitch && !detail.pitch.measured) notes.push('The device’s delay was not measured, so some of the lateness may be your headphones or speakers. Measure it once with Measure the delay, at the foot of the song’s lines on the Practice view.');
-  if (detail?.pitch?.anyOctave && detail.pitch.octave) notes.push('You sang ' + (Math.abs(detail.pitch.octave) === 1 ? 'an octave' : Math.abs(detail.pitch.octave) + ' octaves') + (detail.pitch.octave < 0 ? ' below' : ' above') + ' the notes, which counts as right.');
+  if (detail?.pitch && (detail.pitch.anyOctave || detail.pitch.below) && detail.pitch.octave) notes.push('You sang ' + (Math.abs(detail.pitch.octave) === 1 ? 'an octave' : Math.abs(detail.pitch.octave) + ' octaves') + (detail.pitch.octave < 0 ? ' below' : ' above') + ' the notes' + (detail.pitch.anyOctave ? '' : ', with the guide’s bass reed') + ', which counts as right.');
   if (p && ins.counts.sung < 12) notes.push('Only ' + ins.counts.sung + ' notes were sung, so these findings are rough.');
   if (e.secs < 30 && detail?.pitch) notes.push('A short session: ' + Math.round(e.secs) + ' seconds.');
 }

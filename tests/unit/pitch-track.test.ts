@@ -10,7 +10,7 @@ import { Transport } from '../../src/audio/transport';
 import { EXERCISES } from '../../src/core/exercises';
 import { parseSong } from '../../src/core/notation/parse';
 import type { ParsedSong } from '../../src/core/notation/types';
-import { beatNotes, centsFromSa, eventsByBeat, foldOctave, isGlitch, nearestNote, noteScore, octaveFor, PitchTracker, SLIP_MAX, SlipFilter, sliding, type ExpectedNote, type Section } from '../../src/core/pitch/track';
+import { beatNotes, centsFromSa, eventsByBeat, foldOctave, isGlitch, judged, nearestNote, noteScore, octaveFor, PitchTracker, SLIP_MAX, SlipFilter, sliding, type ExpectedNote, type Section } from '../../src/core/pitch/track';
 import { taalInfo } from '../../src/core/taal/taals';
 import { RecordingContext } from '../differential/webaudio-recorder';
 import { seeded } from '../helpers';
@@ -45,6 +45,11 @@ describe('pitch arithmetic', () => {
     expect(foldOctave(-1180)).toBeCloseTo(20, 9);
     expect(nearestNote(-130)).toEqual({ semi: 11, oct: -1, off: -30 });
     expect(nearestNote(712)).toEqual({ semi: 7, oct: 0, off: 12 });
+    // As judged: folded for any octave; else as sung, or from the octave below where it counts.
+    expect(judged(1230, true)).toBeCloseTo(30, 9);
+    expect(judged(-1180, false)).toBe(-1180);
+    expect(judged(-1180, false, true)).toBeCloseTo(20, 9);
+    expect([judged(-500, false, true), judged(1180, false, true)]).toEqual([-500, 1180]);
     expect([0, 10, 15, 25, 35, -60, 100].map(noteScore)).toEqual([100, 100, 90, 70, 50, 0, 0]);
   });
 });
@@ -96,6 +101,28 @@ describe('scores', () => {
     const quiet = run(() => 0);
     expect(quiet.results.map((r) => r.status)).toEqual(Array(8).fill('unsung'));
     expect(quiet.summary()).toBeNull();
+  });
+
+  it('counts the octave below when the octave must match and the guide sounds it (Rinat, 2026-10-28)', () => {
+    // Rinat sings Sa on C♯3 under a guide named C♯4, whose bass reed sounds C♯3: "Octave must match"
+    // wanted the voice an octave higher.
+    const run = (detune: number, below: boolean) => {
+      const tr = new PitchTracker({ lag: 0, anyOctave: false, below, saHz: SA });
+      tr.addNotes(place(P, { spb: 0.6 }));
+      readings(tr, 0, 4.9, (t) => {
+        const n = tr.expectedAt(t);
+        return n ? hzOf(n, detune) : 0;
+      });
+      tr.settle(true);
+      return tr;
+    };
+    expect(run(-1200, true).summary()!.score).toBe(100);
+    expect(run(-1170, true).results.map((r) => r.score)).toEqual(Array(8).fill(60));
+    expect(run(0, true).summary()!.score).toBe(100);
+    // Without a bass reed it is wrong, and with one an octave above or two below is still wrong.
+    expect(run(-1200, false).summary()!.score).toBe(0);
+    expect(run(1200, true).summary()!.score).toBe(0);
+    expect(run(-2400, true).summary()!.score).toBe(0);
   });
 
   it('counts a late start against the note, and says how late it was (Rinat, 2026-10-19)', () => {
@@ -227,8 +254,8 @@ describe('scores', () => {
 
   it('starts in the octave sung last time, and changes it only when another is clearly sung', () => {
     const Q = parseSong(Array.from({ length: 3 }, () => 'সা পা গা মা র্সা ধা না পা').join('\n'));
-    const sing = (o: { octave?: number; anyOctave?: boolean }, detune: (t: number) => number) => {
-      const tr = new PitchTracker({ lag: 0, anyOctave: o.anyOctave ?? true, saHz: SA, octave: o.octave });
+    const sing = (o: { octave?: number; anyOctave?: boolean; below?: boolean }, detune: (t: number) => number) => {
+      const tr = new PitchTracker({ lag: 0, anyOctave: o.anyOctave ?? true, below: o.below, saHz: SA, octave: o.octave });
       tr.addNotes(place(Q, { spb: 0.4 }));
       const seen = new Set<number>([tr.octave]);
       let found = NaN;
@@ -251,6 +278,10 @@ describe('scores', () => {
     expect(sing({ octave: -1 }, (t) => (Math.floor(t / 0.4) % 3 === 1 ? 0 : -1200)).seen).toEqual([-1]);
     // When the octave must match, the voice is drawn where it is.
     expect(sing({ octave: -1, anyOctave: false }, () => -1200).seen).toEqual([0]);
+    // Where the octave below counts too (the guide's bass reed), it is drawn there, and only there.
+    expect(sing({ octave: -1, anyOctave: false, below: true }, () => -1200).seen).toEqual([-1]);
+    expect(sing({ anyOctave: false, below: true }, () => -1200).seen).toEqual([0, -1]);
+    expect(sing({ octave: -2, anyOctave: false, below: true }, () => -2400).seen).toEqual([-1]);
   });
 
   it('starts each song in the octave nearest the Sa the voice sang on, whatever the song’s Sa (Rinat, 2026-10-21)', () => {

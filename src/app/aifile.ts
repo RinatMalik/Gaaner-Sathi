@@ -70,7 +70,9 @@ export const AI_BRIEF = {
     'sharp, − flat), so coming in late does not count as singing off pitch. reached_after_s is how long after the note started the ' +
     'voice first came within 50 cents of it; null means never. A note too short to judge (under about 0.08 s) is "short" and left ' +
     'out. If equipment.any_octave_counts is true, the right note in another octave counts as right (distances are taken to the ' +
-    'nearest octave of the note). The app never moves the singing in time to make it fit: singing late scores lower.',
+    'nearest octave of the note). If it is false and equipment.octave_below_counts is true, the octave below the notes counts too, ' +
+    'as the guide sounds it (a 2- or 3-reed harmonium\'s bass reed plays an octave under the keys). The app never moves the singing ' +
+    'in time to make it fit: singing late scores lower.',
   behind_the_music:
     'behind_the_music_ms is how far behind the guide the voice came: the shift, from −200 to +600 ms, at which most readings with ' +
     'voice land within 50 cents of the note playing (positive: after the guide; negative: ahead). It is the singer\'s own lateness, ' +
@@ -163,7 +165,7 @@ function sessionParts(o: SessionFileInput, texts: readonly { notes: string; word
         }
       : null,
     equipment: p
-      ? { device_delay_s: r(p.lag, 3), delay_measured: p.measured, any_octave_counts: p.anyOctave, octave_sung_against_the_notes: p.octave }
+      ? { device_delay_s: r(p.lag, 3), delay_measured: p.measured, any_octave_counts: p.anyOctave, ...(p.anyOctave ? {} : { octave_below_counts: !!p.below }), octave_sung_against_the_notes: p.octave }
       : null,
     findings_by_the_app: {
       headline: ins.headline,
@@ -361,7 +363,7 @@ export function practiceFileParts(log: readonly LogEntry[], sessions: readonly S
         ? {
             song_as_played: versionOf.get(e.at) ?? null,
             settings: { guide: d.settings.guide, guide_when_looping: d.settings.guideLoop, count_in: d.settings.countIn, speed_up_each_round: d.settings.ramp ? { by: d.settings.rampStep, up_to: d.settings.rampMax } : false, break_between_rounds_s: d.settings.gap ?? 0 },
-            equipment: p ? { device_delay_s: r(p.lag, 3), delay_measured: p.measured, any_octave_counts: p.anyOctave, octave_sung_against_the_notes: p.octave } : null,
+            equipment: p ? { device_delay_s: r(p.lag, 3), delay_measured: p.measured, any_octave_counts: p.anyOctave, ...(p.anyOctave ? {} : { octave_below_counts: !!p.below }), octave_sung_against_the_notes: p.octave } : null,
             notes: p ? notesTable(p) : null,
             beats: p ? beatsTable(p) : null,
             pitch_readings: p ? readingsTable(p, d.played.saHz) : null,

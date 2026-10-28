@@ -62,8 +62,11 @@ export interface PitchDetail {
    * clicks (else the device's own figure). A reading taken at t was sung at t − lag. */
   lag: number;
   measured: boolean;
-  /** Any octave counted as the right note; the octave the voice sang in against the notes. */
+  /** Any octave counted as the right note; else, `below`: the octave below the notes counted too,
+   * as the guide sounded it (its bass reed; from 2026-10-28). The octave the voice sang in against
+   * the notes. */
   anyOctave: boolean;
+  below?: boolean;
   octave: number;
   notes: NoteRow[];
   /** Each line as it finished: [line, round, score (null: none sung), share of it sung 0–1]. */
@@ -126,6 +129,7 @@ export function cleanSession(v: unknown): SessionDetail | null {
       lag: num(q.lag) ? q.lag : 0,
       measured: q.measured === true,
       anyOctave: q.anyOctave !== false,
+      ...(q.below === true ? { below: true } : {}),
       octave: num(q.octave) ? q.octave : 0,
       notes: Array.isArray(q.notes) ? q.notes.map(cleanNote).filter((n): n is NoteRow => !!n) : [],
       lines: Array.isArray(q.lines)
