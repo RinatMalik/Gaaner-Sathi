@@ -70,7 +70,7 @@ export const pickedButton = (n: number): string =>
   '<button type="button" class="btn primary" data-act="addpicked"' + (n ? '' : ' disabled') + '>' + (n ? 'Add ' + n + ' to this routine' : 'Add to this routine') + '</button>';
 
 /** One item, as a row like a line in the beat boxes: its number down the left; its song,
- * lines, rounds, tempo and guide; and at its end full-height buttons to move it up or down
+ * lines, rounds, the break between them (Rinat, 2026-10-28: each item its own), tempo and guide; and at its end full-height buttons to move it up or down
  * or remove it (icons only). */
 export function itemRowHTML(it: RoutineItem, i: number, count: number, song: ItemSong | null, own: readonly Choice[], exercises: readonly Choice[], exFirst = false): string {
   const k = (name: string) => 'data-i="' + i + '" data-k="' + name + '"';
@@ -85,6 +85,7 @@ export function itemRowHTML(it: RoutineItem, i: number, count: number, song: Ite
       '<label class="rwf"><span>Lines</span><select ' + k('from') + '><option value=""' + (whole ? ' selected' : '') + '>The whole song</option>' + song.labels.map((_, n) => lineOpt(n, !whole && n === a)).join('') + '</select></label>' +
       (whole ? '' : '<label class="rwf"><span>to</span><select ' + k('to') + '>' + song.labels.map((_, n) => (n >= a ? lineOpt(n, n === b) : '')).join('') + '</select></label>') +
       '<label class="rwf rwnum"><span>Rounds</span><input type="number" min="1" max="20" step="1" inputmode="numeric" value="' + it.rounds + '" ' + k('rounds') + '></label>' +
+      '<label class="rwf rwnum" title="Seconds of silence before each round after the first, the drone going on; then the count-in again, if it is on"><span>Break between rounds, seconds</span><input type="number" min="0" max="' + ROUTINE_LIMITS.gap + '" step="1" inputmode="numeric" value="' + roundGapOf(it) + '" ' + k('roundGap') + '></label>' +
       '<label class="rwf rwnum"><span>Tempo</span><input type="number" min="30" max="240" step="1" inputmode="numeric" placeholder="' + song.tempo + '" value="' + (it.tempo ?? '') + '" ' + k('tempo') + '></label>' +
       '<label class="rwf"><span>Guide</span><select ' + k('guide') + '>' + GUIDES.map(([v, t]) => '<option value="' + v + '"' + ((it.guide ?? '') === v ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></label>';
   }
@@ -129,7 +130,7 @@ export function metaText(r: Routine, saved: boolean, secs: number): string {
 /**
  * One routine: a heading row (its name and length; tapped anywhere it folds the routine
  * away) with a full-height Start button at its end; unfolded, its name, the break between its
- * items and between an item's rounds, its items, and a row to add songs and exercises (choosing several at once) or
+ * items, its items, and a row to add songs and exercises (choosing several at once) or
  * delete the routine. `n` numbers its parts on the page.
  */
 export function routineHTML(r: Routine, n: number, o: RoutineRow, song: (id: string) => ItemSong | null, own: readonly Choice[], exercises: readonly Choice[]): string {
@@ -148,8 +149,7 @@ export function routineHTML(r: Routine, n: number, o: RoutineRow, song: (id: str
     '<button type="button" class="rwgo" data-act="start"' + (count ? '' : ' disabled') + '>' + ICON.play + '<span>Start rewaz</span></button></div>' +
     '<div class="rwbody" id="rwb-' + n + '"' + (o.open ? '' : ' hidden') + '>' +
     '<div class="rwopts"><label class="rwf rwnamef"><span>Name</span><input type="text" data-act="name" value="' + esc(r.name) + '" maxlength="' + ROUTINE_LIMITS.name + '" autocomplete="off"></label>' +
-    '<label class="rwf rwnum rwgapf"><span>Break between items, seconds</span><input type="number" min="0" max="' + ROUTINE_LIMITS.gap + '" step="1" inputmode="numeric" data-act="gap" value="' + gapOf(r) + '"></label>' +
-    '<label class="rwf rwnum rwgapf" title="Silence before each round after the first, the drone going on; then the count-in again, if it is on"><span>Break between rounds, seconds</span><input type="number" min="0" max="' + ROUTINE_LIMITS.gap + '" step="1" inputmode="numeric" data-act="roundgap" value="' + roundGapOf(r) + '"></label></div>' +
+    '<label class="rwf rwnum rwgapf"><span>Break between items, seconds</span><input type="number" min="0" max="' + ROUTINE_LIMITS.gap + '" step="1" inputmode="numeric" data-act="gap" value="' + gapOf(r) + '"></label></div>' +
     '<ol class="rwlist">' + items + '</ol>' +
     (o.picking ? pickerHTML(own, exercises, o.exFirst, o.picking, o.openId) : '') +
     '<div class="rwfoot">' + (o.picking ? '' : '<button type="button" class="btn" data-act="pick"' + (count >= ROUTINE_LIMITS.items ? ' disabled' : '') + '>+ Add songs and exercises</button>') +
@@ -276,7 +276,7 @@ export function initRewaz(host: RewazHost): Rewaz {
     if (!run) return;
     run.i = i;
     showBar(itemText(i, run.r.items[i]!.rounds > 1 ? ' · round 1 of ' + run.r.items[i]!.rounds : ''));
-    if (!host.play(run.r.items[i]!, roundGapOf(run.r))) next(i + 1, 0);
+    if (!host.play(run.r.items[i]!, roundGapOf(run.r.items[i]!))) next(i + 1, 0);
   }
 
   function next(from: number, gap: number): void {
@@ -447,15 +447,12 @@ export function initRewaz(host: RewazHost): Rewaz {
     }
     const id = routineOf(el);
     const act = el.dataset.act;
-    if (act === 'gap' || act === 'roundgap') {
+    if (act === 'gap') {
       const got = routine(id);
       if (!got) return;
       const v = Math.round(Number(el.value));
-      const was = act === 'gap' ? gapOf(got.r) : roundGapOf(got.r);
-      const to = Number.isFinite(v) && el.value !== '' ? Math.max(0, Math.min(ROUTINE_LIMITS.gap, v)) : was;
-      if (act === 'gap') got.r.gap = to;
-      else if (to) got.r.roundGap = to;
-      else delete got.r.roundGap;
+      const to = Number.isFinite(v) && el.value !== '' ? Math.max(0, Math.min(ROUTINE_LIMITS.gap, v)) : gapOf(got.r);
+      got.r.gap = to;
       store(got.r);
       if (got.saved) {
         el.value = String(to);
@@ -494,7 +491,7 @@ export function initRewaz(host: RewazHost): Rewaz {
       if (!it) return;
       const v = el.value;
       if (key === 'song') {
-        r.items[i] = { song: v, rounds: it.rounds, ...(it.guide ? { guide: it.guide } : {}) };
+        r.items[i] = { song: v, rounds: it.rounds, ...(it.guide ? { guide: it.guide } : {}), ...(it.roundGap ? { roundGap: it.roundGap } : {}) };
       } else if (key === 'from') {
         if (v === '') {
           delete it.from;
@@ -508,6 +505,11 @@ export function initRewaz(host: RewazHost): Rewaz {
         it.to = Number(v);
         wholeIfAll(it, host.song(it.song)?.labels.length ?? 0);
       } else if (key === 'rounds') it.rounds = Math.max(1, Math.min(20, Math.round(Number(v)) || 1));
+      else if (key === 'roundGap') {
+        const t = Math.max(0, Math.min(ROUTINE_LIMITS.gap, Math.round(Number(v)) || 0));
+        if (t) it.roundGap = t;
+        else delete it.roundGap;
+      }
       else if (key === 'tempo') {
         const t = Math.round(Number(v));
         if (v === '' || !t) delete it.tempo;
@@ -517,7 +519,7 @@ export function initRewaz(host: RewazHost): Rewaz {
         else delete it.guide;
       }
     };
-    // Rounds, tempo, guide and the last line change in place, so Tab goes on to the next
+    // Rounds, their break, tempo, guide and the last line change in place, so Tab goes on to the next
     // field. A new song or first line changes the other fields, as does a last line making it
     // the whole song: the routine is drawn again and the focus put back on the same choice, or
     // on the lines' first (as is the ready-made one, saved now).
@@ -527,6 +529,7 @@ export function initRewaz(host: RewazHost): Rewaz {
       store(got.r);
       const it = got.r.items[i];
       if (it && key === 'rounds') el.value = String(it.rounds);
+      if (it && key === 'roundGap') el.value = String(roundGapOf(it));
       if (it && key === 'tempo') el.value = it.tempo == null ? '' : String(it.tempo);
       const meta = el.closest('.rwr')?.querySelector('.rwmeta');
       if (meta) meta.textContent = metaText(got.r, true, routineSeconds(got.r, host.song, host.countIn()));

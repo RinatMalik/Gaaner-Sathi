@@ -19,6 +19,9 @@ export interface RoutineItem {
   tempo?: number;
   /** Absent: as set at the top of the app. */
   guide?: ItemGuide;
+  /** Seconds of break between its rounds, 1–120, then the count-in again (Rinat, 2026-10-23;
+   * each item its own from 2026-10-28); absent: none. */
+  roundGap?: number;
 }
 
 export interface Routine {
@@ -27,9 +30,6 @@ export interface Routine {
   items: RoutineItem[];
   /** Seconds of break between items, 0–120 (Rinat, 2026-10-15); absent: ITEM_GAP. */
   gap?: number;
-  /** Seconds of break between an item's rounds, 0–120 (Rinat, 2026-10-23), then the count-in
-   * again; absent: none. */
-  roundGap?: number;
   /** ms since epoch. */
   updatedAt: number;
 }
@@ -67,6 +67,8 @@ export function cleanItem(v: unknown): RoutineItem | null {
   const tempo = int(o.tempo, 30, 240);
   if (tempo != null) it.tempo = tempo;
   if (o.guide === 'all' || o.guide === 'first' || o.guide === 'alt' || o.guide === 'off') it.guide = o.guide;
+  const roundGap = int(o.roundGap, 0, ROUTINE_LIMITS.gap);
+  if (roundGap) it.roundGap = roundGap;
   return it;
 }
 
@@ -79,8 +81,10 @@ export function cleanRoutine(id: string, v: unknown): Routine | null {
   const r: Routine = { id, name, items, updatedAt: typeof o.updatedAt === 'number' && Number.isFinite(o.updatedAt) ? o.updatedAt : 0 };
   const gap = int(o.gap, 0, ROUTINE_LIMITS.gap);
   if (gap != null) r.gap = gap;
+  // Until 2026-10-28 the break between rounds was the routine's, for all its items: now each
+  // item's own, starting from it.
   const roundGap = int(o.roundGap, 0, ROUTINE_LIMITS.gap);
-  if (roundGap) r.roundGap = roundGap;
+  if (roundGap) for (const it of items) it.roundGap ??= roundGap;
   return r;
 }
 
@@ -102,8 +106,8 @@ export interface SongShape {
 export const ITEM_GAP = 4;
 /** A routine's break between items, seconds. */
 export const gapOf = (r: Routine): number => r.gap ?? ITEM_GAP;
-/** A routine's break between an item's rounds, seconds. */
-export const roundGapOf = (r: Routine): number => r.roundGap ?? 0;
+/** An item's break between its rounds, seconds. */
+export const roundGapOf = (it: RoutineItem): number => it.roundGap ?? 0;
 
 /** The lines an item plays, clamped to the song: [from, to]. */
 export function itemLines(it: RoutineItem, lines: number): [number, number] {
@@ -135,8 +139,8 @@ export function routineSeconds(r: Routine, shapeOf: (id: string) => SongShape | 
     let beats = 0;
     for (let k = a; k <= b; k++) beats += s.lineBeats[k]!;
     const spb = 60 / (it.tempo ?? s.tempo);
-    const breaks = roundGapOf(r) ? it.rounds - 1 : 0;
-    t += (beats * it.rounds + (countIn ? s.cycle * (1 + breaks) : 0)) * spb + breaks * roundGapOf(r) + (i < r.items.length - 1 ? gapOf(r) : 0);
+    const breaks = roundGapOf(it) ? it.rounds - 1 : 0;
+    t += (beats * it.rounds + (countIn ? s.cycle * (1 + breaks) : 0)) * spb + breaks * roundGapOf(it) + (i < r.items.length - 1 ? gapOf(r) : 0);
   });
   return t;
 }

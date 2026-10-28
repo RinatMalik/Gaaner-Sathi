@@ -402,7 +402,7 @@ export class RoutineStore {
   /** Save one routine: re-read the stored ones and change only this, so another tab's survive. */
   save(r: Routine): WriteResult {
     const t = songTable(readJSON(this.S, STORE_KEYS.routines));
-    t[r.id] = { name: r.name, items: r.items, updatedAt: r.updatedAt, ...(r.gap != null ? { gap: r.gap } : {}), ...(r.roundGap ? { roundGap: r.roundGap } : {}) };
+    t[r.id] = { name: r.name, items: r.items, updatedAt: r.updatedAt, ...(r.gap != null ? { gap: r.gap } : {}) };
     return writeJSON(this.S, STORE_KEYS.routines, t);
   }
 

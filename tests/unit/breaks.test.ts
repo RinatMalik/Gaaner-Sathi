@@ -88,17 +88,32 @@ describe('a break between rounds', () => {
     expect(resumed.beats[0]).toEqual([0, 1, 0.12]);
   });
 
-  it('counts in a routine’s length, and is kept by routines and takes', () => {
+  it('counts in a routine’s length, each item’s own', () => {
     const shape = () => ({ tempo: 120, lineBeats: [8], cycle: 8 });
     const r: Routine = { id: 'r', name: 'R', updatedAt: 0, items: [{ song: 'a', rounds: 3 }] };
     // 3 rounds of 8 beats and a count-in: 32 beats, 16 s.
     expect(routineSeconds(r, shape, true)).toBe(16);
     // Two breaks of 5 s, each with a count-in again: 16 + 10 + 8.
-    expect(routineSeconds({ ...r, roundGap: 5 }, shape, true)).toBe(34);
-    expect(routineSeconds({ ...r, roundGap: 5 }, shape, false)).toBe(22);
-    expect(cleanRoutine('r', { name: 'R', items: [], roundGap: 500 })!.roundGap).toBe(120);
-    expect(cleanRoutine('r', { name: 'R', items: [], roundGap: 0 })!.roundGap).toBeUndefined();
-    expect(roundGapOf(cleanRoutine('r', { name: 'R', items: [] })!)).toBe(0);
+    const rested: Routine = { ...r, items: [{ song: 'a', rounds: 3, roundGap: 5 }] };
+    expect(routineSeconds(rested, shape, true)).toBe(34);
+    expect(routineSeconds(rested, shape, false)).toBe(22);
+    // Each item its own (Rinat, 2026-10-28): an item with none adds nothing.
+    expect(routineSeconds({ ...r, items: [{ song: 'a', rounds: 3, roundGap: 5 }, { song: 'a', rounds: 3 }] }, shape, true)).toBe(34 + 4 + 16);
+    const clean = (it: object) => cleanRoutine('r', { name: 'R', items: [{ song: 'a', rounds: 2, ...it }] })!.items[0]!;
+    expect(clean({ roundGap: 500 }).roundGap).toBe(120);
+    expect(clean({ roundGap: 0 })).not.toHaveProperty('roundGap');
+    expect(roundGapOf(clean({}))).toBe(0);
+    expect(roundGapOf(clean({ roundGap: 7 }))).toBe(7);
+  });
+
+  it('was the routine’s until 2026-10-28: read as each item’s that has none of its own', () => {
+    const old = cleanRoutine('r', { name: 'R', roundGap: 6, items: [{ song: 'a', rounds: 3 }, { song: 'b', rounds: 2, roundGap: 2 }] })!;
+    expect(old.items.map(roundGapOf)).toEqual([6, 2]);
+    expect(old).not.toHaveProperty('roundGap');
+    expect(cleanRoutine('r', { name: 'R', roundGap: 0, items: [{ song: 'a', rounds: 3 }] })!.items[0]).not.toHaveProperty('roundGap');
+  });
+
+  it('is kept by takes', () => {
     const take = cleanTake({ id: 't', song: 's', at: 1, secs: 30, rate: 48000, loop: true, rounds: 3, gap: 4, tempo: 120 })!;
     expect(take.gap).toBe(4);
     expect(takeDetail(take)).toBe('line 1 × 3 rounds, 4 s breaks · 120 per min · 0:30');
