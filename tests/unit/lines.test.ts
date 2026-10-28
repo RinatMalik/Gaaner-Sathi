@@ -1,7 +1,8 @@
 // The Practice view's lines (src/app/lines.ts): the layout, each line's strip and cells, and
 // the taal figure (Rinat, 2026-10-15).
 import { describe, expect, it } from 'vitest';
-import { centsText, closeness, columnsFor, figureProgress, gaugeHTML, gaugeY, linesHTML, ragColour, shapeCorners, shapePath, songRange, stripY, taalFigureHTML } from '../../src/app/lines';
+import { centsText, closeness, columnsFor, figureProgress, gaugeHTML, gaugeY, lineRange, linesHTML, MIN_SPAN, ragColour, shapeCorners, shapePath, stripY, taalFigureHTML } from '../../src/app/lines';
+import { eventsByBeat } from '../../src/core/pitch/track';
 import { parseSong } from '../../src/core/notation/parse';
 import { taalMap } from '../../src/core/notation/taalmap';
 import { taalInfo } from '../../src/core/taal/taals';
@@ -28,13 +29,19 @@ describe('the lines’ layout', () => {
     expect(columnsFor(0, 300, 34)).toBe(1);
   });
 
-  it('gives every line of a song the same strip: its lowest note to its highest, a semitone beyond (Rinat, 2026-10-19)', () => {
-    // Sa to upper Ga.
-    expect(songRange(parseSong('S R G M P\nS\nS\' R\' G\'\nx x'))).toEqual({ lo: -100, hi: 1700 });
-    // Lower Dha to Ma; one note; no notes (Sa to Pa).
-    expect(songRange(parseSong('.D S\nM'))).toEqual({ lo: -400, hi: 600 });
-    expect(songRange(parseSong('P'))).toEqual({ lo: 600, hi: 800 });
-    expect(songRange(parseSong('x x'))).toEqual({ lo: -100, hi: 800 });
+  it('gives each line its own strip: its lowest note to its highest, a semitone beyond, half an octave at least (Rinat, 2026-10-28)', () => {
+    const ranges = (t: string) => {
+      const P = parseSong(t);
+      const by = eventsByBeat(P);
+      return P.noteLines.map((L) => lineRange(P, L, by));
+    };
+    // Sa to Pa; Sa alone, widened to half an octave; upper Sa to upper Ga; no notes (Sa to Pa).
+    expect(ranges("S R G M P\nS\nS' R' G'\nx x")).toEqual([{ lo: -100, hi: 800 }, { lo: -300, hi: 300 }, { lo: 1100, hi: 1700 }, { lo: -100, hi: 800 }]);
+    // Lower Dha to Ma; two notes a semitone apart, widened by a semitone more above.
+    expect(ranges('.D S M\nS r')).toEqual([{ lo: -400, hi: 600 }, { lo: -200, hi: 400 }]);
+    // A note held from the line before counts in the line it sounds in.
+    expect(ranges("S S S P\n- S' S' S'")[1]).toEqual({ lo: 600, hi: 1300 });
+    expect(MIN_SPAN).toBe(600);
   });
 
   it('draws higher notes higher, inside the strip', () => {
@@ -94,7 +101,7 @@ describe('the lines', () => {
   });
 
   it('draws a bar for each note at its height: inset where it starts and ends, carried across a held beat', () => {
-    const r = songRange(P);
+    const r = lineRange(P, P.noteLines[0]!, eventsByBeat(P));
     // সা at the bottom, পা held over two beats.
     expect(bars(html, 0)).toEqual([[5, 95, +stripY(0, r).toFixed(1)]]);
     expect(bars(html, 4)).toEqual([[5, 100, +stripY(700, r).toFixed(1)]]);
@@ -102,9 +109,10 @@ describe('the lines', () => {
     // Two notes in a beat; a silence has none; the same note twice shows as two bars.
     expect(bars(html, 11).map((b) => [b[0], b[1]])).toEqual([[5, 45], [55, 100]]);
     expect(bars(html, 10)).toEqual([]);
-    expect(bars(html, 8)).toEqual([[5, 95, +stripY(0, r).toFixed(1)]]);
-    // Every line the same range: Sa to Pa, a semitone beyond.
-    expect(html.match(/data-lo="-100" data-hi="800"/g)).toHaveLength(P.noteLines.length);
+    // Each line its own range: Sa to Pa, a semitone beyond; Sa and Re, widened to half an
+    // octave; Pa alone, the same.
+    expect(html.match(/data-lo="-?\d+" data-hi="\d+"/g)).toEqual(['data-lo="-100" data-hi="800"', 'data-lo="-200" data-hi="400"', 'data-lo="400" data-hi="1000"']);
+    expect(bars(html, 8)).toEqual([[5, 95, +stripY(0, { lo: -200, hi: 400 }).toFixed(1)]]);
   });
 
   it('says what to do when there are no notes yet', () => {

@@ -36,23 +36,35 @@ export function columnsFor(maxBeats: number, width: number, minCol: number): num
   return c;
 }
 
-/** The song's pitch strip, in cents from Sa, the same for every line so a note is always at
- * the same height (Rinat, 2026-10-19): its grid runs from the song's lowest note to its
- * highest, with a semitone's room beyond each for a voice above or below them. (Until then
- * each line had its own, two semitones beyond its notes.) No notes: Sa to Pa. */
-export function songRange(P: ParsedSong): { lo: number; hi: number } {
+/** A line's strip spans at least this, cents: a line of one or two notes is not drawn so close
+ * that every waver of the voice fills it. */
+export const MIN_SPAN = 600;
+
+/** A line's pitch strip, in cents from Sa (Rinat, 2026-10-28: "make it so that the grid is more
+ * zoomed in ... for each line, the grid covers a little more than the highest and lowest note in
+ * that line and it changes with each line"): its grid runs from the lowest note sounding in the
+ * line to the highest, with a semitone's room beyond each for a voice above or below them, and
+ * spans MIN_SPAN at least, widened evenly by semitones. (From 2026-10-19 the song had one grid,
+ * a note at the same height on every line, but a song over two octaves left a semitone a few
+ * pixels high, too little to see the voice's ups and downs; before that each line had its own,
+ * two semitones beyond its notes.) No notes: Sa to Pa. `byBeat`: eventsByBeat(P). */
+export function lineRange(P: ParsedSong, L: NotesLine, byBeat: readonly (readonly number[])[]): { lo: number; hi: number } {
   let min = Infinity;
   let max = -Infinity;
-  for (const e of P.events) {
-    const c = 100 * (e.semi + 12 * e.oct);
-    min = Math.min(min, c);
-    max = Math.max(max, c);
+  for (const b of L.beats) {
+    for (const i of byBeat[b.g] || []) {
+      const e = P.events[i]!;
+      const c = 100 * (e.semi + 12 * e.oct);
+      min = Math.min(min, c);
+      max = Math.max(max, c);
+    }
   }
   if (!Number.isFinite(min)) {
     min = 0;
     max = 700;
   }
-  return { lo: min - 100, hi: max + 100 };
+  const short = Math.max(0, MIN_SPAN - (max - min + 200)) / 100;
+  return { lo: min - 100 - 100 * Math.floor(short / 2), hi: max + 100 + 100 * Math.ceil(short / 2) };
 }
 
 /** Where a pitch is drawn in a strip (SVG units: 0 at the top, 100 at the bottom). */
@@ -90,7 +102,7 @@ export function linesHTML(P: ParsedSong, taals: TaalInfo | Taals, off: number, s
       html += '<div class="plhd">' + esc(it.text) + '</div>';
       continue;
     }
-    const r = songRange(P);
+    const r = lineRange(P, it, byBeat);
     const run = M.line(it.n);
     const words = hasWords(it);
     let cells = '';
