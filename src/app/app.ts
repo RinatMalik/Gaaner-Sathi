@@ -40,7 +40,7 @@ import type { PitchDetail, PlayedSettings, PlayedSong, SessionDetail } from '../
 import { octaveFor } from '../core/pitch/track';
 import { songSpan } from '../core/pitch/voice';
 import { itemLines, type RoutineItem } from '../core/practice/routine';
-import { clockText, MIN_TAKE_SECS, newTakeId, textSig, type Take } from '../core/practice/take';
+import { clockText, keepsTake, newTakeId, textSig, type Take } from '../core/practice/take';
 import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefix, type ImportedSong } from '../core/song/file';
 import { titleFixes, uniqueTitle } from '../core/song/library';
 import { cleanDismissed, cleanNotes, newId, normalize, parseTags, type Song } from '../core/song/model';
@@ -316,7 +316,7 @@ function play(ask: PlayAsk = pickedLines(), at: { s: number; pass: number } | nu
   asked = { ...ask, from: r.from, to: r.to, loop };
   if (!ask.check && !at) {
     startRun(r.from, r.to, loop);
-    startTakeRun(r.from, loop);
+    startTakeRun(r.from, loop, playSeconds(parsed, baseTempoAt, r.from, loop || ask.upTo ? r.to : undefined));
   }
   setPlayUI();
   // The figure shows the taal it starts in straightaway, not when the first beat sounds.
@@ -1312,7 +1312,8 @@ let recArmed = false;
 /** AudioContext time of the run's first scheduled beat (count-in included), −1 before it. */
 let runFirst = -1;
 /** What a take being recorded needs from its run. */
-let takeRun: Omit<Take, 'id' | 'at' | 'secs' | 'rate' | 'rounds' | 'to'> & { at: number } | null = null;
+/** The take being recorded; `track`: one pass of the lines it plays, seconds. */
+let takeRun: Omit<Take, 'id' | 'at' | 'secs' | 'rate' | 'rounds' | 'to'> & { at: number; track: number } | null = null;
 /** The take playing back: with the guide (through the transport) or alone. */
 let takePlay: { take: Take; how: 'guide' | 'me'; src: AudioBufferSourceNode | null } | null = null;
 let takesShown: Take[] = [];
@@ -1385,8 +1386,9 @@ async function toggleRecord(): Promise<void> {
   // Already playing: record from the next play.
 }
 
-/** A play has started: record it, if recording is on (not while a take plays back). */
-function startTakeRun(from: number, loop: boolean): void {
+/** A play has started: record it, if recording is on (not while a take plays back). `track`:
+ * one pass of the lines it plays, seconds. */
+function startTakeRun(from: number, loop: boolean, track: number): void {
   if (takePlay?.how === 'guide' && takePlay.src === null) startTakeVoice();
   if (!recArmed || !recorder || takePlay || runFirst < 0) {
     takeRun = null;
@@ -1396,7 +1398,7 @@ function startTakeRun(from: number, loop: boolean): void {
   takeRun = {
     song: current.id, title: current.title, at: Date.now() + (runFirst - recorder.ctx.currentTime) * 1000, from, loop,
     tempo: current.tempo, countIn: !!s.countIn, ramp: !!s.ramp, rampStep: s.rampStep, rampMax: s.rampMax,
-    lag: prefs.deviceLag ?? recorder.latency(), sig: textSig(current.text),
+    lag: prefs.deviceLag ?? recorder.latency(), sig: textSig(current.text), track,
   };
   if (itemOverride?.tempo) takeRun.flat = itemOverride.tempo;
   if (T?.gap) takeRun.gap = T.gap;
@@ -1417,11 +1419,11 @@ async function saveTake(rec: Recorder, at: number, r: typeof run): Promise<void>
   setRecUI();
   if (!tr) return;
   const secs = pcm.length / rec.rate;
-  if (secs < MIN_TAKE_SECS) {
+  if (!keepsTake(secs, tr.track)) {
     setTakeStatus('That play was too short to keep as a take.');
     return;
   }
-  const { at: when, ...rest } = tr;
+  const { at: when, track: _track, ...rest } = tr;
   const take: Take = { ...rest, id: newTakeId(), at: Math.round(when), secs: Math.round(secs * 10) / 10, rate: rec.rate, to: r ? (r.loop ? r.to : r.line) : tr.from, rounds: r && r.loop ? r.pass + 1 : 1 };
   try {
     await (await takes())!.add(take, pcm);

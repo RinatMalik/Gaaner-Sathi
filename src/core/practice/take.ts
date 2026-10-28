@@ -38,6 +38,13 @@ export interface Take {
 /** A take shorter than this is not kept (a play stopped straight away). */
 export const MIN_TAKE_SECS = 3;
 
+/** Nor one shorter than this share of one pass of the lines it played, `track` seconds (Rinat,
+ * 2026-10-28: "if the length of the recording is less than 15% of the length of the track that
+ * is being sang, then discard that recording"): a song started and stopped after a line. */
+export const MIN_TAKE_SHARE = 0.15;
+
+export const keepsTake = (secs: number, track: number): boolean => secs >= MIN_TAKE_SECS && secs >= MIN_TAKE_SHARE * track;
+
 /** FNV-1a over the text, in base 36: enough to tell two versions of a song apart. */
 export function textSig(text: string): string {
   let h = 0x811c9dc5;

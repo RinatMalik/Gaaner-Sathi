@@ -3,7 +3,7 @@
 // Voice page (src/app/takes.ts).
 import { describe, expect, it } from 'vitest';
 import { TakeCapture } from '../../src/audio/dsp/pcm';
-import { cleanTake, clockText, MIN_TAKE_SECS, newTakeId, takeDetail, textSig, type Take } from '../../src/core/practice/take';
+import { cleanTake, clockText, keepsTake, MIN_TAKE_SECS, newTakeId, takeDetail, textSig, type Take } from '../../src/core/practice/take';
 import { allTakesHTML, takeFileName, takeGroups, takesHTML, type AllTakesShown } from '../../src/app/takes';
 
 /** Microphone blocks of 2048 frames, stamped like the capture worklet's, over a signal. */
@@ -70,6 +70,14 @@ describe('take records', () => {
     for (const bad of [null, 5, [], { ...T, id: '' }, { ...T, song: 3 }, { ...T, at: 'x' }, { ...T, rate: 0 }]) expect(cleanTake(bad)).toBeNull();
     expect(newTakeId(1791544356355, () => 0.5)).toMatch(/^take-[0-9a-z]+-[0-9a-z]{1,5}$/);
     expect(MIN_TAKE_SECS).toBe(3);
+  });
+
+  it('are kept from 15 % of one pass of the lines played, and never under 3 s (Rinat, 2026-10-28)', () => {
+    // Rinat's takes of 25–27 Oct: 3.6 s of a 267 s song, 7.2 s of 350 s, 9 s of 174 s; 112 s of 267 s.
+    expect([[3.6, 267], [7.2, 350], [9, 174], [111.7, 267]].map(([s, t]) => keepsTake(s!, t!))).toEqual([false, false, false, true]);
+    expect([keepsTake(40, 267), keepsTake(40.1, 267)]).toEqual([false, true]);
+    // A line looped: 8 s a round, so 3 s is enough; under 3 s never is.
+    expect([keepsTake(3.5, 8), keepsTake(2.9, 8), keepsTake(2.9, 0)]).toEqual([true, false, false]);
   });
 
   it('tell when the notation has changed since', () => {
