@@ -175,7 +175,7 @@ describe('what a session shows', () => {
     const ins = analyse(entry(), d, [entry()]);
     expect(ins.notes.join(' ')).toContain('You sang an octave below the notes, with the guide’s bass reed, which counts as right.');
     // The timing is still found from the readings an octave down.
-    expect(ins.behind).not.toBeNull();
+    expect(ins.timing?.behind).toEqual(expect.any(Number));
     expect(cleanSession(JSON.parse(JSON.stringify(d)))!.pitch).toMatchObject({ anyOctave: false, below: true, octave: -1 });
     expect(cleanSession({ ...d, pitch: { ...d.pitch, below: undefined } })!.pitch!.below).toBeUndefined();
     expect((aiFile(input(d)) as Record<string, any>).equipment).toEqual({ device_delay_s: 0.05, delay_measured: true, any_octave_counts: false, octave_below_counts: true, octave_sung_against_the_notes: -1 });
