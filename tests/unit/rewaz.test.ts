@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { entryDetail, progressHTML } from '../../src/app/progress';
 import { dailyScores, periodSummary, songScores, weakLine } from '../../src/core/practice/log';
-import { itemRowHTML, pickedButton, pickerHTML, routineHTML, type ItemSong } from '../../src/app/rewaz';
+import { itemRowHTML, pickedButton, pickerHTML, routineHTML, tickBarHTML, type ItemSong } from '../../src/app/rewaz';
 import { RoutineStore, STORE_KEYS, type KeyValueStore } from '../../src/app/store';
 import { createEngine } from '../../src/audio/engine';
 import { DEFAULT_SOUND } from '../../src/audio/sound';
@@ -10,7 +10,7 @@ import { Transport, type BeatEntry, type EndEntry } from '../../src/audio/transp
 import { EXERCISES } from '../../src/core/exercises';
 import { parseSong } from '../../src/core/notation/parse';
 import type { LogEntry } from '../../src/core/practice/log';
-import { cleanItem, cleanRoutine, itemLines, newRoutineId, routineSeconds, STARTER, type Routine } from '../../src/core/practice/routine';
+import { cleanItem, cleanRoutine, itemLines, moveItems, newRoutineId, routineSeconds, STARTER, stepAt, type Routine } from '../../src/core/practice/routine';
 import { taalInfo } from '../../src/core/taal/taals';
 import { RecordingContext } from '../differential/webaudio-recorder';
 import { seeded } from '../helpers';
@@ -112,39 +112,90 @@ describe('rounds in the transport', () => {
 });
 
 describe('the Rewaz view', () => {
-  const own = [{ id: 's1', title: 'আমার <গান>' }];
+  const own = [{ id: 's1', title: 'আমার <গান>', tags: ['Tagore', 'slow'], taal: 'keherwa' }];
   const ex = EXERCISES.map((e) => ({ id: e.id, title: e.title }));
 
   it('shows an item’s song, lines, rounds, tempo and guide', () => {
-    const html = itemRowHTML({ song: 'ex-alankar-bn', rounds: 3, from: 1, to: 2, tempo: 90, guide: 'alt' }, 0, 2, shape('ex-alankar-bn'), own, ex);
+    const html = itemRowHTML({ song: 'ex-alankar-bn', rounds: 3, from: 1, to: 2, tempo: 90, guide: 'alt' }, 0, shape('ex-alankar-bn'), own, ex);
     expect(html).toContain('<option value="ex-alankar-bn" selected>');
     expect(html).toContain('আমার &lt;গান&gt;');
     expect(html).toMatch(/data-k="from"><option value="">The whole song<\/option><option value="0">Line 1<\/option><option value="1" selected>/);
     expect(html).toContain('data-k="to">');
     expect(html).toContain('value="3" data-i="0" data-k="rounds"');
     // Its break between rounds (Rinat, 2026-10-28), none unless set.
-    expect(html).toContain('<span>Break between rounds, seconds</span><input type="number" min="0" max="120" step="1" inputmode="numeric" value="0" data-i="0" data-k="roundGap">');
-    expect(itemRowHTML({ song: 'ex-scale', rounds: 3, roundGap: 8 }, 0, 1, shape('ex-scale'), own, ex)).toContain('value="8" data-i="0" data-k="roundGap"');
+    expect(html).toContain('title="The break between its rounds: seconds of silence before each round after the first, the drone going on; then the count-in again, if it is on"><span>Break, seconds</span><input type="number" min="0" max="120" step="1" inputmode="numeric" value="0" data-i="0" data-k="roundGap">');
+    expect(itemRowHTML({ song: 'ex-scale', rounds: 3, roundGap: 8 }, 0, shape('ex-scale'), own, ex)).toContain('value="8" data-i="0" data-k="roundGap"');
     expect(html).toContain('placeholder="110" value="90"');
     expect(html).toContain('<option value="alt" selected>Every other round</option>');
-    expect(html).toContain('data-act="up" aria-label="Move up" title="Move up" disabled');
-    expect(html).not.toContain('data-act="down" aria-label="Move down" title="Move down" disabled');
+    // Moved by dragging its number, not with buttons (Rinat, 2026-10-30).
+    expect(html).not.toContain('data-act="up"');
+    expect(html).not.toContain('data-act="down"');
   });
 
-  it('lays an item out like a line in the beat boxes: number, fields, then full-height icon buttons', () => {
-    const html = itemRowHTML({ song: 'ex-scale', rounds: 1 }, 1, 3, shape('ex-scale'), own, ex);
-    expect(html).toMatch(/^<li class="rwitem"><span class="rwn">2<\/span><div class="rwfields">/);
-    expect(html).toMatch(/<\/div><span class="rwside"><button type="button" class="rwbtn" data-i="1" data-act="up"[^>]*><svg[^]*?<\/button><button type="button" class="rwbtn" data-i="1" data-act="down"[^>]*><svg[^]*?<\/button><button type="button" class="rwbtn rwdel" data-i="1" data-act="remove" aria-label="Remove from this routine"[^>]*><svg[^]*?<\/button><\/span><\/li>$/);
-    // Icons only: no words on the buttons.
+  it('lays an item out like a line in the beat boxes: a tick box, its number to drag, fields in columns, then a full-height button', () => {
+    const html = itemRowHTML({ song: 'ex-scale', rounds: 1 }, 1, shape('ex-scale'), own, ex);
+    expect(html).toMatch(/^<li class="rwitem"><label class="tkchk" title="Tick item 2"><input type="checkbox" data-tick="1" aria-label="Tick item 2"><\/label><button type="button" class="rwn" data-grip="1" aria-label="Item 2: drag to move it, or press the up or down arrow" title="Drag to move">2<svg[^]*?<\/svg><\/button><div class="rwfields">/);
+    expect(html).toMatch(/<\/div><span class="rwside"><button type="button" class="rwbtn rwdel" data-i="1" data-act="remove" aria-label="Remove from this routine" title="Remove from this routine"><svg[^]*?<\/button><\/span><\/li>$/);
+    // Icons only: no words on the button.
     expect(html).not.toMatch(/<\/svg>[^<]+<\/button>/);
+    // Each field named for its column, the same in every row.
+    expect(Array.from(html.matchAll(/class="rwf( rwnum)? (rw\w+)"/g), (m) => m[2])).toEqual(['rwsong', 'rwfrom', 'rwrounds', 'rwbreak', 'rwtempo', 'rwguide']);
+    expect(itemRowHTML({ song: 'ex-scale', rounds: 1, from: 0, to: 1 }, 1, shape('ex-scale'), own, ex)).toContain('<label class="rwf rwto"><span>to</span>');
+    // Ticked.
+    const ticked = itemRowHTML({ song: 'ex-scale', rounds: 1 }, 1, shape('ex-scale'), own, ex, false, true);
+    expect(ticked).toMatch(/^<li class="rwitem sel"><label class="tkchk" title="Tick item 2"><input type="checkbox" data-tick="1" aria-label="Tick item 2" checked>/);
+  });
+
+  it('ticks items to remove together, asking first in the bar over them', () => {
+    expect(tickBarHTML(3, 0, false)).toBe('<div class="tkbar rwsel"><label class="tkall"><input type="checkbox" data-act="tickall"> Tick all</label><span class="spacer"></span></div>');
+    // A single item has no Tick all until it is ticked.
+    expect(tickBarHTML(1, 0, false)).toContain('<div class="tkbar rwsel" hidden>');
+    expect(tickBarHTML(1, 1, false)).toContain('data-act="tickall" checked');
+    const some = tickBarHTML(3, 2, false);
+    expect(some).toContain('data-act="tickall" data-mixed="1"');
+    expect(some).toContain('<span class="tkseln">2 ticked</span><button type="button" class="btn danger" data-act="rmsel">Remove all 2</button><button type="button" class="btn" data-act="untick">Untick</button>');
+    expect(tickBarHTML(3, 1, false)).toContain('data-act="rmsel">Remove it</button>');
+    expect(tickBarHTML(3, 2, true)).toContain('<span class="tksure">Remove these 2 items from the routine?</span><button type="button" class="btn danger" data-act="rmyes">Remove</button><button type="button" class="btn" data-act="rmno">Keep</button>');
+    expect(tickBarHTML(3, 1, true)).toContain('Remove this item from the routine?');
+    // In the routine, over its items, with the ticked ones marked.
+    const r: Routine = { id: 'routine-a', name: 'A', items: [{ song: 'ex-scale', rounds: 2 }, { song: 'ex-range', rounds: 1 }, { song: 'gone', rounds: 1 }], updatedAt: 1 };
+    const row = { saved: true, open: true, secs: 100, confirming: false, picking: null, openId: '', exFirst: true, ticked: new Set([0, 2]) };
+    const html = routineHTML(r, 0, row, shape, own, ex);
+    expect(html).toContain('<div class="tkbar rwsel"><label class="tkall"><input type="checkbox" data-act="tickall" data-mixed="1"> Tick all</label><span class="spacer"></span><span class="tkseln">2 ticked</span>');
+    expect(html.indexOf('class="tkbar rwsel"')).toBeLessThan(html.indexOf('<ol class="rwlist">'));
+    expect(html.match(/<li class="rwitem sel">/g)).toHaveLength(2);
+    expect(routineHTML({ ...r, items: [] }, 0, row, shape, own, ex)).not.toContain('rwsel');
+    // A column for "to" only once an item plays some of its lines.
+    expect(html).toContain('<ol class="rwlist">');
+    expect(routineHTML({ ...r, items: [...r.items, { song: 'ex-scale', rounds: 1, from: 1, to: 2 }] }, 0, row, shape, own, ex)).toContain('<ol class="rwlist rwranges">');
+  });
+
+  it('moves an item, or the ticked ones together, before another', () => {
+    const at = (list: string[], moving: number[], to: number) => {
+      const l = [...list];
+      const where = moveItems(l, moving, to);
+      return [l.join(''), where.join()];
+    };
+    // Dragging C to the top; A after D; A and C (ticked) between B and D.
+    expect(at(['A', 'B', 'C', 'D'], [2], 0)).toEqual(['CABD', '0']);
+    expect(at(['A', 'B', 'C', 'D'], [0], 3)).toEqual(['BCDA', '3']);
+    expect(at(['A', 'B', 'C', 'D'], [2, 0], 1)).toEqual(['BACD', '1,2']);
+    expect(at(['A', 'B', 'C', 'D'], [0, 2], 9)).toEqual(['BDAC', '2,3']);
+    // A step up or down with the arrow keys, none past either end.
+    expect(at(['A', 'B', 'C'], [2], stepAt(3, [2], -1))).toEqual(['ACB', '1']);
+    expect(at(['A', 'B', 'C'], [0], stepAt(3, [0], 1))).toEqual(['BAC', '1']);
+    expect(at(['A', 'B', 'C'], [0], stepAt(3, [0], -1))).toEqual(['ABC', '0']);
+    expect(at(['A', 'B', 'C'], [2], stepAt(3, [2], 1))).toEqual(['ABC', '2']);
+    expect(at(['A', 'B', 'C', 'D'], [0, 2], stepAt(4, [0, 2], 1))).toEqual(['BDAC', '2,3']);
+    expect(at(['A', 'B', 'C', 'D'], [1, 3], stepAt(4, [1, 3], -1))).toEqual(['BDAC', '0,1']);
   });
 
   it('plays the whole song unless lines are chosen, and says when a song is gone', () => {
-    const whole = itemRowHTML({ song: 'ex-scale', rounds: 1 }, 1, 2, shape('ex-scale'), own, ex);
+    const whole = itemRowHTML({ song: 'ex-scale', rounds: 1 }, 1, shape('ex-scale'), own, ex);
     expect(whole).toContain('<option value="" selected>The whole song</option>');
     expect(whole).not.toContain('data-k="to"');
     expect(whole).toContain('placeholder="96" value=""');
-    expect(itemRowHTML({ song: 'gone', rounds: 1 }, 0, 1, null, own, ex)).toContain('This song has been deleted');
+    expect(itemRowHTML({ song: 'gone', rounds: 1 }, 0, null, own, ex)).toContain('This song has been deleted');
   });
 
   it('shows each routine as a row that folds away, with Start the row’s full height at its end', () => {
@@ -184,15 +235,18 @@ describe('the Rewaz view', () => {
     expect(empty).toContain('<li class="rwempty">No items yet.');
   });
 
-  it('chooses several songs and exercises at once, numbered in the order ticked', () => {
+  it('chooses several songs and exercises at once, numbered in the order ticked, their tags and taal beside them', () => {
     const html = pickerHTML(own, ex, true, ['ex-scale', 's1'], 's1');
     // Exercises first, as in the Music library; then My songs.
     expect(html.indexOf('<h4>Exercises</h4>')).toBeLessThan(html.indexOf('<h4>My songs</h4>'));
     expect(pickerHTML(own, ex, false, [], '').indexOf('<h4>My songs</h4>')).toBeLessThan(pickerHTML(own, ex, false, [], '').indexOf('<h4>Exercises</h4>'));
     expect(html.match(/data-pick="/g)).toHaveLength(own.length + ex.length);
-    expect(html).toContain('<input type="checkbox" data-pick="ex-scale" checked><span class="rwpicktitle">আরোহ-অবরোহ</span><span class="rwpickn">1</span>');
-    expect(html).toContain('data-pick="s1" checked><span class="rwpicktitle">আমার &lt;গান&gt;</span><span class="rwpickopen">open now</span><span class="rwpickn">2</span>');
-    expect(html).toContain('data-pick="ex-range"><span class="rwpicktitle">মন্দ্র থেকে তার সপ্তক</span><span class="rwpickn" hidden></span>');
+    expect(html).toContain('<input type="checkbox" data-pick="ex-scale" checked><span class="rwpicktitle">আরোহ-অবরোহ</span><span class="rwpickmeta"></span><span class="rwpickn">1</span>');
+    expect(html).toContain('data-pick="s1" checked><span class="rwpicktitle">আমার &lt;গান&gt;</span><span class="rwpickmeta">Tagore · slow · Keherwa</span><span class="rwpickopen">open now</span><span class="rwpickn">2</span>');
+    expect(html).toContain('data-pick="ex-range"><span class="rwpicktitle">মন্দ্র থেকে তার সপ্তক</span><span class="rwpickmeta"></span><span class="rwpickn" hidden></span>');
+    // The find box looks in the title, tags and taal, however they were typed.
+    expect(html).toContain('<li data-q="আমার &lt;গান&gt; tagore slow keherwa"><label class="rwpickrow">');
+    expect(pickerHTML([], [{ id: 'x', title: 'X', taal: 'nope' }], true, [], '')).toContain('<span class="rwpickmeta"></span>');
     expect(html).toContain('data-act="addpicked">Add 2 to this routine</button>');
     expect(html).toContain('data-act="pickcancel">Cancel</button>');
     expect(html).toContain('data-act="pickq"');

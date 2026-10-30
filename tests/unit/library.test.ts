@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { countText, filterChipsHTML, songRowHTML, songsListHTML, type ListOptions } from '../../src/app/songs';
+import { countText, filterChipsHTML, libSelHTML, songRowHTML, songsListHTML, type LibSel, type ListOptions } from '../../src/app/songs';
 import { EXERCISES } from '../../src/core/exercises';
 import { songFileText, songsFromFile } from '../../src/core/song/file';
 import { entryFor, lyricForDisplay, lyricRows, matchesFilter, matchesQuery, sortEntries, tagCounts, titleFixes, titleKey, uniqueTitle, whenText, type LibrarySong } from '../../src/core/song/library';
@@ -134,7 +134,7 @@ describe('the Music library', () => {
 
   it('gives each heading a handle to drag it by, or move it with the arrow keys', () => {
     const html = songsListHTML(own, EXERCISES, opts()).html;
-    expect(html).toMatch(/^<section class="lsec" data-sec="ex"><div class="lheadrow"><button type="button" class="lgrip" data-grip="ex" aria-label="Move Exercises: drag, or press the up or down arrow" title="Drag to move this section"><svg/);
+    expect(html).toMatch(/^<section class="lsec" data-sec="ex"><div class="lheadrow"><label class="tkchk"[^]*?<\/label><button type="button" class="lgrip" data-grip="ex" aria-label="Move Exercises: drag, or press the up or down arrow" title="Drag to move this section"><svg/);
     expect(html).toContain('data-grip="mine" aria-label="Move My songs: drag, or press the up or down arrow"');
   });
 
@@ -155,7 +155,7 @@ describe('the Music library', () => {
     expect(row).toMatch(/data-print="s1"[^>]*><svg[^]*?<\/svg><\/button><button type="button" class="lact ldel" data-del="s1" aria-label="Delete this song" title="Delete this song"><svg/);
     expect(songRowHTML(entryFor(EXERCISES[0]!), opts())).not.toContain('data-del');
     const asking = songRowHTML(entryFor(own[0]!), { ...opts(), confirmDel: 's1' });
-    expect(asking).toContain('<li class="lrow sure">');
+    expect(asking).toContain('<li class="lrow ltk sure" data-id="s1">');
     expect(asking).toContain('<div class="lacts lsure"><span class="lsuret">Delete this song?</span><button type="button" class="lact ldelyes" data-delyes="s1">Delete</button><button type="button" class="lact" data-delno="s1">Keep</button></div>');
     expect(asking).not.toContain('data-open="s1"><svg');
     // Only the row asked about.
@@ -164,7 +164,7 @@ describe('the Music library', () => {
 
   it('gives each heading a + New button after its fold button: a song, or an exercise', () => {
     const html = songsListHTML(own, EXERCISES, opts()).html;
-    expect(html).toMatch(/<div class="lheadrow"><button type="button" class="lgrip"[^]*?<\/button><h3 class="lhead"><button type="button" class="lfold" data-fold="mine"[^]*?<\/button><\/h3><button type="button" class="btn lnew" data-new="song">\+ New song<\/button><\/div>/);
+    expect(html).toMatch(/<div class="lheadrow"><label class="tkchk"[^]*?<\/label><button type="button" class="lgrip"[^]*?<\/button><h3 class="lhead"><button type="button" class="lfold" data-fold="mine"[^]*?<\/button><\/h3><button type="button" class="btn lnew" data-new="song">\+ New song<\/button><\/div>/);
     expect(html).toMatch(/<h3 class="lhead"><button type="button" class="lfold" data-fold="ex"[^]*?<\/button><\/h3><button type="button" class="btn lnew" data-new="exercise">\+ New exercise<\/button>/);
   });
 
@@ -188,7 +188,7 @@ describe('the Music library', () => {
 
   it('shows each song’s details, star, tags and whether it is open, escaped', () => {
     const row = songRowHTML(entryFor(own[1]!), opts());
-    expect(row).toContain('class="lrow cur"');
+    expect(row).toContain('class="lrow ltk cur"');
     expect(row).toContain('Purano &lt;sei&gt; din');
     expect(row).toContain('Dadra · 100 per min · Sa C · not practised yet');
     expect(row).toContain('aria-pressed="false"');
@@ -201,6 +201,52 @@ describe('the Music library', () => {
     expect(songRowHTML(entryFor(song('t', 'আমার সোনার বাংলা', { text: SONAR })), opts())).not.toContain('llyric');
     // An exercise has no star to press.
     expect(songRowHTML(entryFor(EXERCISES[0]!), opts())).not.toContain('data-fav');
+  });
+
+  it('is a table: a tick box on each row, ticked rows marked, and only Practise opens a song (Rinat, 2026-10-30)', () => {
+    const row = songRowHTML(entryFor(own[0]!), opts());
+    expect(row).toMatch(/^<li class="lrow ltk" data-id="s1"><label class="tkchk" title="Tick Amar Sonar Bangla"><input type="checkbox" data-sel="s1" aria-label="Tick Amar Sonar Bangla"><\/label><div class="lmain">/);
+    // The title is no longer a button that opens the song: a tap on it ticks the row.
+    expect(row).toContain('<div class="lopen"><span class="ltitle">Amar Sonar Bangla</span>');
+    expect(row.match(/data-open=/g)).toHaveLength(1);
+    expect(row).toContain('class="lact lplay" data-open="s1"');
+    const ticked = songRowHTML(entryFor(own[1]!), opts({ selected: new Set(['s2']) }));
+    expect(ticked).toMatch(/^<li class="lrow ltk cur sel" data-id="s2"><label class="tkchk" title="Tick Purano &lt;sei&gt; din"><input type="checkbox" data-sel="s2" aria-label="Tick Purano &lt;sei&gt; din" checked>/);
+    // A tick box in each heading for its whole section: some ticked, all, or none.
+    const some = songsListHTML(own, EXERCISES, opts({ selected: new Set(['s1']) })).html;
+    expect(some).toContain('<label class="tkchk" title="Tick every one in My songs"><input type="checkbox" data-selsec="1" aria-label="Tick every one in My songs" data-mixed="1"></label>');
+    expect(some).toContain('<input type="checkbox" data-selsec="1" aria-label="Tick every one in Exercises"></label>');
+    const both = songsListHTML(own, EXERCISES, opts({ selected: new Set(['s1', 's2']) })).html;
+    expect(both).toContain('aria-label="Tick every one in My songs" checked>');
+    // No tick box over a section with nothing in it.
+    expect(songsListHTML([], EXERCISES, opts()).html).not.toContain('Tick every one in My songs');
+  });
+
+  it('has a bar over the list: Tick all, then what to do with the ticked ones', () => {
+    const sel = (o: Partial<LibSel> = {}): LibSel => ({ ticked: 0, hidden: 0, own: 0, kinds: 'song', allFav: false, shown: 14, shownTicked: 0, asking: false, menu: null, ...o });
+    expect(libSelHTML(sel())).toBe('<div class="lselbar"><label class="tkall"><input type="checkbox" data-selall="1"> Tick all</label></div>');
+    expect(libSelHTML(sel({ shown: 0 }))).toContain('data-selall="1" disabled>');
+    const three = libSelHTML(sel({ ticked: 3, own: 3, shownTicked: 2, hidden: 1 }));
+    expect(three).toMatch(/^<div class="lselbar on"><label class="tkall"><input type="checkbox" data-selall="1" data-mixed="1"> Tick all<\/label><span class="spacer"><\/span><span class="tkseln">3 ticked<\/span><span class="lselhid">\(1 not shown\)<\/span>/);
+    expect(three).toContain('data-lsel="rewaz" aria-expanded="false" aria-controls="libRwMenu">Add to rewaz<svg');
+    expect(three).toContain('data-lsel="fav">★ Favourite</button><button type="button" class="btn" data-lsel="export">Export</button><button type="button" class="btn danger" data-lsel="del">Delete all 3</button><button type="button" class="btn" data-lsel="untick">Untick</button></div>');
+    expect(libSelHTML(sel({ ticked: 14, own: 2, shownTicked: 14, allFav: true }))).toContain('data-selall="1" checked>');
+    expect(libSelHTML(sel({ ticked: 2, own: 2, allFav: true }))).toContain('data-lsel="unfav">☆ Unfavourite</button>');
+    expect(libSelHTML(sel({ ticked: 1, own: 1 }))).toContain('data-lsel="del">Delete it</button>');
+    // Built-in exercises can be added to a rewaz or exported, not starred or deleted.
+    const builtIn = libSelHTML(sel({ ticked: 2, own: 0 }));
+    expect(builtIn).not.toContain('data-lsel="fav"');
+    expect(builtIn).not.toContain('data-lsel="del"');
+    expect(builtIn).toContain('data-lsel="export"');
+    expect(libSelHTML(sel({ ticked: 5, own: 2 }))).toContain('data-lsel="del">Delete your 2</button>');
+    // Delete asked in the bar, saying what goes.
+    expect(libSelHTML(sel({ ticked: 2, own: 2, asking: true }))).toContain('<span class="tksure">Delete these 2 songs?</span><button type="button" class="btn danger" data-lsel="delyes">Delete</button><button type="button" class="btn" data-lsel="delno">Keep</button>');
+    expect(libSelHTML(sel({ ticked: 1, own: 1, kinds: 'exercise', asking: true }))).toContain('Delete this exercise?</span>');
+    expect(libSelHTML(sel({ ticked: 4, own: 2, kinds: 'both', asking: true }))).toContain('Delete these 2 songs and exercises? The built-in exercises stay.</span>');
+    // Add to rewaz: the routines, then a new one.
+    const menu = libSelHTML(sel({ ticked: 1, own: 1, menu: [{ id: 'routine-starter', name: 'Daily <warm-up>', n: 4 }, { id: 'r2', name: 'Empty', n: 0 }] }));
+    expect(menu).toContain('aria-expanded="true"');
+    expect(menu).toContain('<div class="dmenu" id="libRwMenu" role="group" aria-label="Add to a rewaz routine"><button type="button" data-addto="routine-starter"><b>Daily &lt;warm-up&gt;</b><span>4 items</span></button><button type="button" data-addto="r2"><b>Empty</b><span>No items yet</span></button><button type="button" data-addto=""><b>A new routine</b>');
   });
 
   it('narrows to a search, a tag, favourites or the exercises, with a message when nothing matches', () => {

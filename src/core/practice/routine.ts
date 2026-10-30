@@ -125,6 +125,26 @@ export function wholeIfAll(it: RoutineItem, lines: number): void {
   }
 }
 
+/** The items at `moving` (indices) taken out and put back together, in their order, before the
+ * `at`-th of the items left (after the last when `at` is their count): an item dragged, or the
+ * ticked ones with it (Rinat, 2026-10-30). Returns where they are now. */
+export function moveItems<T>(items: T[], moving: readonly number[], at: number): number[] {
+  const set = [...new Set(moving)].filter((i) => i >= 0 && i < items.length).sort((a, b) => a - b);
+  const block = set.map((i) => items[i]!);
+  const rest = items.filter((_, i) => !set.includes(i));
+  const k = Math.max(0, Math.min(rest.length, at));
+  items.splice(0, items.length, ...rest.slice(0, k), ...block, ...rest.slice(k));
+  return block.map((_, j) => k + j);
+}
+
+/** Where `moving` goes for one step up (−1) or down (+1), for moveItems: before the item left
+ * that comes before its first, or after the one that comes after its last. */
+export function stepAt(count: number, moving: readonly number[], dir: -1 | 1): number {
+  const set = [...new Set(moving)].sort((a, b) => a - b);
+  const left = (i: number) => i - set.filter((m) => m < i).length;
+  return dir < 0 ? Math.max(0, left(set[0]!) - 1) : Math.min(count - set.length, left(set.at(-1)!) + 1);
+}
+
 /**
  * Roughly how long a routine takes, seconds: each item's beats × rounds at its tempo, a
  * count-in cycle, the breaks between its rounds (each with a count-in cycle again), and the gap

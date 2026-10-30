@@ -3,20 +3,21 @@
  * and songs, each item with its own lines, rounds, tempo and guide, played one after
  * another without touching the screen. Each item's practice goes into the log with the
  * routine's name. Every routine is a row that folds away, as the Music library's sections
- * do (Rinat, 2026-10-13). The HTML builders are pure and tested in Node.
+ * do (Rinat, 2026-10-13); its items are ticked to remove several together and dragged to move
+ * (Rinat, 2026-10-30). The HTML builders are pure and tested in Node.
  */
 import { durationText } from '../core/practice/log';
-import { gapOf, itemLines, newRoutineId, ROUTINE_LIMITS, roundGapOf, routineSeconds, STARTER, wholeIfAll, type ItemGuide, type Routine, type RoutineItem, type SongShape } from '../core/practice/routine';
+import { gapOf, itemLines, moveItems, newRoutineId, ROUTINE_LIMITS, roundGapOf, routineSeconds, STARTER, stepAt, wholeIfAll, type ItemGuide, type Routine, type RoutineItem, type SongShape } from '../core/practice/routine';
 import type { WriteResult } from './store';
 import { foldText } from '../core/song/model';
-import { esc } from './view';
+import { isTaalId, TAALS } from '../core/taal/taals';
+import { GRIP_ICON } from './fold';
+import { esc, showMixed, tickHTML } from './view';
 
 const svg = (body: string) => '<svg viewBox="0 0 24 24" aria-hidden="true">' + body + '</svg>';
 const ICON = {
   fold: svg('<path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>'),
   play: svg('<path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/>'),
-  up: svg('<path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>'),
-  down: svg('<path d="M12 5v14M6 13l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>'),
   del: svg('<path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>'),
 };
 
@@ -24,7 +25,14 @@ const ICON = {
 export interface Choice {
   id: string;
   title: string;
+  /** Its tags and taal, written lightly beside its title in the picker and found by its search
+   * (Rinat, 2026-10-30: "so they are easy to find"). */
+  tags?: readonly string[];
+  taal?: string;
 }
+
+/** A choice's tags, then its taal. */
+const detailsOf = (c: Choice): string[] => [...(c.tags ?? []), ...(c.taal && isTaalId(c.taal) ? [TAALS[c.taal].name] : [])];
 
 /** What an item needs to know about its song: lines, tempo, cycle, line labels, title. */
 export type ItemSong = SongShape & { labels: readonly string[]; title: string };
@@ -47,15 +55,17 @@ function songOptions(own: readonly Choice[], exercises: readonly Choice[], selec
 /**
  * Choosing several songs and exercises to add to a routine at once (Rinat, 2026-10-14):
  * each a row ticked anywhere along it, numbered in the order ticked (the order they will
- * play), the open one marked; grouped as in the Music library, with a box to find one. The
+ * play), the open one marked, its tags and taal beside its title; grouped as in the Music library,
+ * with a box to find one by any of them. The
  * box, Add and Cancel at its top, kept in view while the lists scroll with the page (Rinat,
  * 2026-10-23: lists scrolling inside their own boxes caught the mouse wheel).
  */
 export function pickerHTML(own: readonly Choice[], exercises: readonly Choice[], exFirst: boolean, picked: readonly string[], openId: string): string {
   const row = (c: Choice) => {
     const n = picked.indexOf(c.id) + 1;
-    return '<li><label class="rwpickrow"><input type="checkbox" data-pick="' + esc(c.id) + '"' + (n ? ' checked' : '') + '>' +
-      '<span class="rwpicktitle">' + esc(c.title) + '</span>' + (c.id === openId ? '<span class="rwpickopen">open now</span>' : '') +
+    const more = detailsOf(c);
+    return '<li data-q="' + esc(foldText([c.title, ...more].join(' '))) + '"><label class="rwpickrow"><input type="checkbox" data-pick="' + esc(c.id) + '"' + (n ? ' checked' : '') + '>' +
+      '<span class="rwpicktitle">' + esc(c.title) + '</span><span class="rwpickmeta">' + esc(more.join(' · ')) + '</span>' + (c.id === openId ? '<span class="rwpickopen">open now</span>' : '') +
       '<span class="rwpickn"' + (n ? '' : ' hidden') + '>' + (n || '') + '</span></label></li>';
   };
   const group = (title: string, list: readonly Choice[]) => (list.length ? '<div class="rwpickgrp"><h4>' + title + '</h4><ul class="rwpicklist">' + list.map(row).join('') + '</ul></div>' : '');
@@ -69,12 +79,16 @@ export function pickerHTML(own: readonly Choice[], exercises: readonly Choice[],
 export const pickedButton = (n: number): string =>
   '<button type="button" class="btn primary" data-act="addpicked"' + (n ? '' : ' disabled') + '>' + (n ? 'Add ' + n + ' to this routine' : 'Add to this routine') + '</button>';
 
-/** One item, as a row like a line in the beat boxes: its number down the left; its song,
- * lines, rounds, the break between them (Rinat, 2026-10-28: each item its own), tempo and guide; and at its end full-height buttons to move it up or down
- * or remove it (icons only). */
-export function itemRowHTML(it: RoutineItem, i: number, count: number, song: ItemSong | null, own: readonly Choice[], exercises: readonly Choice[], exFirst = false): string {
+/** One item, as a row like a line in the beat boxes: a tick box (Rinat, 2026-10-30: to remove
+ * several together); its number, the handle to drag it by or move it with the arrow keys
+ * (replacing buttons to move it up or down); its song, lines, rounds, the break between them
+ * (Rinat, 2026-10-28: each item its own), tempo and guide, in the same columns in every row
+ * (Rinat, 2026-10-30: "keep the title dropdown width a fixed amount"); and at its end a
+ * full-height button to remove it (an icon). */
+export function itemRowHTML(it: RoutineItem, i: number, song: ItemSong | null, own: readonly Choice[], exercises: readonly Choice[], exFirst = false, ticked = false): string {
   const k = (name: string) => 'data-i="' + i + '" data-k="' + name + '"';
-  let html = '<li class="rwitem"><span class="rwn">' + (i + 1) + '</span><div class="rwfields">';
+  let html = '<li class="rwitem' + (ticked ? ' sel' : '') + '">' + tickHTML('data-tick="' + i + '"', 'Tick item ' + (i + 1), ticked, false) +
+    '<button type="button" class="rwn" data-grip="' + i + '" aria-label="Item ' + (i + 1) + ': drag to move it, or press the up or down arrow" title="Drag to move">' + (i + 1) + GRIP_ICON + '</button><div class="rwfields">';
   if (!song) {
     html += '<span class="rwgone">This song has been deleted, so the rewaz skips it.</span>';
   } else {
@@ -82,18 +96,26 @@ export function itemRowHTML(it: RoutineItem, i: number, count: number, song: Ite
     const whole = it.from == null;
     const lineOpt = (n: number, sel: boolean) => '<option value="' + n + '"' + (sel ? ' selected' : '') + '>' + esc(song.labels[n]!) + '</option>';
     html += '<label class="rwf rwsong"><span>Song</span><select ' + k('song') + '>' + songOptions(own, exercises, it.song, exFirst) + '</select></label>' +
-      '<label class="rwf"><span>Lines</span><select ' + k('from') + '><option value=""' + (whole ? ' selected' : '') + '>The whole song</option>' + song.labels.map((_, n) => lineOpt(n, !whole && n === a)).join('') + '</select></label>' +
-      (whole ? '' : '<label class="rwf"><span>to</span><select ' + k('to') + '>' + song.labels.map((_, n) => (n >= a ? lineOpt(n, n === b) : '')).join('') + '</select></label>') +
-      '<label class="rwf rwnum"><span>Rounds</span><input type="number" min="1" max="20" step="1" inputmode="numeric" value="' + it.rounds + '" ' + k('rounds') + '></label>' +
-      '<label class="rwf rwnum" title="Seconds of silence before each round after the first, the drone going on; then the count-in again, if it is on"><span>Break between rounds, seconds</span><input type="number" min="0" max="' + ROUTINE_LIMITS.gap + '" step="1" inputmode="numeric" value="' + roundGapOf(it) + '" ' + k('roundGap') + '></label>' +
-      '<label class="rwf rwnum"><span>Tempo</span><input type="number" min="30" max="240" step="1" inputmode="numeric" placeholder="' + song.tempo + '" value="' + (it.tempo ?? '') + '" ' + k('tempo') + '></label>' +
-      '<label class="rwf"><span>Guide</span><select ' + k('guide') + '>' + GUIDES.map(([v, t]) => '<option value="' + v + '"' + ((it.guide ?? '') === v ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></label>';
+      '<label class="rwf rwfrom"><span>Lines</span><select ' + k('from') + '><option value=""' + (whole ? ' selected' : '') + '>The whole song</option>' + song.labels.map((_, n) => lineOpt(n, !whole && n === a)).join('') + '</select></label>' +
+      (whole ? '' : '<label class="rwf rwto"><span>to</span><select ' + k('to') + '>' + song.labels.map((_, n) => (n >= a ? lineOpt(n, n === b) : '')).join('') + '</select></label>') +
+      '<label class="rwf rwnum rwrounds"><span>Rounds</span><input type="number" min="1" max="20" step="1" inputmode="numeric" value="' + it.rounds + '" ' + k('rounds') + '></label>' +
+      '<label class="rwf rwnum rwbreak" title="The break between its rounds: seconds of silence before each round after the first, the drone going on; then the count-in again, if it is on"><span>Break, seconds</span><input type="number" min="0" max="' + ROUTINE_LIMITS.gap + '" step="1" inputmode="numeric" value="' + roundGapOf(it) + '" ' + k('roundGap') + '></label>' +
+      '<label class="rwf rwnum rwtempo"><span>Tempo</span><input type="number" min="30" max="240" step="1" inputmode="numeric" placeholder="' + song.tempo + '" value="' + (it.tempo ?? '') + '" ' + k('tempo') + '></label>' +
+      '<label class="rwf rwguide"><span>Guide</span><select ' + k('guide') + '>' + GUIDES.map(([v, t]) => '<option value="' + v + '"' + ((it.guide ?? '') === v ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></label>';
   }
-  const btn = (act: string, label: string, icon: string, off: boolean, cls = '') =>
-    '<button type="button" class="rwbtn' + cls + '" data-i="' + i + '" data-act="' + act + '" aria-label="' + label + '" title="' + label + '"' + (off ? ' disabled' : '') + '>' + icon + '</button>';
-  html += '</div><span class="rwside">' + btn('up', 'Move up', ICON.up, i === 0) + btn('down', 'Move down', ICON.down, i === count - 1) +
-    btn('remove', 'Remove from this routine', ICON.del, false, ' rwdel') + '</span></li>';
+  html += '</div><span class="rwside"><button type="button" class="rwbtn rwdel" data-i="' + i + '" data-act="remove" aria-label="Remove from this routine" title="Remove from this routine">' + ICON.del + '</button></span></li>';
   return html;
+}
+
+/** Over a routine's items: Tick all, and once some are ticked how many, Remove (asked first, in
+ * the bar) and Untick, as in My takes. Hidden for a single item until it is ticked. */
+export function tickBarHTML(count: number, sel: number, asking: boolean): string {
+  const acts = !sel
+    ? ''
+    : asking
+      ? '<span class="tksure">Remove ' + (sel === 1 ? 'this item' : 'these ' + sel + ' items') + ' from the routine?</span><button type="button" class="btn danger" data-act="rmyes">Remove</button><button type="button" class="btn" data-act="rmno">Keep</button>'
+      : '<span class="tkseln">' + sel + ' ticked</span><button type="button" class="btn danger" data-act="rmsel">Remove ' + (sel === 1 ? 'it' : 'all ' + sel) + '</button><button type="button" class="btn" data-act="untick">Untick</button>';
+  return '<div class="tkbar rwsel"' + (count > 1 || sel ? '' : ' hidden') + '><label class="tkall"><input type="checkbox" data-act="tickall"' + (sel && sel === count ? ' checked' : sel ? ' data-mixed="1"' : '') + '> Tick all</label><span class="spacer"></span>' + acts + '</div>';
 }
 
 /** The rewaz bar's round, 0-based `pass` of `rounds`: " · round 2 of 3", and while a break
@@ -118,6 +140,10 @@ export interface RoutineRow {
   openId: string;
   /** The exercises listed first, as in the Music library. */
   exFirst: boolean;
+  /** The items ticked, by index. */
+  ticked?: ReadonlySet<number>;
+  /** Asking whether to remove the items ticked. */
+  removing?: boolean;
 }
 
 /** A routine's length beside its name: "4 items · about 6 min", and "ready-made" while the
@@ -136,7 +162,8 @@ export function metaText(r: Routine, saved: boolean, secs: number): string {
 export function routineHTML(r: Routine, n: number, o: RoutineRow, song: (id: string) => ItemSong | null, own: readonly Choice[], exercises: readonly Choice[]): string {
   const count = r.items.length;
   const meta = metaText(r, o.saved, o.secs);
-  const items = r.items.map((it, i) => itemRowHTML(it, i, count, song(it.song), own, exercises, o.exFirst)).join('') ||
+  const ticked = o.ticked ?? new Set<number>();
+  const items = r.items.map((it, i) => itemRowHTML(it, i, song(it.song), own, exercises, o.exFirst, ticked.has(i))).join('') ||
     '<li class="rwempty">No items yet. Add songs and exercises, then choose their lines, rounds and tempo.</li>';
   const del = !o.saved
     ? ''
@@ -150,7 +177,9 @@ export function routineHTML(r: Routine, n: number, o: RoutineRow, song: (id: str
     '<div class="rwbody" id="rwb-' + n + '"' + (o.open ? '' : ' hidden') + '>' +
     '<div class="rwopts"><label class="rwf rwnamef"><span>Name</span><input type="text" data-act="name" value="' + esc(r.name) + '" maxlength="' + ROUTINE_LIMITS.name + '" autocomplete="off"></label>' +
     '<label class="rwf rwnum rwgapf"><span>Break between items, seconds</span><input type="number" min="0" max="' + ROUTINE_LIMITS.gap + '" step="1" inputmode="numeric" data-act="gap" value="' + gapOf(r) + '"></label></div>' +
-    '<ol class="rwlist">' + items + '</ol>' +
+    (count ? tickBarHTML(count, r.items.filter((_, i) => ticked.has(i)).length, !!o.removing) : '') +
+    // A column for "to" only where an item plays some of its lines.
+    '<ol class="rwlist' + (r.items.some((it) => it.from != null) ? ' rwranges' : '') + '">' + items + '</ol>' +
     (o.picking ? pickerHTML(own, exercises, o.exFirst, o.picking, o.openId) : '') +
     '<div class="rwfoot">' + (o.picking ? '' : '<button type="button" class="btn" data-act="pick"' + (count >= ROUTINE_LIMITS.items ? ' disabled' : '') + '>+ Add songs and exercises</button>') +
     '<span class="spacer"></span>' + del + '</div></div></section>';
@@ -206,6 +235,9 @@ export function initRewaz(host: RewazHost): Rewaz {
   let confirming = '';
   /** Choosing what to add to a routine: which, and what is ticked so far, in order. */
   let picking: { id: string; picked: string[] } | null = null;
+  /** Each routine's items ticked, by index; and the routine asking whether to remove them. */
+  const ticks = new Map<string, Set<number>>();
+  let removing = '';
 
   const byName = (a: Routine, b: Routine) => a.name.localeCompare(b.name);
 
@@ -238,10 +270,17 @@ export function initRewaz(host: RewazHost): Rewaz {
     // Keep what is being typed in a routine's name while the list is redrawn.
     const typing = document.activeElement instanceof HTMLInputElement && document.activeElement.dataset.act === 'name' ? document.activeElement : null;
     const typingIn = typing?.closest<HTMLElement>('.rwr')?.dataset.r;
-    list.innerHTML = routines().map(({ r, saved }, n) => routineHTML(r, n, {
-      saved, open: host.unfolded.has(r.id), secs: routineSeconds(r, host.song, host.countIn()), confirming: confirming === r.id,
-      picking: picking && picking.id === r.id ? picking.picked : null, openId, exFirst,
-    }, host.song, own, exercises)).join('');
+    list.innerHTML = routines().map(({ r, saved }, n) => {
+      // Ticks past the end (a routine changed in another tab) go.
+      const set = ticks.get(r.id);
+      if (set) for (const i of Array.from(set)) if (i >= r.items.length) set.delete(i);
+      if (removing === r.id && !set?.size) removing = '';
+      return routineHTML(r, n, {
+        saved, open: host.unfolded.has(r.id), secs: routineSeconds(r, host.song, host.countIn()), confirming: confirming === r.id,
+        picking: picking && picking.id === r.id ? picking.picked : null, openId, exFirst, ticked: set, removing: removing === r.id,
+      }, host.song, own, exercises);
+    }).join('');
+    showMixed(list);
     if (typing && typingIn) {
       const again = Array.from(list.querySelectorAll<HTMLElement>('.rwr')).find((s) => s.dataset.r === typingIn)?.querySelector<HTMLInputElement>('input[data-act="name"]');
       if (again) {
@@ -336,11 +375,12 @@ export function initRewaz(host: RewazHost): Rewaz {
 
   /** The routine a row or button belongs to. */
   const routineOf = (el: Element) => el.closest<HTMLElement>('.rwr')?.dataset.r ?? '';
-  /** After a redraw, put the focus back on the same button of the same routine. */
-  function refocus(id: string, act: string): void {
+  /** After a redraw, put the focus back on the same control of the same routine. */
+  function focusIn(id: string, sel: string): void {
     const sec = Array.from(list.querySelectorAll<HTMLElement>('.rwr')).find((s) => s.dataset.r === id);
-    sec?.querySelector<HTMLElement>('[data-act="' + act + '"]')?.focus();
+    sec?.querySelector<HTMLElement>(sel)?.focus();
   }
+  const refocus = (id: string, act: string) => focusIn(id, '[data-act="' + act + '"]');
 
   $('#rwNew').addEventListener('click', () => {
     const r: Routine = { id: newRoutineId(), name: 'My rewaz', items: [{ song: host.currentSongId(), rounds: 2 }], updatedAt: Date.now() };
@@ -397,20 +437,158 @@ export function initRewaz(host: RewazHost): Rewaz {
       host.unfolded.set(id, false);
       status('Deleted ' + got.r.name);
       render();
-    } else if (act === 'up' || act === 'down' || act === 'remove') {
+    } else if (act === 'remove') {
       const i = Number(b.dataset.i);
+      const set = ticks.get(id);
       change(id, (r) => {
-        const it = r.items[i];
-        if (!it) return;
-        if (act === 'remove') r.items.splice(i, 1);
-        else {
-          const j = act === 'up' ? i - 1 : i + 1;
-          if (j < 0 || j >= r.items.length) return;
-          r.items[i] = r.items[j]!;
-          r.items[j] = it;
+        if (!r.items[i]) return;
+        r.items.splice(i, 1);
+        // The ticks after it move up with their items.
+        if (set) {
+          const was = Array.from(set);
+          set.clear();
+          for (const t of was) if (t !== i) set.add(t > i ? t - 1 : t);
         }
       });
+    } else if (act === 'rmsel' || act === 'rmno') {
+      removing = act === 'rmsel' ? id : '';
+      render();
+      refocus(id, act === 'rmsel' ? 'rmno' : 'rmsel');
+    } else if (act === 'rmyes') {
+      const set = ticks.get(id);
+      removing = '';
+      if (!set?.size) return;
+      const n = set.size;
+      change(id, (r) => {
+        r.items = r.items.filter((_, i) => !set.has(i));
+        set.clear();
+      });
+      status('Removed ' + n + ' item' + (n === 1 ? '' : 's') + ' from the routine.');
+      refocus(id, 'tickall');
+    } else if (act === 'untick') {
+      ticks.delete(id);
+      removing = '';
+      render();
+      refocus(id, 'tickall');
     }
+  });
+  /** A tick box on an item, or Tick all, ticked or not. */
+  function tick(box: HTMLInputElement): void {
+    const id = routineOf(box);
+    const got = routine(id);
+    if (!got) return;
+    const set = ticks.get(id) ?? new Set<number>();
+    if (box.dataset.act === 'tickall') {
+      set.clear();
+      if (box.checked) got.r.items.forEach((_, i) => set.add(i));
+    } else if (box.checked) set.add(Number(box.dataset.tick));
+    else set.delete(Number(box.dataset.tick));
+    ticks.set(id, set);
+    if (!set.size && removing === id) removing = '';
+    render();
+    focusIn(id, box.dataset.act === 'tickall' ? '[data-act="tickall"]' : '[data-tick="' + box.dataset.tick + '"]');
+  }
+
+  // ── Moving items: drag the number (mouse or touch), or ↑ ↓ on it ────────────
+  /** The items that move with item `i`: the ticked ones when it is one of them, else it alone. */
+  function movingWith(id: string, i: number): number[] {
+    const set = ticks.get(id);
+    return set && set.has(i) && set.size > 1 ? Array.from(set).sort((a, b) => a - b) : [i];
+  }
+  /** Move `moving` before the `at`-th of the other items (moveItems), the ticks going with their
+   * items, and keep the keyboard on the handle of item `grip`. */
+  function moveTo(id: string, moving: number[], at: number, grip: number): void {
+    const got = routine(id);
+    if (!got) return;
+    const next = [...got.r.items];
+    const to = moveItems(next, moving, at);
+    if (next.every((x, j) => x === got.r.items[j])) {
+      focusIn(id, '[data-grip="' + grip + '"]');
+      return;
+    }
+    const set = ticks.get(id);
+    change(id, (r) => {
+      const flags = r.items.map((_, j) => !!set?.has(j));
+      moveItems(r.items, moving, at);
+      moveItems(flags, moving, at);
+      if (set) {
+        set.clear();
+        flags.forEach((f, j) => f && set.add(j));
+      }
+    });
+    focusIn(id, '[data-grip="' + to[moving.indexOf(grip)] + '"]');
+  }
+  let drag: { id: string; grip: number; moving: number[]; pointer: number; y0: number; on: boolean; at: number } | null = null;
+  let dropLine: HTMLElement | null = null;
+  const rowsOf = (id: string) => Array.from(Array.from(list.querySelectorAll<HTMLElement>('.rwr')).find((s) => s.dataset.r === id)?.querySelectorAll<HTMLElement>('.rwitem') ?? []);
+  function endDrag(): void {
+    for (const li of Array.from(list.querySelectorAll<HTMLElement>('.rwitem.dragging'))) {
+      li.classList.remove('dragging');
+      li.style.transform = '';
+    }
+    dropLine?.remove();
+    dropLine = null;
+    drag = null;
+  }
+  list.addEventListener('pointerdown', (e) => {
+    const g = (e.target as Element).closest<HTMLElement>('[data-grip]');
+    if (!g || e.button !== 0) return;
+    e.preventDefault();
+    g.setPointerCapture(e.pointerId);
+    const id = routineOf(g);
+    const i = Number(g.dataset.grip);
+    // Page coordinates, so the rows follow the pointer when the page scrolls under it.
+    drag = { id, grip: i, moving: movingWith(id, i), pointer: e.pointerId, y0: e.clientY + scrollY, on: false, at: -1 };
+  });
+  list.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.pointer) return;
+    const d = drag;
+    const y = e.clientY + scrollY;
+    if (!d.on && Math.abs(y - d.y0) < 5) return;
+    const rows = rowsOf(d.id);
+    if (!rows.length) return;
+    if (!d.on) {
+      d.on = true;
+      for (const m of d.moving) rows[m]?.classList.add('dragging');
+      dropLine = document.createElement('li');
+      dropLine.className = 'rwdrop';
+      dropLine.setAttribute('aria-hidden', 'true');
+      rows[0]!.parentElement!.appendChild(dropLine);
+    }
+    // Near the top or bottom of the screen the page scrolls, to reach the items out of view.
+    if (e.clientY < 48) scrollBy(0, -16);
+    else if (e.clientY > innerHeight - 48) scrollBy(0, 16);
+    for (const m of d.moving) if (rows[m]) rows[m]!.style.transform = 'translateY(' + (y - d.y0) + 'px)';
+    // Where they would go: before the first other item whose middle is below the pointer.
+    const others = rows.filter((_, j) => !d.moving.includes(j));
+    let at = others.findIndex((r) => {
+      const b = r.getBoundingClientRect();
+      return e.clientY < b.top + b.height / 2;
+    });
+    if (at < 0) at = others.length;
+    d.at = at;
+    const box = rows[0]!.parentElement!.getBoundingClientRect();
+    const ref = others[at];
+    const line = ref ? ref.getBoundingClientRect().top : (others.at(-1)?.getBoundingClientRect().bottom ?? box.top);
+    dropLine!.style.top = line - box.top + 'px';
+  });
+  list.addEventListener('pointerup', (e) => {
+    if (!drag || e.pointerId !== drag.pointer) return;
+    const { id, grip, moving, on, at } = drag;
+    endDrag();
+    if (on && at >= 0) moveTo(id, moving, at, grip);
+  });
+  list.addEventListener('pointercancel', endDrag);
+  list.addEventListener('keydown', (e) => {
+    const g = (e.target as Element).closest<HTMLElement>('[data-grip]');
+    if (!g || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+    e.preventDefault();
+    const id = routineOf(g);
+    const got = routine(id);
+    if (!got) return;
+    const i = Number(g.dataset.grip);
+    const moving = movingWith(id, i);
+    moveTo(id, moving, stepAt(got.r.items.length, moving, e.key === 'ArrowUp' ? -1 : 1), i);
   });
   /** Ticking and unticking in the picker: the order numbers and the Add button change in
    * place, so the keyboard stays on the row. */
@@ -434,15 +612,17 @@ export function initRewaz(host: RewazHost): Rewaz {
     if (q.dataset.act !== 'pickq') return;
     const want = foldText(q.value.trim());
     const panel = q.closest<HTMLElement>('.rwpick')!;
-    for (const li of Array.from(panel.querySelectorAll<HTMLElement>('.rwpicklist > li'))) {
-      li.hidden = !!want && !foldText(li.querySelector('.rwpicktitle')!.textContent || '').includes(want);
-    }
+    for (const li of Array.from(panel.querySelectorAll<HTMLElement>('.rwpicklist > li'))) li.hidden = !!want && !(li.dataset.q ?? '').includes(want);
     for (const g of Array.from(panel.querySelectorAll<HTMLElement>('.rwpickgrp'))) g.hidden = !g.querySelector('.rwpicklist > li:not([hidden])');
   });
   list.addEventListener('change', (e) => {
     const el = e.target as HTMLInputElement | HTMLSelectElement;
     if (el instanceof HTMLInputElement && el.dataset.pick) {
       picked(el);
+      return;
+    }
+    if (el instanceof HTMLInputElement && (el.dataset.tick != null || el.dataset.act === 'tickall')) {
+      tick(el);
       return;
     }
     const id = routineOf(el);

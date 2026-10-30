@@ -39,7 +39,7 @@ import { dayNumber, lastPractised, lengthText, MIN_LOG_SECS, noteTally, type Log
 import type { PitchDetail, PlayedSettings, PlayedSong, SessionDetail } from '../core/practice/session';
 import { octaveFor } from '../core/pitch/track';
 import { songSpan } from '../core/pitch/voice';
-import { itemLines, type RoutineItem } from '../core/practice/routine';
+import { itemLines, newRoutineId, ROUTINE_LIMITS, STARTER, type Routine, type RoutineItem } from '../core/practice/routine';
 import { clockText, keepsTake, newTakeId, textSig, type Take } from '../core/practice/take';
 import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefix, type ImportedSong } from '../core/song/file';
 import { titleFixes, uniqueTitle } from '../core/song/library';
@@ -1198,10 +1198,15 @@ function pickerGroups(): { own: Song[]; exercises: readonly (Song | Exercise)[];
 }
 /** "song" or "exercise", for the open one's buttons and notes. */
 const what = () => (current.example || current.exercise ? 'exercise' : 'song');
-/** The song picker, and the Music library when it is showing. */
+/** The song picker, and the views naming songs when one is showing: the Music library, Rewaz
+ * and Progress. (Rewaz was left out: opened on a refresh it was drawn before the songs were
+ * read, and said every song of the user's in a routine had been deleted until folded and
+ * opened again; Rinat, 2026-10-30.) */
 function renderLibrary(): void {
   if (current) songPick.render();
   songsView.render();
+  rewaz.render();
+  progressView.render();
 }
 /** The deck's buttons: Play (Pause while playing; Play again goes on after a pause), Stop and
  * Restart (not in a rewaz, which has its own Skip and Stop). */
@@ -1462,7 +1467,7 @@ async function renderAllTakes(): Promise<void> {
     by: prefs.tkGroup ?? 'song', selected: takeSel, open: takeOpen, asking: takeAsk,
     playing: takePlay ? { id: takePlay.take.id, how: takePlay.how } : undefined,
   });
-  for (const b of box.querySelectorAll<HTMLInputElement>('input[data-mixed]')) b.indeterminate = true;
+  V.showMixed(box);
 }
 /** The takes as last read (the notation changing only changes their notes). */
 function drawTakes(): void {
@@ -2097,19 +2102,22 @@ function writeSongs(list: Song[]): void {
 }
 /** Delete one of the user's songs (asked first, in Edit notation or the Music library); the
  * open one gives way to another song. */
-function deleteSong(id: string): void {
-  const s = songs.get(id);
-  if (!s) return;
-  const open = current.id === id;
+const deleteSong = (id: string) => deleteSongs([id]);
+/** Delete the user's songs ticked in the Music library (asked first there), or one. */
+function deleteSongs(ids: readonly string[]): void {
+  const gone = ids.map((id) => songs.get(id)).filter((s): s is Song => !!s);
+  if (!gone.length) return;
+  const open = gone.some((s) => s.id === current.id);
   if (open) {
     clearTimeout(saveTimer);
     saveTimer = 0;
     dirty = false;
   }
-  removeSong(id);
+  for (const s of gone) removeSong(s.id);
   renderLibrary();
   if (open) loadSong(Array.from(songs.values())[0] || EXERCISES[0]!);
-  setLibStatus('Deleted “' + s.title + '”.');
+  const ex = gone.filter((s) => s.exercise).length;
+  setLibStatus(gone.length === 1 ? 'Deleted “' + gone[0]!.title + '”.' : 'Deleted ' + gone.length + ' ' + (ex === 0 ? 'songs' : ex === gone.length ? 'exercises' : 'songs and exercises') + '.');
 }
 function removeSong(id: string): void {
   songs.delete(id);
@@ -2151,20 +2159,65 @@ function fixSameTitles(): void {
 }
 
 /** Star or unstar one of the user's songs (the open one through its usual save). */
-function setFav(id: string, fav: boolean): void {
-  if (current.id === id && !current.example) {
-    changed('fav', fav || undefined);
-    flushNow();
-  } else {
+const setFav = (id: string, fav: boolean) => setFavs([id], fav);
+/** Star or unstar several, ticked in the Music library. */
+function setFavs(ids: readonly string[], fav: boolean): void {
+  const list: Song[] = [];
+  for (const id of ids) {
+    if (current.id === id && !current.example) {
+      changed('fav', fav || undefined);
+      flushNow();
+      continue;
+    }
     const s = songs.get(id);
-    if (!s) return;
+    if (!s || !!s.fav === fav) continue;
     const n: Song = { ...s, updatedAt: Date.now() };
     if (fav) n.fav = true;
     else delete n.fav;
     songs.set(id, n);
-    writeSongs([n]);
+    list.push(n);
   }
+  if (list.length) writeSongs(list);
   renderLibrary();
+}
+
+/** The songs and exercises ticked in the Music library, saved to one song file (one alone is
+ * named as Export this song names it). */
+function exportSongs(ids: readonly string[]): void {
+  flushNow();
+  const list = ids.map((id) => songs.get(id) ?? EXERCISES.find((x) => x.id === id)).filter((s): s is Song | Exercise => !!s).map((s) => (s.example ? { ...normalize(s), example: true } : s));
+  if (!list.length) return;
+  const ex = list.filter((s) => s.example || s.exercise).length;
+  const name = list.length === 1 ? fileName(stripExamplePrefix(list[0]!.title)) : exportName(stamp(Date.now()), list.length + ' ' + (ex === 0 ? 'songs' : ex === list.length ? 'exercises' : 'songs and exercises'), 'Data');
+  void offerFile(name, songFileText(list, today()), showFileBar);
+}
+
+/** The rewaz routines to add songs to from the Music library: the ready-made warm-up while it
+ * is not saved, then the user's by name. */
+function routineChoices(): { id: string; name: string; n: number }[] {
+  const saved = Array.from(routineStore.load().values()).sort((a, b) => a.name.localeCompare(b.name));
+  return (saved.some((r) => r.id === STARTER.id) ? saved : [STARTER, ...saved]).map((r) => ({ id: r.id, name: r.name, n: r.items.length }));
+}
+/** Add songs and exercises, ticked in the Music library, to a routine ('' for a new one, opened
+ * in Rewaz), two rounds each as Rewaz's own picker adds them. */
+function addToRoutine(id: string, ids: readonly string[]): void {
+  const had = id ? routineStore.load().get(id) ?? (id === STARTER.id ? STARTER : null) : null;
+  if (id && !had) return;
+  const r: Routine = had ? structuredClone(had) : { id: newRoutineId(), name: 'My rewaz', items: [], updatedAt: 0 };
+  const add = ids.slice(0, Math.max(0, ROUTINE_LIMITS.items - r.items.length));
+  for (const song of add) r.items.push({ song, rounds: 2 });
+  r.updatedAt = Date.now();
+  const w = routineStore.save(r);
+  if (w !== 'ok') {
+    setLibStatus(w === 'full' ? 'Not added: storage is full.' : 'Not added. This browser blocks storage.');
+    return;
+  }
+  if (!had) {
+    prefs.rewazOpen = [...(prefs.rewazOpen ?? []).filter((x) => x !== r.id), r.id];
+    savePrefs();
+  }
+  rewaz.render();
+  setLibStatus('Added ' + add.length + (add.length < ids.length ? ' of ' + ids.length + ' (a routine holds ' + ROUTINE_LIMITS.items + ' items)' : '') + ' to ‘' + r.name + '’. Its lines, rounds and tempo are set in Rewaz.');
 }
 
 /** What says whether the open one is a song or an exercise: the sheet's title tag, "List
@@ -2740,6 +2793,11 @@ export function init(): void {
       savePrefs();
       renderLibrary();
     },
+    removeAll: deleteSongs,
+    setFavs,
+    exportAll: exportSongs,
+    routines: routineChoices,
+    addTo: addToRoutine,
   });
   pitchUI = initPitch({
     audio: () => {

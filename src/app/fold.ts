@@ -21,8 +21,10 @@ export interface FoldSection {
   n?: string | number;
   body: string;
   folded: boolean;
-  /** An action at the end of the heading row (HTML). */
+  /** An action at the end of the heading row (HTML), and something before its grip (a tick box
+   * for the whole section). */
   action?: string;
+  lead?: string;
   /** No folding (a search shows everything): the heading is not a button. */
   fixed?: boolean;
 }
@@ -36,7 +38,7 @@ export function foldSectionHTML(s: FoldSection): string {
     ? '<h3 class="lhead"><span class="lfold">' + label + '</span></h3>'
     : '<h3 class="lhead"><button type="button" class="lfold" data-fold="' + esc(s.id) + '" aria-expanded="' + !folded + '" aria-controls="' + esc(s.prefix + s.id) + '">' + FOLD_ICON + label + '</button></h3>';
   const grip = '<button type="button" class="lgrip" data-grip="' + esc(s.id) + '" aria-label="Move ' + esc(name) + ': drag, or press the up or down arrow" title="Drag to move this section">' + GRIP_ICON + '</button>';
-  return '<section class="lsec" data-sec="' + esc(s.id) + '"><div class="lheadrow">' + grip + head + (s.action ?? '') + '</div>' +
+  return '<section class="lsec" data-sec="' + esc(s.id) + '"><div class="lheadrow">' + (s.lead ?? '') + grip + head + (s.action ?? '') + '</div>' +
     '<div class="lsecbody" id="' + esc(s.prefix + s.id) + '"' + (folded ? ' hidden' : '') + '>' + s.body + '</div></section>';
 }
 

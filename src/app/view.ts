@@ -19,6 +19,16 @@ export type Script = 'bn' | 'lat';
 const ESC: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
 export const esc = (s: unknown): string => String(s).replace(/[&<>"]/g, (c) => ESC[c]!);
 
+/** A tick box in a table's row or heading: ticked, not ticked, or some of a group's
+ * (`data-mixed`, made indeterminate once drawn). `label` is escaped already. */
+export const tickHTML = (attr: string, label: string, all: boolean, some: boolean): string =>
+  '<label class="tkchk" title="' + label + '"><input type="checkbox" ' + attr + ' aria-label="' + label + '"' + (all ? ' checked' : '') + (some && !all ? ' data-mixed="1"' : '') + '></label>';
+
+/** Tick boxes drawn as some of a group's, under `root`. */
+export function showMixed(root: ParentNode): void {
+  for (const b of Array.from(root.querySelectorAll<HTMLInputElement>('input[data-mixed]'))) b.indeterminate = true;
+}
+
 // ── Display names ────────────────────────────────────────────────────────────
 
 export const BN_NAMES = BN_LETTER;

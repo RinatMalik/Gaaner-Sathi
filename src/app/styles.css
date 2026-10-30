@@ -414,6 +414,20 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .lrow:first-child{border-top:0}
 .lrow:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
 .lrow.cur{box-shadow:inset 3px 0 0 var(--brass)}
+/* The Music library as a table (Rinat, 2026-10-30): a tick box down the left of each row, a tap
+   anywhere else along it ticks it too; the ticked ones tinted; a tick box for a whole section in
+   its heading, in line with the rows'. */
+.lrow.ltk{cursor:pointer}
+.lrow.sel,.lrow.sel:hover{background:color-mix(in srgb,var(--brass) 12%,transparent)}
+.lheadrow>.tkchk{align-self:stretch;border-right:0}
+/* Over the list: Tick all, then what to do with the ticked ones, kept in view while the list
+   scrolls once any are ticked. */
+.lselbar{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;min-height:38px;padding:6px 0;border-bottom:1px solid transparent}
+.lselbar .spacer{flex:1 1 auto}
+#libSel.lselon{position:sticky;top:0;z-index:6}
+.lselbar.on{background:var(--paper);border-bottom-color:var(--rule)}
+.lselhid{font-size:13px;color:var(--ink-2)}
+.lselbar .dmenu{left:0;right:auto}
 .lmain{flex:1 1 auto;display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;min-width:0;padding:8px 12px 8px 6px}
 .lfav{flex:none;width:34px;height:34px;border:0;background:none;font-size:20px;line-height:1;color:var(--brass);padding:0}
 .lopen{flex:1 1 240px;min-width:0;display:grid;gap:1px;border:0;background:none;text-align:left;padding:2px 0}
@@ -433,6 +447,17 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .lsure .lact{width:7em}
 @media (max-width:720px){
   .lrow{flex-direction:column}
+  /* The tick box and the song side by side, its buttons across under them; the title beside
+     the star. */
+  .lrow.ltk{display:grid;grid-template-columns:44px minmax(0,1fr)}
+  .lrow.ltk>.lacts{grid-column:1 / -1}
+  .lrow.ltk .lopen{flex:1 1 160px}
+  /* The bar's buttons smaller, so it takes less of the screen while it stays in view. */
+  .lselbar{gap:6px 8px}
+  .lselbar .btn{padding:5px 10px;font-size:13px}
+  /* Add to rewaz's list as wide as the bar. */
+  .lselbar .dbk{position:static}
+  .lselbar .dmenu{right:0;width:auto;max-width:none}
   .lacts{border-top:1px solid var(--rule)}
   .lact{flex:1 1 0;width:auto;min-height:42px;padding:8px 6px;gap:6px;font-size:13px}
   .lact:first-child{border-left:0}
@@ -507,14 +532,37 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .rwnamef{flex:1 1 220px;max-width:420px}
 .rwgapf input{width:88px}
 .rwnamef input{font-family:var(--f-note);font-size:16px}
-/* Its items: each a row like a line in the beat boxes, the number down the left and the
-   buttons (move up, move down, remove) the row's full height at its end. */
-.rwlist{list-style:none;margin:0;padding:0;background:var(--sheet);border:1px solid var(--line);border-radius:12px;overflow:hidden;min-width:0}
-.rwitem{display:flex;align-items:stretch;min-width:0;border-top:1px solid var(--rule)}
+/* Its items: each a row like a line in the beat boxes: a tick box, the number down the left (the
+   handle to drag it by), and the button to remove it the row's full height at its end (Rinat,
+   2026-10-30). Rows are opaque, so one dragged passes over the others. */
+.rwlist{position:relative;list-style:none;margin:0;padding:0;background:var(--sheet);border:1px solid var(--line);border-radius:12px;overflow:hidden;min-width:0;container-type:inline-size}
+.rwitem{position:relative;display:flex;align-items:stretch;min-width:0;border-top:1px solid var(--rule);background:var(--sheet)}
 .rwitem:first-child{border-top:0}
-.rwitem:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
-.rwn{flex:none;width:36px;display:flex;justify-content:center;padding-top:14px;border-right:1.5px solid var(--margin);color:var(--ink-2);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.rwitem:hover{background:color-mix(in srgb,var(--ink) 4%,var(--sheet))}
+.rwitem.sel,.rwitem.sel:hover{background:color-mix(in srgb,var(--brass) 12%,var(--sheet))}
+.rwn{flex:none;width:36px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 0 0;border:0;border-right:1.5px solid var(--margin);background:none;color:var(--ink-2);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.rwn svg{width:16px;height:16px;opacity:.75}
+.rwn:hover{background:var(--chip);color:var(--ink)}
+.rwn:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.rwitem.dragging{z-index:3;box-shadow:0 6px 18px var(--shadow);cursor:grabbing}
+.rwitem.dragging .rwn{cursor:grabbing}
+.rwdrop{position:absolute;left:6px;right:6px;height:3px;margin-top:-2px;border-radius:2px;background:var(--brass);pointer-events:none;z-index:4}
+/* The fields: the song alone on its line and the rest under it, or, where the row is wide
+   enough, every field in a column of its own, the same in every row (Rinat, 2026-10-30: "keep
+   the title dropdown width a fixed amount"). */
 .rwfields{flex:1 1 auto;display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 12px;min-width:0;padding:10px 12px}
+.rwsong{grid-area:song}.rwfrom{grid-area:from}.rwto{grid-area:to}.rwrounds{grid-area:rounds}.rwbreak{grid-area:brk}.rwtempo{grid-area:tempo}.rwguide{grid-area:guide}
+@container (min-width:860px){
+  .rwlist:not(.rwranges) .rwfields{display:grid;align-items:start;gap:8px 10px;grid-template-columns:minmax(9rem,22rem) 8.75rem 3.75rem 5.75rem 4rem 9.25rem;grid-template-areas:"song from rounds brk tempo guide"}
+  .rwlist:not(.rwranges) .rwfields .rwf :is(select,input){width:100%}
+  .rwlist:not(.rwranges) .rwgone{grid-column:1 / -1}
+}
+/* A "to" column too, once an item in the routine plays some of its lines. */
+@container (min-width:1000px){
+  .rwranges .rwfields{display:grid;align-items:start;gap:8px 10px;grid-template-columns:minmax(9rem,22rem) 8.75rem 8.5rem 3.75rem 5.75rem 4rem 9.25rem;grid-template-areas:"song from to rounds brk tempo guide"}
+  .rwranges .rwfields .rwf :is(select,input){width:100%}
+  .rwranges .rwgone{grid-column:1 / -1}
+}
 .rwside{flex:none;display:flex;align-self:stretch}
 .rwbtn{width:44px;display:grid;place-items:center;padding:0;border:0;border-left:1px solid var(--rule);background:transparent;color:var(--ink-2)}
 .rwbtn svg{width:18px;height:18px}
@@ -540,23 +588,35 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .rwpickrow{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 12px;cursor:pointer}
 .rwpickrow:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
 .rwpickrow input{flex:none;width:18px;height:18px;accent-color:var(--brass)}
-.rwpicktitle{flex:1 1 auto;min-width:0;font-family:var(--f-note);font-size:16px;overflow-wrap:anywhere}
+.rwpickrow{flex-wrap:wrap}
+.rwpicktitle{flex:0 1 auto;min-width:0;font-family:var(--f-note);font-size:16px;overflow-wrap:anywhere}
+/* Its tags and taal, written lightly beside the title (Rinat, 2026-10-30). */
+.rwpickmeta{flex:1 1 8rem;min-width:0;font-size:12.5px;color:var(--ink-2)}
+.rwpickmeta:empty{flex-basis:0}
 .rwpickopen{flex:none;font-size:12px;color:var(--ink-2)}
 .rwpickn{flex:none;min-width:24px;padding:0 7px;border-radius:999px;background:var(--brass);color:var(--brass-ink);font-size:13px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums}
 @media (max-width:720px){
   .rwgo{width:auto;padding:8px 14px}
-  .rwn{width:28px}
-  /* On a phone the item's buttons stack, a third of the row's height each. */
-  .rwside{flex-direction:column}
-  .rwbtn{width:40px;flex:1 1 0;min-height:34px}
-  .rwbtn+.rwbtn{border-top:1px solid var(--rule)}
+  /* On a phone the tick box over the number, so the fields have the room. */
+  .rwitem{display:grid;grid-template-columns:36px minmax(0,1fr) 40px;grid-template-rows:auto 1fr}
+  .rwitem>.tkchk{grid-area:1 / 1;width:auto;height:42px;border-right:1.5px solid var(--margin)}
+  .rwitem>.rwn{grid-area:2 / 1;width:auto;padding-top:2px}
+  .rwitem>.rwside{grid-area:1 / 3 / 3 / 4}
+  .rwbtn{width:40px}
+  .rwbody{padding:12px 10px 14px}
+  /* Its fields one under another, the full width, but Rounds, Break and Tempo side by side. */
+  .rwitem>.rwfields{grid-area:1 / 2 / 3 / 3;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end;gap:8px;padding:10px}
+  .rwitem>.rwfields>*{grid-area:auto;grid-column:1 / -1}
+  .rwitem>.rwfields>.rwnum{grid-column:auto}
+  .rwitem>.rwfields .rwf :is(select,input){width:100%;max-width:none}
 }
 .rwf{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:12px;color:var(--ink-2);font-weight:600}
 .rwf select,.rwf input{padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--sheet);font-size:14px;font-weight:400;color:var(--ink);min-width:0;max-width:100%}
-.rwsong{flex:1 1 220px}
-.rwsong select{font-family:var(--f-note);font-size:15px}
-.rwf select[data-k="from"],.rwf select[data-k="to"]{font-family:var(--f-note);max-width:220px}
-.rwnum input{width:72px;font-variant-numeric:tabular-nums}
+.rwsong{flex:1 1 100%}
+.rwsong select{width:100%;max-width:22rem;font-family:var(--f-note);font-size:15px}
+.rwf select[data-k="from"],.rwf select[data-k="to"]{font-family:var(--f-note);width:8.75rem}
+.rwguide select{width:9rem}
+.rwnum input{width:4rem;font-variant-numeric:tabular-nums}
 .rwgone{flex:1 1 200px;color:var(--ink-2);font-size:14px}
 .rbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:9px 12px;border:1px solid var(--brass);border-left:4px solid var(--brass);border-radius:10px;background:var(--sheet)}
 .rbar .spacer{flex:1 1 auto}

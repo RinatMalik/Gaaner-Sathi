@@ -13,7 +13,7 @@ import { whenText } from '../core/song/library';
 import { inTx, openDB } from './db';
 import { exportName, stamp } from './filenames';
 import { dayLabel } from './progress';
-import { esc } from './view';
+import { esc, tickHTML as tick } from './view';
 
 /** The takes and their samples in IndexedDB (db.ts); null where IndexedDB is not available. */
 export class TakeStore {
@@ -120,10 +120,6 @@ export interface AllTakesShown extends TakesShown {
 const many = (n: number, one: string) => n + ' ' + one + (n === 1 ? '' : 's');
 const bytes = (n: number): string => (n < 1e6 ? Math.max(1, Math.round(n / 1e3)) + ' KB' : n < 1e9 ? Math.round(n / 1e6) + ' MB' : (n / 1e9).toFixed(1) + ' GB');
 const FOLD = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-/** A tick box: ticked, not ticked, or some of a group's (`data-mixed`, made indeterminate once
- * drawn). */
-const tick = (attr: string, label: string, all: boolean, some: boolean) =>
-  '<label class="tkchk" title="' + label + '"><input type="checkbox" ' + attr + ' aria-label="' + label + '"' + (all ? ' checked' : '') + (some && !all ? ' data-mixed="1"' : '') + '></label>';
 
 export interface TakeGroup {
   key: string;
