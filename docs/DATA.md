@@ -13,7 +13,7 @@ Clearing a browser's site data ("cookies and site data") deletes it all.
 
 | What | Kept in | Moves to another device or person |
 |---|---|---|
-| Your songs: notation, title, taal, tempo, Sa, start beat, section tempos and taals, tags, star, notes, the song's own sound, whether it is listed under Exercises | `localStorage` | Yes: **Export this song** (one), **Back up or export → All my songs**, or **→ Everything** (below), then **Import** there |
+| Your songs: notation, title, taal, tempo, Sa, start beat, section tempos and taals, tags, star, notes, the song's own sound, whether it is listed under Exercises | `localStorage` | Yes: **Export this song** (one), the Music library's **Export** (the ones ticked), **Back up or export → All my songs**, or **→ Everything** (below), then **Import** there |
 | The built-in exercises and the starter rewaz | The app itself | Everyone has them |
 | Your settings: your usual sound, your Sa, the guide and practice settings, script, theme, the editor view, the MIDI choice | `localStorage` | In **Everything**, restored with "Restore with its settings" (not this device's delay or keyboard) |
 | Practice log (Progress): each session's summary | `localStorage` | **Download all practice data** (foot of Progress, or the Music library's **Back up or export → All practice data**) saves it, with each session's detail, as one file (below), not importable; **Everything** holds it too and restores it. **Start afresh** in Progress deletes both |
@@ -76,7 +76,10 @@ exactly as before.
                "tags": ["..."], "fav": true, "exercise": true, "notes": "...", "sound": { } } ] }
 ```
 
-- **Export this song** (the editor) writes one song; **Back up or export → All my songs** (the
+- **Export this song** (the editor) writes one song; **Export** in the Music library's bar
+  (Rinat, 2026-10-30) writes the songs and exercises ticked, built-in ones too, in one file
+  named as Export this song names it for one, else `<when> - 3 songs - Data.json` ("exercises",
+  "songs and exercises"); **Back up or export → All my songs** (the
   Music library) writes them all, built-in exercises excluded. `tags`, `fav`, `exercise`, `notes`,
   `dismissed` and `sound` appear only when set; an exercise exported, built-in or your own, carries
   `exercise`, so it imports as an exercise of your own. They are optional, so files stay version 1: the prototype and older readers

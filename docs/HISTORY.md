@@ -50,6 +50,67 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-28 GMT — Claude (Opus 5.5) — PH2-42 the octave the guide is heard in; short takes; bigger knobs; 27 Oct whole
+
+- **Goal:** Rinat: "make the slider handles a lot bigger so they are easy to click on"; "if
+  the length of the recording is less than 15% of the length of the track that is being sang,
+  then discard that recording. If such logic is not possible, then just discard anything less
+  than 5 seconds"; "there is definitely something wrong with the scale. I hear myself match with
+  the second octave from left in the keyboard ... When i tried octaves must match ... i had to
+  go really high ... but my singing i think, is matching with the current octave ... Please
+  investigate"; and 27 Oct's day file saved again.
+- **Inspected:** 27 Oct's new file: 29 of 29 sessions with detail, every song and exercise at
+  Sa C♯4, `octave_sung_against_the_notes` −1 throughout. A take of the long-notes exercise
+  through the app's detector (scratch rolldown bundle of mpm.ts): the held notes at 138.1,
+  155.2, 173.6, 184.2, 207.3, 232.9, 262.3 and 279.4 Hz, so Sa on C♯3 (the second octave of a
+  61-key keyboard). The reed sets (harmonium.ts): 2 and 3 reeds have a bass reed at half the
+  frequency; the reeds summed as built, with the set's lowpass, through the detector at Sa
+  C♯4: 1 reed 277.18 Hz, 2 reeds 138.48 Hz, 3 reeds 138.54 Hz. So the default guide is heard
+  at C♯3, where Rinat sings, while the octave rule judged against C♯4. The earlier finding that
+  the exercises played in C4 on 27 Oct came from the file: without a session's detail, a built-in
+  exercise was described with its stored Sa (C4), not the Sa it plays in (`mySa`). The 52 takes'
+  lengths: eight of 3.6–9 s. The 27th's detail analysed with the scratch scripts of the review
+  (day average 59, the best of the three; upper Re in songs −37, −30, −9 cents on 25, 26, 27 Oct,
+  upper Sa −11, −12, −3; lower Pa still +117 cents; the same wrong notes as before in পুরানো
+  lines 4, 8, 12, nisha lagilo re lines 14 and 18, আমারও পরানো line 19; আমার হিয়ার lines 14 and
+  20 up to 62 and 58); the singing feedback went to Rinat in chat.
+- **Changed:** `32ecdc8` (fix(pitch)): track.ts (`judged`, the tracker's `below`, the octave
+  found among 0 and −1), pitch.ts (`host.below()`, the voice drawn by the octave found, `below`
+  kept), session.ts, report.ts, insights.ts (timing and the note: "with the guide's bass reed"),
+  aifile.ts (`octave_below_counts`, the brief), app.ts (`below`: 2 or 3 reeds, the guide on the
+  device and not off), index.html (the tooltip, the scoring note), pitch-track and session tests.
+  `4efe101` (fix(progress)): app.ts `sessionInput` gives a built-in exercise your Sa. `d983c4c`
+  (feat(takes)): take.ts (`keepsTake`, `MIN_TAKE_SHARE`), app.ts (`track` on the take being
+  recorded, from `playSeconds`), takes tests. `6c77887` (feat(deck)): styles.css, the sliders'
+  knobs. This commit: ENGINE.md (reed sets, the octave sung in, takes), DATA.md, ROADMAP row 42,
+  HISTORY (the PH2-40 entry), this file.
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 42 files, 472 passed
+  (new: `judged`; the octave below counted with a bass reed and not without, nor an octave above
+  or two below; the voice drawn in −1 and only −1 or 0; the detail, report note, timing and file
+  with `below`; `keepsTake` on Rinat's take lengths); `npm run build` → 369.60 kB JS; `bash
+  reference/tests/run-all.sh` → parser 31, checker 11, join-split 10, rhythm 12, tanpura 5
+  passed, 12 exercises valid. Headless Edge (the pane hidden), a fake microphone holding 138.59 Hz
+  (scratch WAV), the long-notes exercise at Sa C♯4 with Octave must match: on `npm run dev` with 3
+  reeds its Sa scored 100 at +0.2 cents, the detail `below` true, octave −1; with 1 reed 0 at
+  −1199.9; the live site (the old build) with 3 reeds 0 at −1199.9. Takes on `npm run dev`: a 20 s
+  play of the 115 s exercise kept (20.3 s), a 6 s play "That play was too short to keep as a
+  take.", 5 s of line 1 looped (7 s a round) kept (5.3 s); then an exercise's log entry without
+  detail: the day's For AI gives it "C♯4 (Black 1), middle octave". The sliders at 1280 px day
+  and 360 px night (page 360 px wide): 30 px knobs on the grooves, a mouse press near each end
+  moving it there (rhythm 0.7 → 0.98, tempo 110 → 236, drone 0 → 0.96). CI run `40680802173`
+  (`80aca47`) failed at the type-check: the session test read `ins.behind` (Insights has
+  `ins.timing.behind`), which passed in Vitest as undefined is not null; `f6f9e3e` (test) checks
+  `ins.timing.behind`, failing without `below` in `bestShift` and passing with it; CI run
+  `40681066615` green, the live site serving `index-UUFnttpw.js` as built here.
+- **Decisions made:** three rows (the octave below with a bass reed; takes from 15 %; the knobs).
+- **Risks or disagreements:** the octave rule now accepts two octaves with 2 or 3 reeds, as the
+  guide sounds both; a strict check of one octave needs 1 reed (the tooltip says so). The knobs
+  were seen in Edge (Chromium) only, not Firefox or Safari (their own rules are in place). A take
+  stopped in its count-in on a short looped line can still be kept (3 s floor). Rinat's songs stay
+  at Sa C♯4 as named: the guide's keys and a MIDI keyboard play C♯4, the bass reed C♯3.
+- **Next handoff:** Rinat ticks Octave must match and sings as usual; says whether the slider
+  knobs are easy to grab on the laptop and the phone; turns the Scarlett's gain down.
+
 ### 2026-10-28 GMT — Claude (Opus 5.5) — review of 25–27 Oct; PH2-41 a day's sessions read whole
 
 - **Goal:** Rinat, with three days of day files and 52 takes in `feedback/`: "review them and
