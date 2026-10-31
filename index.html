@@ -176,11 +176,13 @@
   </main>
 
   <main id="practice" role="tabpanel" aria-labelledby="tabPractice">
-    <div style="display:grid;gap:14px">
-      <div class="rbar" id="rwBar" hidden><span class="rbtext" id="rwBarText" aria-live="polite"></span><span class="spacer"></span><span class="rbleft" id="rwLeft" title="Roughly how long the rest of this rewaz takes, breaks included" hidden></span><button id="rwSkip" class="btn" type="button">Skip</button><button id="rwStop" class="btn" type="button">Stop rewaz</button></div>
+    <!-- Full screen (Rinat, 2026-10-31) shows the rewaz bar, the title's bar, the lines and a bar
+         of the deck's controls, and hides the rest; src/app/full.ts. -->
+    <div class="pview">
+      <div class="rbar" id="rwBar" hidden><span class="rbtext" id="rwBarText" aria-live="polite"></span><span class="spacer"></span><span class="rbleft" id="rwLeft" title="Roughly how long the rest of this rewaz takes, breaks included" hidden></span><button id="rwFull" class="btn rwfull" type="button" title="Full screen: only the lines and the controls (F)"><svg class="ic-fs" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Full screen</button><button id="rwSkip" class="btn" type="button">Skip</button><button id="rwStop" class="btn" type="button">Stop rewaz</button></div>
 
       <!-- While it plays, the time left beside the title (Rinat, 2026-10-31). -->
-      <div class="sheetHead"><h2 id="songTitle"></h2><span class="songleft" id="songLeft" title="Time left to play, the rounds still to come included" hidden></span><span class="songlen" id="songLen" title="How long it plays at this tempo, without the count-in"></span></div>
+      <div class="sheetHead"><h2 id="songTitle"></h2><span class="fullwhere" id="fullWhere"></span><span class="songleft" id="songLeft" title="Time left to play, the rounds still to come included" hidden></span><span class="songlen" id="songLen" title="How long it plays at this tempo, without the count-in"></span><button id="fullBtn" class="btn fullbtn" type="button" title="Full screen: only the lines and the controls (F)"><svg class="ic-fs" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><svg class="ic-fsx" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="fbon">Full screen</span><span class="fboff">Exit full screen</span></button></div>
       <div class="chips secs" id="secChips" role="group" aria-label="Sections: tap one to play from there" hidden></div>
       <details class="about" id="aboutBox" hidden><summary>About this song</summary><div class="abouttext" id="aboutText"></div></details>
       <!-- The song line by line (Rinat, 2026-10-15): about seven lines in view, the line being sung
@@ -188,6 +190,8 @@
       <section class="pl" id="pl" aria-label="The song, line by line">
         <p class="plmsg" id="plMsg" aria-live="polite" hidden></p>
         <div class="plview" id="plView"><div class="pllist" id="plList"></div></div>
+        <!-- In full screen, the break between rewaz items: what comes next, counting down. -->
+        <div class="fbreak" id="fullBreak" hidden><span class="fbnext" id="fbNext"></span><b class="fbtitle" id="fbTitle"></b><span class="fbwhat" id="fbWhat"></span><span class="fbcount" id="fbCount"></span><button type="button" class="btn" id="fbNow">Start now</button></div>
         <div class="plfoot" id="pitchBox" hidden>
           <span class="pscores" id="pScores" aria-live="polite"></span>
           <span class="pmsg" id="pMsg"></span>
@@ -207,6 +211,8 @@
           <div class="mx pmeasure"><button type="button" class="btn" id="pMeasure" title="Hold an earphone to the microphone (or turn the speakers up), keep quiet, and press it: eight clicks are played and timed, so the delay of your headphones or speakers is not marked as singing late">Measure the delay</button><span class="phint" id="pMeasureMsg" aria-live="polite"></span></div>
         </div>
       </section>
+      <!-- Full screen's controls: the deck's Play, Stop, Restart and Check my pitch, moved here. -->
+      <div class="fullctl" id="fullCtl" role="group" aria-label="Play and pitch check" hidden></div>
       <section class="keyscard" id="keysRow" aria-label="The keys to press" hidden><div id="keysBoard"></div><span class="keyname" id="keyName" aria-live="off"></span></section>
       <details class="takes" id="takesBox" open hidden>
         <summary>My takes <span class="n" id="takesCount"></span></summary>

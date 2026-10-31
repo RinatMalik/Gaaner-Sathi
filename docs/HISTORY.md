@@ -50,6 +50,66 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-30 GMT — Claude (Opus 5.5) — PH2-44 the rewaz on a refresh; items dragged and ticked; the library as a table
+
+- **Goal:** Rinat, with a screenshot of two routines' items saying "This song has been
+  deleted": "if i refresh the page, the rewaz initially shows as all songs were deleted. if i
+  collapse/uncollapse it all comes back. so, no data is lost but something is not wired up
+  correctly"; "Rewaz songs have up and down buttons to re-order but it would be much better if
+  it was possible to drag and drop to reorder"; "Add selection checkbox on each entry of Rewaz
+  so they can be deleted together"; "When adding songs in rewaz, the list appears with the
+  titles, but other details like tags/labels etc could be writtent lightly net to the title so
+  they are easy to find"; "Add selection checkbox on each line in the music library as well -
+  basically add all the bells and whistle of tables in the music library ... Click the title
+  should not take it to practice, only the practice button should. clicking the line should
+  just select it, so the checkboax gets checked"; "In the each song of Rewaz, the width of the
+  title varies. this makes it chaotic and sometimes the line bleeds into a second line. keep
+  the title dropdown width a fixed amount".
+- **Inspected:** app.ts's `init()` (`switchTab(prefs.tab)` draws the tab before `initStore()`
+  reads the songs, and `renderLibrary` redrew only the picker and the library, so Rewaz and
+  Progress kept a drawing made with no songs until drawn again); rewaz.ts (items moved by up
+  and down buttons, no ids); songs.ts (the title a button that opened the song); takes.ts's tick
+  boxes; styles.css's `.rwfields` (a wrapping row, each select as wide as its text).
+- **Changed:** `feat(library, rewaz)`: app.ts (`renderLibrary` draws Rewaz and Progress too;
+  `deleteSongs`, `setFavs`, `exportSongs`, `routineChoices`, `addToRoutine`), routine.ts
+  (`moveItems`, `stepAt`), rewaz.ts (the tick box and the number as a drag handle on each item;
+  `tickBarHTML`; dragging by pointer events; the picker's `detailsOf`), songs.ts (`lrow ltk`
+  rows, the headings' tick boxes, `libSelHTML`, the bar's wiring), view.ts (`tickHTML`,
+  `showMixed`, shared with takes.ts), fold.ts (`lead` before a heading's grip), index.html
+  (`#libSel`), styles.css (the item's columns by container queries, the phone layout, the
+  library's ticks and bar), rewaz and library tests. This commit: DATA.md (Export of the
+  ticked), ROADMAP row 44, HISTORY, this file.
+- **Tests / verification:** `npm run typecheck` exit 0; `npm test` → 42 files, 480 passed (new:
+  the tick bar; moving items and the ticked ones; the picker's details and find text; the "to"
+  column's class; the library's rows and heading ticks; the bar's states); `npm run build` →
+  381.96 kB JS; `bash reference/tests/run-all.sh` → parser 31, checker 11, join-split 10,
+  rhythm 12, tanpura 5 passed, 12 exercises valid. Headless Edge on `npm run dev` (the pane
+  hidden), measured and screenshots seen: a refresh on Rewaz with two routines saying only the
+  item whose song is gone is deleted (before: every one of the user's); at 1150 px (list 1073
+  px) the fields in columns, the song 223 px wide in every row (352 px with no "to" column),
+  rows 77 px; two ticked, item 4 dragged to the top (t3, t0, t1, ex, gone; the ticks
+  following), the ticked pair dragged to the end, ↓ and ↑ on a number; Remove asked, Keep,
+  Remove ("Removed 2 items from the routine."); the add list "Tagore · slow · Keherwa",
+  "tagore" finding 2; columns at 1082 and 1280 px, wrapping at 900 px. The library at 1280 px
+  day: a tap on a title ticking its row, Shift and a tap ticking a run (no text selected), a
+  tick box unticking; Add to rewaz listing Daily warm-up, Song practice and A new routine,
+  "Added 2 to ‘Song practice’…"; a tap elsewhere closing the menu; Favourite, then
+  Unfavourite; the Exercises heading ticking 12; Delete asked "Delete these 2 songs? The
+  built-in exercises stay.", Escape, Delete → "Deleted 2 songs."; the bar at the top while
+  scrolled; Escape unticking; Practise opening Practice. At 360 px night: Export saving
+  "2026.10.30_17.15.50 - 2 songs - Data.json" with the 2 songs; the menu 16–344 px; A new
+  routine "My rewaz" made and opened; rewaz rows 269, 326, 270 px (312, 369, 313 before the
+  phone layout); the page 360 px wide. Both views at 1280 px day and night; no console errors.
+- **Decisions made:** five rows (rewaz items dragged; ticked and removed together; the add
+  list's tags and taal; the fields in columns; the library as a table).
+- **Risks or disagreements:** dragging was tried with a mouse in Edge (Chromium) through the
+  DevTools protocol, not with a finger on a real phone (the number has `touch-action: none`, so
+  a drag there should not scroll). Ticks are kept by place, not saved: a reload clears them.
+  On a phone an item is still about 270 px tall (seven fields). A tap on a library row now
+  ticks it where it used to open the song.
+- **Next handoff:** Rinat refreshes on Rewaz; drags an item, ticks and removes some; adds songs
+  to a routine from the library's bar; says whether the library works better as a table.
+
 ### 2026-10-28 GMT — Claude (Opus 5.5) — PH2-43 a grid for each line; Sa on its key; a break for each item; fader caps
 
 - **Goal:** Rinat: "make the sliders like a sliding know similar to reaper of FL studio instead

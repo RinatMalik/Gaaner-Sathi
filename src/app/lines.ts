@@ -70,6 +70,26 @@ export function lineRange(P: ParsedSong, L: NotesLine, byBeat: readonly (readonl
 /** Where a pitch is drawn in a strip (SVG units: 0 at the top, 100 at the bottom). */
 export const stripY = (cents: number, r: { lo: number; hi: number }): number => clamp(100 - ((cents - r.lo) / (r.hi - r.lo)) * 100, 2, 98);
 
+/** The notes named up the side of the strip of the line being sung in full screen (Rinat,
+ * 2026-10-31): each pitch sounding in the line once, low to high. Where two would be nearer
+ * than `gap` cents, so their names overlap, Sa is kept first, then the notes sounding most. */
+export function axisNotes(P: ParsedSong, L: NotesLine, byBeat: readonly (readonly number[])[], gap: number): { semi: number; oct: number; cents: number }[] {
+  const seen = new Map<number, { semi: number; oct: number; cents: number; n: number }>();
+  for (const b of L.beats) {
+    for (const i of byBeat[b.g] || []) {
+      const e = P.events[i]!;
+      const cents = 100 * (e.semi + 12 * e.oct);
+      const had = seen.get(cents);
+      if (had) had.n++;
+      else seen.set(cents, { semi: e.semi, oct: e.oct, cents, n: 1 });
+    }
+  }
+  const kept: { semi: number; oct: number; cents: number }[] = [];
+  const order = [...seen.values()].sort((a, b) => Number(b.semi === 0) - Number(a.semi === 0) || b.n - a.n || a.cents - b.cents);
+  for (const x of order) if (kept.every((k) => Math.abs(k.cents - x.cents) >= gap)) kept.push({ semi: x.semi, oct: x.oct, cents: x.cents });
+  return kept.sort((a, b) => a.cents - b.cents);
+}
+
 const kindOf = (m: string | undefined) => (m == null ? '' : m === 'X' ? 'v-sam' : m === '0' ? 'v-khali' : 'v-tali');
 
 /** Whether a notes line has words under it. */
@@ -247,6 +267,9 @@ export interface LinesHost {
    * being sung (1 to 5). */
   rows(): number;
   at(): number;
+  /** Full screen is on: the lines fill the screen, the strip of the line being sung as tall as
+   * the rest leaves room for, its notes named up its side. */
+  full(): boolean;
 }
 
 export interface LinesUI {
@@ -307,10 +330,15 @@ export function initLines(host: LinesHost): LinesUI {
   let maxBeats = 1;
   /** Each line's beats, to know which lines go over more than one row. */
   let beatsOf: number[] = [];
+  /** The song's notes by beat, and the notes named up the strip in full screen (line and pitches). */
+  let byBeat: number[][] = [];
+  let axisKey = '';
   /** Lines opened to full size, to look back at how they were sung (Rinat, 2026-10-19). */
   const opened = new Set<number>();
   let revealTimer = 0;
   let cur = -1;
+  /** The line sung before the one being sung (shrinking for a quarter second after the change). */
+  let wasCur = -1;
   let curState = '';
   let playingNow = false;
   let nowG = -1;
@@ -357,6 +385,8 @@ export function initLines(host: LinesHost): LinesUI {
     }
     beatsOf = P.noteLines.map((l) => l.beats.length);
     maxBeats = Math.max(1, ...beatsOf);
+    byBeat = eventsByBeat(P);
+    axisKey = '';
     shownCols = 0;
     segs.clear();
     linePass.clear();
@@ -392,15 +422,68 @@ export function initLines(host: LinesHost): LinesUI {
         else l.style.removeProperty('--r');
       });
     }
+    const rows = host.rows();
+    // Many lines shown, or full screen (where the line being sung's strip needs the room): the
+    // other lines compact.
+    view.classList.toggle('dense', rows >= 9 || host.full());
     const small = lines.filter((_, i) => i !== cur && i !== cur + 1 && !opened.has(i)).map((l) => l.offsetHeight).sort((a, b) => a - b);
     const hc = small.length ? small[small.length >> 1]! : 64;
     smallH = hc;
     const hx = lines[cur]?.offsetHeight ?? hc;
     const hn = lines[cur + 1]?.offsetHeight ?? hc;
-    const rows = host.rows();
-    view.classList.toggle('dense', rows >= 9);
     view.style.setProperty('--plh', Math.round(hx + (rows > 1 ? hn + (rows - 2) * hc : 0) + 6) + 'px');
     view.style.setProperty('--pltail', Math.round(Math.max(0, rows - place() - 1) * hc) + 'px');
+    if (host.full()) fit();
+  }
+
+  /** Full screen (Rinat, 2026-10-31: "whatever is chosen in the practice page, have the full
+   * screen show the same thing"): the lines shown and the place of the one being sung as on
+   * Practice, the others compact, its strip as tall as the screen leaves room for once its
+   * notes and words, the other lines and headings in view and the room for lines past the
+   * song's end are counted (a row of its strip 56 px at least, the view scrolling below that).
+   * The line that was being sung, still shrinking, counts at a small line's height. */
+  function fit(scroll = true): void {
+    const L = lines[cur];
+    const w = L?.querySelector<HTMLElement>('.plsw');
+    if (!L || !w || !view.clientHeight) return;
+    const cols = Math.max(1, shownCols);
+    const r = Math.ceil((beatsOf[cur] ?? 1) / cols);
+    const k = place();
+    const first = Math.max(0, cur - k);
+    const last = first + Math.min(host.rows(), lines.length) - 1;
+    const z = Math.min(last, lines.length - 1);
+    // The line's beats above its strip's rows (its number box, with the taal figure, may stand
+    // taller than that, and then the strip grows into its height).
+    const c0 = w.parentElement!;
+    let rest = 1 + c0.offsetTop + r * w.offsetTop + (last - z) * smallH;
+    for (let i = first; i <= z; i++) if (i !== cur) rest += i === wasCur ? smallH : lines[i]!.offsetHeight;
+    for (let el: Element | null = cur < k ? list.firstElementChild : lines[first]!; el; el = el.nextElementSibling) {
+      if (el.classList.contains('plhd')) rest += (el as HTMLElement).offsetHeight;
+      if (el === lines[z]) break;
+    }
+    const row = Math.max(56, Math.floor((view.clientHeight - 2 - rest) / r));
+    view.style.setProperty('--fsh', row + 'px');
+    axis(cur, row, cols);
+    if (scroll) scrollTo(false);
+  }
+
+  /** The notes of line n named up the side of each row of its strip, `row` px tall a row: a name
+   * left out where it would overlap another (18 px apart at least). */
+  function axis(n: number, row: number, cols: number): void {
+    const L = lines[n];
+    const P = host.parsed();
+    const NL = P.noteLines[n];
+    if (!L || !NL) return;
+    const r = { lo: +L.dataset.lo!, hi: +L.dataset.hi! };
+    const notes = axisNotes(P, NL, byBeat, (18 * (r.hi - r.lo)) / row);
+    const key = n + ':' + cols + ':' + host.script() + ':' + notes.map((x) => x.cents).join(',');
+    if (key === axisKey && L.querySelector('.plax')) return;
+    axisKey = key;
+    for (const el of list.querySelectorAll('.plax')) el.remove();
+    const html = '<span class="plax" aria-hidden="true">' + notes.map((x) => '<span class="plan" style="top:' + stripY(x.cents, r).toFixed(1) + '%">' + beatNoteHTML({ units: [{ k: 'note', semi: x.semi, oct: x.oct }] }, host.script()) + '</span>').join('') + '</span>';
+    L.querySelectorAll<HTMLElement>('.plb').forEach((c, i) => {
+      if (i % cols === 0) c.querySelector('.plsw')?.insertAdjacentHTML('beforeend', html);
+    });
   }
 
   let layoutTimer = 0;
@@ -437,6 +520,12 @@ export function initLines(host: LinesHost): LinesUI {
       clearTimeout(settleTimer);
       settleTimer = window.setTimeout(() => scrollTo(smooth), 300);
     }
+    // Full screen on a short screen (a phone on its side): the line being sung all in view,
+    // fewer lines above it if need be.
+    if (host.full()) {
+      const at = L.offsetTop - list.offsetTop;
+      top = Math.min(at, Math.max(top, at + L.offsetHeight - view.clientHeight));
+    }
     if (Math.abs(view.scrollTop - top) < 2) return;
     view.scrollTo({ top, behavior: smooth && !reduced() ? 'smooth' : 'auto' });
   }
@@ -471,6 +560,14 @@ export function initLines(host: LinesHost): LinesUI {
       if (lines[was] && !opened.has(was)) clearGrid(was);
       for (const k of [was, was + 1, n, n + 1]) setState(k);
       if (!playing) beat(-1);
+      wasCur = was;
+      // Full screen: the new line's strip made tall at once, and measured again once the lines
+      // have settled.
+      if (host.full() && host.shown()) {
+        fit(false);
+        clearTimeout(layoutTimer);
+        layoutTimer = window.setTimeout(layout, 320);
+      }
       scrollTo(playing && was >= 0, was);
 
     } else {

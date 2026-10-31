@@ -52,6 +52,7 @@ import { openOnce, SessionStore } from './db';
 import { initPitch, type PitchUI } from './pitch';
 import { initBoxes, withNewHeading, type Boxes } from './boxes';
 import { initKeyboard, keyboardHTML, keyName, keyRange, keysToFill, type KeyboardUI } from './keyboard';
+import { initFull, whereText, type Full } from './full';
 import { initLines, type LinesUI } from './lines';
 import { initPrint } from './print';
 import { initProgress, PG_ORDER, songProgressHTML } from './progress';
@@ -119,8 +120,9 @@ let songsView: { render(): void } = { render() {} };
 let songPick: SongPick = { render() {} };
 let pitchUI: PitchUI = { on: false, startRun() {}, pause() {}, resume() {}, beat() {}, endRun: () => null };
 /** Rewaz routines and the Progress view, wired up by init. */
-let rewaz: Rewaz = { render() {}, active: false, name: '', finished() {}, cancel() {}, beat() {}, rest() {}, left() {} };
+let rewaz: Rewaz = { render() {}, active: false, name: '', finished() {}, cancel() {}, now() {}, beat() {}, rest() {}, left() {} };
 let progressView: { render(): void; showSong(id: string): void } = { render() {}, showSong() {} };
+let full: Full = { on: false, set() {} };
 /** The Practice view's lines, wired up first by init (every parse draws them). */
 let lines!: LinesUI;
 /** A MIDI keyboard, wired up by init. */
@@ -202,6 +204,8 @@ let brkShown = -1;
  * the whole seconds last shown (−1: hidden). */
 let leftAt: { secs: number; time: number } | null = null;
 let leftShown = -1;
+/** The round full screen's title bar says (0-based): the last one shown. */
+let wherePass = 0;
 
 /** The song as played: a rewaz item's tempo over the song's own. */
 const songSource = {
@@ -308,6 +312,7 @@ function play(ask: PlayAsk = pickedLines(), at: { s: number; pass: number } | nu
   deckBeat = -1;
   shownQ = null;
   shownBrk = null;
+  wherePass = at?.pass ?? 0;
   // Before start: starting schedules the first beat, and pitch feedback must hear of it.
   if (!ask.check) {
     if (at) pitchUI.resume();
@@ -327,7 +332,7 @@ function play(ask: PlayAsk = pickedLines(), at: { s: number; pass: number } | nu
   const first = at ? taals.beat(at.s).T : taals.line(r.from).T;
   if (first.id !== stripTaal?.id) renderTaal(first);
   showMessage('');
-  lines.current(at ? (parsed.lineOfBeat[at.s] ?? r.from) : r.from, r.pre > 0 ? 'In ' + r.pre : 'Now', true);
+  setLine(at ? (parsed.lineOfBeat[at.s] ?? r.from) : r.from, r.pre > 0 ? 'In ' + r.pre : 'Now', true);
   timer = window.setInterval(tick, 25);
   raf = requestAnimationFrame(frame);
   void wake();
@@ -410,7 +415,7 @@ function pause(): void {
   cancelAnimationFrame(raf);
   unwake();
   setPlayUI();
-  if (lastLine >= 0) lines.current(lastLine, 'Paused', true);
+  if (lastLine >= 0) setLine(lastLine, 'Paused', true);
 }
 
 /** Go on after a pause. */
@@ -427,15 +432,13 @@ function resume(): void {
   else if (keep.from >= 0) boxes.linePlaying(keep.from, true);
 }
 
-/** The deck's play button and the space bar: play, pause, go on. Between the items of a
- * rewaz (nothing playing), it ends the rewaz. */
+/** The deck's play button and the space bar: play, pause, go on. In the break before a rewaz
+ * item, it starts the item now, as Skip and full screen's Start now do (Stop ends the rewaz). */
 function userToggle(): void {
   if (playing()) pause();
   else if (paused) resume();
-  else if (rewaz.active) {
-    rewaz.cancel();
-    clearOverride();
-  } else play();
+  else if (rewaz.active) rewaz.now();
+  else play();
 }
 /** The deck's Stop button: stops playing, a pause, or a rewaz. */
 function userStop(): void {
@@ -575,7 +578,7 @@ function frame(): void {
       clearHighlight();
       shownQ = null;
       lines.playhead(-1, 0);
-      if (lastLine >= 0) lines.current(lastLine, 'Done', false);
+      if (lastLine >= 0) setLine(lastLine, 'Done', false);
       markTaal(cur.p);
     } else if ('brk' in cur) {
       // A break between rounds: the first line waits, counting down the seconds.
@@ -601,7 +604,7 @@ function frame(): void {
     const left = Math.max(1, Math.ceil(shownBrk.until - now));
     if (left !== brkShown) {
       brkShown = left;
-      lines.current(parsed.lineOfBeat[T.secStart] ?? 0, 'Break ' + left, true);
+      setLine(parsed.lineOfBeat[T.secStart] ?? 0, 'Break ' + left, true);
       rewaz.rest(shownBrk.pass, left);
     }
   }
@@ -632,7 +635,21 @@ function showLeft(secs: number | null): void {
   rewaz.left(n);
 }
 
+/** The line playing (or that playing would start at) and what its number box says, on the
+ * sheet and, for full screen, in the title's bar: the line of the song's lines and the round
+ * of the rounds while the lines loop. */
+function setLine(n: number, state: string, playing: boolean): void {
+  lines.current(n, state, playing);
+  if (shownQ && shownQ.pass >= 0) wherePass = shownQ.pass;
+  else if (shownBrk) wherePass = shownBrk.pass;
+  const t = whereText(n, parsed.noteLines.length, T && active() && T.loop ? { pass: wherePass, rounds: T.rounds } : null);
+  const el = $('#fullWhere');
+  if (el.textContent !== t) el.textContent = t;
+}
+
+/** The screen kept on while playing, and all the while full screen is on (Rinat, 2026-10-31). */
 async function wake(): Promise<void> {
+  if (wakeLock && !wakeLock.released) return;
   try {
     if (navigator.wakeLock) wakeLock = await navigator.wakeLock.request('screen');
   } catch {
@@ -640,6 +657,7 @@ async function wake(): Promise<void> {
   }
 }
 function unwake(): void {
+  if (full.on) return;
   try {
     if (wakeLock) void wakeLock.release();
   } catch {
@@ -1113,9 +1131,9 @@ function showBeat(q: BeatEntry): void {
   if (q.pass < 0) {
     // The count-in: the first line to sing waits, counting down.
     clearHighlight();
-    lines.current(parsed.lineOfBeat[T?.secStart ?? 0] ?? 0, 'In ' + ((T?.secStart ?? 0) - q.raw), true);
+    setLine(parsed.lineOfBeat[T?.secStart ?? 0] ?? 0, 'In ' + ((T?.secStart ?? 0) - q.raw), true);
   } else {
-    lines.current(parsed.lineOfBeat[q.s] ?? 0, lineState(q), true);
+    setLine(parsed.lineOfBeat[q.s] ?? 0, lineState(q), true);
     highlight(q.s);
     deckBeat = q.s;
   }
@@ -1134,7 +1152,7 @@ function showIdle(): void {
   if (idleTaal().id !== stripTaal?.id) renderTaal(idleTaal());
   markTaal(-1);
   lines.playhead(-1, 0);
-  if (parsed.noteLines.length) lines.current(clamp(+select('#fromLine').value || 0, 0, parsed.noteLines.length - 1), 'Start', false);
+  if (parsed.noteLines.length) setLine(clamp(+select('#fromLine').value || 0, 0, parsed.noteLines.length - 1), 'Start', false);
   if (prefs.showKeys) {
     const first = parsed.noteLines[+select('#fromLine').value || 0]?.start ?? -1;
     markKeys(-1, first);
@@ -2694,6 +2712,7 @@ function tokenFor(semi: number): string {
 }
 const TAB_BUTTONS: Record<Tab, string> = { practice: '#tabPractice', edit: '#tabEdit', songs: '#tabSongs', rewaz: '#tabRewaz', voice: '#tabVoice', progress: '#tabProgress' };
 function switchTab(t: Tab): void {
+  if (t !== 'practice') full.set(false);
   prefs.tab = t;
   savePrefs();
   for (const v of TABS) {
@@ -2771,6 +2790,7 @@ export function init(): void {
     shown: () => !$('#practice').hidden,
     rows: () => prefs.plRows ?? 7,
     at: () => prefs.plAt ?? 3,
+    full: () => full.on,
   });
   applyLinesPrefs();
   // The keyboard fills its section's width: drawn again when that changes (and when it shows).
@@ -2904,6 +2924,16 @@ export function init(): void {
     stop: () => stop(),
     playing: active,
     showPractice: () => switchTab('practice'),
+  });
+  // Full screen while practising (Rinat, 2026-10-31): the lines laid out to fill it, and the
+  // screen kept on until it is left.
+  full = initFull({
+    changed(on) {
+      lines.refresh();
+      if (on) void wake();
+      else if (!playing()) unwake();
+    },
+    practice: () => !$('#practice').hidden,
   });
   keyboard = initKeyboard({
     saMidi: () => saMidi(current),
@@ -3495,7 +3525,7 @@ export function init(): void {
   });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') flushNow();
-    else if (playing() && !wakeLock) void wake();
+    else if (playing() || full.on) void wake();
   });
   // Leaving the page stops playing, so the practice so far is logged.
   window.addEventListener('pagehide', () => stop(true));

@@ -217,6 +217,8 @@ export interface Rewaz {
   finished(): void;
   /** Playing stopped for any other reason: the routine stops too. */
   cancel(): void;
+  /** In the break before an item: start it now. */
+  now(): void;
   /** A beat is showing in round `pass` (0-based). */
   beat(pass: number): void;
   /** A break before round `pass` (0-based), `left` seconds to go; 0 once its count-in plays. */
@@ -231,6 +233,13 @@ export interface Rewaz {
 export function rewazLeft(r: Routine, i: number, itemLeft: number | null, shapeOf: (id: string) => SongShape | null, countIn: boolean): number {
   if (itemLeft == null) return routineSeconds(r, shapeOf, countIn, i);
   return itemLeft + (i + 1 < r.items.length ? gapOf(r) + routineSeconds(r, shapeOf, countIn, i + 1) : 0);
+}
+
+/** An item as the break before it says it in full screen: its lines, rounds and tempo. */
+export function itemWhat(it: RoutineItem, song: ItemSong): string {
+  const [a, b] = itemLines(it, song.lineBeats.length);
+  const lines = it.from == null ? 'The whole song' : a === b ? 'Line ' + (a + 1) : 'Lines ' + (a + 1) + '–' + (b + 1);
+  return lines + ' · ' + it.rounds + (it.rounds === 1 ? ' round' : ' rounds') + ' · tempo ' + (it.tempo ?? song.tempo);
 }
 
 export function initRewaz(host: RewazHost): Rewaz {
@@ -328,8 +337,24 @@ export function initRewaz(host: RewazHost): Rewaz {
     return r.name + ' · ' + (i + 1) + ' of ' + r.items.length + ' · ' + (host.song(it.song)?.title ?? '') + extra;
   }
 
+  /** In full screen, the break before item i (Rinat, 2026-10-31): which of how many comes next,
+   * its title, lines, rounds and tempo, and the seconds to go, large over the lines; `left` 0
+   * hides it. */
+  const card = $('#fullBreak');
+  function showCard(i: number, left: number): void {
+    card.hidden = !run || left <= 0;
+    if (card.hidden || !run) return;
+    const it = run.r.items[i]!;
+    const song = host.song(it.song);
+    $('#fbNext').textContent = 'Next · ' + (i + 1) + ' of ' + run.r.items.length;
+    $('#fbTitle').textContent = song?.title ?? '';
+    $('#fbWhat').textContent = song ? itemWhat(it, song) : '';
+    $('#fbCount').textContent = String(left);
+  }
+
   function go(i: number): void {
     if (!run) return;
+    showCard(i, 0);
     run.i = i;
     showBar(itemText(i, run.r.items[i]!.rounds > 1 ? ' · round 1 of ' + run.r.items[i]!.rounds : ''));
     showLeft(i, null);
@@ -344,6 +369,7 @@ export function initRewaz(host: RewazHost): Rewaz {
       const secs = (Date.now() - run.started) / 1000;
       const n = run.r.items.length;
       run = null;
+      card.hidden = true;
       showBar('Rewaz done · ' + n + ' item' + (n === 1 ? '' : 's') + ' in ' + durationText(secs) + '. Well sung!');
       showLeft(i, null);
       $('#rwSkip').hidden = true;
@@ -360,6 +386,7 @@ export function initRewaz(host: RewazHost): Rewaz {
     const say = () => {
       showBar('Next: ' + itemText(i) + ' · starting in ' + left + ' s');
       showLeft(i, null, left);
+      showCard(i, left);
     };
     say();
     run.timer = window.setInterval(() => {
@@ -391,6 +418,7 @@ export function initRewaz(host: RewazHost): Rewaz {
     clearInterval(run.timer);
     run = null;
     bar.hidden = true;
+    card.hidden = true;
   }
 
   // ── Events ─────────────────────────────────────────────────────────────────
@@ -741,15 +769,22 @@ export function initRewaz(host: RewazHost): Rewaz {
     const sec = Array.from(list.querySelectorAll<HTMLElement>('.rwr')).find((s) => s.dataset.r === id);
     sec?.querySelector<HTMLElement>('[data-i="' + i + '"][data-k="' + (all ? 'from' : key) + '"]')?.focus();
   });
+  /** In the break before an item, start it now. */
+  function now(): void {
+    if (!run || host.playing()) return;
+    clearInterval(run.timer);
+    go(run.i);
+  }
   // While an item plays, Skip moves on to the next; in the pause before one, it starts it now.
   $('#rwSkip').addEventListener('click', () => {
     if (!run) return;
-    clearInterval(run.timer);
     if (host.playing()) {
+      clearInterval(run.timer);
       run.skipping = true;
       host.stop();
-    } else go(run.i);
+    } else now();
   });
+  $('#fbNow').addEventListener('click', now);
   $('#rwStop').addEventListener('click', () => {
     if (run && host.playing()) host.stop();
     cancelRun();
@@ -776,6 +811,7 @@ export function initRewaz(host: RewazHost): Rewaz {
       }
       cancelRun();
     },
+    now,
     beat(pass) {
       if (!run || pass < 0) return;
       const it = run.r.items[run.i];

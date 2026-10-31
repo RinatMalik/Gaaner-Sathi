@@ -132,7 +132,10 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
 - **Hooks:** `onBeat` reports every scheduled matra (pitch feedback, takes); `onNote(t, dur,
   midi)` hears each guide note as it is scheduled, and `localGuide = false` leaves the
   harmonium out (MIDI keyboards).
-- The screen wake lock is requested while playing.
+- The screen wake lock is requested while playing, and all the while full screen is on, paused
+  or not (Rinat, 2026-10-31: a singer standing back from the phone should not have to touch it);
+  `wake()` asks once, however often it is called, and `unwake()` lets go only once full screen
+  is off.
 
 ## Taals
 
