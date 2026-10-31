@@ -211,6 +211,33 @@ export class Transport {
     return Math.max(base, Math.min(s.rampMax, base + s.rampStep * pass));
   }
 
+  /**
+   * Seconds still to play from the start of song beat `s` in round `pass`, to the end: the rest
+   * of this round and, with a set number of rounds, those after it with their breaks and
+   * count-ins (Rinat, 2026-10-31: the time left beside the title and in the rewaz bar). An `s`
+   * before the section is a count-in beat leading to round `pass`; `brk`, a break before round
+   * `pass` (its count-in and the round, without the break itself). A loop with no end counts to
+   * the end of this round; the ring after the last note is not counted.
+   */
+  secondsLeft(s: number, pass: number, brk = false): number {
+    if (!this.src) return 0;
+    const p = Math.max(0, pass);
+    const round = (k: number, from: number) => {
+      let t = 0;
+      for (let b = Math.max(from, this.secStart); b < this.secEnd; b++) t += 60 / this.liveTempo(k, b);
+      return t;
+    };
+    const pre = brk ? this.brkPre : Math.max(0, this.secStart - s);
+    let t = (pre * 60) / this.liveTempo(p, this.secStart) + round(p, brk ? this.secStart : s);
+    if (this.loop) {
+      for (let k = p + 1; k < this.rounds; k++) {
+        if (this.gap) t += this.gap + (this.brkPre * 60) / this.liveTempo(k, this.secStart);
+        t += round(k, this.secStart);
+      }
+    }
+    return t;
+  }
+
   /** Guide on repeats: every round, the first round only, or every other round. */
   guideOn(pass: number): boolean {
     if (pass < 0) return false;

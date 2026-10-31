@@ -115,6 +115,19 @@ export function songFindings(o: SongReportInput, s: SongSummary): { good: string
   return { good, work };
 }
 
+/** Where it stands, in a sentence. */
+export function songHeadline(s: SongSummary): string {
+  return !s.scored.length
+    ? 'Not yet sung with the pitch check: its scores will show here.'
+    : !s.trend
+      ? 'Sung with the pitch check ' + plural(s.scored.length, 'time') + ': too few yet to see a trend.'
+      : s.trend.to - s.trend.from >= 5
+        ? 'Getting better: from about ' + s.trend.from + ' to about ' + s.trend.to + '.'
+        : s.trend.from - s.trend.to >= 5
+          ? 'A little lower lately: from about ' + s.trend.from + ' to about ' + s.trend.to + '.'
+          : 'Steady at about ' + s.trend.to + '.';
+}
+
 /** The page. */
 export function songReportHTML(o: SongReportInput): string {
   const s = songSummary(o);
@@ -139,15 +152,7 @@ export function songReportHTML(o: SongReportInput): string {
   // Where it stands, in a number and a sentence.
   const latest = s.scored[s.scored.length - 1]?.score ?? null;
   const best = s.scored.reduce<LogEntry | null>((a, e) => (!a || e.score! > a.score! ? e : a), null);
-  const headline = !s.scored.length
-    ? 'Not yet sung with the pitch check: its scores will show here.'
-    : !s.trend
-      ? 'Sung with the pitch check ' + plural(s.scored.length, 'time') + ': too few yet to see a trend.'
-      : s.trend.to - s.trend.from >= 5
-        ? 'Getting better: from about ' + s.trend.from + ' to about ' + s.trend.to + '.'
-        : s.trend.from - s.trend.to >= 5
-          ? 'A little lower lately: from about ' + s.trend.from + ' to about ' + s.trend.to + '.'
-          : 'Steady at about ' + s.trend.to + '.';
+  const headline = songHeadline(s);
   html += '<section class="card top"><div>' +
     (latest != null
       ? '<div class="hero-n">' + latest + '<small> / 100</small></div><div class="meter"><span style="width:' + latest + '%;background:var(--' + grade(latest) + ')"></span></div><div class="sub">Latest score' + (best && best.score! > latest ? ' · best ' + best.score : '') + '</div>'

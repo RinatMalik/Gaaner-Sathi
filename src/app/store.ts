@@ -127,7 +127,7 @@ export const HOLD_CENTS: readonly number[] = [-500, -300, -100, 0, 200, 400, 500
 
 /** The views under the deck, in their order (`songs` is the Music library). */
 export type Tab = 'practice' | 'edit' | 'songs' | 'rewaz' | 'voice' | 'progress';
-export const TABS: readonly Tab[] = ['practice', 'songs', 'edit', 'rewaz', 'voice', 'progress'];
+export const TABS: readonly Tab[] = ['songs', 'practice', 'edit', 'rewaz', 'voice', 'progress'];
 
 /** The prototype's defaults; it opened on exercise 3 the first time. */
 export const DEFAULT_PREFS: Prefs = { ...structuredClone(DEFAULT_SOUND), script: 'bn', lastSong: 'ex-alankar-bn', tab: 'practice', libSort: 'practised' };

@@ -12,7 +12,7 @@ import type { WriteResult } from './store';
 import { foldText } from '../core/song/model';
 import { isTaalId, TAALS } from '../core/taal/taals';
 import { GRIP_ICON } from './fold';
-import { esc, showMixed, tickHTML } from './view';
+import { esc, leftText, showMixed, tickHTML } from './view';
 
 const svg = (body: string) => '<svg viewBox="0 0 24 24" aria-hidden="true">' + body + '</svg>';
 const ICON = {
@@ -221,6 +221,16 @@ export interface Rewaz {
   beat(pass: number): void;
   /** A break before round `pass` (0-based), `left` seconds to go; 0 once its count-in plays. */
   rest(pass: number, left: number): void;
+  /** The item playing has `secs` seconds to go, its rounds and their breaks with it. */
+  left(secs: number): void;
+}
+
+/** What a rewaz still takes, roughly, as its bar shows it: `itemLeft` seconds of item `i` (null:
+ * all of it, not started yet) and then the items after it, with the breaks between them
+ * (Rinat, 2026-10-31: "add total remaining time on rewaz bar"). */
+export function rewazLeft(r: Routine, i: number, itemLeft: number | null, shapeOf: (id: string) => SongShape | null, countIn: boolean): number {
+  if (itemLeft == null) return routineSeconds(r, shapeOf, countIn, i);
+  return itemLeft + (i + 1 < r.items.length ? gapOf(r) + routineSeconds(r, shapeOf, countIn, i + 1) : 0);
 }
 
 export function initRewaz(host: RewazHost): Rewaz {
@@ -229,6 +239,7 @@ export function initRewaz(host: RewazHost): Rewaz {
   const list = $('#rwRoutines');
   const bar = $('#rwBar');
   const barText = $('#rwBarText');
+  const barLeft = $('#rwLeft');
 
   let run: { r: Routine; i: number; started: number; timer: number; skipping: boolean } | null = null;
   /** The routine whose "Delete routine" was pressed, asking to confirm. */
@@ -304,6 +315,12 @@ export function initRewaz(host: RewazHost): Rewaz {
     bar.hidden = false;
     barText.textContent = text;
   }
+  /** The time the whole rewaz still takes, from item `i` on, `itemLeft` seconds of it to go
+   * (null: not started) and `wait` seconds of break before it; hidden once it is done. */
+  function showLeft(i: number, itemLeft: number | null, wait = 0): void {
+    barLeft.hidden = !run;
+    if (run) barLeft.textContent = leftText(wait + rewazLeft(run.r, i, itemLeft, host.song, host.countIn())) + ' in all';
+  }
 
   function itemText(i: number, extra = ''): string {
     const r = run!.r;
@@ -315,6 +332,7 @@ export function initRewaz(host: RewazHost): Rewaz {
     if (!run) return;
     run.i = i;
     showBar(itemText(i, run.r.items[i]!.rounds > 1 ? ' · round 1 of ' + run.r.items[i]!.rounds : ''));
+    showLeft(i, null);
     if (!host.play(run.r.items[i]!, roundGapOf(run.r.items[i]!))) next(i + 1, 0);
   }
 
@@ -327,6 +345,7 @@ export function initRewaz(host: RewazHost): Rewaz {
       const n = run.r.items.length;
       run = null;
       showBar('Rewaz done · ' + n + ' item' + (n === 1 ? '' : 's') + ' in ' + durationText(secs) + '. Well sung!');
+      showLeft(i, null);
       $('#rwSkip').hidden = true;
       $('#rwStop').textContent = 'Close';
       return;
@@ -338,7 +357,10 @@ export function initRewaz(host: RewazHost): Rewaz {
     // The break, counting down each second.
     run.i = i;
     let left = gap;
-    const say = () => showBar('Next: ' + itemText(i) + ' · starting in ' + left + ' s');
+    const say = () => {
+      showBar('Next: ' + itemText(i) + ' · starting in ' + left + ' s');
+      showLeft(i, null, left);
+    };
     say();
     run.timer = window.setInterval(() => {
       if (!run) return;
@@ -762,6 +784,9 @@ export function initRewaz(host: RewazHost): Rewaz {
     rest(pass, left) {
       const it = run?.r.items[run.i];
       if (it) showBar(itemText(run!.i, roundText(pass, it.rounds, left)));
+    },
+    left(secs) {
+      if (run && host.playing()) showLeft(run.i, secs);
     },
   };
 }

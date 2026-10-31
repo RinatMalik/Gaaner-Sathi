@@ -54,7 +54,7 @@ import { initBoxes, withNewHeading, type Boxes } from './boxes';
 import { initKeyboard, keyboardHTML, keyName, keyRange, keysToFill, type KeyboardUI } from './keyboard';
 import { initLines, type LinesUI } from './lines';
 import { initPrint } from './print';
-import { initProgress, PG_ORDER } from './progress';
+import { initProgress, PG_ORDER, songProgressHTML } from './progress';
 import { reportHTML } from './report';
 import { dayReportHTML, dayReportName } from './dayreport';
 import { exportName, stamp } from './filenames';
@@ -119,8 +119,8 @@ let songsView: { render(): void } = { render() {} };
 let songPick: SongPick = { render() {} };
 let pitchUI: PitchUI = { on: false, startRun() {}, pause() {}, resume() {}, beat() {}, endRun: () => null };
 /** Rewaz routines and the Progress view, wired up by init. */
-let rewaz: Rewaz = { render() {}, active: false, name: '', finished() {}, cancel() {}, beat() {}, rest() {} };
-let progressView: { render(): void } = { render() {} };
+let rewaz: Rewaz = { render() {}, active: false, name: '', finished() {}, cancel() {}, beat() {}, rest() {}, left() {} };
+let progressView: { render(): void; showSong(id: string): void } = { render() {}, showSong() {} };
 /** The Practice view's lines, wired up first by init (every parse draws them). */
 let lines!: LinesUI;
 /** A MIDI keyboard, wired up by init. */
@@ -198,6 +198,10 @@ let shownQ: BeatEntry | null = null;
  * shown in its line's box; Pause in it goes on at that round. */
 let shownBrk: BreakEntry | null = null;
 let brkShown = -1;
+/** The time left to play as of a moment on the clock, beside the title (Rinat, 2026-10-31), and
+ * the whole seconds last shown (−1: hidden). */
+let leftAt: { secs: number; time: number } | null = null;
+let leftShown = -1;
 
 /** The song as played: a rewaz item's tempo over the song's own. */
 const songSource = {
@@ -356,6 +360,8 @@ function stop(silent?: boolean, ended = false): void {
     boxes.linePlaying(-1);
   }
   markTaal(-1);
+  leftAt = null;
+  showLeft(null);
   setPlayUI();
   unwake();
   deckBeat = -1;
@@ -565,6 +571,7 @@ function frame(): void {
   if (cur) {
     if ('end' in cur) {
       if (run) run.end = cur.time;
+      leftAt = { secs: 0, time: cur.time };
       clearHighlight();
       shownQ = null;
       lines.playhead(-1, 0);
@@ -575,6 +582,7 @@ function frame(): void {
       shownQ = null;
       shownBrk = cur;
       brkShown = -1;
+      leftAt = { secs: cur.until - cur.time + T.secondsLeft(T.secStart, cur.pass, true), time: cur.time };
       clearHighlight();
       lines.playhead(-1, 0);
       markTaal(-1);
@@ -582,10 +590,13 @@ function frame(): void {
       if (prefs.showKeys) markKeys(-1, T.secStart);
     } else {
       if (cur.pass >= 0) shownBrk = null;
+      // A count-in beat after a break leads to that break's round.
+      leftAt = { secs: T.secondsLeft(cur.s, cur.pass >= 0 ? cur.pass : (shownBrk?.pass ?? 0)), time: cur.time };
       trackRun(cur, ctx.currentTime);
       showBeat(cur);
     }
   }
+  if (leftAt) showLeft(leftAt.secs - (now - leftAt.time));
   if (shownBrk && !shownQ) {
     const left = Math.max(1, Math.ceil(shownBrk.until - now));
     if (left !== brkShown) {
@@ -606,6 +617,19 @@ function frame(): void {
     return;
   }
   raf = requestAnimationFrame(frame);
+}
+
+/** The time left beside the title, to the second (null: hidden), and the whole rewaz's in its
+ * bar; a loop with no end says it is this round's. Paused, it stays as it was. */
+function showLeft(secs: number | null): void {
+  const n = secs == null ? -1 : Math.max(0, Math.ceil(secs - 1e-6));
+  if (n === leftShown) return;
+  leftShown = n;
+  const el = $('#songLeft');
+  el.hidden = n < 0;
+  if (n < 0) return;
+  el.textContent = V.leftText(n) + (T && T.loop && !T.rounds ? ' in this round' : '');
+  rewaz.left(n);
 }
 
 async function wake(): Promise<void> {
@@ -706,6 +730,7 @@ function endRun(at: number, pitch: { score: number; lines: [number, number][]; d
     practised.set(e.song, e.at);
     songsView.render();
     progressView.render();
+    renderSongProgress();
     const d: SessionDetail = { at: e.at, song: e.song, played: r.played, settings: r.settings };
     if (pitch?.detail) d.pitch = pitch.detail;
     void keepSession(d);
@@ -797,7 +822,10 @@ async function backfillNotes(): Promise<void> {
       const notes = d?.pitch ? noteTally(d.pitch.notes) : [];
       if (notes.length) found.set(e.at, notes);
     }
-    if (found.size && logStore.setNotes(found) === 'ok') progressView.render();
+    if (found.size && logStore.setNotes(found) === 'ok') {
+      progressView.render();
+      renderSongProgress();
+    }
   } catch {
     // Nothing lost: note by note leaves those sessions out, and says so.
   }
@@ -896,8 +924,7 @@ async function songInput(id: string, most = 60): Promise<SongReportInput | null>
 }
 
 /** A song's report, in a new tab (opened inside the tap, so it is not blocked). */
-async function openSongReport(id: string): Promise<void> {
-  const say = (t: string) => setFileStatus(t, '#pgStatus');
+async function openSongReport(id: string, say = (t: string) => setFileStatus(t, '#pgStatus')): Promise<void> {
   let w: Window | null = null;
   try {
     w = window.open('', '_blank');
@@ -920,8 +947,7 @@ async function openSongReport(id: string): Promise<void> {
 }
 
 /** A song's sessions as a file for AI, with the detail of all of them kept. */
-async function saveSongForAI(id: string): Promise<void> {
-  const say = (t: string) => setFileStatus(t, '#pgStatus');
+async function saveSongForAI(id: string, say = (t: string) => setFileStatus(t, '#pgStatus')): Promise<void> {
   const o = await songInput(id, Infinity);
   if (!o) {
     say('That song is no longer in the practice log.');
@@ -1468,6 +1494,14 @@ async function renderAllTakes(): Promise<void> {
     playing: takePlay ? { id: takePlay.take.id, how: takePlay.how } : undefined,
   });
   V.showMixed(box);
+}
+/** The open song's practice, under its takes (Rinat, 2026-10-31), drawn while the Practice view
+ * shows; switching to it draws it. */
+function renderSongProgress(): void {
+  if ($('#practice').hidden || !current) return;
+  const entries = logStore.load().filter((e) => e.song === current.id);
+  $('#progCount').textContent = entries.length ? String(entries.length) : '';
+  $('#progBody').innerHTML = songProgressHTML(entries, Date.now(), { song: current.id, title: current.title, exercise: !!(current.example || current.exercise), script: prefs.script });
 }
 /** The takes as last read (the notation changing only changes their notes). */
 function drawTakes(): void {
@@ -2051,6 +2085,8 @@ function loadSong(song: Song | Exercise): void {
   if (takePlay?.how === 'me') stopTakeAlone();
   setTakeStatus('');
   void renderTakes();
+  $('#progStatus').textContent = '';
+  renderSongProgress();
 }
 
 function changed<K extends keyof Song>(field: K, value: Song[K]): void {
@@ -2258,6 +2294,7 @@ function initStore(): void {
       practised = lastPractised(logStore.load());
       songsView.render();
       progressView.render();
+      renderSongProgress();
     }
     if (RoutineStore.isRoutineKey(e.key)) rewaz.render();
   });
@@ -2664,7 +2701,10 @@ function switchTab(t: Tab): void {
     $(TAB_BUTTONS[v]).setAttribute('aria-selected', String(v === t));
   }
   lastLine = -1;
-  if (t === 'practice') lines.refresh();
+  if (t === 'practice') {
+    lines.refresh();
+    renderSongProgress();
+  }
   songsView.render();
   rewaz.render();
   progressView.render();
@@ -2974,6 +3014,21 @@ export function init(): void {
   });
   $('#pForAI').addEventListener('click', () => {
     if (lastSession) void saveForAI(lastSession, (t) => setFileStatus(t, '#pMsg'));
+  });
+  // The open song's practice, under its takes: its Report and For AI, each session's, and
+  // Progress for it.
+  $('#progBody').addEventListener('click', (ev) => {
+    const b = (ev.target as Element).closest<HTMLElement>('button');
+    if (!b) return;
+    const say = (t: string) => setFileStatus(t, '#progStatus');
+    if (b.dataset.sreport) void openSongReport(b.dataset.sreport, say);
+    else if (b.dataset.sai) void saveSongForAI(b.dataset.sai, say);
+    else if (b.dataset.report) void openReport(+b.dataset.report, say);
+    else if (b.dataset.ai) void saveForAI(+b.dataset.ai, say);
+    else if (b.dataset.progress) {
+      switchTab('progress');
+      progressView.showSong(current.id);
+    }
   });
   boxes = initBoxes({
     text: () => current.text,

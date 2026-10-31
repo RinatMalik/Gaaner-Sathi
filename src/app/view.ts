@@ -10,6 +10,7 @@ import { checkNotation, issueKey, type CheckIssue } from '../core/notation/check
 import { asTaals, placeIn, type Taals } from '../core/notation/taalmap';
 import { AKAR, BN_LETTER, LAT_LETTER, REPH } from '../core/notation/symbols';
 import type { NoteUnit, ParsedSong, Unit } from '../core/notation/types';
+import { clockText } from '../core/practice/take';
 import { LAYERS, type LayerId } from '../core/taal/rhythm';
 import { TAAL_GROUPS, TAALS, type TaalInfo } from '../core/taal/taals';
 
@@ -23,6 +24,10 @@ export const esc = (s: unknown): string => String(s).replace(/[&<>"]/g, (c) => E
  * (`data-mixed`, made indeterminate once drawn). `label` is escaped already. */
 export const tickHTML = (attr: string, label: string, all: boolean, some: boolean): string =>
   '<label class="tkchk" title="' + label + '"><input type="checkbox" ' + attr + ' aria-label="' + label + '"' + (all ? ' checked' : '') + (some && !all ? ' data-mixed="1"' : '') + '></label>';
+
+/** A time still to go, to the second, rounded up so it reaches 0:00 at the end: "2:05 left"
+ * (Rinat, 2026-10-31: beside the title while a song plays, and in the rewaz bar). */
+export const leftText = (secs: number): string => clockText(Math.max(0, Math.ceil(secs - 1e-6))) + ' left';
 
 /** Tick boxes drawn as some of a group's, under `root`. */
 export function showMixed(root: ParentNode): void {

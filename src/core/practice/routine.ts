@@ -148,11 +148,13 @@ export function stepAt(count: number, moving: readonly number[], dir: -1 | 1): n
 /**
  * Roughly how long a routine takes, seconds: each item's beats × rounds at its tempo, a
  * count-in cycle, the breaks between its rounds (each with a count-in cycle again), and the gap
- * after it. Items whose song is gone count nothing.
+ * after it. Items whose song is gone count nothing. `from`: the items from that one on, for the
+ * time left in a rewaz (Rinat, 2026-10-31).
  */
-export function routineSeconds(r: Routine, shapeOf: (id: string) => SongShape | null, countIn: boolean): number {
+export function routineSeconds(r: Routine, shapeOf: (id: string) => SongShape | null, countIn: boolean, from = 0): number {
   let t = 0;
   r.items.forEach((it, i) => {
+    if (i < from) return;
     const s = shapeOf(it.song);
     if (!s || !s.lineBeats.length) return;
     const [a, b] = itemLines(it, s.lineBeats.length);

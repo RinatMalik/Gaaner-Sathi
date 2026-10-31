@@ -138,10 +138,11 @@
   <!-- What Import found, and a backup waiting to be restored. -->
   <div class="rbar fbar" id="fileBar" role="status" hidden><span class="rbtext" id="fileBarText"></span><span class="spacer"></span><span class="fbbtns" id="fileBarBtns"></span><button type="button" class="btn" id="fileBarClose" aria-label="Close">×</button></div>
 
+  <!-- The Music library first, then Practice (Rinat, 2026-10-31). -->
   <div class="tabs">
     <div class="tabbtns" role="tablist" aria-label="View">
-      <button type="button" role="tab" id="tabPractice" aria-controls="practice">Practice</button>
       <button type="button" role="tab" id="tabSongs" aria-controls="songs">Music library</button>
+      <button type="button" role="tab" id="tabPractice" aria-controls="practice">Practice</button>
       <button type="button" role="tab" id="tabEdit" aria-controls="edit">Edit notation</button>
       <button type="button" role="tab" id="tabRewaz" aria-controls="rewaz">Rewaz</button>
       <button type="button" role="tab" id="tabVoice" aria-controls="voice">Voice</button>
@@ -176,9 +177,10 @@
 
   <main id="practice" role="tabpanel" aria-labelledby="tabPractice">
     <div style="display:grid;gap:14px">
-      <div class="rbar" id="rwBar" hidden aria-live="polite"><span class="rbtext" id="rwBarText"></span><span class="spacer"></span><button id="rwSkip" class="btn" type="button">Skip</button><button id="rwStop" class="btn" type="button">Stop rewaz</button></div>
+      <div class="rbar" id="rwBar" hidden><span class="rbtext" id="rwBarText" aria-live="polite"></span><span class="spacer"></span><span class="rbleft" id="rwLeft" title="Roughly how long the rest of this rewaz takes, breaks included" hidden></span><button id="rwSkip" class="btn" type="button">Skip</button><button id="rwStop" class="btn" type="button">Stop rewaz</button></div>
 
-      <div class="sheetHead"><h2 id="songTitle"></h2><span class="songlen" id="songLen" title="How long it plays at this tempo, without the count-in"></span></div>
+      <!-- While it plays, the time left beside the title (Rinat, 2026-10-31). -->
+      <div class="sheetHead"><h2 id="songTitle"></h2><span class="songleft" id="songLeft" title="Time left to play, the rounds still to come included" hidden></span><span class="songlen" id="songLen" title="How long it plays at this tempo, without the count-in"></span></div>
       <div class="chips secs" id="secChips" role="group" aria-label="Sections: tap one to play from there" hidden></div>
       <details class="about" id="aboutBox" hidden><summary>About this song</summary><div class="abouttext" id="aboutText"></div></details>
       <!-- The song line by line (Rinat, 2026-10-15): about seven lines in view, the line being sung
@@ -211,6 +213,13 @@
         <p class="phint">While <b>Record me</b> is on, each play is a take. Play one back against the guide to hear where you were off. Takes stay in this browser.</p>
         <ul class="tklist" id="takesList"></ul>
         <span class="fstatus" id="takesStatus" aria-live="polite"></span>
+      </details>
+      <!-- This song's practice, under its takes (Rinat, 2026-10-31: "similar to that, have a way to
+           show the data/progress of that song as well there"); src/app/progress.ts → songProgressHTML. -->
+      <details class="takes sprog" id="progBox" open>
+        <summary>My progress <span class="n" id="progCount"></span></summary>
+        <div class="sprogbody" id="progBody"></div>
+        <span class="fstatus" id="progStatus" aria-live="polite"></span>
       </details>
       <!-- How the singing is scored (Rinat, 2026-10-20: "please also add a helpful note in the
            bottom of the practice page (collapsible) explaining how the scoring is done"), in

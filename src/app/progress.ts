@@ -23,6 +23,7 @@ import { whenText } from '../core/song/library';
 import { foldSectionHTML, initSectionDrag, inOrder } from './fold';
 import { scoreLine } from './report';
 import { mainKey, noteBrief, noteHighlights, noteKeysHTML, noteKeysLegend, noteTableHTML, saOnText } from './notekeys';
+import { songFindings, songHeadline, songSummary } from './songreport';
 import { esc, type Script } from './view';
 
 /** The sections, and their order until the user drags one. */
@@ -228,6 +229,54 @@ function songsHTML(log: readonly LogEntry[], now: number, o: ProgressOptions): s
   }).join('') + '</ul>';
 }
 
+/** A session's buttons: Report and For AI. */
+const sessionActs = (at: number) =>
+  '<div class="lacts"><button type="button" class="lact pgact" data-report="' + at + '">' + REPORT_ICON + '<span>Report</span></button>' +
+  '<button type="button" class="lact pgact" data-ai="' + at + '" title="A file with everything about this session, for an AI such as Claude or ChatGPT to analyse">' + AI_ICON + '<span>For AI</span></button></div>';
+
+/** The open song's latest sessions shown on the Practice view. */
+export const SONG_RECENT = 5;
+
+/**
+ * The open song's practice, under its takes on the Practice view (Rinat, 2026-10-31: "similar
+ * to that, have a way to show the data/progress of that song as well there"): tiles, where it
+ * stands in a sentence, what is going well and what to work on, its score each session, its
+ * latest sessions, and its Report and For AI, as its row in Progress has. From the log alone:
+ * the timing, from each session's detail, is in the Report. `entries` oldest first.
+ */
+export function songProgressHTML(entries: readonly LogEntry[], now: number, o: { song: string; title: string; exercise: boolean; script: Script }): string {
+  if (!entries.length) return '<p class="phint">Practise this ' + (o.exercise ? 'exercise' : 'song') + ' for 10 seconds or more and your progress shows here: how often, how long and, with <b>Check my pitch</b> on, how in tune.</p>';
+  const input = { song: o.song, title: o.title, exercise: o.exercise, songNow: null, entries, details: new Map(), now, script: o.script };
+  const s = songSummary(input);
+  const f = songFindings(input, s);
+  const secs = entries.reduce((a, e) => a + e.secs, 0);
+  const days = new Set(entries.map((e) => dayNumber(e.at))).size;
+  const last = entries[entries.length - 1]!;
+  const latest = s.scored[s.scored.length - 1]?.score ?? null;
+  const best = s.scored.reduce((a, e) => Math.max(a, e.score!), -1);
+  const tile = (label: string, big: string, small: string) => '<div class="pgstat"><span class="pgtl">' + label + '</span><b>' + big + '</b><span class="pgts">' + small + '</span></div>';
+  let html = '<div class="pgtop">' +
+    tile('Sessions', String(entries.length), 'on ' + plural(days, 'day')) +
+    tile('Time', durationText(secs), 'about ' + durationText(secs / entries.length) + ' a session') +
+    tile('Latest score', latest == null ? '–' : String(latest), latest == null ? 'no pitch check yet' : best > latest ? 'best ' + best : s.scored.length > 1 ? 'your best yet' : 'the first with the pitch check') +
+    tile('Last practised', cap(whenText(last.at, now)), DAY_NAMES[dateOf(dayNumber(last.at)).getDay()] + ' ' + shortDate(dayNumber(last.at)) + ', ' + clock(last.at)) + '</div>';
+  html += '<p class="sphead">' + esc(songHeadline(s)) + '</p>';
+  const list = (items: string[], empty: string) => (items.length ? '<ul class="spf">' + items.map((t) => '<li>' + esc(t) + '</li>').join('') + '</ul>' : '<p class="pgsub">' + empty + '</p>');
+  html += '<div class="sptwo"><div class="pgcard"><h4 class="pgh">Going well</h4>' + list(f.good, s.scored.length ? 'Nothing stands out yet: keep going.' : 'Switch on Check my pitch to see this.') + '</div>' +
+    '<div class="pgcard"><h4 class="pgh">To work on</h4>' + list(f.work, 'Nothing stands out: keep going.') + '</div></div>';
+  if (s.scored.length >= 2) {
+    const pts = s.scored.map((e) => ({ label: DAY_NAMES[dateOf(dayNumber(e.at)).getDay()] + ' ' + shortDate(dayNumber(e.at)) + ', ' + clock(e.at), score: e.score!, at: shortDate(dayNumber(e.at)), x: e.at / 86_400_000 }));
+    html += '<div class="pgcard"><h4 class="pgh">Over time</h4><p class="pgsub">Your score each time you sang it with the pitch check.</p><div class="pgchart">' + scoreLine(pts, 'Score each session', 640) + scoreLine(pts, 'Score each session', 340) + '</div></div>';
+  }
+  const recent = entries.slice(-SONG_RECENT).reverse();
+  html += '<div class="pgcard sprecent"><h4 class="pgh">' + (entries.length > recent.length ? 'The latest ' + recent.length + ' sessions' : entries.length === 1 ? 'The session' : 'Each session') + '</h4><ul class="pgses">' +
+    recent.map((e) => '<li class="pgsrow"><div class="pgsmain"><span class="pgclock">' + esc(dayLabel(dayNumber(e.at), now)) + ', ' + clock(e.at) + '</span>' + scoreHTML(e.score) +
+      '<span class="pgdet">' + esc(entryDetail(e)) + '</span>' + (e.routine ? '<span class="ltag pgrw">Rewaz: ' + esc(e.routine) + '</span>' : '') + '</div>' + sessionActs(e.at) + '</li>').join('') + '</ul></div>';
+  return html + '<div class="spacts"><button type="button" class="btn" data-sreport="' + esc(o.song) + '" title="A page on all your practice of this one: how it has gone, line by line and note by note">' + REPORT_ICON + 'Report on all of it</button>' +
+    '<button type="button" class="btn" data-sai="' + esc(o.song) + '" title="Every session of this one in a file, for an AI such as Claude or ChatGPT to analyse">' + AI_ICON + 'For AI</button>' +
+    '<button type="button" class="btn" data-progress="1" title="Progress: every song, day by day and note by note">See all in Progress</button></div>';
+}
+
 /** History: each day's sessions, newest day first, the latest three days unfolded. */
 function historyHTML(log: readonly LogEntry[], now: number, o: ProgressOptions): string {
   const days = byDay(log);
@@ -331,7 +380,7 @@ export interface ProgressHost {
 
 const isSection = (v: string | undefined): v is PgSection => !!v && (PG_ORDER as readonly string[]).includes(v);
 
-export function initProgress(host: ProgressHost): { render(): void } {
+export function initProgress(host: ProgressHost): { render(): void; showSong(id: string): void } {
   const view = document.querySelector('#progress') as HTMLElement;
   const body = document.querySelector('#pgBody') as HTMLElement;
   // The pitch charts' song and time, and Start afresh asking, last while the page is open.
@@ -469,5 +518,16 @@ export function initProgress(host: ProgressHost): { render(): void } {
       render();
     },
   });
-  return { render };
+  /** The view shown for one song (its section on the Practice view): its pitch over time and note
+   * by note, when it has a score; otherwise the view from its top. */
+  function showSong(id: string): void {
+    pitchSong = id;
+    const scored = host.log().some((e) => e.song === id && e.score != null);
+    if (scored && host.folded().pitch) host.setFolded('pitch', false);
+    render();
+    const at = scored ? body.querySelector('[data-sec="pitch"]') : null;
+    if (at) at.scrollIntoView({ block: 'start' });
+    else view.scrollIntoView({ block: 'start' });
+  }
+  return { render, showSong };
 }
