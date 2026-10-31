@@ -116,6 +116,19 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
   Guide panel's own "Break between rounds", for the Lines to practise and a section looped, was
   taken out on 2026-10-26 (Rinat: "Just in the rewaz is good enough"). A take keeps it, so it
   plays back with the same breaks.
+- **The time left** (`secondsLeft(s, pass, brk)`; Rinat, 2026-10-31: "the songs remaining time
+  next to the title in practice page when a song is playing"): from the start of song beat `s`
+  in round `pass` to the end, summed beat by beat at `liveTempo`, so a section's own tempo and
+  the tempo trainer count; with a set number of rounds, the rounds after it with their breaks and
+  count-ins; a loop with no end, to the end of this round (the screen says "in this round"); the
+  ring after the last note not counted. The app works it out at each beat shown (a count-in beat
+  after a break with that break's round; a break from its `until`) and takes off the time since,
+  each frame, showing whole seconds rounded up beside the title. *Why from the transport:* it
+  holds the rounds, breaks, count-in and tempos already, and a beat is the moment the tempo can
+  change, so working it out per beat follows a tempo slider moved mid-song. The rewaz bar adds the
+  items after the one playing, as estimated for the routine's length (`rewazLeft` in rewaz.ts).
+  `tests/unit/timeleft.test.ts` checks that every beat's and break's time plus its time left is
+  the end entry's time, with breaks, the tempo trainer and a section's slower tempo.
 - **Hooks:** `onBeat` reports every scheduled matra (pitch feedback, takes); `onNote(t, dur,
   midi)` hears each guide note as it is scheduled, and `localGuide = false` leaves the
   harmonium out (MIDI keyboards).

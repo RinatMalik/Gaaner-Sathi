@@ -3,7 +3,7 @@
 > The project's shared state, for Rinat, Claude, Codex and any other LLM: what the app is
 > for, how we work, where things stand, the decisions in force and the newest work log.
 >
-> **Last updated:** 2026-10-30 (GMT) by Claude (Opus 5.5)
+> **Last updated:** 2026-10-31 (GMT) by Claude (Opus 5.5)
 
 ## How to use this file
 
@@ -91,7 +91,9 @@ wins, except a later explicit decision by Rinat, which always wins.
   knobs) and forty-three (PH2-43: a pitch grid for each line; Note by note with Sa on its key; a
   break between rounds for each rewaz item; fader caps) and forty-four (PH2-44: the rewaz drawn
   right on a refresh; its items dragged and ticked, their fields in columns; the Music library a
-  table, the ticked added to a rewaz, starred, exported or deleted together) are built and live.
+  table, the ticked added to a rewaz, starred, exported or deleted together) and forty-five
+  (PH2-45: the time left beside the title and in the rewaz bar; My progress under My takes; the
+  Music library's tab first; the notes in full ink) are built and live.
   Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
 - **Review of 25–27 Oct (Claude, 2026-10-28, in chat):** the three day files and 52 takes in
@@ -108,7 +110,11 @@ wins, except a later explicit decision by Rinat, which always wins.
   61-key keyboard); the songs and exercises are at Sa C♯4, and the default 3-reed guide is heard
   at C♯3 (its bass reed: the app's detector reads it at 138.5 Hz), so Rinat matches the guide.
   "Octave must match" judged against C♯4; from round forty-two the bass reed's octave counts too.
-- **Next single action:** Rinat refreshes on Rewaz (each routine's songs shown at once) and
+- **Next single action:** Rinat tries round forty-five: plays a song and watches its time left
+  beside the title, starts a rewaz and watches "left in all" in its bar; opens My progress under
+  My takes (Report, For AI, See all in Progress); finds the Music library tab first; says whether
+  the notes read better in full ink, and whether the line numbers (still grey, but for the line
+  being sung) should be too. Then refreshes on Rewaz (each routine's songs shown at once) and
   tries round forty-four: an item dragged by its number, items ticked and removed together, the
   add list's tags and taal, the fields in columns; the Music library as a table (a tap on a row
   ticks it, only Practise opens it; its bar adds the ticked to a rewaz, stars, exports or
@@ -379,7 +385,7 @@ decision.
 ### Commands
 
 - `npm install` once.
-- `npm test`: every Vitest suite (435 tests, about 10 s). Read the "Test Files" line: a
+- `npm test`: every Vitest suite (490 tests in 43 files, about 15 s). Read the "Test Files" line: a
   file that fails to load is not counted as a failed test.
 - `npm run typecheck`: the whole project, then `src/core` and `src/audio/dsp` with no DOM
   library (a DOM call there fails).
@@ -455,6 +461,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-02 | Claude | Review | Design, round two: Pause and a separate Stop; nothing that plays changes the Lines to practise (play from here, sheet line numbers, sections, rewaz, takes); "Check my pitch" listens only while playing; beat box rows with the number and buttons (play this line, play from here, ×) full height, vibhag starts coloured instead of X/0, a tap anywhere on a row selects it, hover | 5 unit tests and the boxes' HTML tests; Edge scenarios `round6` (42 checks) and `rewaz6` (5), with a WAV microphone (Work log 2026-10-12 16:43) | Waiting for Rinat's use and two answers |
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
+| PH2-45 | Claude | Review | The time left, a song's progress where it is practised, the library first, the notes in ink (Rinat, 2026-10-31): while playing, the time left beside the title, to the second, the rounds, breaks and count-ins to come included, "in this round" for a loop with no end, held while paused, gone on Stop (`secondsLeft` in transport.ts; `leftAt`, `showLeft` in app.ts; `leftText` in view.ts; `.songleft`); the whole rewaz's in its bar, "0:14 left in all", the item's own and the items after it with the breaks between them, counted through the break before an item (`rewazLeft`, `showLeft` and `Rewaz.left` in rewaz.ts; `routineSeconds` from an item; `#rwLeft`); My progress under My takes for the open song: tiles, where it stands, going well and to work on, the score each session, the latest five sessions with Report and For AI, and its Report, For AI and See all in Progress (`songProgressHTML`, `showSong` in progress.ts; `songHeadline` from songreport.ts; `renderSongProgress` in app.ts; `#progBox`); the Music library's tab before Practice (index.html, `TABS`); the Practice sheet's notes in `--ink` (styles.css `.pnt`) | Tests: 43 files, 490 passed (10 new in timeleft.test.ts); headless Edge on `npm run dev` at 1280 px day and 360 px night: the title 0:15 → 0:10 a second a second, held at 0:10 paused, hidden on Stop, "0:13 left in this round" looping; a two-item rewaz 0:14 → 0:00 left in all through rounds and a 3 s break, hidden at "Rewaz done"; My progress with 7 seeded sessions; See all in Progress opening Pitch for the song; page 360 px wide; no console errors (Work log 2026-10-31, PH2-45) | Waiting for Rinat to play, run a rewaz and open My progress |
 | PH2-44 | Claude | Review | Rewaz and the Music library as tables (Rinat, 2026-10-30): the rewaz and Progress drawn again once the songs are read (`renderLibrary` in app.ts: on a refresh the tab was drawn before the songs were, and Rewaz said every song of the user's in a routine had been deleted); rewaz items dragged by their number (pointer events, the page scrolling near the screen's edges; ↑ ↓ on a focused number), the up and down buttons gone; a tick box on each with Tick all, the ticked dragged and removed together, asked in the bar (`moveItems`, `stepAt` in routine.ts; `itemRowHTML`, `tickBarHTML` in rewaz.ts); the add list with each song's tags and taal after its title, found by them (`detailsOf`); each item's fields in columns of fixed widths from a list 860 px wide (1000 px with a "to" column), on a phone one under another with Rounds, Break and Tempo side by side (styles.css); the Music library a table: a tick box on each row and section heading (`tickHTML`, `showMixed` in view.ts, shared with My takes), a tap on a row ticking it, Shift for a run, only Practise opening it; a bar, at the top of the screen while any are ticked: Tick all, Add to rewaz (a routine or a new one), Favourite or Unfavourite, Export, Delete asked in the bar, Untick, Escape (`libSelHTML` in songs.ts; `deleteSongs`, `setFavs`, `exportSongs`, `routineChoices`, `addToRoutine` in app.ts) | Tests: 42 files, 480 passed; headless Edge on `npm run dev`: a refresh on Rewaz saying only a song truly gone is deleted; items dragged, ticked and removed together at 1150 px, the song 223 px wide in every row; the library at 1280 px day: ticks, a run, the menu, added to a routine, starred, Delete asked; at 360 px night: 2 songs exported, a new routine made, rewaz rows 269 px, no sideways scroll (Work log 2026-10-30, PH2-44) | Waiting for Rinat to refresh, drag, tick and try the library's bar |
 | PH2-43 | Claude | Review | A grid for each line, Sa on its key, a break for each item, fader caps (Rinat, 2026-10-28): the Practice view's pitch strip for each line from its lowest note to its highest, a semitone beyond, 600 cents at least (`lineRange`, `MIN_SPAN` in lines.ts); Note by note with Sa on the key it was played in, a phone's black keys named (`keyOfHz`, `mainKey`, `saOnText` in notekeys.ts; progress.ts, report.ts, dayreport.ts, songreport.ts; `asPlayed` in app.ts); the break between rounds on each rewaz item (`roundGap` on RoutineItem, a routine's own read onto its items; rewaz.ts, store.ts); the deck's sliders with fader caps (styles.css) | Tests: 42 files, 476 passed; headless Edge at 1280 px day and 360 px night: the caps pressed and moving; a fake voice on C♯3, each line's range (−300..300 cents for Sa alone) and the voice on its grid; a 3 s break on one item counted down in the rewaz bar; an old routine's 6 s on both items; the keys on C♯ (Work log 2026-10-28, PH2-43) | Waiting for Rinat to sing with the new grid and try the caps, the keys and a break per item |
 | PH2-42 | Claude | Review | The octave the guide is heard in, short takes, bigger knobs (Rinat, 2026-10-28): with a guide of 2 or 3 reeds (on the device, not off), "Octave must match" counts the octave below the notes too, where the bass reed sounds (`judged`, the tracker's `below` in track.ts; `host.below()` in pitch.ts and app.ts; the detail's `below`, the report's note, the AI file's `octave_below_counts`; the tooltip and scoring note); a take kept only from 3 s and 15 % of one pass of the lines it played (`keepsTake` in take.ts, `track` from `playSeconds` in app.ts); the deck's slider knobs 30 px (styles.css); a day's file gives a built-in exercise without its session's detail your Sa (`sessionInput`) | Tests: 42 files, 472 passed (5 new or extended); headless Edge with a fake microphone on C♯3 and Sa C♯4, Octave must match: 3 reeds Sa 100 (the old build, live: 0 at −1200 cents), 1 reed 0; takes of 20 s kept, 6 s of the whole exercise not, 5 s of one looped line kept; the day file's exercise C♯4; the knobs at 1280 px day and 360 px night, pressed and moving (Work log 2026-10-28, PH2-42) | Waiting for Rinat to sing with Octave must match, and to try the knobs |
@@ -594,6 +601,11 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-30 | **The add list shows each song's tags and taal,** lightly after its title, and its find box finds by them too. | Rinat, chat 2026-10-30 ("other details like tags/labels etc could be writtent lightly net to the title so they are easy to find"); the taal and finding by them are Claude's | rewaz.ts (`detailsOf`). |
 | 2026-10-30 | **Each rewaz item's fields in columns of fixed widths** where the list is wide enough (860 px, or 1000 px once an item of the routine plays some of its lines and it has a "to" column): the song at most 22rem and the same in every row, so no row runs onto a second line; narrower, the song alone on its line and the rest under it; on a phone one under another, Rounds, Break and Tempo side by side and the tick box over the number. An item's "Break between rounds, seconds" reads "Break, seconds" (its tooltip says the rest). | Rinat, chat 2026-10-30 ("the width of the title varies. this makes it chaotic and sometimes the line bleeds into a second line. keep the title dropdown width a fixed amount"); the widths, the columns and the shorter label are Claude's | styles.css (`.rwfields`, container queries on `.rwlist`). |
 | 2026-10-30 | **The Music library works as a table:** a tick box at the start of every row and in each section's heading (all, some or none of it ticked); a tap on a row anywhere but its buttons ticks it, Shift with a tap ticks the run from the last one; only Practise this song opens it to practise (the title no longer does). A bar over the list: Tick all (what is shown), and while any are ticked "N ticked" (with how many the find box or a fold hides), Add to rewaz (a routine, the ready-made one, or a new one named My rewaz; 2 rounds each), Favourite or Unfavourite, Export (one file, built-in exercises too), Delete (asked in the bar; built-in exercises stay), Untick; Escape closes the menu, keeps, or unticks. The bar stays at the top of the screen while any are ticked. Replaces "the title still opens it to practise" in 2026-10-13's library row. | Rinat, chat 2026-10-30 ("Add selection checkbox on each line in the music library as well - basically add all the bells and whistle of tables in the music library, currently finding it less user friendly to work on. Click the title should not take it to practice, only the practice button should. clicking the line should just select it, so the checkboax gets checked."); the bar's actions, Shift for a run, the bar kept in view and the new routine's name are Claude's | src/app/songs.ts (`libSelHTML`), app.ts, view.ts (`tickHTML`). Built-in exercises stay read-only (2026-10-23): ticked, they can be added to a rewaz or exported, not starred or deleted. |
+| 2026-10-31 | **The time left beside the title while a song plays:** a pill after the title, "2:15 left", to the second and rounded up so it reaches 0:00 at the end; it counts the rounds, the breaks between them and their count-ins still to come, at the tempo each beat plays (a section's own, the tempo trainer); a loop with no end says "… left in this round"; paused, it stays as it was; Stop hides it. The ring after the last note is not counted. | Rinat, chat 2026-10-31 ("the songs remaining time next to the title in practice page when a song is playing"); the rounds and breaks counted, the m:ss countdown, "in this round" and holding it paused are Claude's | `secondsLeft` in transport.ts; docs/ENGINE.md → Transport. |
+| 2026-10-31 | **The whole rewaz's time left in its bar,** "0:14 left in all", after the item's text and before Skip: the item playing's own time left plus the items after it and the breaks between items, as the routine's length is estimated (each item's song at its tempo), counted down through the break before an item too; hidden once the rewaz is done. | Rinat, chat 2026-10-31 ("add total remaining time on rewaz bar"); the wording and estimating the items not yet played are Claude's | `rewazLeft` in rewaz.ts; `routineSeconds` takes the item to start from. |
+| 2026-10-31 | **My progress under My takes on the Practice view,** for the song or exercise open, open by default and shown even before any practice (then a line saying what will appear): tiles (sessions, time, latest score, last practised), where it stands in a sentence, going well and to work on, its score each session with the pitch check, its latest five sessions each with Report and For AI, and its own Report, For AI and "See all in Progress" (Progress's Pitch for that song when it has a score). Read from the log alone; the timing, from each session's detail, stays in the Report. No delete here (Progress has the bins). | Rinat, chat 2026-10-31 ("At the end of the practice page where my takes section is - similar to that, have a way to show the data/progress of that song as well there"); what it shows is Claude's, from the song report | `songProgressHTML` in progress.ts; `renderSongProgress` in app.ts. |
+| 2026-10-31 | **The tabs in the order Music library, Practice, Edit notation, Rewaz, Voice, Progress.** The app still opens on Practice the first time (Invariants → Usable straightaway) and then on the tab last open. | Rinat, chat 2026-10-31 ("Re-order pages - bring Music library at first and then practice"); keeping Practice as the first tab opened is Claude's | index.html; `TABS` in store.ts. |
+| 2026-10-31 | **The notes on the Practice sheet in full ink** (`--ink`: black by day, white by night), not grey (`--ink-2`); the line numbers keep theirs (grey, the line being sung in ink). | Rinat, chat 2026-10-31 ("make them high contrast so they are more visible. so instead of grey, make them white/black depending on the day/night mode") | styles.css `.pnt`. |
 | 2026-10-23 | **Built-in exercises stay read-only for now** (Open question 6 answered): they cannot be changed or deleted; copy one to change it. Claude's proposal (changed in place as the user's own, deleted or hidden, a "Bring back the built-in exercises" button) is not built. | Rinat, chat 2026-10-23 ("Keep the built-in exercises read-only for now.") | Invariants → Never lose a song unchanged; Open question 6 removed. |
 | 2026-10-23 | **A break between rounds,** when looping on the Practice view (the Guide panel's "Break between rounds", seconds) and in a rewaz (each routine's "Break between rounds", separate from its break between items): silence with the drone going on, then the count-in again when it is on, and any pickup, then the next round; the line's box counts it down; none after the last round; the note before it fades as at an ending. A pause in a break goes on with the next round. Takes keep it. | Rinat, chat 2026-10-23 ("i'd like the option to add some delay between loops and also between rounds when doing rewaz with multiple rounds"); the count-in again, the drone going on, the countdown, a setting on the Guide panel and per routine are Claude's | transport.ts `gap`; prefs `loopGap`; Routine `roundGap`; Take `gap`; session settings `gap`; docs/ENGINE.md → Transport, DATA.md |
 | 2026-10-23 | **My takes as a table:** grouped by song or by date, each group folding (the first three open), a tick box on each take, on each song's or day's group and Tick all; the takes ticked are deleted together, asked first in the table's bar. | Rinat, chat 2026-10-23 ("needs all the bells and whistles of a table - should be collapsible the song name or the date taken. want to be able to select all the takes in a particular day and delete together. also all the takes of a particular song"; "if multiple takes are deleted together, only then confirmation is fine") | takes.ts `takeGroups`, `allTakesHTML`; prefs `tkGroup`; docs/ENGINE.md → Takes |
@@ -674,6 +686,58 @@ Template:
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
 
+### 2026-10-31 GMT — Claude (Opus 5.5) — PH2-45 the time left; My progress under the takes; the library first; notes in ink
+
+- **Goal:** Rinat: "add total remaining time on rewaz bar and the songs remaining time next to
+  the title in practice page when a sog is playing"; "Re-order pages - bring Music library at
+  first and then practice"; "At the end of the practice page where my takes section is - similar
+  to that, have a way to show the data/progress of that song as well there"; "the notes sa re ga
+  ma etc in the practice window - make them high contrast so they are more visible. so instead
+  of grey, make them white/black depending on the day/night mode. maybe the same colour as the
+  line numbers".
+- **Inspected:** transport.ts (`start`, `tick`: the section, rounds, `gap`, `brkPre`, the
+  count-in after a break, `liveTempo`); app.ts's `frame()` (beats, breaks and the end taken from
+  the queue), `stop`, `pause`; rewaz.ts's runner (`go`, `next`, `showBar`); routine.ts's
+  `routineSeconds`; progress.ts and songreport.ts (`songSummary`, `songFindings`); the takes box
+  in index.html; styles.css's `.pnt` (`--ink-2`) and `.pln` (`--ink-2`, the line being sung
+  `--ink`); `clockText` in take.ts (reused).
+- **Changed:** `feat(practice, rewaz)` b117050: transport.ts (`secondsLeft`), routine.ts
+  (`routineSeconds` from an item), rewaz.ts (`rewazLeft`, `#rwLeft`, `Rewaz.left`), view.ts
+  (`leftText`), app.ts (`leftAt`, `showLeft`, `renderSongProgress`, the section's buttons;
+  `openSongReport` and `saveSongForAI` saying where asked), progress.ts (`songProgressHTML`,
+  `showSong`), songreport.ts (`songHeadline` taken out of the page), store.ts (`TABS`),
+  index.html (the tabs, `#songLeft`, `#rwLeft`, `#progBox`), styles.css, timeleft.test.ts. This
+  commit: ENGINE.md (Transport → The time left), ROADMAP row 45, HISTORY (the 2026-10-28 entry),
+  this file.
+- **Tests / verification:** `npm run typecheck` exit 0; `npm test` → 43 files, 490 passed (10
+  new: every beat's and break's time plus its time left equals the end entry's, with 3 rounds
+  and 2 s breaks, the tempo trainer, a line at half speed, a song not looped and the lines to
+  practise; a loop with no end; `leftText`; `rewazLeft`; My progress empty, full and without
+  scores; the tab order); `npm run build` → 388.31 kB JS; `bash reference/tests/run-all.sh` →
+  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5 passed, 12 exercises valid. The
+  browser pane (hidden, so no frames drawn): the tabs Music library | Practice | …, the notes
+  `rgb(236, 235, 229)` at night. Headless Edge on `npm run dev` (scratchpad `cdp45.mjs`), with
+  Scale open and 7 seeded sessions, screenshots seen: at 1280 px day the notes and the line
+  being sung's number both `rgb(27, 28, 36)`; playing, the title 0:15, 0:14 … 0:10 left a second
+  apart; paused 0:10 and 0:10 1.5 s later; Stop hid it; Loop ticked, "0:13 left in this round";
+  a rewaz of two items (2 rounds and 1, tempo 220, a 3 s break) sampled each second: 0:14 … 0:08
+  left in all with the song 0:06 … 0:00, then 0:08, 0:07, 0:06 through "Next … starting in 3 s",
+  then 0:05 … 0:00 with the song the same, hidden at "Rewaz done · 2 items in 17 s"; My progress:
+  "Sessions 7 on 7 days", "18 min", "Latest score 81 best 85", "Getting better: from about 66
+  to about 82.", the chart, the latest 5 sessions. At 360 px night: the page 360 px wide, the
+  section 328 px, the rewaz bar "0:12 left in all" with Skip and Stop rewaz on its second line;
+  See all in Progress opened Progress with Pitch on Scale. No console errors.
+- **Decisions made:** five rows (the time left beside the title; the rewaz's in its bar; My
+  progress; the tab order; the notes in ink).
+- **Risks or disagreements:** the rewaz's total is exact for the item playing but estimated for
+  those after it (each song at its own tempo, as the routine's length is), so it can jump a
+  second or two when the next item starts (here it did not). The countdown follows a tempo
+  change at the next beat. Not seen in Firefox or Safari, nor on a real phone. The line numbers
+  stay grey but for the line being sung: Rinat said "maybe the same colour as the line numbers",
+  and the one being sung is already in ink, so the others were left; asked in the reply.
+- **Next handoff:** Rinat plays a song and runs a rewaz to see the times; opens My progress;
+  says whether the line numbers should be in ink too.
+
 ### 2026-10-30 GMT — Claude (Opus 5.5) — PH2-44 the rewaz on a refresh; items dragged and ticked; the library as a table
 
 - **Goal:** Rinat, with a screenshot of two routines' items saying "This song has been
@@ -733,59 +797,3 @@ Template:
   ticks it where it used to open the song.
 - **Next handoff:** Rinat refreshes on Rewaz; drags an item, ticks and removes some; adds songs
   to a routine from the library's bar; says whether the library works better as a table.
-
-### 2026-10-28 GMT — Claude (Opus 5.5) — PH2-43 a grid for each line; Sa on its key; a break for each item; fader caps
-
-- **Goal:** Rinat: "make the sliders like a sliding know similar to reaper of FL studio instead
-  of the circle" (with screenshots of FL Studio's and Reaper's faders); "I got a notification
-  from github saying something failed?"; "is there MCP for reaper or FL studio?"; "The note by
-  note shows my Sa as c not c#"; "in rewaz page, make it so that the break between rounds can be
-  set for each song/exercises. so put the text box in each line instead of at the top. Break
-  between items can stay where it is"; "the upper and lower notes and the voice line is not
-  demonstrating my performance properly ... please make it so that the grid is more zoomed in.
-  Maybe the logic could be that for each line, the grid covers a little more than the highest
-  and lowest note in that line and it changes with each line. if there is a better logic, then
-  tell me or just go with that."
-- **Inspected:** the public API's runs: `40680802173` (`80aca47`) failed at the type-check, the
-  test fixed in `f6f9e3e`; `40681066615` and `40681294442` green since. The registry of
-  connectors (nothing for either); a web search: community MCP servers for REAPER (OSC,
-  ReaScript or python-reapy) and FL Studio (its MIDI scripting, a virtual MIDI cable), none
-  installed. lines.ts (`songRange`: one strip per song since 2026-10-19), notekeys.ts (Sa as C),
-  routine.ts and rewaz.ts (`roundGap` the routine's), the deck's slider rules in styles.css.
-- **Changed:** `feat(practice)`: lines.ts `lineRange` and `MIN_SPAN` (each line's strip from its
-  lowest note sounding to its highest, a semitone beyond, 600 cents at least, widened evenly by
-  semitones), lines tests. `feat(progress)`: notekeys.ts (`keyOfHz`, `mainKey`, `saOnText`; the
-  keys drawn with Sa on key `saKey`; a phone's black keys named, 11 px), progress.ts (a song's
-  `saKey`, the most-sung key), report.ts, dayreport.ts and songreport.ts (each session's played
-  Sa, or the song's now), app.ts (`asPlayed`: a built-in exercise in your Sa, shared by
-  sessionInput, songInput and Progress's host), session tests. `feat(rewaz)`: routine.ts
-  (`roundGap` on RoutineItem; a routine's own read onto its items; `roundGapOf(item)`,
-  `routineSeconds`), rewaz.ts (the field on each item after Rounds, the routine's taken out),
-  store.ts, breaks and rewaz tests. `feat(deck)`: styles.css (fader caps, the slot). This
-  commit: ENGINE.md, DATA.md, ROADMAP row 43, HISTORY, this file.
-- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 42 files, 476 passed
-  (new: each line's range, widened and held over; the keys on C♯ and C, `keyOfHz`, `mainKey`,
-  `saOnText`, Progress's, a session's and a day's keys on C♯; an item's break, its field, an
-  old routine's read onto its items and saved there); `npm run build` → 370.47 kB JS; `bash
-  reference/tests/run-all.sh` → parser 31, checker 11, join-split 10, rhythm 12, tanpura 5
-  passed, 12 exercises valid. Headless Edge on `npm run dev` (the pane hidden), 1280 px day and
-  360 px night (page 1265 and 360 px wide): the sliders' fader caps, a press near each end
-  moving it (rhythm 0.7 → 0.96, tempo 110 → 232, drone 0 → 0.89); a fake microphone wandering
-  ±25 cents round C♯3, the long-notes exercise at Sa C♯4: the lines' ranges −300..300,
-  −100..500, 100..700, 200..800, 400..1000, 600..1200 cents, the line being sung with 5
-  semitone lines and the voice drawn on them; a routine with a 3 s break on item 1 (line 1, 2
-  rounds at 240): the bar "round 2 of 2 starting in 3 s", 2 s, 1 s, then "round 2 of 2", then
-  "Next: … 2 of 2 · লম্বা স্বর · starting in 2 s"; an old routine's break of 6 s shown on both
-  its items, no routine-wide field; item 2 set to 5 stored on the item; Progress's Note by note
-  "with Sa on C♯, the key they were played in", the keys w4 w11 b0 b2 b5 b7 b9 b12.
-- **Decisions made:** four rows (a strip for each line; Sa on its key; a break for each item;
-  fader caps), the knobs row moved to HISTORY.
-- **Risks or disagreements:** a voice more than a semitone beyond a line's notes is drawn at
-  the strip's edge; notes move height from one line to the next, as they did before
-  2026-10-19. Progress takes a song's Sa as it is now (the log keeps no Sa); the reports use
-  each session's own. On C♯ most notes are black keys, narrower than white ones. The fader
-  caps were seen in Edge (Chromium) only, not Firefox or Safari (their own rules are in place).
-  No MCP server was installed: each is third-party code to run on Rinat's computer.
-- **Next handoff:** Rinat sings with the new grid and says whether it shows the voice's ups and
-  downs; tries the fader caps, Note by note on C♯ and a break on one rewaz item; says whether
-  to set up a REAPER or FL Studio MCP server.

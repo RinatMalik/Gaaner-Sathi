@@ -50,6 +50,62 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-28 GMT — Claude (Opus 5.5) — PH2-43 a grid for each line; Sa on its key; a break for each item; fader caps
+
+- **Goal:** Rinat: "make the sliders like a sliding know similar to reaper of FL studio instead
+  of the circle" (with screenshots of FL Studio's and Reaper's faders); "I got a notification
+  from github saying something failed?"; "is there MCP for reaper or FL studio?"; "The note by
+  note shows my Sa as c not c#"; "in rewaz page, make it so that the break between rounds can be
+  set for each song/exercises. so put the text box in each line instead of at the top. Break
+  between items can stay where it is"; "the upper and lower notes and the voice line is not
+  demonstrating my performance properly ... please make it so that the grid is more zoomed in.
+  Maybe the logic could be that for each line, the grid covers a little more than the highest
+  and lowest note in that line and it changes with each line. if there is a better logic, then
+  tell me or just go with that."
+- **Inspected:** the public API's runs: `40680802173` (`80aca47`) failed at the type-check, the
+  test fixed in `f6f9e3e`; `40681066615` and `40681294442` green since. The registry of
+  connectors (nothing for either); a web search: community MCP servers for REAPER (OSC,
+  ReaScript or python-reapy) and FL Studio (its MIDI scripting, a virtual MIDI cable), none
+  installed. lines.ts (`songRange`: one strip per song since 2026-10-19), notekeys.ts (Sa as C),
+  routine.ts and rewaz.ts (`roundGap` the routine's), the deck's slider rules in styles.css.
+- **Changed:** `feat(practice)`: lines.ts `lineRange` and `MIN_SPAN` (each line's strip from its
+  lowest note sounding to its highest, a semitone beyond, 600 cents at least, widened evenly by
+  semitones), lines tests. `feat(progress)`: notekeys.ts (`keyOfHz`, `mainKey`, `saOnText`; the
+  keys drawn with Sa on key `saKey`; a phone's black keys named, 11 px), progress.ts (a song's
+  `saKey`, the most-sung key), report.ts, dayreport.ts and songreport.ts (each session's played
+  Sa, or the song's now), app.ts (`asPlayed`: a built-in exercise in your Sa, shared by
+  sessionInput, songInput and Progress's host), session tests. `feat(rewaz)`: routine.ts
+  (`roundGap` on RoutineItem; a routine's own read onto its items; `roundGapOf(item)`,
+  `routineSeconds`), rewaz.ts (the field on each item after Rounds, the routine's taken out),
+  store.ts, breaks and rewaz tests. `feat(deck)`: styles.css (fader caps, the slot). This
+  commit: ENGINE.md, DATA.md, ROADMAP row 43, HISTORY, this file.
+- **Tests / verification:** `npm run typecheck` exit 0; `npx vitest run` → 42 files, 476 passed
+  (new: each line's range, widened and held over; the keys on C♯ and C, `keyOfHz`, `mainKey`,
+  `saOnText`, Progress's, a session's and a day's keys on C♯; an item's break, its field, an
+  old routine's read onto its items and saved there); `npm run build` → 370.47 kB JS; `bash
+  reference/tests/run-all.sh` → parser 31, checker 11, join-split 10, rhythm 12, tanpura 5
+  passed, 12 exercises valid. Headless Edge on `npm run dev` (the pane hidden), 1280 px day and
+  360 px night (page 1265 and 360 px wide): the sliders' fader caps, a press near each end
+  moving it (rhythm 0.7 → 0.96, tempo 110 → 232, drone 0 → 0.89); a fake microphone wandering
+  ±25 cents round C♯3, the long-notes exercise at Sa C♯4: the lines' ranges −300..300,
+  −100..500, 100..700, 200..800, 400..1000, 600..1200 cents, the line being sung with 5
+  semitone lines and the voice drawn on them; a routine with a 3 s break on item 1 (line 1, 2
+  rounds at 240): the bar "round 2 of 2 starting in 3 s", 2 s, 1 s, then "round 2 of 2", then
+  "Next: … 2 of 2 · লম্বা স্বর · starting in 2 s"; an old routine's break of 6 s shown on both
+  its items, no routine-wide field; item 2 set to 5 stored on the item; Progress's Note by note
+  "with Sa on C♯, the key they were played in", the keys w4 w11 b0 b2 b5 b7 b9 b12.
+- **Decisions made:** four rows (a strip for each line; Sa on its key; a break for each item;
+  fader caps), the knobs row moved to HISTORY.
+- **Risks or disagreements:** a voice more than a semitone beyond a line's notes is drawn at
+  the strip's edge; notes move height from one line to the next, as they did before
+  2026-10-19. Progress takes a song's Sa as it is now (the log keeps no Sa); the reports use
+  each session's own. On C♯ most notes are black keys, narrower than white ones. The fader
+  caps were seen in Edge (Chromium) only, not Firefox or Safari (their own rules are in place).
+  No MCP server was installed: each is third-party code to run on Rinat's computer.
+- **Next handoff:** Rinat sings with the new grid and says whether it shows the voice's ups and
+  downs; tries the fader caps, Note by note on C♯ and a break on one rewaz item; says whether
+  to set up a REAPER or FL Studio MCP server.
+
 ### 2026-10-28 GMT — Claude (Opus 5.5) — PH2-42 the octave the guide is heard in; short takes; bigger knobs; 27 Oct whole
 
 - **Goal:** Rinat: "make the slider handles a lot bigger so they are easy to click on"; "if
