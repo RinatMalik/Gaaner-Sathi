@@ -50,6 +50,58 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-11-01 GMT — Claude (Opus 5.5) — PH2-47 full screen as five panels
+
+- **Goal:** Rinat sent a sketch of full screen: a top "Panel with title, other details,
+  remaining time, rewaz details, remaining time for rewaz etc."; on the left a "Scoring section,
+  cumulative score and fun animated graphics"; the "Main window with lines, notes etc." in the
+  middle; a "Pitch guage" on the right; at the foot a "Panel with play, pause, stop, restart,
+  pitch, record etc"; "Use common sense as well in making it look good, interesting, engaging
+  and fun. If any of the things i mentioned here doesn't make sense, tell me. The percentages
+  are not rigid."
+- **Inspected:** pitch.ts (`showAverage`, `lineDone`, `startRun`, `turnOff`, `showGauge`,
+  `draw` and the note expected from `tracker.live()`); lines.ts (`gaugeHTML`, `placeGauge`,
+  `gaugeOn`, `gauge`, `layout`'s `--gw`, `fit`, the ResizeObserver, the taal figure's size);
+  track.ts (`summary`: no average under 4 notes sung); index.html (`.pview`, the deck's
+  `#recBtn`); styles.css (the full screen block, `.pgauge`, `.tf`, the colour tokens); the
+  screenshots of round forty-six.
+- **Changed:** `feat(practice): full screen as five panels, a score panel and a tall gauge` —
+  src/app/fullscore.ts (new: `initScorePanel`, `scoreWord`, `streakOf`); pitch.ts (`panel` on
+  the host: each line's score, the average, cleared on a new run and on turning the check off;
+  the note expected to the gauge); lines.ts (`gaugeBox` on the host, `.pgx` in `gaugeHTML`, the
+  gauge placed in its panel and faint while off, `fit`'s least strip for a wrapped line, the
+  ResizeObserver fitting again in full screen); app.ts (`initScorePanel`, `gaugeBox`); full.ts
+  (Record me moved too; the header comment); index.html (`.ptop` round the two bars,
+  `#fullScore`, `#fullGauge`); styles.css (the full screen block rewritten as a grid of
+  cards; the score panel; the gauge's panel; upright, phone and short screens);
+  tests/unit/full.test.ts (3 new, 1 changed); docs/ENGINE.md (the gauge); docs/ROADMAP.md
+  (row 47); docs/HISTORY.md (the PH2-45 entry); this file.
+- **Tests / verification:** `npx tsc --noEmit -p .` exit 0; `npx vitest run` → 44 files, 500
+  passed; `npm run build` → 395.50 kB JS, 89.64 kB CSS; `bash reference/tests/run-all.sh` →
+  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge
+  (the browser pane hidden) on `npm run dev`, scratchpad `cdp47.mjs`, a stand-in screen lock
+  and a fake microphone playing a steady C♯4 with Sa set to C♯4: at 1280 × 800 day the top
+  panel 1256 × 51, the score panel 179 × 623, the lines 944 × 623, the gauge 109 × 623, the foot
+  78 px with Check my pitch, Restart, Play, Stop and Record me; the pitch check off: "Turn on
+  Check my pitch", the ring and gauge faint; কোমল ঋ ও ধ, তীব্র মা from line 6: line 6 13, "13
+  Average", the note expected গা by the gauge's middle, "8 This run" on Stop; লম্বা স্বর line 1
+  looping at tempo 200: four lines at 100, "100 Superb!", the burst, "4 in a row", the first
+  starred; lines 1–2: Re at 0 ending the streak, "50 This run"; a rewaz from its bar: its bar
+  in the top panel (109 px), the panel cleared, the break shown. 360 × 780 night: the score
+  strip 344 × 66 under the lines, the gauge in the line; 780 × 360: the line being sung whole,
+  strip 47 px (56 and cut before the change); 768 × 1024: stacked, 7 lines; 1280 night: 7 lines;
+  Esc: the deck's Play, Check my pitch and Record me back. No console errors.
+- **Decisions made:** five 2026-11-01 rows (the five panels; the score panel; the gauge's
+  panel; stacking upright; a wrapped line's strip).
+- **Risks or disagreements:** not tried on a real phone or with a real voice: whether the
+  animations distract while singing (they move only as a line ends), whether the words suit
+  Rinat, and whether 85 is the right line for a streak. The average needs 4 notes sung, so a
+  song of long held notes shows "–" for its first lines. With the side panels, the lines are
+  narrower: a 16-beat line wraps sooner on a small laptop. On a phone held upright the score
+  strip takes about 70 px from the lines.
+- **Next handoff:** Rinat sings with it on a laptop and a phone (Next single action); Claude
+  adjusts what Rinat says.
+
 ### 2026-10-31 GMT — Claude (Opus 5.5) — PH2-46 full screen while practising
 
 - **Goal:** Rinat: "an option to go full screen when a song is playing or a rewaz is ongoing …

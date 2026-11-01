@@ -3,7 +3,7 @@
 // before a rewaz item, the score panel's words and streak, and the page's parts it shows.
 import { describe, expect, it } from 'vitest';
 import page from '../../index.html?raw';
-import { whereText } from '../../src/app/full';
+import { fullZoom, whereText } from '../../src/app/full';
 import { beatGlow, beatKind, noteAt, noteHue } from '../../src/app/fullfx';
 import { scoreWord, streakOf } from '../../src/app/fullscore';
 import { axisNotes, gaugeHTML } from '../../src/app/lines';
@@ -19,6 +19,20 @@ describe('where playing has got to', () => {
     expect(whereText(0, 4, { pass: 4, rounds: 0 })).toBe('Line 1 of 4 · Round 5');
     expect(whereText(0, 4, { pass: 0, rounds: 1 })).toBe('Line 1 of 4');
     expect(whereText(0, 0, null)).toBe('');
+  });
+});
+
+describe('full screen on a big screen', () => {
+  it('is drawn as a 1440 × 900 screen’s, scaled up to fill it', () => {
+    // A laptop, as it is; 1080p, 1440p and a 4K TV larger by the shorter side's share.
+    expect(fullZoom(1280, 800)).toBe(1);
+    expect(fullZoom(1920, 1080)).toBe(1.2);
+    expect(fullZoom(2560, 1440)).toBe(1.6);
+    expect(fullZoom(3840, 2160)).toBe(2.4);
+    // A wide screen by its height; never smaller, at most 3 times.
+    expect(fullZoom(3440, 1440)).toBe(1.6);
+    expect(fullZoom(360, 780)).toBe(1);
+    expect(fullZoom(7680, 4320)).toBe(3);
   });
 });
 

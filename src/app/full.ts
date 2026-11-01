@@ -31,9 +31,18 @@ export function whereText(line: number, lines: number, round: { pass: number; ro
   return t;
 }
 
+/** How much larger full screen is drawn on a big screen (Rinat, 2026-11-01: on a 49-inch 4K TV
+ * "the main panel takes up all the space and the panels on the sides and top and bottom are
+ * relatively a lot thinner"): as a 1440 × 900 screen's, scaled up to fill this one, so every
+ * panel keeps its share; never smaller, at most 3 times. */
+export function fullZoom(w: number, h: number): number {
+  return Math.round(Math.min(3, Math.max(1, Math.min(w / 1440, h / 900))) * 100) / 100;
+}
+
 export function initFull(host: FullHost): Full {
   const $ = <T extends HTMLElement>(s: string) => document.querySelector(s) as T;
   const root = document.documentElement;
+  const view = $('.pview');
   const btn = $('#fullBtn');
   const bar = $('#fullCtl');
   /** The deck's controls moved into the bar, and where each goes back to. */
@@ -69,11 +78,20 @@ export function initFull(host: FullHost): Full {
       real = false;
     }
     bar.hidden = !on;
+    scale();
     btn.title = on ? 'Leave full screen (Esc)' : 'Full screen: only the lines and the controls (F)';
     // The rewaz bar's button hides once it is on: the focus goes to the one that leaves it.
     if (on && document.activeElement?.id === 'rwFull') btn.focus();
     host.changed(on);
   }
+
+  /** Full screen drawn larger on a big screen (the lines lay themselves out again as it changes). */
+  function scale(): void {
+    const z = on ? fullZoom(innerWidth, innerHeight) : 1;
+    const want = z > 1 ? String(z) : '';
+    if (view.style.zoom !== want) view.style.zoom = want;
+  }
+  window.addEventListener('resize', scale);
 
   btn.addEventListener('click', () => set(!on));
   $('#rwFull').addEventListener('click', () => set(!on));
