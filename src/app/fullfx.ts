@@ -45,11 +45,13 @@ export function initFullFx(el: HTMLElement, on: () => boolean): FullFx {
     beat(kind, semi, spb) {
       if (semi != null) el.style.setProperty('--fxh', String(noteHue(semi)));
       if (!on() || still.matches || !el.animate) return;
-      // The flash at the start (offset 0), fading back over most of the beat to the faint glow
-      // the page gives it (the end left to the page's own opacity).
+      // The flash at the start (offset 0), fading back to the faint glow the page gives it (the
+      // end left to the page's own opacity) over a little more than the beat (Rinat, 2026-11-01:
+      // "increase the fade out time just a tad longer"), lingering bright a little before it
+      // fades, the next beat's flash taking over as it all but rests.
       const top = parseFloat(getComputedStyle(el).getPropertyValue('--fxmax')) || 0.8;
       anim?.cancel();
-      anim = el.animate([{ opacity: top * beatGlow(kind), offset: 0 }], { duration: Math.max(160, spb * 920), easing: 'cubic-bezier(.15,.6,.3,1)' });
+      anim = el.animate([{ opacity: top * beatGlow(kind), offset: 0 }], { duration: Math.max(220, spb * 1250), easing: 'cubic-bezier(.2,.5,.4,1)' });
     },
   };
 }

@@ -100,8 +100,9 @@ wins, except a later explicit decision by Rinat, which always wins.
   burst and a streak, and the gauge in its own tall panel) and forty-eight (PH2-48: more room
   between the panels, a wider gauge, the score centred, and a glow behind the panels that
   flashes with each beat in the colour of the note) and forty-nine (PH2-49: full screen drawn
-  larger on a big screen, so on a 4K TV its panels keep the shares they have on a laptop) are
-  built and live.
+  larger on a big screen, so on a 4K TV its panels keep the shares they have on a laptop) and
+  fifty (PH2-50: the glow's fade a little longer, and the score panel's list of lines scrolling
+  to every line of the run) are built and live.
   Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
 - **Review of 25–27 Oct (Claude, 2026-10-28, in chat):** the three day files and 52 takes in
@@ -118,7 +119,10 @@ wins, except a later explicit decision by Rinat, which always wins.
   61-key keyboard); the songs and exercises are at Sa C♯4, and the default 3-reed guide is heard
   at C♯3 (its bass reed: the app's detector reads it at 138.5 Hz), so Rinat matches the guide.
   "Octave must match" judged against C♯4; from round forty-two the bass reed's octave counts too.
-- **Next single action:** Rinat opens full screen on the 49-inch 4K TV (round forty-nine) and
+- **Next single action:** Rinat sings in full screen with round fifty: says whether the glow is
+  now noticeable enough without distracting (it stays bright about twice as long, no brighter),
+  and scrolls the score panel's list back through a long run's lines (the mouse wheel over it;
+  sideways along the strip on a phone). Round forty-nine: Rinat opens full screen on the 49-inch 4K TV and
   says whether the panels now keep their shares and whether everything is the right size from
   where Rinat sits (it is drawn as a 1440 × 900 screen's, scaled up: 2.4 times at 3840 × 2160,
   1.6 at 2560 × 1440). Round forty-eight with forty-seven, on a laptop and a
@@ -286,7 +290,8 @@ track, tell the voice what to match.
 - [ ] The exact commands run, and their results, recorded in the Work log.
 - [ ] Core tests green, and new behaviour comes with new tests.
 - [ ] The built-in exercises still check clean.
-- [ ] Works in both themes and stays responsive: no sideways scrolling at 360 px wide.
+- [ ] Works in both themes and stays responsive: no sideways scrolling at 360 px wide; a layout
+      that fills the screen (full screen) also checked at 3840 × 2160, Rinat's 4K TV.
 - [ ] The Invariants still hold.
 - [ ] Your own changes committed (green, or `wip:` with what is unfinished) and pushed.
 - [ ] At a milestone, the reply tells Rinat what changed and what to try.
@@ -482,6 +487,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
 | PH2-45 | Claude | Review | The time left, a song's progress where it is practised, the library first, the notes in ink (Rinat, 2026-10-31): while playing, the time left beside the title, to the second, the rounds, breaks and count-ins to come included, "in this round" for a loop with no end, held while paused, gone on Stop (`secondsLeft` in transport.ts; `leftAt`, `showLeft` in app.ts; `leftText` in view.ts; `.songleft`); the whole rewaz's in its bar, "0:14 left in all", the item's own and the items after it with the breaks between them, counted through the break before an item (`rewazLeft`, `showLeft` and `Rewaz.left` in rewaz.ts; `routineSeconds` from an item; `#rwLeft`); My progress under My takes for the open song: tiles, where it stands, going well and to work on, the score each session, the latest five sessions with Report and For AI, and its Report, For AI and See all in Progress (`songProgressHTML`, `showSong` in progress.ts; `songHeadline` from songreport.ts; `renderSongProgress` in app.ts; `#progBox`); the Music library's tab before Practice (index.html, `TABS`); the Practice sheet's notes in `--ink` (styles.css `.pnt`) | Tests: 43 files, 490 passed (10 new in timeleft.test.ts); headless Edge on `npm run dev` at 1280 px day and 360 px night: the title 0:15 → 0:10 a second a second, held at 0:10 paused, hidden on Stop, "0:13 left in this round" looping; a two-item rewaz 0:14 → 0:00 left in all through rounds and a 3 s break, hidden at "Rewaz done"; My progress with 7 seeded sessions; See all in Progress opening Pitch for the song; page 360 px wide; no console errors (Work log 2026-10-31, PH2-45) | Waiting for Rinat to play, run a rewaz and open My progress |
+| PH2-50 | Claude | Review | Full screen's glow and score list (Rinat, 2026-11-01: the glow "not noticeable enough, although i don't want it to be distracting either. maybe increase the fade out time just a tad longer"; "The score panel lists all the past line scores … could it be scrollable to see the rest?"): each flash fades over 1.25 beats, not 0.92, on a curve that lingers bright a little before it fades, its peak as it was (fullfx.ts); the list of lines scrolls (the mouse wheel, a finger; along the strip on a phone), every line of the run kept (up to 500, was the latest 40), fading at an end only when there is more past it; scrolled back to older lines they stay in view as new ones come in at the top, and at the top each new one is seen (fullscore.ts `edges`, styles.css `.fslines`) | Tests: 44 files, 504 passed; headless Edge on `npm run dev`: আরোহ-অবরোহ at tempo 96, each flash 781 ms (was 575), above half way from rest to its peak for 183 ms (was 91), back to 0.20–0.21 by the next beat, peaks unchanged (0.35, 0.43 on khali); লম্বা স্বর line 1 looping at 1280 × 640 with the pitch check on: 6 rows in a 78 px list, the wheel scrolled it 78 px and not the page, a new row while scrolled moved it 27 px on (one row) so the rows in view stayed, at the top a new row stayed in view; at 360 × 780 the strip scrolled sideways (175 px in 93); fades by `up` and `over`; no console errors (Work log 2026-11-01, PH2-50) | Waiting for Rinat to sing with it |
 | PH2-49 | Claude | Review | Full screen on a big screen (Rinat, 2026-11-01: "in my 49inch 4k tv which i use as my monitor, the main panel takes up all the space and the panels on the sides and top and bottom are relatively as lot thinner"): the side panels, the room between them, the bars' text and buttons all stop growing at a laptop's size, so on a big screen the lines took the rest; full screen is now drawn as a 1440 × 900 screen's and scaled up to fill a bigger one (CSS `zoom` on `.pview`; full.ts `fullZoom`, `scale`), never smaller, at most 3 times, following the window as it changes; a laptop's is as it was | Tests: 44 files, 504 passed (1 new in full.test.ts); headless Edge on `npm run dev`, playing with the pitch check on: at 1280 × 800, 1920 × 1080, 2560 × 1440 and 3840 × 2160 the zoom 1, 1.2, 1.6, 2.4; the score panel 13.8–14.0 % of the width, the lines 67.5 %, the gauge 11.0–11.3 %, the top bar 5.6–6.4 % of the height, the controls 8.7–9.8 %, at every size; the page never wider or taller than the screen; clicks land on the buttons in the zoomed bar; a window grown while on (2560 × 1300 to 3840 × 2160) went from 1.44 to 2.4; leaving full screen takes the zoom off; no console errors (Work log 2026-11-01, PH2-49) | Waiting for Rinat to see it on the TV |
 | PH2-48 | Claude | Review | Full screen's room, gauge, score and glow (Rinat, 2026-11-01: "more empty space between each panels, wider pitch gauge, scoring content vertically centre aligned"; "The empty spaces could have like animated colour intentisty chagne based on the beats and the notes … its the background, behind all the panels, so you can only see this effect between the panels"): the room between and round the panels 3 % of the screen's shorter side, 16–30 px (10 on a phone, 8 on a short screen); the gauge's panel 11 % wide, 130–180 px, its scale 44 px, its names bigger; the score panel's content centred up and down, its name at the top, the list of lines fading at its foot only when it overflows (styles.css; fullscore.ts `over`); a glow behind the panels (`#fullFx`, fullfx.ts: `initFullFx`, `beatKind`, `beatGlow`, `noteHue`, `noteAt`; app.ts `showBeat` → `fx.beat`): on each beat it flashes, sam brightest, then a tali, a khali and the beats between, and fades back over the beat; its colour the note starting in the beat (Sa gold, each semitone 30° on round the colour wheel), the count-in and silences keeping the last; faint while nothing plays; no flashing with reduced motion; the phone's title without the Exercise tag, so its top bar stays one row | Tests: 44 files, 503 passed (3 new in full.test.ts); headless Edge on `npm run dev`: at 1280 × 800 24 px between and round every panel, the gauge 141 px with a 44 px scale, the score's content centred (its middle 399 px, the panel's 398.5); every animation on the glow logged for আরোহ-অবরোহ at tempo 96: one per beat, 616–634 ms apart, 0.75 on sam, 0.43 on khali, 0.35 between, fading to 0.20 within 0.5 s; the count-in gold, then hues 40, 100, 160, 190, 250, 310, 10, 40 for S R G M P D N S'; by night peaks 0.90; stopped: 0.20, still; 360 × 780 the top bar one row; 780 × 360 the line being sung whole; no console errors (Work log 2026-11-01, PH2-48) | Waiting for Rinat to see it while singing |
 | PH2-47 | Claude | Review | Full screen as five panels (Rinat, 2026-11-01: a sketch of a top panel "with title, other details, remaining time, rewaz details", a "Scoring section, cumulative score and fun animated graphics" on the left, the "Main window with lines, notes etc." in the middle, a "Pitch guage" on the right and a panel "with play, pause, stop, restart, pitch, record etc" at the foot; "The percentages are not rigid"): the rewaz bar and the title's bar together in `.ptop`; `#fullScore`, `#fullGauge`; a grid of cards on `:root[data-full] .pview` (styles.css); Record me moved to the foot with the rest (full.ts). The score panel (fullscore.ts: `initScorePanel`, `scoreWord`, `streakOf`; fed by pitch.ts `panel`): the average in a ring filling and counting up to it, tinted by it, "This run" at the end; the latest line's score and a word springing up; a burst of sparks for a line in tune (85 or more); lines in tune in a row from 2; each line's score, the latest first, its bar growing, the best starred; Check my pitch asked for while it is off, the panel cleared when it is turned off. The gauge in its own panel as tall as the lines, the note expected by its middle, ♯ and ♭ (lines.ts `gaugeBox`, `.pgx`; pitch.ts `showGauge`). A phone or tablet held upright: lines, a score strip, controls, the gauge at the line's end. A wrapped line's strip down to 28 px where the line being sung would not fit whole (`fit`); fitted again after a resize settles | Tests: 44 files, 500 passed (3 new in full.test.ts); headless Edge on `npm run dev`, a fake voice on Sa: at 1280 × 800 the five panels (top 51 px, score 179 × 623, lines 944 × 623, gauge 109 × 623, foot 78 px), লম্বা স্বর's Sa line looping: "100 Superb!", the burst, "4 in a row", the best starred, then Re at 0 ending the streak, "50 This run"; the pitch check off: the ring faint with how to turn it on, the gauge faint; a rewaz's bar in the top panel (109 px); 360 × 780 night: the score strip and the gauge in the line; 780 × 360: the line being sung whole (strip 47 px); 768 × 1024: stacked, 7 lines; no console errors (Work log 2026-11-01, PH2-47) | Waiting for Rinat to sing with it on a laptop and a phone |
@@ -644,6 +650,9 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-11-01 | **More room in full screen, a wider gauge, the score centred:** the room between and round the panels is 3 % of the screen's shorter side, 16–30 px (24 on a 1280 × 800 laptop; 10 on a phone, 8 on a short screen); the gauge's panel 11 % of the width, 130–180 px, its scale 44 px; the score panel's content centred up and down under its name, the list of lines fading at the foot only when there are more than fit. | Rinat, chat 2026-11-01 ("more empty space between each panels, wider pitch gauge, scoring content vertically centre aligned"); the sizes, Claude's | styles.css `:root[data-full] .pview`, `.fgauge`, `.fscore`. |
 | 2026-11-01 | **A glow behind full screen's panels, seen only in the room between them:** it flashes on every beat and fades back over the beat, brightest on sam, then a tali (0.78 of it), a khali (0.58) and the beats between (0.46), at most 0.75 opaque by day and 0.9 by night, resting at 0.2 (0.24 by night) while nothing plays; its colour the note starting in the beat, else the one held through it: Sa gold (40°), each semitone 30° on round the colour wheel (Re green, Ga teal, Pa blue-violet, Ni red), the count-in and silences keeping the last; brightest in the middle of the screen; no flashing with reduced motion. | Rinat, chat 2026-11-01 ("animated colour intentisty chagne based on the beats and the notes … behind all the panels, so you can only see this effect between the panels"); the strengths and colours, Claude's | src/app/fullfx.ts; app.ts `showBeat`; styles.css `.fullfx`. |
 | 2026-11-01 | **Full screen on a big screen is drawn larger, as a whole:** as a 1440 × 900 screen's, scaled up by the smaller of the width's and the height's share (1.2 at 1920 × 1080, 1.6 at 2560 × 1440, 2.4 at 3840 × 2160), never smaller, at most 3 times; so every panel keeps the share it has on a laptop and the notes, buttons and text grow with the screen. The page outside full screen is not scaled. | Rinat, chat 2026-11-01 (on a 49-inch 4K TV the side, top and bottom panels looked thin beside the lines); scaling as a whole, Claude's | src/app/full.ts `fullZoom`, `scale`. |
+| 2026-11-01 | **The glow lingers a little longer:** each flash fades over 1.25 beats (at least 220 ms), on a curve that stays above half way from rest to its peak about a fifth of the way through (183 ms at tempo 96, from 91), the next beat's flash taking over as it all but rests; its peaks as before. Replaces "fades back over the beat" in the glow's row above. | Rinat, chat 2026-11-01 ("not noticeable enough, although i don't want it to be distracting either. maybe increase the fade out time just a tad longer"); the curve, Claude's | src/app/fullfx.ts. |
+| 2026-11-01 | **The score panel's list of lines scrolls:** every line of the run is kept (up to 500) and the list scrolls inside the panel (the mouse wheel or a finger; sideways along the strip on a phone), fading at an end only when there is more past it; scrolled back, the rows in view stay as new lines come in at the top. Full screen's page does not scroll, so this list catching the wheel takes nothing from it (unlike the lists of 2026-10-23). | Rinat, chat 2026-11-01 ("could it be scrollable to see the rest?") | src/app/fullscore.ts `edges`; styles.css `.fslines`. |
+| 2026-11-01 | **A layout that fills the screen is checked at 4K too:** full screen (and anything like it) is measured at 3840 × 2160 as well as at a laptop's and a phone's size; Rinat's monitor is a 49-inch 4K TV. | Claude, after Rinat's report of thin panels on the TV (round forty-nine) | CONTEXT.md, Definition of done. |
 | 2026-10-23 | **Built-in exercises stay read-only for now** (Open question 6 answered): they cannot be changed or deleted; copy one to change it. Claude's proposal (changed in place as the user's own, deleted or hidden, a "Bring back the built-in exercises" button) is not built. | Rinat, chat 2026-10-23 ("Keep the built-in exercises read-only for now.") | Invariants → Never lose a song unchanged; Open question 6 removed. |
 | 2026-10-23 | **A break between rounds,** when looping on the Practice view (the Guide panel's "Break between rounds", seconds) and in a rewaz (each routine's "Break between rounds", separate from its break between items): silence with the drone going on, then the count-in again when it is on, and any pickup, then the next round; the line's box counts it down; none after the last round; the note before it fades as at an ending. A pause in a break goes on with the next round. Takes keep it. | Rinat, chat 2026-10-23 ("i'd like the option to add some delay between loops and also between rounds when doing rewaz with multiple rounds"); the count-in again, the drone going on, the countdown, a setting on the Guide panel and per routine are Claude's | transport.ts `gap`; prefs `loopGap`; Routine `roundGap`; Take `gap`; session settings `gap`; docs/ENGINE.md → Transport, DATA.md |
 | 2026-10-23 | **My takes as a table:** grouped by song or by date, each group folding (the first three open), a tick box on each take, on each song's or day's group and Tick all; the takes ticked are deleted together, asked first in the table's bar. | Rinat, chat 2026-10-23 ("needs all the bells and whistles of a table - should be collapsible the song name or the date taken. want to be able to select all the takes in a particular day and delete together. also all the takes of a particular song"; "if multiple takes are deleted together, only then confirmation is fine") | takes.ts `takeGroups`, `allTakesHTML`; prefs `tkGroup`; docs/ENGINE.md → Takes |
@@ -724,6 +733,41 @@ Template:
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
 
+### 2026-11-01 GMT — Claude (Opus 5.5) — PH2-50 full screen's glow and score list
+
+- **Goal:** Rinat: "the glow effect on beat is also ok, but not noticeable enough, although i
+  don't want it to be distracting either. maybe increase the fade out time just a tad longer.
+  The score panel lists allt he past line scores. when there is a lot of lines, it show as much
+  as it can fit. could it be scrollable to see the rest?"
+- **Inspected:** fullfx.ts (each flash 0.92 of a beat on `cubic-bezier(.15,.6,.3,1)`: above
+  half way for only the first 15 % of it); fullscore.ts (the latest 40 rows kept, newest
+  prepended, `over` set only as a row came in); styles.css `.fslines` (`overflow:hidden`; on a
+  phone a strip with a fade always on its right).
+- **Changed:** `feat(practice): full screen's glow lingers a little longer, the score list
+  scrolls` — src/app/fullfx.ts (1.25 beats, at least 220 ms, `cubic-bezier(.2,.5,.4,1)`);
+  src/app/fullscore.ts (`KEEP` 500, `edges` on scroll and resize, rows in view kept as a new
+  one is prepended); src/app/styles.css (`.fslines` scrolls, thin scrollbar, `overflow-anchor:
+  none`, fades by `up` and `over` down the panel and along the phone's strip); docs/ROADMAP.md
+  (row 50); docs/HISTORY.md (the PH2-48 entry); this file (also the Definition of done: 4K).
+- **Tests / verification:** `npx tsc --noEmit -p .` exit 0; `npx vitest run` → 44 files, 504
+  passed; `npm run build` → 397.09 kB JS, 91.24 kB CSS; `bash reference/tests/run-all.sh` →
+  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge
+  on `npm run dev` (scratchpad `cdp50.mjs`, the glow's `animate` calls logged and its opacity
+  read each frame): আরোহ-অবরোহ at tempo 96, each flash 781 ms; first with the old curve, above
+  half way for 116 ms; with the new, 183 ms (the old 575 ms flash: 91 ms, worked out from its
+  curve), back to 0.20–0.21 by the next beat, peaks 0.35 and 0.43 (khali) as before. লম্বা
+  স্বর line 1 looping at tempo 240, Sa on C♯4 and the fake voice on it, at 1280 × 640: with 6
+  rows the list 78 px tall of 156, `over`; a mouse wheel over it scrolled it to 78 (`up`), the
+  page not at all; a new row while scrolled took it to 105 (one row on, the rows in view kept);
+  wheeled to the top, the next new row stayed in view at 0; at 360 × 780 the strip 175 px in
+  93, scrolled along 60 px, `up over`; no console errors. A second run, cut short by a pipe
+  after the glow, left a headless Edge, stopped by hand.
+- **Decisions made:** three 2026-11-01 rows (the glow lingers; the list scrolls; 4K checked).
+- **Risks or disagreements:** whether the glow is now enough or too much is Rinat's to see
+  while singing. On a short laptop screen the list has room for only 3 rows before it scrolls
+  (78 px at 1280 × 640; more at 800 tall).
+- **Next handoff:** Rinat sings with it (Next single action); Claude adjusts.
+
 ### 2026-11-01 GMT — Claude (Opus 5.5) — PH2-49 full screen on a big screen
 
 - **Goal:** Rinat: "i see in your screenshots that the proportions are good, they look good and
@@ -755,42 +799,3 @@ Template:
   from close up, or still too small from a sofa (the 1440 × 900 base is easy to change). CSS
   `zoom` needs Chrome or Edge 128, Firefox 126 or Safari; an older browser draws it as before.
 - **Next handoff:** Rinat looks at it on the TV (Next single action); Claude adjusts.
-
-### 2026-11-01 GMT — Claude (Opus 5.5) — PH2-48 full screen's room, gauge, score and glow
-
-- **Goal:** Rinat: "more empty space between each panels, wider pitch gauge, scoring content
-  vertically centre aligned. The empty spaces could have like animated colour intentisty chagne
-  based on the beats and the notes. So, an animated effect where the brightness changes based on
-  the beats but its the background, behind all the panels, so you can only see this effect
-  between the panels int he empty section."
-- **Inspected:** app.ts (`showBeat`, `markTaal`, `highlight`: every beat shown passes through
-  `showBeat` with its taal beat `q.p`, song beat `q.s`, round and tempo); taals.ts (`markAt`:
-  X sam, 0 khali, a number a tali); track.ts (`eventsByBeat`); the full screen styles and
-  fullscore.ts from round forty-seven.
-- **Changed:** `feat(practice): full screen's panels spaced, a wider gauge, the score centred,
-  a glow with the beats` — src/app/fullfx.ts (new: `initFullFx`, `beatKind`, `beatGlow`,
-  `noteHue`, `noteAt`); app.ts (`fx`, `fxNote`, `fx.beat` in `showBeat`); fullscore.ts (`over`
-  on the list when it overflows); index.html (`#fullFx` first in `.pview`); styles.css (the
-  room, the gauge's sizes, the score centred, `.fullfx` by day and night, the phone's title
-  tag hidden); tests/unit/full.test.ts (3 new); docs/ROADMAP.md (row 48); docs/HISTORY.md (the
-  PH2-46 entry); this file.
-- **Tests / verification:** `npx tsc --noEmit -p .` exit 0; `npx vitest run` → 44 files, 503
-  passed; `npm run build` → 396.47 kB JS, 90.51 kB CSS; `bash reference/tests/run-all.sh` →
-  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge
-  on `npm run dev` (scratchpad `cdp48.mjs`, `cdp48dbg.mjs`): at 1280 × 800 day 24 px between
-  and round every panel, the gauge's panel 141 px with a 44 px scale, the score's content
-  centred (its middle 399 px, the panel's content box 398.5) with 1 line and with 4; the glow's
-  animations logged while আরোহ-অবরোহ played at tempo 96: 17 in 10.5 s, one per beat 616–634
-  ms apart, 0.75 on sam, 0.43 on khali, 0.35 between, falling to 0.20 within 0.5 s (sampled each
-  frame); the count-in's 8 beats gold, then hues 40, 100, 160, 190, 250, 310, 10, 40 for S R G M
-  P D N S'; stopped, 0.20 and still. The first try started the flash at the end of the beat (a
-  single keyframe is the last); fixed with offset 0. By night peaks of 0.90, Ga's teal-green
-  round the panels; 360 × 780 the top bar one row (two, with the Exercise tag, before hiding
-  it); 780 × 360 the line being sung whole (strip 46 px); no console errors.
-- **Decisions made:** two 2026-11-01 rows (the room, gauge and centred score; the glow).
-- **Risks or disagreements:** not seen by Rinat or on a real phone: whether the flashes are
-  pleasant or too much while singing (strengths and the resting glow are easy to change), and
-  whether they keep time on a phone (they start when each beat is shown, as the lines light).
-  The 24 px of room and the wider gauge leave the lines 864 px of a 1280 px laptop: a 16-beat
-  line still fits on one row there.
-- **Next handoff:** Rinat looks at it while singing (Next single action); Claude adjusts.

@@ -50,6 +50,45 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-11-01 GMT — Claude (Opus 5.5) — PH2-48 full screen's room, gauge, score and glow
+
+- **Goal:** Rinat: "more empty space between each panels, wider pitch gauge, scoring content
+  vertically centre aligned. The empty spaces could have like animated colour intentisty chagne
+  based on the beats and the notes. So, an animated effect where the brightness changes based on
+  the beats but its the background, behind all the panels, so you can only see this effect
+  between the panels int he empty section."
+- **Inspected:** app.ts (`showBeat`, `markTaal`, `highlight`: every beat shown passes through
+  `showBeat` with its taal beat `q.p`, song beat `q.s`, round and tempo); taals.ts (`markAt`:
+  X sam, 0 khali, a number a tali); track.ts (`eventsByBeat`); the full screen styles and
+  fullscore.ts from round forty-seven.
+- **Changed:** `feat(practice): full screen's panels spaced, a wider gauge, the score centred,
+  a glow with the beats` — src/app/fullfx.ts (new: `initFullFx`, `beatKind`, `beatGlow`,
+  `noteHue`, `noteAt`); app.ts (`fx`, `fxNote`, `fx.beat` in `showBeat`); fullscore.ts (`over`
+  on the list when it overflows); index.html (`#fullFx` first in `.pview`); styles.css (the
+  room, the gauge's sizes, the score centred, `.fullfx` by day and night, the phone's title
+  tag hidden); tests/unit/full.test.ts (3 new); docs/ROADMAP.md (row 48); docs/HISTORY.md (the
+  PH2-46 entry); this file.
+- **Tests / verification:** `npx tsc --noEmit -p .` exit 0; `npx vitest run` → 44 files, 503
+  passed; `npm run build` → 396.47 kB JS, 90.51 kB CSS; `bash reference/tests/run-all.sh` →
+  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge
+  on `npm run dev` (scratchpad `cdp48.mjs`, `cdp48dbg.mjs`): at 1280 × 800 day 24 px between
+  and round every panel, the gauge's panel 141 px with a 44 px scale, the score's content
+  centred (its middle 399 px, the panel's content box 398.5) with 1 line and with 4; the glow's
+  animations logged while আরোহ-অবরোহ played at tempo 96: 17 in 10.5 s, one per beat 616–634
+  ms apart, 0.75 on sam, 0.43 on khali, 0.35 between, falling to 0.20 within 0.5 s (sampled each
+  frame); the count-in's 8 beats gold, then hues 40, 100, 160, 190, 250, 310, 10, 40 for S R G M
+  P D N S'; stopped, 0.20 and still. The first try started the flash at the end of the beat (a
+  single keyframe is the last); fixed with offset 0. By night peaks of 0.90, Ga's teal-green
+  round the panels; 360 × 780 the top bar one row (two, with the Exercise tag, before hiding
+  it); 780 × 360 the line being sung whole (strip 46 px); no console errors.
+- **Decisions made:** two 2026-11-01 rows (the room, gauge and centred score; the glow).
+- **Risks or disagreements:** not seen by Rinat or on a real phone: whether the flashes are
+  pleasant or too much while singing (strengths and the resting glow are easy to change), and
+  whether they keep time on a phone (they start when each beat is shown, as the lines light).
+  The 24 px of room and the wider gauge leave the lines 864 px of a 1280 px laptop: a 16-beat
+  line still fits on one row there.
+- **Next handoff:** Rinat looks at it while singing (Next single action); Claude adjusts.
+
 ### 2026-11-01 GMT — Claude (Opus 5.5) — PH2-47 full screen as five panels
 
 - **Goal:** Rinat sent a sketch of full screen: a top "Panel with title, other details,

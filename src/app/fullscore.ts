@@ -9,8 +9,8 @@ import { ragColour } from './lines';
 
 /** A line in tune: as its beats are marked green (pitch.ts `grade`). */
 export const IN_TUNE_SCORE = 85;
-/** The lines kept in the list: the latest. */
-const KEEP = 40;
+/** The lines kept in the list, the latest (Rinat, 2026-11-01: scrolled to "see the rest"). */
+const KEEP = 500;
 
 /** A word for a line's score as it ends (NaN: not heard). */
 export function scoreWord(score: number): string {
@@ -52,6 +52,15 @@ export function initScorePanel(): ScorePanel {
   /** The number in the ring, counting towards the average. */
   let shown = 0;
   let raf = 0;
+
+  /** The list fades at an end with more past it to scroll to: `up` at its start, `over` at its
+   * end (down the panel; along the strip on a phone). */
+  function edges(): void {
+    list.classList.toggle('up', list.scrollTop > 1 || list.scrollLeft > 1);
+    list.classList.toggle('over', list.scrollHeight > list.scrollTop + list.clientHeight + 1 || list.scrollWidth > list.scrollLeft + list.clientWidth + 1);
+  }
+  list.addEventListener('scroll', edges, { passive: true });
+  new ResizeObserver(edges).observe(list);
 
   /** Start an animation again from its beginning. */
   function replay(el: HTMLElement, cls: string): void {
@@ -103,9 +112,16 @@ export function initScorePanel(): ScorePanel {
     li.style.setProperty('--lc', ragColour(score));
     li.innerHTML = '<span class="fsn">' + (n + 1) + '</span><span class="fsb"><i style="width:' + (heard ? Math.max(2, score) : 0) + '%"></i></span><b>' + (heard ? score : '–') + '</b>';
     li.setAttribute('aria-label', 'Line ' + (n + 1) + (heard ? ': ' + score + ' out of 100' : ': not heard'));
+    // Scrolled back to older lines: they stay in view as the new one comes in at the top.
+    const was = list.firstElementChild as HTMLElement | null;
+    const at = was && (list.scrollTop > 1 || list.scrollLeft > 1) ? [was.offsetTop, was.offsetLeft] : null;
     list.prepend(li);
+    if (at) {
+      list.scrollTop += was!.offsetTop - at[0]!;
+      list.scrollLeft += was!.offsetLeft - at[1]!;
+    }
     while (list.children.length > KEEP) list.lastElementChild!.remove();
-    list.classList.toggle('over', list.scrollHeight > list.clientHeight + 1);
+    edges();
     // The best line of the run so far gets a star.
     if (heard && score > 0 && (!best || score > best.score)) {
       best?.el.classList.remove('best');
@@ -128,7 +144,7 @@ export function initScorePanel(): ScorePanel {
     scores = [];
     best = null;
     list.textContent = '';
-    list.classList.remove('over');
+    list.classList.remove('over', 'up');
     pop.textContent = '';
     pop.classList.remove('go');
     burst.classList.remove('go');
