@@ -1223,11 +1223,12 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
    their right, each as tall as the lines; the deck's controls at the foot, moved into a strip of
    the deck. The strip of the line being sung is as tall as the lines' panel leaves room for
    (--fsh, from lines.ts), its notes named up its side. On a phone held upright the score goes
-   under the lines in a strip and the gauge stays at the end of the line being sung.
-   src/app/full.ts, fullscore.ts. */
+   under the lines in a strip and the gauge stays at the end of the line being sung. Behind the
+   panels, seen in the room between them, a glow flashes with the beats, coloured by the notes.
+   src/app/full.ts, fullscore.ts, fullfx.ts. */
 .pview{display:grid;gap:14px}
 .ptop{display:contents}
-.fscore,.fgauge,.pgx{display:none}
+.fscore,.fgauge,.pgx,.fullfx{display:none}
 .fullbtn,.rwfull{display:inline-flex;align-items:center;gap:6px}
 .fullbtn{align-self:center;padding:5px 11px;font-size:13.5px}
 .fullbtn svg,.rwfull svg{width:16px;height:16px;flex:none}
@@ -1236,8 +1237,13 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 :root[data-full] .wrap{display:block;max-width:none;padding:0 env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px);height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
 :root[data-full] .wrap>:not(#practice){display:none}
 :root[data-full] #practice{height:100%}
-:root[data-full] .pview{--fgap:clamp(8px,1.5vmin,14px);--card:0 1px 2px var(--shadow),0 10px 28px -18px var(--shadow);display:grid;grid-template-columns:clamp(150px,14vw,220px) minmax(0,1fr) clamp(92px,8.5vw,128px);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"top top top" "score lines gauge" "ctl ctl ctl";gap:var(--fgap);height:100%;padding:var(--fgap)}
-:root[data-full] .pview>:not(.ptop,.fscore,.pl,.fgauge,.fullctl){display:none}
+:root[data-full] .pview{--fgap:clamp(16px,3vmin,30px);position:relative;isolation:isolate;--card:0 1px 2px var(--shadow),0 10px 28px -18px var(--shadow);display:grid;grid-template-columns:clamp(150px,14vw,220px) minmax(0,1fr) clamp(130px,11vw,180px);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"top top top" "score lines gauge" "ctl ctl ctl";gap:var(--fgap);height:100%;padding:var(--fgap)}
+:root[data-full] .pview>:not(.ptop,.fscore,.pl,.fgauge,.fullctl,.fullfx){display:none}
+/* The glow behind the panels, seen between them: fullfx.ts flashes its opacity on each beat to
+   --fxmax times the beat's strength and lets it fade back to this; its colour the note's hue. */
+:root[data-full] .fullfx{--fxh:40;--fxmax:.75;display:block;position:absolute;inset:0;z-index:-1;pointer-events:none;color:hsl(var(--fxh) 85% 52%);opacity:.2;transition:color .35s ease;background:radial-gradient(60% 55% at 50% 50%,currentColor,transparent 100%),radial-gradient(140% 120% at 50% 50%,color-mix(in srgb,currentColor 55%,transparent),transparent 72%)}
+@media (prefers-color-scheme: dark){:root[data-full]:not([data-theme="light"]) .fullfx{--fxmax:.9;color:hsl(var(--fxh) 80% 50%);opacity:.24}}
+:root[data-full][data-theme="dark"] .fullfx{--fxmax:.9;color:hsl(var(--fxh) 80% 50%);opacity:.24}
 :root[data-full] :is(.ptop,.fscore,.fgauge){background:var(--sheet);border:1px solid var(--line);border-radius:16px;box-shadow:var(--card);min-width:0;min-height:0;overflow:hidden}
 :root[data-full] .ptop{grid-area:top;display:flex;flex-direction:column}
 :root[data-full] .rbar{border-width:0 0 1px 4px;border-radius:0}
@@ -1266,7 +1272,8 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 
 /* The score panel: the average in a ring, the latest line's score springing up with a word, a
    streak of lines in tune, and each line's score, the latest first. */
-:root[data-full] .fscore{grid-area:score;position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 12px 0}
+:root[data-full] .fscore{grid-area:score;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:40px 12px 16px}
+:root[data-full] .fscore>.fph{position:absolute;top:14px;left:0;right:0;text-align:center}
 .fsring{--rs:150px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:min(100%,var(--rs));aspect-ratio:1;flex:none}
 .fsring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
 .fstrk,.fsarc{fill:none;stroke-width:9}
@@ -1292,7 +1299,9 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .fspop.go{animation:fspop .6s cubic-bezier(.3,1.6,.5,1)}
 @keyframes fspop{0%{opacity:0;transform:translateY(12px) scale(.6)}100%{opacity:1;transform:none}}
 .fsh2{align-self:stretch;margin-top:2px;padding-top:8px;border-top:1px solid var(--rule)}
-.fslines{align-self:stretch;flex:1 1 0;min-height:0;display:grid;align-content:start;gap:6px;margin:0;padding:0 0 12px;list-style:none;overflow:hidden;-webkit-mask-image:linear-gradient(#000 calc(100% - 36px),transparent);mask-image:linear-gradient(#000 calc(100% - 36px),transparent)}
+.fslines{align-self:stretch;flex:0 1 auto;min-height:0;display:grid;align-content:start;gap:6px;margin:0;padding:0;list-style:none;overflow:hidden}
+/* More lines than there is room for: the oldest fade out at the foot. */
+.fslines.over{-webkit-mask-image:linear-gradient(#000 calc(100% - 36px),transparent);mask-image:linear-gradient(#000 calc(100% - 36px),transparent)}
 .fsl{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:7px;font-size:13.5px;animation:fsin .45s ease-out}
 .fsn{border-radius:6px;background:var(--chip);color:var(--ink-2);font-weight:700;line-height:21px;text-align:center;font-variant-numeric:tabular-nums}
 .fsl.best .fsn{background:var(--brass);color:var(--brass-ink)}
@@ -1314,16 +1323,16 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 :root[data-full] .fgauge{grid-area:gauge;display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 6px 12px}
 .fgauge .pgauge{flex:1 1 auto;align-self:stretch;min-height:0;gap:8px;padding:2px 0 0;border-left:0;transition:opacity .3s}
 .fgauge .pgauge.dim{opacity:.35}
-.fgauge .pgn{font-size:clamp(30px,3.4vw,50px)}
-.fgauge .pgs{width:30px;min-height:0}
-.fgauge .pgt{border-radius:15px}
-.fgauge .pgc{left:-6px;right:-6px}
-.fgauge .pgm{left:-11px;right:-11px;height:10px;margin-top:-5px;border-radius:5px}
-.fgauge .pgv{font-size:20px}
-.fgauge .pgs::before,.fgauge .pgs::after{position:absolute;left:calc(100% + 9px);font-size:16px;line-height:1;color:var(--ink-2)}
+.fgauge .pgn{font-size:clamp(34px,3.8vw,56px)}
+.fgauge .pgs{width:44px;min-height:0}
+.fgauge .pgt{border-radius:22px}
+.fgauge .pgc{left:-8px;right:-8px}
+.fgauge .pgm{left:-13px;right:-13px;height:12px;margin-top:-6px;border-radius:6px}
+.fgauge .pgv{font-size:22px}
+.fgauge .pgs::before,.fgauge .pgs::after{position:absolute;left:calc(100% + 11px);font-size:19px;line-height:1;color:var(--ink-2)}
 .fgauge .pgs::before{content:"♯";top:4px}
 .fgauge .pgs::after{content:"♭";bottom:4px}
-.fgauge .pgx{display:block;position:absolute;right:calc(100% + 9px);top:50%;transform:translateY(-50%);font-family:var(--f-note);font-size:18px;line-height:1.2;color:var(--ink);white-space:nowrap}
+.fgauge .pgx{display:block;position:absolute;right:calc(100% + 11px);top:50%;transform:translateY(-50%);font-family:var(--f-note);font-size:21px;line-height:1.2;color:var(--ink);white-space:nowrap}
 
 /* The deck's controls in a strip of the deck at the foot: Check my pitch, Restart, Play, Stop,
    Record me, Play in the middle. */
@@ -1343,7 +1352,7 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .fbtitle{font-family:var(--f-note);font-weight:400;font-size:clamp(26px,5vw,40px);line-height:1.2;color:var(--ink);text-wrap:balance}
 .fbwhat{font-size:15px;color:var(--ink-2)}
 .fbcount{margin:6px 0 10px;font-size:clamp(56px,14vh,120px);font-weight:600;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
-@media (prefers-reduced-motion:reduce){.fsarc,.fsring b,.fgauge .pgauge{transition:none}.fsburst.go i,.fsstreak.go,.fsstreak.go svg,.fspop.go,.fsl,.fsb i{animation:none}}
+@media (prefers-reduced-motion:reduce){.fsarc,.fsring b,.fgauge .pgauge,:root[data-full] .fullfx{transition:none}.fsburst.go i,.fsstreak.go,.fsstreak.go svg,.fspop.go,.fsl,.fsb i{animation:none}}
 /* A phone or a tablet held upright: the lines, then the score in a strip under them (while the
    pitch check is on), then the controls; the gauge at the end of the line being sung, as on
    Practice (three columns would leave the lines too narrow). */
@@ -1367,8 +1376,10 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
   .fsn{min-width:20px;line-height:18px;border-radius:999px}
 }
 @media (max-width:520px){
+  :root[data-full] .pview{--fgap:10px}
   :root[data-full] .sheetHead{padding:5px 8px 5px 12px;gap:2px 10px}
   :root[data-full] .sheetHead h2{font-size:17px}
+  :root[data-full] .sheetHead h2 .tag{display:none}
   :root[data-full] .fullwhere{font-size:12.5px}
   :root[data-full] .fullbtn{padding:5px 8px}
   :root[data-full] .fullbtn .fboff{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -1386,7 +1397,7 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 /* A short screen (a phone on its side): the panels closer, the bars and the line being sung's
    notes smaller, the ring and the gauge's names smaller. */
 @media (max-height:500px){
-  :root[data-full] .pview{--fgap:6px;grid-template-columns:clamp(118px,15vw,170px) minmax(0,1fr) clamp(76px,9vw,110px)}
+  :root[data-full] .pview{--fgap:8px;grid-template-columns:clamp(118px,15vw,170px) minmax(0,1fr) clamp(90px,11vw,120px)}
   :root[data-full] .sheetHead{padding-block:3px}
   :root[data-full] .sheetHead h2{font-size:17px}
   :root[data-full] .rbar{padding-block:4px}
@@ -1398,7 +1409,7 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
   :root[data-full] .pll.cur .plnum{font-size:22px}
   :root[data-full] .pll.cur .tf{--tmin:22px;--tg:3px;margin-top:2px}
   :root[data-full] .pll.cur .tfn{display:none}
-  :root[data-full] .fscore{gap:4px;padding:8px 8px 0}
+  :root[data-full] .fscore{gap:4px;padding:8px}
   :root[data-full] .fscore>:is(.fph,.fsh2,.fssung){display:none}
   .fsring{--rs:84px}
   .fsring b{font-size:24px}
@@ -1408,8 +1419,8 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
   .fsl{font-size:12.5px;gap:5px;grid-template-columns:24px minmax(0,1fr) auto}
   :root[data-full] .fgauge{padding:8px 4px}
   :root[data-full] .fgauge .fph{display:none}
-  .fgauge .pgn{font-size:24px}
-  .fgauge .pgs{width:22px}
+  .fgauge .pgn{font-size:28px}
+  .fgauge .pgs{width:30px}
   .fgauge .pgv{font-size:15px}
   .fgauge .pgx{font-size:15px}
 }

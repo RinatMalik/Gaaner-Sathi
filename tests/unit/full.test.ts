@@ -4,6 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import page from '../../index.html?raw';
 import { whereText } from '../../src/app/full';
+import { beatGlow, beatKind, noteAt, noteHue } from '../../src/app/fullfx';
 import { scoreWord, streakOf } from '../../src/app/fullscore';
 import { axisNotes, gaugeHTML } from '../../src/app/lines';
 import { itemWhat, type ItemSong } from '../../src/app/rewaz';
@@ -72,6 +73,30 @@ describe('the score panel', () => {
     expect(streakOf([90, 92, 84])).toBe(0);
     // A line not heard ends it.
     expect(streakOf([90, NaN, 88])).toBe(1);
+  });
+});
+
+describe('the glow behind the panels', () => {
+  it('flashes brightest on sam, then a tali, a khali, and least between', () => {
+    expect([beatKind('X'), beatKind('2'), beatKind('0'), beatKind(undefined)]).toEqual(['sam', 'tali', 'khali', '']);
+    const g = (['sam', 'tali', 'khali', ''] as const).map(beatGlow);
+    expect(g[0]).toBe(1);
+    expect(g.every((v, i) => i === 0 || v < g[i - 1]!)).toBe(true);
+  });
+
+  it('takes its colour from the note: Sa gold, each semitone on round the wheel', () => {
+    expect(noteHue(0)).toBe(40);
+    expect(noteHue(7)).toBe(250);
+    expect(noteHue(11)).toBe(10);
+    expect(noteHue(-1)).toBe(noteHue(11));
+    expect(new Set(Array.from({ length: 12 }, (_, i) => noteHue(i))).size).toBe(12);
+  });
+
+  it('finds the note starting in a beat, else the one held through it', () => {
+    const P = parseSong('S - R G | P - - -');
+    const by = eventsByBeat(P);
+    expect([0, 1, 2, 3, 4, 5].map((g) => noteAt(P, by, g))).toEqual([0, 0, 2, 4, 7, 7]);
+    expect(noteAt(parseSong('S x R'), eventsByBeat(parseSong('S x R')), 1)).toBeNull();
   });
 });
 

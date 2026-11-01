@@ -37,7 +37,7 @@ import type { Beat, ParsedSong, Unit } from '../core/notation/types';
 import { analyse } from '../core/practice/insights';
 import { dayNumber, lastPractised, lengthText, MIN_LOG_SECS, noteTally, type LogEntry } from '../core/practice/log';
 import type { PitchDetail, PlayedSettings, PlayedSong, SessionDetail } from '../core/practice/session';
-import { octaveFor } from '../core/pitch/track';
+import { eventsByBeat, octaveFor } from '../core/pitch/track';
 import { songSpan } from '../core/pitch/voice';
 import { itemLines, newRoutineId, ROUTINE_LIMITS, STARTER, type Routine, type RoutineItem } from '../core/practice/routine';
 import { clockText, keepsTake, newTakeId, textSig, type Take } from '../core/practice/take';
@@ -53,6 +53,7 @@ import { initPitch, type PitchUI } from './pitch';
 import { initBoxes, withNewHeading, type Boxes } from './boxes';
 import { initKeyboard, keyboardHTML, keyName, keyRange, keysToFill, type KeyboardUI } from './keyboard';
 import { initFull, whereText, type Full } from './full';
+import { beatKind, initFullFx, noteAt, type FullFx } from './fullfx';
 import { initScorePanel } from './fullscore';
 import { initLines, type LinesUI } from './lines';
 import { initPrint } from './print';
@@ -124,6 +125,14 @@ let pitchUI: PitchUI = { on: false, startRun() {}, pause() {}, resume() {}, beat
 let rewaz: Rewaz = { render() {}, active: false, name: '', finished() {}, cancel() {}, now() {}, beat() {}, rest() {}, left() {} };
 let progressView: { render(): void; showSong(id: string): void } = { render() {}, showSong() {} };
 let full: Full = { on: false, set() {} };
+/** Full screen's background, glowing with the beats and the notes. */
+let fx: FullFx = { beat() {} };
+/** The notes sounding in each song beat, for the glow's colour (worked out once a song). */
+let fxBeats: { P: ParsedSong; by: number[][] } | null = null;
+function fxNote(g: number): number | null {
+  if (fxBeats?.P !== parsed) fxBeats = { P: parsed, by: eventsByBeat(parsed) };
+  return noteAt(parsed, fxBeats.by, g);
+}
 /** The Practice view's lines, wired up first by init (every parse draws them). */
 let lines!: LinesUI;
 /** A MIDI keyboard, wired up by init. */
@@ -1128,6 +1137,7 @@ function showBeat(q: BeatEntry): void {
   const tq = taals.beat(q.pass < 0 ? (T?.secStart ?? 0) : q.s).T;
   if (tq.id !== stripTaal?.id) renderTaal(tq);
   markTaal(q.p);
+  fx.beat(beatKind(tq.markAt.get(q.p)), q.pass < 0 ? null : fxNote(q.s), 60 / q.tempo);
   if (prefs.showKeys) markKeys(q.pass < 0 ? -1 : q.s, q.pass < 0 ? (T?.secStart ?? 0) : nextBeat(q.s));
   if (q.pass < 0) {
     // The count-in: the first line to sing waits, counting down.
@@ -2941,6 +2951,7 @@ export function init(): void {
     },
     practice: () => !$('#practice').hidden,
   });
+  fx = initFullFx($('#fullFx'), () => full.on);
   keyboard = initKeyboard({
     saMidi: () => saMidi(current),
     editorOpen: () => !$('#edit').hidden,

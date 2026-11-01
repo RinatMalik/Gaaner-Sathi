@@ -50,6 +50,63 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-31 GMT — Claude (Opus 5.5) — PH2-46 full screen while practising
+
+- **Goal:** Rinat: "an option to go full screen when a song is playing or a rewaz is ongoing …
+  just the practice window with notes, the play, pause, stop, restart button. and a much larger
+  area to show the vertical pitch visualisation. What else should be there? Let's plan first";
+  then, on Claude's plan: "pitch drawn choise - A", "Rewaz to not open full screen by default",
+  "even in full screen view, show the practice page notes window … whatever is chosen in the
+  practice page, have the full screen show the same thing", "it is important to see the scroes of
+  each lines and the cumulative scroe live as i sing", "The rest is all ok, please go ahead".
+- **Inspected:** index.html (the deck's `.transport` and `#micBtn`, `.sheetHead`, `#rwBar`,
+  `#pl` and its foot); lines.ts (`layout`: `--plh` from the line being sung, the next and the
+  median small line; `scrollTo`, `current`, `gridFor`, the gauge as the line's third column; the
+  number box's taal figure, whose min-height sets the line's height when the strip is short);
+  app.ts (`lines.current` at 7 places, `wake`/`unwake`, `userToggle`, `switchTab`); rewaz.ts
+  (`next`'s break countdown, Skip); pitch.ts (`#pScores`, `gaugeOn`); styles.css (deck, `.play`,
+  `.tbtn`, `.micbtn`, `.dense`).
+- **Changed:** `feat(practice, rewaz): full screen while practising` — src/app/full.ts (new:
+  `initFull`, `whereText`); lines.ts (`full()` on the host, `fit`, `axis`, `axisNotes`, `dense`
+  set before measuring and in full screen, `scrollTo` keeping the line being sung whole);
+  app.ts (`setLine`, `wherePass`, `full`, `wake` asking once, `unwake` held while full screen is
+  on, `switchTab` leaving it, `userToggle` → `rewaz.now()`); rewaz.ts (`showCard`, `itemWhat`,
+  `now`); index.html (`.pview` for the inline grid, `#fullBtn`, `#fullWhere`, `#rwFull`,
+  `#fullBreak`, `#fullCtl`); styles.css (the full screen block, a short screen's); tests/unit/
+  full.test.ts (7); docs/ENGINE.md (the wake lock); docs/ROADMAP.md (row 46); docs/HISTORY.md
+  (the 2026-10-30 entry); this file. Also in it, this file's earlier row on the line numbers
+  staying grey (a decision with no code).
+- **Tests / verification:** `npx tsc --noEmit -p .` exit 0; `npx vitest run` → 44 files, 497
+  passed; `npm run build` → 392.70 kB JS, 81.85 kB CSS; `bash reference/tests/run-all.sh` →
+  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge
+  (the browser pane was hidden) on `npm run dev`, scratchpad `cdp46.mjs`, a stand-in screen lock
+  and a fake microphone playing a steady tone (`--use-file-for-fake-audio-capture`), an exercise
+  of 13 lines at 7 lines shown: at 1280 × 800 day, full screen 1280 × 800 exactly, the header,
+  deck, tabs, settings, takes and progress hidden, the deck's four buttons in the foot strip
+  (72 px) and back in the deck after Esc; 7 lines in view with the line being sung 3rd (lines
+  4–10 playing from line 6, "Line 6 of 13", "0:46 left"), its strip 175 px (Practice's at that
+  size: 120), names up its side; with the pitch check on, "6 · Average so far", lines 6 and 7
+  scored 0 and 12, the gauge 84 px wide, the strip 116–126 px; F on and off; 5 lines with the
+  2nd being sung: 279 px; the screen lock held while paused and stopped in full screen, let go
+  after Esc. A two-item rewaz put full screen from its bar (the focus moving to Exit full
+  screen): the strip 350 px, the break card "Next · 2 of 2", the title, "Lines 1–2 · 2 rounds ·
+  tempo 240", "4", Play in it starting item 2, full screen still on at "Rewaz done · 2 items in
+  15 s". 360 × 780 night: 360 wide, 7 lines with the line being sung 3rd, the strip 313 px, the
+  foot strip 70 px in one row; 780 × 360: the line being sung whole (strip 56 px). 1280 × 800
+  night: the strip 135 px. No console errors.
+- **Decisions made:** five 2026-10-31 rows (full screen; the tall strip; the lines as Practice
+  shows them, the others compact; the rewaz and its breaks; Play in a break).
+- **Risks or disagreements:** not tried on a real phone: the browser's own full screen (Android
+  Chrome), the iPhone filling the window instead, the back gesture leaving it, the screen kept
+  on while paused. Headless Edge cannot show whether the browser went truly full screen. On a
+  1280 × 800 laptop at 7 lines with the pitch check on, the strip is about 120 px; 5 lines give
+  about 280; a phone on its side leaves room for the line being sung alone. The other lines'
+  own strips are hidden in full screen (a line tapped open still shows its voice); if Rinat
+  misses them, they could come back small. Play in a rewaz break now starts the next item
+  everywhere, not only in full screen.
+- **Next handoff:** Rinat uses full screen on a phone and a laptop (Next single action); Claude
+  adjusts what Rinat says.
+
 ### 2026-10-31 GMT — Claude (Opus 5.5) — PH2-45 the time left; My progress under the takes; the library first; notes in ink
 
 - **Goal:** Rinat: "add total remaining time on rewaz bar and the songs remaining time next to

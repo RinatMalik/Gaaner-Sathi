@@ -105,6 +105,7 @@ export function initScorePanel(): ScorePanel {
     li.setAttribute('aria-label', 'Line ' + (n + 1) + (heard ? ': ' + score + ' out of 100' : ': not heard'));
     list.prepend(li);
     while (list.children.length > KEEP) list.lastElementChild!.remove();
+    list.classList.toggle('over', list.scrollHeight > list.clientHeight + 1);
     // The best line of the run so far gets a star.
     if (heard && score > 0 && (!best || score > best.score)) {
       best?.el.classList.remove('best');
@@ -127,6 +128,7 @@ export function initScorePanel(): ScorePanel {
     scores = [];
     best = null;
     list.textContent = '';
+    list.classList.remove('over');
     pop.textContent = '';
     pop.classList.remove('go');
     burst.classList.remove('go');
