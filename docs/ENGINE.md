@@ -442,7 +442,10 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   note's readings from its start (five; ~200 ms until 2026-10-19, which made it slow to
   answer), gliding 60 ms to each new place, so a wobble does not shake it; a voice still on
   the last note shows as off. With no note expected it shows "Rest", and outside a section
-  the distance to the nearest note.
+  the distance to the nearest note. In full screen (Rinat, 2026-11-01) it has a panel of its
+  own to the right of the lines, as tall as they are, naming the note expected beside its
+  middle (`.pgx`) with ♯ above and ♭ below, faint while the pitch check is off (`gaugeBox` on
+  the lines' host); on a phone or tablet held upright it stays at the end of the line.
 - **Looking back** (Rinat, 2026-10-19: "the experience of inspecting my performance after
   finish singing is not great"): a tap or click on any line (not its number box, which plays
   from it) opens it to the size of the line being sung: the words big, the tall strip with

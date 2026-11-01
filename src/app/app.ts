@@ -53,6 +53,7 @@ import { initPitch, type PitchUI } from './pitch';
 import { initBoxes, withNewHeading, type Boxes } from './boxes';
 import { initKeyboard, keyboardHTML, keyName, keyRange, keysToFill, type KeyboardUI } from './keyboard';
 import { initFull, whereText, type Full } from './full';
+import { initScorePanel } from './fullscore';
 import { initLines, type LinesUI } from './lines';
 import { initPrint } from './print';
 import { initProgress, PG_ORDER, songProgressHTML } from './progress';
@@ -2791,6 +2792,10 @@ export function init(): void {
     rows: () => prefs.plRows ?? 7,
     at: () => prefs.plAt ?? 3,
     full: () => full.on,
+    gaugeBox: () => {
+      const box = $('#fullGauge');
+      return full.on && getComputedStyle(box).display !== 'none' ? box : null;
+    },
   });
   applyLinesPrefs();
   // The keyboard fills its section's width: drawn again when that changes (and when it shows).
@@ -2874,6 +2879,7 @@ export function init(): void {
     parsed: () => parsed,
     beatEls: (g) => lines.cells(g),
     lines,
+    panel: initScorePanel(),
     section: () => (T && T.playing ? { secStart: T.secStart, secEnd: T.secEnd, loop: T.loop, listen: T.loop && soundSource.guideLoop === 'alt' && soundSource.guide !== 'off' } : null),
     below: () => soundSource.reeds > 1 && soundSource.guide !== 'off' && (T?.localGuide ?? true),
     octave: {

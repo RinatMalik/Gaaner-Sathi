@@ -1217,12 +1217,17 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
   .pgv{display:none}
 }
 
-/* Full screen while practising (Rinat, 2026-10-31): the rewaz bar, the title's bar with where it
-   has got to, the lines as Practice shows them with their scores, and a strip of the deck with
-   its controls moved into it; the rest hidden. The strip of the line being sung is as tall as
-   the screen leaves room for (--fsh, from lines.ts), its notes named up its side, the gauge
-   bigger. src/app/full.ts. */
+/* Full screen while practising (Rinat, 2026-10-31), as five panels (Rinat, 2026-11-01): at the
+   top the rewaz bar and the title's bar with where it has got to; the lines as Practice shows
+   them with their scores in the middle, the score panel to their left and the pitch gauge to
+   their right, each as tall as the lines; the deck's controls at the foot, moved into a strip of
+   the deck. The strip of the line being sung is as tall as the lines' panel leaves room for
+   (--fsh, from lines.ts), its notes named up its side. On a phone held upright the score goes
+   under the lines in a strip and the gauge stays at the end of the line being sung.
+   src/app/full.ts, fullscore.ts. */
 .pview{display:grid;gap:14px}
+.ptop{display:contents}
+.fscore,.fgauge,.pgx{display:none}
 .fullbtn,.rwfull{display:inline-flex;align-items:center;gap:6px}
 .fullbtn{align-self:center;padding:5px 11px;font-size:13.5px}
 .fullbtn svg,.rwfull svg{width:16px;height:16px;flex:none}
@@ -1231,18 +1236,21 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 :root[data-full] .wrap{display:block;max-width:none;padding:0 env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px);height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
 :root[data-full] .wrap>:not(#practice){display:none}
 :root[data-full] #practice{height:100%}
-:root[data-full] .pview{display:flex;flex-direction:column;gap:0;height:100%}
-:root[data-full] .pview>:not(.rbar,.sheetHead,.pl,.fullctl){display:none}
+:root[data-full] .pview{--fgap:clamp(8px,1.5vmin,14px);--card:0 1px 2px var(--shadow),0 10px 28px -18px var(--shadow);display:grid;grid-template-columns:clamp(150px,14vw,220px) minmax(0,1fr) clamp(92px,8.5vw,128px);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"top top top" "score lines gauge" "ctl ctl ctl";gap:var(--fgap);height:100%;padding:var(--fgap)}
+:root[data-full] .pview>:not(.ptop,.fscore,.pl,.fgauge,.fullctl){display:none}
+:root[data-full] :is(.ptop,.fscore,.fgauge){background:var(--sheet);border:1px solid var(--line);border-radius:16px;box-shadow:var(--card);min-width:0;min-height:0;overflow:hidden}
+:root[data-full] .ptop{grid-area:top;display:flex;flex-direction:column}
 :root[data-full] .rbar{border-width:0 0 1px 4px;border-radius:0}
 :root[data-full] .rwfull{display:none}
-:root[data-full] .sheetHead{align-items:center;gap:4px 14px;padding:6px 14px;border-bottom:1px solid var(--line)}
-:root[data-full] .sheetHead h2{font-size:20px}
+:root[data-full] .sheetHead{align-items:center;gap:4px 14px;padding:8px 10px 8px 18px}
+:root[data-full] .sheetHead h2{font-size:22px}
 :root[data-full] .fullwhere{display:block;margin-right:auto;font-size:14px;color:var(--ink-2);font-variant-numeric:tabular-nums}
 :root[data-full] .songlen,:root[data-full] .fullbtn .fbon,:root[data-full] .fullbtn .ic-fs{display:none}
 :root[data-full] .fullbtn .fboff,:root[data-full] .fullbtn .ic-fsx{display:inline}
-:root[data-full] .pl{display:flex;flex-direction:column;flex:1 1 0;min-height:0;border-width:0;border-radius:0}
+:root[data-full] .pl{grid-area:lines;display:flex;flex-direction:column;min-height:0;box-shadow:var(--card)}
 :root[data-full] .plview{flex:1 1 0;height:auto;min-height:0}
-:root[data-full] .psets,:root[data-full] .plfoot .phint{display:none}
+:root[data-full] :is(.psets,.plfoot .phint,.pscores){display:none}
+:root[data-full] .plfoot:has(.pmsg:empty):has(.pafter[hidden]){display:none}
 :root[data-full] .plhd{padding-top:3px;padding-bottom:2px;font-size:14px}
 :root[data-full] .pll.cur .plsw{height:var(--fsh,140px)}
 /* The other lines lean, for the room: no strip (each beat's mark still says how it was sung),
@@ -1251,17 +1259,81 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 :root[data-full] .pll:not(.cur) .pln{flex-direction:row;flex-wrap:wrap;align-items:baseline;align-content:flex-start;justify-content:center;gap:0 6px}
 :root[data-full] .pll.cur .plax{display:block;position:absolute;inset:0;z-index:1;pointer-events:none}
 .plan{position:absolute;left:2px;transform:translateY(-50%);padding:0 4px;border-radius:5px;background:color-mix(in srgb,var(--sheet) 82%,transparent);font-family:var(--f-note);font-size:14px;line-height:1.3;color:var(--ink);white-space:nowrap}
-:root[data-full] .pl.gauged{--gw:84px}
-:root[data-full] .pgn{font-size:30px}
-:root[data-full] .pgs{width:24px}
-:root[data-full] .pgv{font-size:17px}
-/* The deck's controls in a strip of the deck at the foot: Restart, Play, Stop, Check my pitch. */
-:root[data-full] .fullctl{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 14px;padding:7px 14px;background-image:repeating-linear-gradient(97deg,var(--grain) 0 2px,transparent 2px 11px),linear-gradient(180deg,var(--wood-2),var(--wood));color:var(--on-wood)}
+/* The gauge is in its own panel: no column for it at the end of the line. */
+:root[data-full] .pl.gauged{--gw:0px}
+/* The panels' names. */
+.fph,.fsh2{font-size:11.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--brass-text)}
+
+/* The score panel: the average in a ring, the latest line's score springing up with a word, a
+   streak of lines in tune, and each line's score, the latest first. */
+:root[data-full] .fscore{grid-area:score;position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 12px 0}
+.fsring{--rs:150px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:min(100%,var(--rs));aspect-ratio:1;flex:none}
+.fsring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.fstrk,.fsarc{fill:none;stroke-width:9}
+.fstrk{stroke:var(--chip)}
+.fsarc{stroke:var(--rc,transparent);stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;transition:stroke-dashoffset .8s cubic-bezier(.2,.8,.2,1),stroke .4s}
+.fsring b{font-size:clamp(30px,3.3vw,46px);font-weight:700;line-height:1;color:var(--rc,var(--ink-2));font-variant-numeric:tabular-nums;transition:color .4s}
+.fsavl{font-size:12px;color:var(--ink-2)}
+.fsburst{position:absolute;inset:0;pointer-events:none}
+.fsburst i{position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px;border-radius:50%;background:var(--good);opacity:0}
+.fsburst i:nth-child(even){background:var(--brass-hi);width:7px;height:7px;margin:-3.5px}
+.fsburst.go i{animation:fsburst .95s cubic-bezier(.15,.7,.3,1)}
+@keyframes fsburst{0%{opacity:1;transform:rotate(var(--a)) translateY(calc(var(--rs) * -.3)) scale(.5)}70%{opacity:1}100%{opacity:0;transform:rotate(var(--a)) translateY(calc(var(--rs) * -.62)) scale(1)}}
+.fssung{font-size:12.5px;color:var(--ink-2);text-align:center}
+.fsstreak{display:inline-flex;align-items:center;gap:5px;padding:3px 11px 3px 8px;border-radius:999px;background:color-mix(in srgb,var(--o-1) 16%,transparent);color:var(--ink);font-size:13px;font-weight:600;white-space:nowrap}
+.fsstreak svg{width:17px;height:17px;color:var(--o-1)}
+.fsstreak.go{animation:fsbump .5s cubic-bezier(.3,1.7,.5,1)}
+.fsstreak.go svg{animation:fsflick .5s ease-out}
+@keyframes fsbump{0%{transform:scale(.7)}100%{transform:scale(1)}}
+@keyframes fsflick{0%{transform:scale(1.5) rotate(-12deg)}100%{transform:none}}
+.fspop{display:flex;align-items:baseline;justify-content:center;gap:8px;min-height:36px;color:var(--lc,var(--ink))}
+.fspop b{font-size:28px;font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums}
+.fspop span{font-size:15px;font-weight:700}
+.fspop.go{animation:fspop .6s cubic-bezier(.3,1.6,.5,1)}
+@keyframes fspop{0%{opacity:0;transform:translateY(12px) scale(.6)}100%{opacity:1;transform:none}}
+.fsh2{align-self:stretch;margin-top:2px;padding-top:8px;border-top:1px solid var(--rule)}
+.fslines{align-self:stretch;flex:1 1 0;min-height:0;display:grid;align-content:start;gap:6px;margin:0;padding:0 0 12px;list-style:none;overflow:hidden;-webkit-mask-image:linear-gradient(#000 calc(100% - 36px),transparent);mask-image:linear-gradient(#000 calc(100% - 36px),transparent)}
+.fsl{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:7px;font-size:13.5px;animation:fsin .45s ease-out}
+.fsn{border-radius:6px;background:var(--chip);color:var(--ink-2);font-weight:700;line-height:21px;text-align:center;font-variant-numeric:tabular-nums}
+.fsl.best .fsn{background:var(--brass);color:var(--brass-ink)}
+.fsb{height:8px;border-radius:4px;background:var(--chip);overflow:hidden}
+.fsb i{display:block;height:100%;border-radius:4px;background:var(--lc);transform-origin:left;animation:fsgrow .8s cubic-bezier(.2,.8,.2,1)}
+.fsl b{min-width:2.4ch;text-align:right;color:var(--lc);font-weight:700;font-variant-numeric:tabular-nums}
+.fsl.best b::before{content:"★ ";font-size:11px;color:var(--brass)}
+@keyframes fsin{0%{opacity:0;transform:translateY(-10px)}100%{opacity:1;transform:none}}
+@keyframes fsgrow{0%{transform:scaleX(0)}100%{transform:none}}
+.fswait,.fsidle{display:none;margin:0;font-size:13px;line-height:1.45;color:var(--ink-2);text-align:center}
+:root[data-full] .fscore:has(.fslines:empty) .fswait{display:block}
+/* The pitch check off: the ring faint, and how to turn it on. */
+:root[data-full] .pview:not(:has(.pl.gauged)) .fscore>:not(.fph,.fsring,.fsidle){display:none}
+:root[data-full] .pview:not(:has(.pl.gauged)) .fsring{opacity:.45}
+:root[data-full] .pview:not(:has(.pl.gauged)) .fsidle{display:block}
+
+/* The pitch gauge's panel: the note sung above, the scale as tall as the lines with the note
+   expected named beside its middle, sharp above and flat below, the cents under it. */
+:root[data-full] .fgauge{grid-area:gauge;display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 6px 12px}
+.fgauge .pgauge{flex:1 1 auto;align-self:stretch;min-height:0;gap:8px;padding:2px 0 0;border-left:0;transition:opacity .3s}
+.fgauge .pgauge.dim{opacity:.35}
+.fgauge .pgn{font-size:clamp(30px,3.4vw,50px)}
+.fgauge .pgs{width:30px;min-height:0}
+.fgauge .pgt{border-radius:15px}
+.fgauge .pgc{left:-6px;right:-6px}
+.fgauge .pgm{left:-11px;right:-11px;height:10px;margin-top:-5px;border-radius:5px}
+.fgauge .pgv{font-size:20px}
+.fgauge .pgs::before,.fgauge .pgs::after{position:absolute;left:calc(100% + 9px);font-size:16px;line-height:1;color:var(--ink-2)}
+.fgauge .pgs::before{content:"♯";top:4px}
+.fgauge .pgs::after{content:"♭";bottom:4px}
+.fgauge .pgx{display:block;position:absolute;right:calc(100% + 9px);top:50%;transform:translateY(-50%);font-family:var(--f-note);font-size:18px;line-height:1.2;color:var(--ink);white-space:nowrap}
+
+/* The deck's controls in a strip of the deck at the foot: Check my pitch, Restart, Play, Stop,
+   Record me, Play in the middle. */
+:root[data-full] .fullctl{grid-area:ctl;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 14px;padding:9px 14px;border-radius:16px;box-shadow:var(--card);background-image:repeating-linear-gradient(97deg,var(--grain) 0 2px,transparent 2px 11px),linear-gradient(180deg,var(--wood-2),var(--wood));color:var(--on-wood)}
 .fullctl .transport,.fullctl .tbtns{display:contents}
-.fullctl #restartBtn{order:1}
-.fullctl .play{order:2;width:58px;height:58px}
-.fullctl #stopBtn{order:3}
-.fullctl .micbtn{order:4}
+.fullctl #micBtn{order:1}
+.fullctl #restartBtn{order:2}
+.fullctl .play{order:3;width:60px;height:60px}
+.fullctl #stopBtn{order:4}
+.fullctl #recBtn{order:5}
 .fullctl .tbtn,.fullctl .micbtn{height:44px;padding:0 16px;font-size:15px}
 .fullctl .tbtn svg{width:18px;height:18px}
 /* In a rewaz, the break before an item in place of the lines: what comes next, counting down. */
@@ -1271,8 +1343,31 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .fbtitle{font-family:var(--f-note);font-weight:400;font-size:clamp(26px,5vw,40px);line-height:1.2;color:var(--ink);text-wrap:balance}
 .fbwhat{font-size:15px;color:var(--ink-2)}
 .fbcount{margin:6px 0 10px;font-size:clamp(56px,14vh,120px);font-weight:600;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){.fsarc,.fsring b,.fgauge .pgauge{transition:none}.fsburst.go i,.fsstreak.go,.fsstreak.go svg,.fspop.go,.fsl,.fsb i{animation:none}}
+/* A phone or a tablet held upright: the lines, then the score in a strip under them (while the
+   pitch check is on), then the controls; the gauge at the end of the line being sung, as on
+   Practice (three columns would leave the lines too narrow). */
+@media (max-width:640px),(orientation:portrait) and (max-width:1100px){
+  :root[data-full] .pview{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto;grid-template-areas:"top" "lines" "score" "ctl"}
+  :root[data-full] .fgauge,:root[data-full] .pview:not(:has(.pl.gauged)) .fscore{display:none}
+  :root[data-full] .pl.gauged{--gw:60px}
+  :root[data-full] .fscore{flex-direction:row;gap:10px;padding:6px 10px}
+  :root[data-full] .fscore>:is(.fph,.fsh2,.fssung,.fswait,.fsidle){display:none}
+  .fsring{--rs:52px}
+  .fsring svg circle{stroke-width:11}
+  .fsring b{font-size:18px}
+  .fsavl{display:none}
+  .fspop{flex-direction:column;align-items:center;gap:0;min-height:0;min-width:3.6em}
+  .fspop b{font-size:18px;line-height:1.1}
+  .fspop span{font-size:11.5px;white-space:nowrap}
+  .fsstreak{padding:2px 8px 2px 6px;font-size:12px}
+  .fslines{display:flex;flex:1 1 0;min-width:0;gap:5px;padding:0;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 24px),transparent)}
+  .fsl{display:flex;flex:none;gap:4px;padding:1px 7px 1px 2px;border-radius:999px;background:color-mix(in srgb,var(--lc) 14%,transparent);font-size:12.5px}
+  .fsl .fsb{display:none}
+  .fsn{min-width:20px;line-height:18px;border-radius:999px}
+}
 @media (max-width:520px){
-  :root[data-full] .sheetHead{padding:5px 10px;gap:2px 10px}
+  :root[data-full] .sheetHead{padding:5px 8px 5px 12px;gap:2px 10px}
   :root[data-full] .sheetHead h2{font-size:17px}
   :root[data-full] .fullwhere{font-size:12.5px}
   :root[data-full] .fullbtn{padding:5px 8px}
@@ -1281,14 +1376,17 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
   :root[data-full] .pgn{font-size:16px}
   :root[data-full] .pgs{width:14px}
   .plan{font-size:12px;padding:0 3px}
-  .fullctl .tbtn{padding:0 13px;font-size:0}
+  :root[data-full] .fullctl{gap:8px;padding:7px 8px}
+  .fullctl .tbtn{padding:0 12px;font-size:0}
   .fullctl .tbtn svg{width:20px;height:20px}
   .fullctl .micbtn{padding:0 12px}
-  .fullctl #micLab{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .fullctl :is(#micLab,#recLab){position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   .fullctl .play{width:56px;height:56px}
 }
-/* A short screen (a phone on its side): the bars and the line being sung's notes smaller. */
+/* A short screen (a phone on its side): the panels closer, the bars and the line being sung's
+   notes smaller, the ring and the gauge's names smaller. */
 @media (max-height:500px){
+  :root[data-full] .pview{--fgap:6px;grid-template-columns:clamp(118px,15vw,170px) minmax(0,1fr) clamp(76px,9vw,110px)}
   :root[data-full] .sheetHead{padding-block:3px}
   :root[data-full] .sheetHead h2{font-size:17px}
   :root[data-full] .rbar{padding-block:4px}
@@ -1298,4 +1396,20 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
   .fullctl .tbtn,.fullctl .micbtn{height:38px}
   :root[data-full] .pll:is(.cur,.nxt) .ply,:root[data-full] .pll:is(.cur,.nxt):not(.words) .pnt{font-size:calc(clamp(15px,100cqi / var(--cols) * .4,30px) * var(--ts))}
   :root[data-full] .pll.cur .plnum{font-size:22px}
+  :root[data-full] .pll.cur .tf{--tmin:22px;--tg:3px;margin-top:2px}
+  :root[data-full] .pll.cur .tfn{display:none}
+  :root[data-full] .fscore{gap:4px;padding:8px 8px 0}
+  :root[data-full] .fscore>:is(.fph,.fsh2,.fssung){display:none}
+  .fsring{--rs:84px}
+  .fsring b{font-size:24px}
+  .fspop{min-height:0}
+  .fspop b{font-size:20px}
+  .fspop span{font-size:12.5px}
+  .fsl{font-size:12.5px;gap:5px;grid-template-columns:24px minmax(0,1fr) auto}
+  :root[data-full] .fgauge{padding:8px 4px}
+  :root[data-full] .fgauge .fph{display:none}
+  .fgauge .pgn{font-size:24px}
+  .fgauge .pgs{width:22px}
+  .fgauge .pgv{font-size:15px}
+  .fgauge .pgx{font-size:15px}
 }

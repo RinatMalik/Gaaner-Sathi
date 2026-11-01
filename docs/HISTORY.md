@@ -50,6 +50,58 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-10-31 GMT — Claude (Opus 5.5) — PH2-45 the time left; My progress under the takes; the library first; notes in ink
+
+- **Goal:** Rinat: "add total remaining time on rewaz bar and the songs remaining time next to
+  the title in practice page when a sog is playing"; "Re-order pages - bring Music library at
+  first and then practice"; "At the end of the practice page where my takes section is - similar
+  to that, have a way to show the data/progress of that song as well there"; "the notes sa re ga
+  ma etc in the practice window - make them high contrast so they are more visible. so instead
+  of grey, make them white/black depending on the day/night mode. maybe the same colour as the
+  line numbers".
+- **Inspected:** transport.ts (`start`, `tick`: the section, rounds, `gap`, `brkPre`, the
+  count-in after a break, `liveTempo`); app.ts's `frame()` (beats, breaks and the end taken from
+  the queue), `stop`, `pause`; rewaz.ts's runner (`go`, `next`, `showBar`); routine.ts's
+  `routineSeconds`; progress.ts and songreport.ts (`songSummary`, `songFindings`); the takes box
+  in index.html; styles.css's `.pnt` (`--ink-2`) and `.pln` (`--ink-2`, the line being sung
+  `--ink`); `clockText` in take.ts (reused).
+- **Changed:** `feat(practice, rewaz)` b117050: transport.ts (`secondsLeft`), routine.ts
+  (`routineSeconds` from an item), rewaz.ts (`rewazLeft`, `#rwLeft`, `Rewaz.left`), view.ts
+  (`leftText`), app.ts (`leftAt`, `showLeft`, `renderSongProgress`, the section's buttons;
+  `openSongReport` and `saveSongForAI` saying where asked), progress.ts (`songProgressHTML`,
+  `showSong`), songreport.ts (`songHeadline` taken out of the page), store.ts (`TABS`),
+  index.html (the tabs, `#songLeft`, `#rwLeft`, `#progBox`), styles.css, timeleft.test.ts. This
+  commit: ENGINE.md (Transport → The time left), ROADMAP row 45, HISTORY (the 2026-10-28 entry),
+  this file.
+- **Tests / verification:** `npm run typecheck` exit 0; `npm test` → 43 files, 490 passed (10
+  new: every beat's and break's time plus its time left equals the end entry's, with 3 rounds
+  and 2 s breaks, the tempo trainer, a line at half speed, a song not looped and the lines to
+  practise; a loop with no end; `leftText`; `rewazLeft`; My progress empty, full and without
+  scores; the tab order); `npm run build` → 388.31 kB JS; `bash reference/tests/run-all.sh` →
+  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5 passed, 12 exercises valid. The
+  browser pane (hidden, so no frames drawn): the tabs Music library | Practice | …, the notes
+  `rgb(236, 235, 229)` at night. Headless Edge on `npm run dev` (scratchpad `cdp45.mjs`), with
+  Scale open and 7 seeded sessions, screenshots seen: at 1280 px day the notes and the line
+  being sung's number both `rgb(27, 28, 36)`; playing, the title 0:15, 0:14 … 0:10 left a second
+  apart; paused 0:10 and 0:10 1.5 s later; Stop hid it; Loop ticked, "0:13 left in this round";
+  a rewaz of two items (2 rounds and 1, tempo 220, a 3 s break) sampled each second: 0:14 … 0:08
+  left in all with the song 0:06 … 0:00, then 0:08, 0:07, 0:06 through "Next … starting in 3 s",
+  then 0:05 … 0:00 with the song the same, hidden at "Rewaz done · 2 items in 17 s"; My progress:
+  "Sessions 7 on 7 days", "18 min", "Latest score 81 best 85", "Getting better: from about 66
+  to about 82.", the chart, the latest 5 sessions. At 360 px night: the page 360 px wide, the
+  section 328 px, the rewaz bar "0:12 left in all" with Skip and Stop rewaz on its second line;
+  See all in Progress opened Progress with Pitch on Scale. No console errors.
+- **Decisions made:** five rows (the time left beside the title; the rewaz's in its bar; My
+  progress; the tab order; the notes in ink).
+- **Risks or disagreements:** the rewaz's total is exact for the item playing but estimated for
+  those after it (each song at its own tempo, as the routine's length is), so it can jump a
+  second or two when the next item starts (here it did not). The countdown follows a tempo
+  change at the next beat. Not seen in Firefox or Safari, nor on a real phone. The line numbers
+  stay grey but for the line being sung: Rinat said "maybe the same colour as the line numbers",
+  and the one being sung is already in ink, so the others were left; asked in the reply.
+- **Next handoff:** Rinat plays a song and runs a rewaz to see the times; opens My progress;
+  says whether the line numbers should be in ink too.
+
 ### 2026-10-30 GMT — Claude (Opus 5.5) — PH2-44 the rewaz on a refresh; items dragged and ticked; the library as a table
 
 - **Goal:** Rinat, with a screenshot of two routines' items saying "This song has been

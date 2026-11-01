@@ -3,7 +3,7 @@
 > The project's shared state, for Rinat, Claude, Codex and any other LLM: what the app is
 > for, how we work, where things stand, the decisions in force and the newest work log.
 >
-> **Last updated:** 2026-10-31 (GMT) by Claude (Opus 5.5)
+> **Last updated:** 2026-11-01 (GMT) by Claude (Opus 5.5)
 
 ## How to use this file
 
@@ -95,7 +95,9 @@ wins, except a later explicit decision by Rinat, which always wins.
   (PH2-45: the time left beside the title and in the rewaz bar; My progress under My takes; the
   Music library's tab first; the notes in full ink) and forty-six (PH2-46: full screen while
   practising, the lines as Practice shows them with a tall strip, the deck's controls at the foot,
-  kept through a rewaz with its breaks shown large) are built and live.
+  kept through a rewaz with its breaks shown large) and forty-seven (PH2-47: full screen as
+  Rinat's five panels, a score panel with the average in a ring, each line's score, a word, a
+  burst and a streak, and the gauge in its own tall panel) are built and live.
   Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
 - **Review of 25–27 Oct (Claude, 2026-10-28, in chat):** the three day files and 52 takes in
@@ -112,12 +114,14 @@ wins, except a later explicit decision by Rinat, which always wins.
   61-key keyboard); the songs and exercises are at Sa C♯4, and the default 3-reed guide is heard
   at C♯3 (its bass reed: the app's detector reads it at 138.5 Hz), so Rinat matches the guide.
   "Octave must match" judged against C♯4; from round forty-two the bass reed's octave counts too.
-- **Next single action:** Rinat tries round forty-six on a phone and a laptop: Full screen by a
-  song's title (or F), plays and sings with Check my pitch on, says whether the strip is tall
-  enough for the number of lines chosen and whether the other lines read well drawn compact;
-  starts a rewaz, puts it full screen from its bar and lets it run through a break (Play or Start
-  now starts the next item); leaves with Esc, the button or the phone's back gesture. Then tries
-  round forty-five: plays a song and watches its time left beside the title, starts a rewaz and watches "left in all" in its bar; opens My progress under
+- **Next single action:** Rinat tries round forty-seven on a laptop and a phone: Full screen by a
+  song's title (or F), sings with Check my pitch on and watches the score panel (the ring, each
+  line's score and word, the burst for a line in tune, the streak) and the gauge's panel (the
+  note expected by its middle); says whether the panels' sizes and the fun feel right, and
+  whether anything is too busy while singing; on a phone held upright, the score strip under the
+  lines. With it round forty-six: the strip tall enough for the lines chosen, the other lines
+  compact, a rewaz through a break (Play or Start now starts the next item), leaving with Esc,
+  the button or the back gesture. Then tries round forty-five: plays a song and watches its time left beside the title, starts a rewaz and watches "left in all" in its bar; opens My progress under
   My takes (Report, For AI, See all in Progress); finds the Music library tab first; says whether
   the notes read better in full ink. Then refreshes on Rewaz (each routine's songs shown at once) and
   tries round forty-four: an item dragged by its number, items ticked and removed together, the
@@ -390,7 +394,7 @@ decision.
 ### Commands
 
 - `npm install` once.
-- `npm test`: every Vitest suite (497 tests in 44 files, about 15 s). Read the "Test Files" line: a
+- `npm test`: every Vitest suite (500 tests in 44 files, about 15 s). Read the "Test Files" line: a
   file that fails to load is not counted as a failed test.
 - `npm run typecheck`: the whole project, then `src/core` and `src/audio/dsp` with no DOM
   library (a DOM call there fails).
@@ -467,6 +471,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
 | PH2-45 | Claude | Review | The time left, a song's progress where it is practised, the library first, the notes in ink (Rinat, 2026-10-31): while playing, the time left beside the title, to the second, the rounds, breaks and count-ins to come included, "in this round" for a loop with no end, held while paused, gone on Stop (`secondsLeft` in transport.ts; `leftAt`, `showLeft` in app.ts; `leftText` in view.ts; `.songleft`); the whole rewaz's in its bar, "0:14 left in all", the item's own and the items after it with the breaks between them, counted through the break before an item (`rewazLeft`, `showLeft` and `Rewaz.left` in rewaz.ts; `routineSeconds` from an item; `#rwLeft`); My progress under My takes for the open song: tiles, where it stands, going well and to work on, the score each session, the latest five sessions with Report and For AI, and its Report, For AI and See all in Progress (`songProgressHTML`, `showSong` in progress.ts; `songHeadline` from songreport.ts; `renderSongProgress` in app.ts; `#progBox`); the Music library's tab before Practice (index.html, `TABS`); the Practice sheet's notes in `--ink` (styles.css `.pnt`) | Tests: 43 files, 490 passed (10 new in timeleft.test.ts); headless Edge on `npm run dev` at 1280 px day and 360 px night: the title 0:15 → 0:10 a second a second, held at 0:10 paused, hidden on Stop, "0:13 left in this round" looping; a two-item rewaz 0:14 → 0:00 left in all through rounds and a 3 s break, hidden at "Rewaz done"; My progress with 7 seeded sessions; See all in Progress opening Pitch for the song; page 360 px wide; no console errors (Work log 2026-10-31, PH2-45) | Waiting for Rinat to play, run a rewaz and open My progress |
+| PH2-47 | Claude | Review | Full screen as five panels (Rinat, 2026-11-01: a sketch of a top panel "with title, other details, remaining time, rewaz details", a "Scoring section, cumulative score and fun animated graphics" on the left, the "Main window with lines, notes etc." in the middle, a "Pitch guage" on the right and a panel "with play, pause, stop, restart, pitch, record etc" at the foot; "The percentages are not rigid"): the rewaz bar and the title's bar together in `.ptop`; `#fullScore`, `#fullGauge`; a grid of cards on `:root[data-full] .pview` (styles.css); Record me moved to the foot with the rest (full.ts). The score panel (fullscore.ts: `initScorePanel`, `scoreWord`, `streakOf`; fed by pitch.ts `panel`): the average in a ring filling and counting up to it, tinted by it, "This run" at the end; the latest line's score and a word springing up; a burst of sparks for a line in tune (85 or more); lines in tune in a row from 2; each line's score, the latest first, its bar growing, the best starred; Check my pitch asked for while it is off, the panel cleared when it is turned off. The gauge in its own panel as tall as the lines, the note expected by its middle, ♯ and ♭ (lines.ts `gaugeBox`, `.pgx`; pitch.ts `showGauge`). A phone or tablet held upright: lines, a score strip, controls, the gauge at the line's end. A wrapped line's strip down to 28 px where the line being sung would not fit whole (`fit`); fitted again after a resize settles | Tests: 44 files, 500 passed (3 new in full.test.ts); headless Edge on `npm run dev`, a fake voice on Sa: at 1280 × 800 the five panels (top 51 px, score 179 × 623, lines 944 × 623, gauge 109 × 623, foot 78 px), লম্বা স্বর's Sa line looping: "100 Superb!", the burst, "4 in a row", the best starred, then Re at 0 ending the streak, "50 This run"; the pitch check off: the ring faint with how to turn it on, the gauge faint; a rewaz's bar in the top panel (109 px); 360 × 780 night: the score strip and the gauge in the line; 780 × 360: the line being sung whole (strip 47 px); 768 × 1024: stacked, 7 lines; no console errors (Work log 2026-11-01, PH2-47) | Waiting for Rinat to sing with it on a laptop and a phone |
 | PH2-46 | Claude | Review | Full screen while practising (Rinat, 2026-10-31: "an option to go full screen when a song is playing or a rewaz is ongoing"; the plan agreed with "pitch drawn choise - A", "Rewaz to not open full screen by default", the lines as Practice shows them and the scores kept): a Full screen button by the title and in the rewaz bar, F and Esc, the browser's own full screen where it has one, the deck's Restart, Play, Stop and Check my pitch moved into a strip of the deck at the foot (`initFull` in full.ts; `#fullBtn`, `#rwFull`, `#fullCtl`, `:root[data-full]` in styles.css); the title's bar with the line and round (`whereText`; `setLine`, `wherePass` in app.ts); the lines shown and the place of the line being sung as on Practice, the others compact (no strip, number, Next and score in a row), the line being sung's strip as tall as the screen leaves room for with its notes named up its side, the gauge bigger, the line being sung kept whole in view on a short screen (`fit`, `axis`, `axisNotes`, `scrollTo` in lines.ts); the screen kept on while it is open (`wake`, `unwake`); in a rewaz, kept through every item, the break before one large with Start now (`showCard`, `itemWhat` in rewaz.ts; `#fullBreak`), and Play in a break starting the next item (`Rewaz.now`) | Tests: 44 files, 497 passed (7 new in full.test.ts); headless Edge on `npm run dev` with a fake microphone: at 1280 × 800 day 7 lines in view with a 175 px strip (Practice's 120), 279 px at 5 lines with the line being sung 2nd, line scores and the average live; 360 × 780 night 7 lines and a 313 px strip; 780 × 360 the line being sung whole; a rewaz through its break, Play starting item 2, full screen still on at "Rewaz done"; the screen lock held paused and let go on leaving; no console errors (Work log 2026-10-31, PH2-46) | Waiting for Rinat to use it on a phone and a laptop |
 | PH2-44 | Claude | Review | Rewaz and the Music library as tables (Rinat, 2026-10-30): the rewaz and Progress drawn again once the songs are read (`renderLibrary` in app.ts: on a refresh the tab was drawn before the songs were, and Rewaz said every song of the user's in a routine had been deleted); rewaz items dragged by their number (pointer events, the page scrolling near the screen's edges; ↑ ↓ on a focused number), the up and down buttons gone; a tick box on each with Tick all, the ticked dragged and removed together, asked in the bar (`moveItems`, `stepAt` in routine.ts; `itemRowHTML`, `tickBarHTML` in rewaz.ts); the add list with each song's tags and taal after its title, found by them (`detailsOf`); each item's fields in columns of fixed widths from a list 860 px wide (1000 px with a "to" column), on a phone one under another with Rounds, Break and Tempo side by side (styles.css); the Music library a table: a tick box on each row and section heading (`tickHTML`, `showMixed` in view.ts, shared with My takes), a tap on a row ticking it, Shift for a run, only Practise opening it; a bar, at the top of the screen while any are ticked: Tick all, Add to rewaz (a routine or a new one), Favourite or Unfavourite, Export, Delete asked in the bar, Untick, Escape (`libSelHTML` in songs.ts; `deleteSongs`, `setFavs`, `exportSongs`, `routineChoices`, `addToRoutine` in app.ts) | Tests: 42 files, 480 passed; headless Edge on `npm run dev`: a refresh on Rewaz saying only a song truly gone is deleted; items dragged, ticked and removed together at 1150 px, the song 223 px wide in every row; the library at 1280 px day: ticks, a run, the menu, added to a routine, starred, Delete asked; at 360 px night: 2 songs exported, a new routine made, rewaz rows 269 px, no sideways scroll (Work log 2026-10-30, PH2-44) | Waiting for Rinat to refresh, drag, tick and try the library's bar |
 | PH2-43 | Claude | Review | A grid for each line, Sa on its key, a break for each item, fader caps (Rinat, 2026-10-28): the Practice view's pitch strip for each line from its lowest note to its highest, a semitone beyond, 600 cents at least (`lineRange`, `MIN_SPAN` in lines.ts); Note by note with Sa on the key it was played in, a phone's black keys named (`keyOfHz`, `mainKey`, `saOnText` in notekeys.ts; progress.ts, report.ts, dayreport.ts, songreport.ts; `asPlayed` in app.ts); the break between rounds on each rewaz item (`roundGap` on RoutineItem, a routine's own read onto its items; rewaz.ts, store.ts); the deck's sliders with fader caps (styles.css) | Tests: 42 files, 476 passed; headless Edge at 1280 px day and 360 px night: the caps pressed and moving; a fake voice on C♯3, each line's range (−300..300 cents for Sa alone) and the voice on its grid; a 3 s break on one item counted down in the rewaz bar; an old routine's 6 s on both items; the keys on C♯ (Work log 2026-10-28, PH2-43) | Waiting for Rinat to sing with the new grid and try the caps, the keys and a break per item |
@@ -618,6 +623,11 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-31 | **Full screen shows the lines as Practice does:** as many lines, with the line being sung in the same place (Lines shown, Line being sung), each line's score and the run's average as it goes. The lines other than the one being sung are drawn compact there (smaller, as at 9 or 12 lines; no strip of their own, each beat's mark still saying how it was sung; their number, Next and score in a row), for the strip's room; on a short screen the line being sung stays whole in view, with fewer lines above it if need be. | Rinat, chat 2026-10-31 ("even in full screen view, show the practice page notes window … whatever is chosen in the practice page, have the full screen show the same thing"; "it is important to see the scroes of each lines and the cumulative scroe live as i sing"); drawing the others compact, Claude's (7 lines left the strip smaller than Practice's on a 1280 × 800 laptop) | lines.ts `layout`, `scrollTo`; styles.css. |
 | 2026-10-31 | **A rewaz does not open in full screen by itself;** once on, full screen stays through every item, and the break before an item shows large in place of the lines: which of how many is next, its title, its lines, rounds and tempo, the seconds to go, and Start now. | Rinat, chat 2026-10-31 ("Rewaz to not open full screen by default"); the break shown large, Claude's plan | `showCard`, `itemWhat` in rewaz.ts. |
 | 2026-10-31 | **Play (and the space bar) in the break before a rewaz item starts the item now,** as Skip and Start now do; Stop ends the rewaz. (From 2026-10-12 Play there ended the rewaz, Claude's choice then; in full screen the big Play sits under Start now.) | Claude, 2026-10-31, building full screen | `userToggle` in app.ts; `Rewaz.now`. |
+| 2026-11-01 | **Full screen is five panels,** cards with room between them: at the top the rewaz bar (in a rewaz) and the title's bar together; in the middle the lines, the score panel to their left (about 14 % of the width, 150–220 px) and the pitch gauge to their right (about 8.5 %, 92–128 px), all as tall as each other; at the foot the deck's Check my pitch, Restart, Play, Stop and Record me, Play in the middle. The top panel is as tall as its bars (about 6 % of a laptop's height, 14 % in a rewaz) and the foot about 10 %, so the lines have the rest. | Rinat, chat 2026-11-01 (a sketch: the panels and their places, "The percentages are not rigid. if you feel more empty space will be nicer, thne can resize the panels"); the sizes and Record me's place, Claude's | styles.css `:root[data-full] .pview`; index.html `.ptop`, `#fullScore`, `#fullGauge`; full.ts. |
+| 2026-11-01 | **The score panel:** the run's average in a ring that fills and counts up to it, tinted by it ("This run" at the end); as each line ends its score and a word spring up (95 or more Superb!, 85 Lovely!, 70 Good, 60 Nearly there, below Keep going; Not heard), with a burst of sparks for a line in tune (85 or more, as its beats go green); how many lines in a row were in tune, from 2 (a flame); each line's score, the latest first, its bar growing, the best of the run starred. While the pitch check is off: the ring faint and how to turn it on; turning it off clears the panel. Movement only as a line ends, none with reduced motion. | Rinat, chat 2026-11-01 ("Scoring section, cumulative score and fun animated graphics"; "Use common sense as well in making it look good, interesting, engaging and fun"); what is in it, Claude's | src/app/fullscore.ts; pitch.ts `panel`. |
+| 2026-11-01 | **Full screen's gauge has its own panel,** as tall as the lines: the note sung above, the note expected named beside its middle, ♯ above and ♭ below, the cents under it; faint while the pitch check is off. | Rinat, chat 2026-11-01 (the sketch's "Pitch guage height 75% Width 10%"); the note expected and the signs, Claude's | lines.ts `gaugeBox`, `gaugeHTML`; pitch.ts `showGauge`. |
+| 2026-11-01 | **On a phone or tablet held upright, full screen stacks:** the top panel, the lines, the score in a strip under them (while the pitch check is on: the ring, the latest score and word, the streak, the latest lines' scores), the controls; the gauge stays at the end of the line being sung. Three columns would leave a phone's lines about 100 px wide and a tablet's 480. | Claude, 2026-11-01, building Rinat's layout | styles.css, the 640 px and upright rules. |
+| 2026-11-01 | **In full screen, a line that wraps onto more rows may have its strip under 56 px a row, down to 28,** where the line being sung would not otherwise fit whole (a phone on its side); and the lines are fitted again once a resize has settled. | Claude, 2026-11-01 | lines.ts `fit`, the ResizeObserver. |
 | 2026-10-23 | **Built-in exercises stay read-only for now** (Open question 6 answered): they cannot be changed or deleted; copy one to change it. Claude's proposal (changed in place as the user's own, deleted or hidden, a "Bring back the built-in exercises" button) is not built. | Rinat, chat 2026-10-23 ("Keep the built-in exercises read-only for now.") | Invariants → Never lose a song unchanged; Open question 6 removed. |
 | 2026-10-23 | **A break between rounds,** when looping on the Practice view (the Guide panel's "Break between rounds", seconds) and in a rewaz (each routine's "Break between rounds", separate from its break between items): silence with the drone going on, then the count-in again when it is on, and any pickup, then the next round; the line's box counts it down; none after the last round; the note before it fades as at an ending. A pause in a break goes on with the next round. Takes keep it. | Rinat, chat 2026-10-23 ("i'd like the option to add some delay between loops and also between rounds when doing rewaz with multiple rounds"); the count-in again, the drone going on, the countdown, a setting on the Guide panel and per routine are Claude's | transport.ts `gap`; prefs `loopGap`; Routine `roundGap`; Take `gap`; session settings `gap`; docs/ENGINE.md → Transport, DATA.md |
 | 2026-10-23 | **My takes as a table:** grouped by song or by date, each group folding (the first three open), a tick box on each take, on each song's or day's group and Tick all; the takes ticked are deleted together, asked first in the table's bar. | Rinat, chat 2026-10-23 ("needs all the bells and whistles of a table - should be collapsible the song name or the date taken. want to be able to select all the takes in a particular day and delete together. also all the takes of a particular song"; "if multiple takes are deleted together, only then confirmation is fine") | takes.ts `takeGroups`, `allTakesHTML`; prefs `tkGroup`; docs/ENGINE.md → Takes |
@@ -698,6 +708,58 @@ Template:
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
 
+### 2026-11-01 GMT — Claude (Opus 5.5) — PH2-47 full screen as five panels
+
+- **Goal:** Rinat sent a sketch of full screen: a top "Panel with title, other details,
+  remaining time, rewaz details, remaining time for rewaz etc."; on the left a "Scoring section,
+  cumulative score and fun animated graphics"; the "Main window with lines, notes etc." in the
+  middle; a "Pitch guage" on the right; at the foot a "Panel with play, pause, stop, restart,
+  pitch, record etc"; "Use common sense as well in making it look good, interesting, engaging
+  and fun. If any of the things i mentioned here doesn't make sense, tell me. The percentages
+  are not rigid."
+- **Inspected:** pitch.ts (`showAverage`, `lineDone`, `startRun`, `turnOff`, `showGauge`,
+  `draw` and the note expected from `tracker.live()`); lines.ts (`gaugeHTML`, `placeGauge`,
+  `gaugeOn`, `gauge`, `layout`'s `--gw`, `fit`, the ResizeObserver, the taal figure's size);
+  track.ts (`summary`: no average under 4 notes sung); index.html (`.pview`, the deck's
+  `#recBtn`); styles.css (the full screen block, `.pgauge`, `.tf`, the colour tokens); the
+  screenshots of round forty-six.
+- **Changed:** `feat(practice): full screen as five panels, a score panel and a tall gauge` —
+  src/app/fullscore.ts (new: `initScorePanel`, `scoreWord`, `streakOf`); pitch.ts (`panel` on
+  the host: each line's score, the average, cleared on a new run and on turning the check off;
+  the note expected to the gauge); lines.ts (`gaugeBox` on the host, `.pgx` in `gaugeHTML`, the
+  gauge placed in its panel and faint while off, `fit`'s least strip for a wrapped line, the
+  ResizeObserver fitting again in full screen); app.ts (`initScorePanel`, `gaugeBox`); full.ts
+  (Record me moved too; the header comment); index.html (`.ptop` round the two bars,
+  `#fullScore`, `#fullGauge`); styles.css (the full screen block rewritten as a grid of
+  cards; the score panel; the gauge's panel; upright, phone and short screens);
+  tests/unit/full.test.ts (3 new, 1 changed); docs/ENGINE.md (the gauge); docs/ROADMAP.md
+  (row 47); docs/HISTORY.md (the PH2-45 entry); this file.
+- **Tests / verification:** `npx tsc --noEmit -p .` exit 0; `npx vitest run` → 44 files, 500
+  passed; `npm run build` → 395.50 kB JS, 89.64 kB CSS; `bash reference/tests/run-all.sh` →
+  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge
+  (the browser pane hidden) on `npm run dev`, scratchpad `cdp47.mjs`, a stand-in screen lock
+  and a fake microphone playing a steady C♯4 with Sa set to C♯4: at 1280 × 800 day the top
+  panel 1256 × 51, the score panel 179 × 623, the lines 944 × 623, the gauge 109 × 623, the foot
+  78 px with Check my pitch, Restart, Play, Stop and Record me; the pitch check off: "Turn on
+  Check my pitch", the ring and gauge faint; কোমল ঋ ও ধ, তীব্র মা from line 6: line 6 13, "13
+  Average", the note expected গা by the gauge's middle, "8 This run" on Stop; লম্বা স্বর line 1
+  looping at tempo 200: four lines at 100, "100 Superb!", the burst, "4 in a row", the first
+  starred; lines 1–2: Re at 0 ending the streak, "50 This run"; a rewaz from its bar: its bar
+  in the top panel (109 px), the panel cleared, the break shown. 360 × 780 night: the score
+  strip 344 × 66 under the lines, the gauge in the line; 780 × 360: the line being sung whole,
+  strip 47 px (56 and cut before the change); 768 × 1024: stacked, 7 lines; 1280 night: 7 lines;
+  Esc: the deck's Play, Check my pitch and Record me back. No console errors.
+- **Decisions made:** five 2026-11-01 rows (the five panels; the score panel; the gauge's
+  panel; stacking upright; a wrapped line's strip).
+- **Risks or disagreements:** not tried on a real phone or with a real voice: whether the
+  animations distract while singing (they move only as a line ends), whether the words suit
+  Rinat, and whether 85 is the right line for a streak. The average needs 4 notes sung, so a
+  song of long held notes shows "–" for its first lines. With the side panels, the lines are
+  narrower: a 16-beat line wraps sooner on a small laptop. On a phone held upright the score
+  strip takes about 70 px from the lines.
+- **Next handoff:** Rinat sings with it on a laptop and a phone (Next single action); Claude
+  adjusts what Rinat says.
+
 ### 2026-10-31 GMT — Claude (Opus 5.5) — PH2-46 full screen while practising
 
 - **Goal:** Rinat: "an option to go full screen when a song is playing or a rewaz is ongoing …
@@ -754,55 +816,3 @@ Template:
   everywhere, not only in full screen.
 - **Next handoff:** Rinat uses full screen on a phone and a laptop (Next single action); Claude
   adjusts what Rinat says.
-
-### 2026-10-31 GMT — Claude (Opus 5.5) — PH2-45 the time left; My progress under the takes; the library first; notes in ink
-
-- **Goal:** Rinat: "add total remaining time on rewaz bar and the songs remaining time next to
-  the title in practice page when a sog is playing"; "Re-order pages - bring Music library at
-  first and then practice"; "At the end of the practice page where my takes section is - similar
-  to that, have a way to show the data/progress of that song as well there"; "the notes sa re ga
-  ma etc in the practice window - make them high contrast so they are more visible. so instead
-  of grey, make them white/black depending on the day/night mode. maybe the same colour as the
-  line numbers".
-- **Inspected:** transport.ts (`start`, `tick`: the section, rounds, `gap`, `brkPre`, the
-  count-in after a break, `liveTempo`); app.ts's `frame()` (beats, breaks and the end taken from
-  the queue), `stop`, `pause`; rewaz.ts's runner (`go`, `next`, `showBar`); routine.ts's
-  `routineSeconds`; progress.ts and songreport.ts (`songSummary`, `songFindings`); the takes box
-  in index.html; styles.css's `.pnt` (`--ink-2`) and `.pln` (`--ink-2`, the line being sung
-  `--ink`); `clockText` in take.ts (reused).
-- **Changed:** `feat(practice, rewaz)` b117050: transport.ts (`secondsLeft`), routine.ts
-  (`routineSeconds` from an item), rewaz.ts (`rewazLeft`, `#rwLeft`, `Rewaz.left`), view.ts
-  (`leftText`), app.ts (`leftAt`, `showLeft`, `renderSongProgress`, the section's buttons;
-  `openSongReport` and `saveSongForAI` saying where asked), progress.ts (`songProgressHTML`,
-  `showSong`), songreport.ts (`songHeadline` taken out of the page), store.ts (`TABS`),
-  index.html (the tabs, `#songLeft`, `#rwLeft`, `#progBox`), styles.css, timeleft.test.ts. This
-  commit: ENGINE.md (Transport → The time left), ROADMAP row 45, HISTORY (the 2026-10-28 entry),
-  this file.
-- **Tests / verification:** `npm run typecheck` exit 0; `npm test` → 43 files, 490 passed (10
-  new: every beat's and break's time plus its time left equals the end entry's, with 3 rounds
-  and 2 s breaks, the tempo trainer, a line at half speed, a song not looped and the lines to
-  practise; a loop with no end; `leftText`; `rewazLeft`; My progress empty, full and without
-  scores; the tab order); `npm run build` → 388.31 kB JS; `bash reference/tests/run-all.sh` →
-  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5 passed, 12 exercises valid. The
-  browser pane (hidden, so no frames drawn): the tabs Music library | Practice | …, the notes
-  `rgb(236, 235, 229)` at night. Headless Edge on `npm run dev` (scratchpad `cdp45.mjs`), with
-  Scale open and 7 seeded sessions, screenshots seen: at 1280 px day the notes and the line
-  being sung's number both `rgb(27, 28, 36)`; playing, the title 0:15, 0:14 … 0:10 left a second
-  apart; paused 0:10 and 0:10 1.5 s later; Stop hid it; Loop ticked, "0:13 left in this round";
-  a rewaz of two items (2 rounds and 1, tempo 220, a 3 s break) sampled each second: 0:14 … 0:08
-  left in all with the song 0:06 … 0:00, then 0:08, 0:07, 0:06 through "Next … starting in 3 s",
-  then 0:05 … 0:00 with the song the same, hidden at "Rewaz done · 2 items in 17 s"; My progress:
-  "Sessions 7 on 7 days", "18 min", "Latest score 81 best 85", "Getting better: from about 66
-  to about 82.", the chart, the latest 5 sessions. At 360 px night: the page 360 px wide, the
-  section 328 px, the rewaz bar "0:12 left in all" with Skip and Stop rewaz on its second line;
-  See all in Progress opened Progress with Pitch on Scale. No console errors.
-- **Decisions made:** five rows (the time left beside the title; the rewaz's in its bar; My
-  progress; the tab order; the notes in ink).
-- **Risks or disagreements:** the rewaz's total is exact for the item playing but estimated for
-  those after it (each song at its own tempo, as the routine's length is), so it can jump a
-  second or two when the next item starts (here it did not). The countdown follows a tempo
-  change at the next beat. Not seen in Firefox or Safari, nor on a real phone. The line numbers
-  stay grey but for the line being sung: Rinat said "maybe the same colour as the line numbers",
-  and the one being sung is already in ink, so the others were left; asked in the reply.
-- **Next handoff:** Rinat plays a song and runs a rewaz to see the times; opens My progress;
-  says whether the line numbers should be in ink too.

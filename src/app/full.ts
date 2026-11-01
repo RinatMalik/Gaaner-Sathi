@@ -1,13 +1,14 @@
 /**
  * Full screen while practising (Rinat, 2026-10-31: "an option to go full screen when a song is
  * playing or a rewaz is ongoing"). A button beside the song's title, and one in the rewaz bar,
- * turns it on whether or not anything plays: the page shows only the Practice view's lines, as
- * many and with the line being sung in the same place as Practice shows them, with the scores,
- * under a bar with the title, where it has got to and the time left (the rewaz's bar above it
- * in a rewaz), and over a bar of the deck's own Play, Stop, Restart and Check my pitch, moved
- * into it while full screen is on. Where the browser can (not on an iPhone), it goes truly full
- * screen too, and leaving that (Esc, the back gesture) leaves this. F turns it on and off on
- * Practice; Esc leaves it.
+ * turns it on whether or not anything plays. The page is then five panels (Rinat, 2026-11-01):
+ * at the top the title, where it has got to and the time left (the rewaz's bar with it in a
+ * rewaz); the Practice view's lines in the middle, as many and with the line being sung in the
+ * same place as Practice shows them, the score panel to their left (fullscore.ts) and the pitch
+ * gauge to their right (lines.ts moves it there); and at the foot the deck's own Play, Stop,
+ * Restart, Check my pitch and Record me, moved there while full screen is on. Where the browser
+ * can (not on an iPhone), it goes truly full screen too, and leaving that (Esc, the back
+ * gesture) leaves this. F turns it on and off on Practice; Esc leaves it.
  */
 
 export interface FullHost {
@@ -36,7 +37,7 @@ export function initFull(host: FullHost): Full {
   const btn = $('#fullBtn');
   const bar = $('#fullCtl');
   /** The deck's controls moved into the bar, and where each goes back to. */
-  const moved = [$('.dsong .transport'), $('#micBtn')].map((el) => ({ el, mark: document.createComment('') }));
+  const moved = [$('.dsong .transport'), $('#micBtn'), $('#recBtn')].map((el) => ({ el, mark: document.createComment('') }));
   let on = false;
   /** The browser itself went full screen for this. */
   let real = false;

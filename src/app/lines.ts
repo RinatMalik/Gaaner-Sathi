@@ -245,14 +245,15 @@ export function centsText(cents: number): string {
 /** The pitch gauge (Rinat, 2026-10-19), at the end of the line being sung while the pitch check
  * is on: the note sung above, a scale as tall as the line with the note expected across its
  * middle (in tune green, close amber, off red, each band as tall as its share of the reach), a
- * marker sliding up when sharp and down when flat, and the cents under it. */
+ * marker sliding up when sharp and down when flat, and the cents under it. In full screen's
+ * panel it is as tall as the lines, and names the note expected beside its middle. */
 export function gaugeHTML(): string {
   const band = (cls: string, a: number, b: number) => '<span class="pgb ' + cls + '" style="top:' + gaugeY(b) + '%;height:' + (gaugeY(a) - gaugeY(b)) + '%"></span>';
   const R = GAUGE_REACH;
   return '<div class="pgauge idle" role="img" aria-label="Pitch gauge: how close your voice is to the note, sharp above the middle, flat below">' +
     '<span class="pgn" aria-hidden="true"></span><span class="pgs" aria-hidden="true"><span class="pgt">' +
     band('off', CLOSE, R) + band('ok', IN_TUNE, CLOSE) + band('good', -IN_TUNE, IN_TUNE) + band('ok', -CLOSE, -IN_TUNE) + band('off', -R, -CLOSE) +
-    '</span><span class="pgc"></span><span class="pgm"></span></span><span class="pgv" aria-hidden="true"></span></div>';
+    '</span><span class="pgc"></span><span class="pgx"></span><span class="pgm"></span></span><span class="pgv" aria-hidden="true"></span></div>';
 }
 
 // ── Wiring ───────────────────────────────────────────────────────────────────
@@ -270,6 +271,9 @@ export interface LinesHost {
   /** Full screen is on: the lines fill the screen, the strip of the line being sung as tall as
    * the rest leaves room for, its notes named up its side. */
   full(): boolean;
+  /** Where the gauge goes in place of the end of the line being sung: full screen's panel for it
+   * when that is showing, else null. */
+  gaugeBox(): HTMLElement | null;
 }
 
 export interface LinesUI {
@@ -304,8 +308,9 @@ export interface LinesUI {
   gaugeOn(on: boolean): void;
   /** The gauge: the note sung (HTML; '' for none), how far the voice is from the note expected
    * in cents (null: no marker) and so how close (`good`, `ok`, `off`, or ''), and a word in place
-   * of the cents when there are none (a rest). */
-  gauge(note: string, cents: number | null, cls: string, label: string): void;
+   * of the cents when there are none (a rest); and the note expected (HTML), named beside the
+   * gauge's middle in full screen's panel. */
+  gauge(note: string, cents: number | null, cls: string, label: string, target?: string): void;
 }
 
 interface Seg {
@@ -360,9 +365,10 @@ export function initLines(host: LinesHost): LinesUI {
   const gNote = gEl.querySelector<HTMLElement>('.pgn')!;
   const gMark = gEl.querySelector<HTMLElement>('.pgm')!;
   const gVal = gEl.querySelector<HTMLElement>('.pgv')!;
+  const gWant = gEl.querySelector<HTMLElement>('.pgx')!;
   /** The gauge is on; what it shows (drawn every frame, so only changes touch the page). */
   let gaugeShown = false;
-  const gNow = { note: '', y: '', cls: '', v: '' };
+  const gNow = { note: '', y: '', cls: '', v: '', x: '' };
 
   function build(): void {
     dirty = false;
@@ -407,6 +413,7 @@ export function initLines(host: LinesHost): LinesUI {
   let shownCols = 0;
   function layout(): void {
     if (!host.shown() || !view.clientWidth) return;
+    placeGauge();
     const numW = lines[0]?.querySelector<HTMLElement>('.pln')?.offsetWidth ?? 60;
     // The gauge's column, when on; on a phone a beat may then be a little narrower, so that
     // eight beats still go across a 360 px screen.
@@ -440,8 +447,9 @@ export function initLines(host: LinesHost): LinesUI {
    * screen show the same thing"): the lines shown and the place of the one being sung as on
    * Practice, the others compact, its strip as tall as the screen leaves room for once its
    * notes and words, the other lines and headings in view and the room for lines past the
-   * song's end are counted (a row of its strip 56 px at least, the view scrolling below that).
-   * The line that was being sung, still shrinking, counts at a small line's height. */
+   * song's end are counted (a row of its strip 56 px at least, the view scrolling below that;
+   * less, down to 28 px, where the line being sung would not fit whole even alone, as on a phone
+   * on its side). The line that was being sung, still shrinking, counts at a small line's height. */
   function fit(scroll = true): void {
     const L = lines[cur];
     const w = L?.querySelector<HTMLElement>('.plsw');
@@ -455,13 +463,15 @@ export function initLines(host: LinesHost): LinesUI {
     // The line's beats above its strip's rows (its number box, with the taal figure, may stand
     // taller than that, and then the strip grows into its height).
     const c0 = w.parentElement!;
-    let rest = 1 + c0.offsetTop + r * w.offsetTop + (last - z) * smallH;
+    const own = 1 + c0.offsetTop + r * w.offsetTop;
+    const least = Math.min(56, Math.max(28, Math.floor((view.clientHeight - 2 - own) / r)));
+    let rest = own + (last - z) * smallH;
     for (let i = first; i <= z; i++) if (i !== cur) rest += i === wasCur ? smallH : lines[i]!.offsetHeight;
     for (let el: Element | null = cur < k ? list.firstElementChild : lines[first]!; el; el = el.nextElementSibling) {
       if (el.classList.contains('plhd')) rest += (el as HTMLElement).offsetHeight;
       if (el === lines[z]) break;
     }
-    const row = Math.max(56, Math.floor((view.clientHeight - 2 - rest) / r));
+    const row = Math.max(least, Math.floor((view.clientHeight - 2 - rest) / r));
     view.style.setProperty('--fsh', row + 'px');
     axis(cur, row, cols);
     if (scroll) scrollTo(false);
@@ -771,10 +781,15 @@ export function initLines(host: LinesHost): LinesUI {
     if (on) revealTimer = window.setTimeout(() => reveal(n), 280);
   });
 
-  /** The gauge goes at the end of the line being sung, while it is on. */
+  /** The gauge goes at the end of the line being sung, while it is on; in full screen's panel for
+   * it, when that shows, it stays there, faint while the pitch check is off. */
   function placeGauge(): void {
     const L = lines[cur];
-    if (gaugeShown && L) {
+    const box = host.gaugeBox();
+    gEl.classList.toggle('dim', !gaugeShown);
+    if (box) {
+      if (gEl.parentElement !== box) box.appendChild(gEl);
+    } else if (gaugeShown && L) {
       if (gEl.parentElement !== L) L.appendChild(gEl);
     } else gEl.remove();
   }
@@ -789,8 +804,9 @@ export function initLines(host: LinesHost): LinesUI {
     if (host.shown()) refresh();
   }
 
-  function gauge(note: string, cents: number | null, cls: string, label: string): void {
+  function gauge(note: string, cents: number | null, cls: string, label: string, target = ''): void {
     if (note !== gNow.note) gNote.innerHTML = gNow.note = note;
+    if (target !== gNow.x) gWant.innerHTML = gNow.x = target;
     const y = cents == null ? '' : gaugeY(cents).toFixed(1) + '%';
     if (y !== gNow.y) {
       gNow.y = y;
@@ -819,7 +835,16 @@ export function initLines(host: LinesHost): LinesUI {
   }
 
   new ResizeObserver(() => {
-    if (host.shown()) layout();
+    if (!host.shown()) return;
+    layout();
+    // In full screen (a phone turned, say), fitted again once sizes have settled.
+    if (host.full()) {
+      clearTimeout(layoutTimer);
+      layoutTimer = window.setTimeout(() => {
+        layout();
+        scrollTo(false);
+      }, 320);
+    }
   }).observe(view);
 
   return {

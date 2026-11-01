@@ -1,10 +1,11 @@
-// Full screen while practising (Rinat, 2026-10-31): where playing has got to in the title's bar,
-// the notes named up the strip of the line being sung, the break before a rewaz item, and the
-// page's parts it shows.
+// Full screen while practising (Rinat, 2026-10-31; five panels, 2026-11-01): where playing has
+// got to in the title's bar, the notes named up the strip of the line being sung, the break
+// before a rewaz item, the score panel's words and streak, and the page's parts it shows.
 import { describe, expect, it } from 'vitest';
 import page from '../../index.html?raw';
 import { whereText } from '../../src/app/full';
-import { axisNotes } from '../../src/app/lines';
+import { scoreWord, streakOf } from '../../src/app/fullscore';
+import { axisNotes, gaugeHTML } from '../../src/app/lines';
 import { itemWhat, type ItemSong } from '../../src/app/rewaz';
 import { parseSong } from '../../src/core/notation/parse';
 import { eventsByBeat } from '../../src/core/pitch/track';
@@ -59,6 +60,21 @@ describe('the break before a rewaz item', () => {
   });
 });
 
+describe('the score panel', () => {
+  it('has a word for each line as it ends', () => {
+    expect([100, 95, 94, 85, 84, 70, 69, 60, 59, 0].map(scoreWord)).toEqual(['Superb!', 'Superb!', 'Lovely!', 'Lovely!', 'Good', 'Good', 'Nearly there', 'Nearly there', 'Keep going', 'Keep going']);
+    expect(scoreWord(NaN)).toBe('Not heard');
+  });
+
+  it('counts the lines in tune in a row, ending with the latest', () => {
+    expect(streakOf([])).toBe(0);
+    expect(streakOf([90, 40, 85, 100])).toBe(2);
+    expect(streakOf([90, 92, 84])).toBe(0);
+    // A line not heard ends it.
+    expect(streakOf([90, NaN, 88])).toBe(1);
+  });
+});
+
 describe('the page', () => {
   /** The markup between two ids' elements. */
   const between = (a: string, b: string) => page.split('id="' + a + '"')[1]!.split('id="' + b + '"')[0]!;
@@ -70,12 +86,24 @@ describe('the page', () => {
     expect(between('rwLeft', 'rwSkip')).toMatch(/<button id="rwFull"[^>]*>.*Full screen<\/button>/);
   });
 
+  it('has five panels: the rewaz and title bars together, the score, the lines, the gauge, the controls', () => {
+    const top = page.split('<div class="ptop">')[1]!;
+    expect(top.indexOf('id="rwBar"')).toBeGreaterThan(-1);
+    expect(top.indexOf('id="rwBar"')).toBeLessThan(top.indexOf('<div class="sheetHead">'));
+    const order = ['class="ptop"', 'id="fullScore"', 'id="pl"', 'id="fullGauge"', 'id="fullCtl"'].map((x) => page.indexOf(x));
+    expect(order.every((at, i) => at > 0 && (i === 0 || at > order[i - 1]!))).toBe(true);
+    for (const id of ['fsRing', 'fsArc', 'fsAvg', 'fsSung', 'fsStreak', 'fsPop', 'fsLines', 'fsBurst']) expect(between('fullScore', 'pl')).toContain('id="' + id + '"');
+    // The gauge names the note expected beside its middle.
+    expect(gaugeHTML()).toContain('<span class="pgx"></span>');
+  });
+
   it('has the break inside the lines, and a bar for the deck’s controls after them', () => {
     expect(between('plView', 'pitchBox')).toContain('id="fullBreak"');
     expect(between('fullBreak', 'pitchBox')).toContain('id="fbCount"');
-    expect(between('pitchBox', 'keysRow')).toMatch(/<\/section>\s*<!--[^]*?-->\s*<div class="fullctl" id="fullCtl"[^>]* hidden><\/div>\s*<section class="keyscard" $/);
+    expect(between('pitchBox', 'keysRow')).toMatch(/<\/section>\s*<!--[^]*?-->\s*<aside class="fgauge" id="fullGauge"[^>]*><span class="fph">Pitch<\/span><\/aside>\s*<!--[^]*?-->\s*<div class="fullctl" id="fullCtl"[^>]* hidden><\/div>\s*<section class="keyscard" $/);
     // The controls it moves there are the deck's.
     expect(between('deck', 'dpGuide')).toMatch(/<div class="transport">\s*<button id="playBtn"/);
     expect(between('deck', 'dpGuide')).toContain('<button id="micBtn"');
+    expect(between('deck', 'dpGuide')).toContain('<button id="recBtn"');
   });
 });

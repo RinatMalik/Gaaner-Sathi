@@ -26,6 +26,7 @@ import type { BeatEntry } from '../audio/transport';
 import type { ParsedSong } from '../core/notation/types';
 import type { PitchDetail } from '../core/practice/session';
 import { beatNotes, centsFromSa, eventsByBeat, isGlitch, nearestNote, PitchTracker, SlipFilter, sliding, type ExpectedNote, type LineResult, type NoteResult, type Section } from '../core/pitch/track';
+import type { ScorePanel } from './fullscore';
 import { centsText, closeness, ragColour, type LinesUI } from './lines';
 import { beatNoteHTML, type Script } from './view';
 
@@ -53,6 +54,8 @@ export interface PitchHost {
   voiceOct: { get(): number | undefined; set(v: number): void };
   /** The Practice view's lines: the voice is drawn on their strips, each line's score beside it. */
   lines: Pick<LinesUI, 'voice' | 'voiceOff' | 'lineScore' | 'clearRun' | 'gaugeOn' | 'gauge'>;
+  /** Full screen's score panel: each line's score and the average as they come. */
+  panel: ScorePanel;
 }
 
 export interface PitchUI {
@@ -148,6 +151,7 @@ export function initPitch(host: PitchHost): PitchUI {
     setButton(false, 'Check my pitch');
     box.hidden = true;
     host.lines.gaugeOn(false);
+    host.panel.clear();
   }
 
   /** Open the microphone (playing has started, or gone on). */
@@ -270,6 +274,7 @@ export function initPitch(host: PitchHost): PitchUI {
 
   function lineDone(l: LineResult): void {
     host.lines.lineScore(l.line, l.score);
+    host.panel.line(l.line, l.score);
   }
 
   function settle(final: boolean): void {
@@ -284,6 +289,7 @@ export function initPitch(host: PitchHost): PitchUI {
    * the end, the run's (as the practice log keeps it). */
   function showAverage(final: boolean): void {
     const s = tracker?.summary();
+    host.panel.average(s ?? null, final);
     scoresEl.innerHTML = s
       ? '<span class="pavg" style="--lc:' + ragColour(s.score) + '"><b>' + s.score + '</b><span>' + (final ? 'Average for this run' : 'Average so far') + ' · ' + Math.round(s.sung * 100) + '% of the notes sung</span></span>'
       : '';
@@ -296,6 +302,7 @@ export function initPitch(host: PitchHost): PitchUI {
     if (tracker) settle(true);
     clearMarks();
     host.lines.clearRun();
+    host.panel.clear();
     scoresEl.innerHTML = '';
     sched = [];
     drawnT = -Infinity;
@@ -321,14 +328,15 @@ export function initPitch(host: PitchHost): PitchUI {
   }
 
   /** The gauge: the note sung (`sungCents` from Sa) and `cents` off the note expected, or
-   * `label` in place of the cents. */
-  function showGauge(cents: number | null, label: string, sungCents: number | null): void {
+   * `label` in place of the cents; and the note expected, when there is one. */
+  function showGauge(cents: number | null, label: string, sungCents: number | null, expected: ExpectedNote | null = null): void {
+    const name = (semi: number, oct: number) => beatNoteHTML({ units: [{ k: 'note', semi, oct }] }, host.script());
     let note = '';
     if (sungCents != null) {
       const nn = nearestNote(sungCents);
-      note = beatNoteHTML({ units: [{ k: 'note', semi: nn.semi, oct: nn.oct }] }, host.script());
+      note = name(nn.semi, nn.oct);
     }
-    host.lines.gauge(note, cents, cents == null ? '' : closeness(cents), label);
+    host.lines.gauge(note, cents, cents == null ? '' : closeness(cents), label, expected ? name(expected.semi, expected.oct) : '');
   }
 
   function draw(): void {
@@ -345,7 +353,7 @@ export function initPitch(host: PitchHost): PitchUI {
       else {
         // This note's readings, from its start: a voice still on the last note shows so.
         const c = steady((r) => (r.t - tracker!.lag >= note.t0 && r.t - tracker!.lag < note.t1 ? tracker!.errorFor(r.hz, note) : null));
-        if (c != null || !latest?.hz) showGauge(c, '', sungAbs);
+        if (c != null || !latest?.hz) showGauge(c, '', sungAbs, note);
       }
       // The device's delay, measured or as it says; and how far behind the guide the voice
       // has been coming (measured from the singing, not taken off anything).
