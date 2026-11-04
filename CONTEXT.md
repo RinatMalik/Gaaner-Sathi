@@ -181,7 +181,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   C♯3) was the microphone; tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `d6f6639` (CI run `41298520506` green: round fifty live).
+- **Last known-good commit:** `89a9c49` (CI run `41852584962` green: round fifty-one live).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
