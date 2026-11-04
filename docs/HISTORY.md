@@ -21,6 +21,7 @@ historical interest.
 
 | Date | Decision | Authority / evidence | Consequence |
 |---|---|---|---|
+| 2026-11-04 | **A warning when the microphone overloads:** "Too loud for the microphone: turn its input gain down a little." under the lines (and in full screen's loudness panel) for 3 s after a block of samples was cut off at the top, and a red end on the bar of the note sung then. Cut off: a sample at 0.99 of full scale or more, or, from a quarter of full scale, six or more in a row at the block's loudest (a volume after the cut). | Claude's proposal, in the plan Rinat approved 2026-11-04; Rinat's takes of 25–27 Oct reached full scale in 0.5–4 % of the voice's windows | `blockClipped` in loudness.ts, on each block in mic.ts. Checked in headless Edge only with blocks scaled in the page (its fake microphone limits). |
 | 2026-11-01 | **Full screen's gauge has its own panel,** as tall as the lines: the note sung above, the note expected named beside its middle, ♯ above and ♭ below, the cents under it; faint while the pitch check is off. | Rinat, chat 2026-11-01 (the sketch's "Pitch guage height 75% Width 10%"); the note expected and the signs, Claude's | lines.ts `gaugeBox`, `gaugeHTML`; pitch.ts `showGauge`. |
 | 2026-10-19 | **The pitch gauge:** how close the voice is shows as a vertical gauge at the end of the line being sung, in place of the text under the lines ("In tune", "12 cents sharp", "You: সা"). While the pitch check is on every line has the gauge's column (60 px, 22 px on a phone), so beats stay one under another; on a phone a beat may be 30 px wide so eight still go across. The gauge: the note sung on top, coloured by how close; a scale with the note expected across its middle, green within 15 cents, amber within 35, red to 50, the marker held at the end beyond; the marker slides up when sharp and down when flat, as on the strip; the cents under it (not on a phone). The text under the lines keeps the status, the average and the hints. | Rinat, chat 2026-10-19 ("This is not a very good visual representation … maybe showing the cents vertically. tell me where can it go"; to Claude's proposal and mock-up: "Yes, build the vertical pitch gauge at the end of the line being sung, as in the mock-up"); the place, the bands and the phone form are Claude's | src/app/lines.ts (`gaugeHTML`, `gaugeOn`, `gauge`), pitch.ts (`showGauge`). docs/ENGINE.md → The gauge. |
 | 2026-10-28 | **The sliders' knobs 30 px,** brass on a groove, each slider 32 px across (the browser's own knob was about 16 px). | Rinat, chat 2026-10-28 ("make the slider handles a lot bigger so they are easy to click on") | The deck's four sliders; drawn by hand for Chromium, Safari and Firefox. |
@@ -51,6 +52,41 @@ historical interest.
 - 2026-10-09: `handover/`, merged into the framework (the original pack is at `e0ea8d8`).
 
 ## Work log, older entries
+
+### 2026-11-01 GMT — Claude (Opus 5.5) — PH2-50 full screen's glow and score list
+
+- **Goal:** Rinat: "the glow effect on beat is also ok, but not noticeable enough, although i
+  don't want it to be distracting either. maybe increase the fade out time just a tad longer.
+  The score panel lists allt he past line scores. when there is a lot of lines, it show as much
+  as it can fit. could it be scrollable to see the rest?"
+- **Inspected:** fullfx.ts (each flash 0.92 of a beat on `cubic-bezier(.15,.6,.3,1)`: above
+  half way for only the first 15 % of it); fullscore.ts (the latest 40 rows kept, newest
+  prepended, `over` set only as a row came in); styles.css `.fslines` (`overflow:hidden`; on a
+  phone a strip with a fade always on its right).
+- **Changed:** `feat(practice): full screen's glow lingers a little longer, the score list
+  scrolls` — src/app/fullfx.ts (1.25 beats, at least 220 ms, `cubic-bezier(.2,.5,.4,1)`);
+  src/app/fullscore.ts (`KEEP` 500, `edges` on scroll and resize, rows in view kept as a new
+  one is prepended); src/app/styles.css (`.fslines` scrolls, thin scrollbar, `overflow-anchor:
+  none`, fades by `up` and `over` down the panel and along the phone's strip); docs/ROADMAP.md
+  (row 50); docs/HISTORY.md (the PH2-48 entry); this file (also the Definition of done: 4K).
+- **Tests / verification:** `npx tsc --noEmit -p .` exit 0; `npx vitest run` → 44 files, 504
+  passed; `npm run build` → 397.09 kB JS, 91.24 kB CSS; `bash reference/tests/run-all.sh` →
+  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge
+  on `npm run dev` (scratchpad `cdp50.mjs`, the glow's `animate` calls logged and its opacity
+  read each frame): আরোহ-অবরোহ at tempo 96, each flash 781 ms; first with the old curve, above
+  half way for 116 ms; with the new, 183 ms (the old 575 ms flash: 91 ms, worked out from its
+  curve), back to 0.20–0.21 by the next beat, peaks 0.35 and 0.43 (khali) as before. লম্বা
+  স্বর line 1 looping at tempo 240, Sa on C♯4 and the fake voice on it, at 1280 × 640: with 6
+  rows the list 78 px tall of 156, `over`; a mouse wheel over it scrolled it to 78 (`up`), the
+  page not at all; a new row while scrolled took it to 105 (one row on, the rows in view kept);
+  wheeled to the top, the next new row stayed in view at 0; at 360 × 780 the strip 175 px in
+  93, scrolled along 60 px, `up over`; no console errors. A second run, cut short by a pipe
+  after the glow, left a headless Edge, stopped by hand.
+- **Decisions made:** three 2026-11-01 rows (the glow lingers; the list scrolls; 4K checked).
+- **Risks or disagreements:** whether the glow is now enough or too much is Rinat's to see
+  while singing. On a short laptop screen the list has room for only 3 rows before it scrolls
+  (78 px at 1280 × 640; more at 800 tall).
+- **Next handoff:** Rinat sings with it (Next single action); Claude adjusts.
 
 ### 2026-11-01 GMT — Claude (Opus 5.5) — PH2-49 full screen on a big screen
 

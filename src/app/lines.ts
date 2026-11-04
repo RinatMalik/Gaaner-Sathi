@@ -251,7 +251,7 @@ export const loudBar = (d: number): number => clamp(55 + d * 3.75, 6, 100);
 export function loudHTML(): string {
   return '<div class="ldm" role="img" aria-label="Loudness by note: how loud you sing each note of the line, against the line as a whole; a longer bar is louder">' +
     '<ol class="ldrs" aria-hidden="true"></ol><span class="ldw"></span><span class="ldx"></span>' +
-    '<span class="ldc">Too loud for the microphone: turn its input gain down a little</span><span class="ldp"></span></div>';
+    '<span class="ldc">Too loud for the microphone: turn down its Gain knob</span><span class="ldp"></span></div>';
 }
 
 /** The rows of loudness by note for a line's notes (low to high, as `axisNotes` gives them):

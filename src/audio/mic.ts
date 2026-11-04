@@ -6,7 +6,7 @@
  * thread never does the maths; the pitch detector runs on the page, about 45 times a
  * second. Nothing is recorded or sent anywhere.
  */
-import { blockClipped } from '../core/pitch/loudness';
+import { blockClip, type Clip } from '../core/pitch/loudness';
 import { PitchDetector, windowSize, type PitchReading } from './dsp/mpm';
 
 /** Collects the input in blocks of `hop` samples and posts each block with the frame
@@ -36,10 +36,10 @@ registerProcessor('gs-capture', GsCapture);
 `;
 
 /** A reading, timed at the middle of its window on the AudioContext clock; `clip`, whether the
- * samples that came in for it were cut off at the top (the microphone overloading). */
+ * samples that came in for it were cut off at the top (the microphone overloading), and how. */
 export interface MicReading extends PitchReading {
   t: number;
-  clip: boolean;
+  clip: Clip;
 }
 
 export type MicProblem = 'insecure' | 'unsupported' | 'denied' | 'nodevice' | 'busy' | 'other';
@@ -134,7 +134,7 @@ export class Mic {
         win.copyWithin(0, hop);
         win.set(data, N - hop);
         const r = detector.detect(win);
-        onReading({ ...r, t: (end - N / 2) / ctx.sampleRate, clip: blockClipped(data) });
+        onReading({ ...r, t: (end - N / 2) / ctx.sampleRate, clip: blockClip(data) });
       });
       return new Mic(ctx, stream, source, node, sink);
     } catch (e) {

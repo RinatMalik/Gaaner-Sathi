@@ -452,17 +452,26 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   of its notes' levels against their pitch, each note once, from three notes a fourth (500
   cents) or more apart: within 4 dB an octave "Even", above it "Louder going up", below
   "Softer going up" (`riseWord`), and as a number, "+8 dB an octave" (`riseText`). A note the
-  microphone overloaded on has a red end to its bar, and for 3 s after any reading that did,
-  the message under the lines (and full screen's panel) says "Too loud for the microphone:
-  turn its input gain down a little". Overloaded (`blockClipped`, on each block of samples as
-  it comes in, mic.ts): a sample at 0.99 of full scale or more, or, from a quarter of full
-  scale, six or more samples in a row at the block's loudest: the flat top of a waveform cut
-  off and then turned down by a volume after the cut (the system's input level for the device
-  under 100), which a plain 0.99 would miss. A voice never holds its top that long (at 60 Hz
-  and 48 kHz it changes within two samples, 16-bit or not). *Not checkable with headless
-  Edge's fake microphone:* it limits a file's loudest moments, rounding a cut-off top to a
-  smooth peak at 0.9757 (no two samples the same), so the warning was checked there with the
-  blocks scaled up in the page to reach full scale (Work log 2026-11-04). *Why against
+  microphone overloaded on has a red end to its bar. Overloaded (`blockClip`, on each block
+  of samples as it comes in, mic.ts): a sample at 0.99 of full scale or more ('full'), or,
+  from a quarter of full scale, six or more samples in a row at the block's loudest ('down'):
+  the flat top of a waveform cut off and then turned down by a volume after the cut (the
+  computer's input level for the device under 100), which a plain 0.99 would miss. A voice
+  never holds its top that long (at 60 Hz and 48 kHz it changes within two samples, 16-bit or
+  not). The message under the lines (and full screen's panel) is told (`Overload`) once the
+  voice has been cut off in three blocks within 2 s, only blocks with the voice in them (a
+  knock, a breath or a "p" into the microphone does not count), and for 3 s after the last:
+  "Too loud for the microphone: turn down the Gain knob on your audio interface or
+  microphone, not the computer's input level.", or, cut off below full scale, "Too loud for
+  the microphone, before the computer's input level: turn down the Gain knob on your audio
+  interface or microphone instead." *Why the Gain knob:* the sound is cut off in the
+  interface (its preamp and converter), before the computer; the computer's input level only
+  turns the cut-off sound down, or, for some interfaces, does nothing (Rinat, 2026-11-04,
+  turning it to the lowest: "still captures too loud"; round fifty-two). *Not checkable with
+  headless Edge's fake microphone:* it limits a file's loudest moments, rounding a cut-off top
+  to a smooth peak at 0.9757 (no two samples the same), so the warning was checked there with
+  the blocks scaled up in the page to reach full scale, or cut off and turned down by half
+  (Work log 2026-11-04). *Why against
   the line's own level:* the microphone's gain and the singer's distance from it move the
   level by tens of decibels, so an absolute level would need setting up every time and would
   change as the singer moved; a line lasts a few seconds, in which the singer seldom moves,

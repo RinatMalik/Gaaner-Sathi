@@ -20,25 +20,67 @@ export const CLIP = 0.99;
 /** Samples in a row at a block's loudest that mean its top was cut off. */
 export const CLIP_RUN = 6;
 
+/** How a block of samples was cut off at the top: at full scale ('full'), or below it ('down':
+ * cut off, then turned down by a volume after the cut, the computer's input level for the device
+ * set under 100, which cannot undo the cut); null when it was not. */
+export type Clip = 'full' | 'down' | null;
+
 /**
- * Whether a block of samples was cut off at the top: a sample at full scale, or (from a quarter
- * of full scale) six or more in a row at the block's loudest, the flat top of a waveform cut
- * off and then turned down by a volume after the cut (the system's input level for the device
- * set under 100). A voice never holds its peak that long: even at 60 Hz, sampled at 48 kHz, its
- * top changes within two samples.
+ * Whether a block of samples was cut off at the top, and how: a sample at full scale, or (from a
+ * quarter of full scale) six or more in a row at the block's loudest, the flat top of a waveform
+ * cut off and then turned down. A voice never holds its peak that long: even at 60 Hz, sampled at
+ * 48 kHz, its top changes within two samples.
  */
-export function blockClipped(data: ArrayLike<number>): boolean {
+export function blockClip(data: ArrayLike<number>): Clip {
   let peak = 0;
   for (let i = 0; i < data.length; i++) peak = Math.max(peak, Math.abs(data[i]!));
-  if (peak >= CLIP) return true;
-  if (peak < 0.25) return false;
+  if (peak >= CLIP) return 'full';
+  if (peak < 0.25) return null;
   const top = peak - 1e-6;
   let run = 0;
   for (let i = 0; i < data.length; i++) {
     run = Math.abs(data[i]!) >= top ? run + 1 : 0;
-    if (run >= CLIP_RUN) return true;
+    if (run >= CLIP_RUN) return 'down';
   }
-  return false;
+  return null;
+}
+
+/** The overload is told once the voice has been cut off this many times (blocks, about 21 ms
+ * each) within `OVERLOAD_WITHIN` seconds, and for `OVERLOAD_HOLD` seconds after the last. */
+export const OVERLOAD_BLOCKS = 3;
+export const OVERLOAD_WITHIN = 2;
+export const OVERLOAD_HOLD = 3;
+
+/** The microphone overloading while the voice sings (Rinat, 2026-11-04: "I kept reducing the mic
+ * volume but i kep getting notification that it is still too loud"): only blocks of the voice
+ * count (a knock, a breath or a "p" into the microphone does not), and only cut off again and
+ * again, not once. */
+export class Overload {
+  private at: number[] = [];
+  private until = -Infinity;
+  private kind: Clip = null;
+
+  /** A block at time `t` (seconds), how it was cut off, and whether the voice was heard in it. */
+  add(t: number, clip: Clip, voiced: boolean): void {
+    if (!clip || !voiced) return;
+    this.at.push(t);
+    while (this.at.length && this.at[0]! < t - OVERLOAD_WITHIN) this.at.shift();
+    if (this.at.length >= OVERLOAD_BLOCKS) {
+      this.until = t + OVERLOAD_HOLD;
+      this.kind = clip;
+    }
+  }
+
+  /** How the voice was being cut off at time `t`, null when it is not being told. */
+  now(t: number): Clip {
+    return t < this.until ? this.kind : null;
+  }
+
+  clear(): void {
+    this.at = [];
+    this.until = -Infinity;
+    this.kind = null;
+  }
 }
 
 /** Readings this far under the voice's loud ones are taken for the guide heard in a rest, or a

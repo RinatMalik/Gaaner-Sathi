@@ -2,7 +2,7 @@
 // for each octave up and its words, the level the voice has been singing at, and the voice
 // line's thickness.
 import { describe, expect, it } from 'vitest';
-import { blockClipped, CLIP_RUN, EVEN, levelDb, LevelRef, lineLevel, LineLevels, MIN_READINGS, riseText, riseWord, risePerOctave, widthStep, type NoteLevel } from '../../src/core/pitch/loudness';
+import { blockClip, CLIP_RUN, EVEN, levelDb, LevelRef, lineLevel, LineLevels, MIN_READINGS, Overload, OVERLOAD_BLOCKS, OVERLOAD_HOLD, OVERLOAD_WITHIN, riseText, riseWord, risePerOctave, widthStep, type NoteLevel } from '../../src/core/pitch/loudness';
 
 /** A note sung for `n` readings at `db`, a little either side. */
 const sing = (L: LineLevels, cents: number, db: number, n = 20, clip = false) => {
@@ -28,23 +28,52 @@ describe('the microphone overloading', () => {
     });
 
   it('is a sample at full scale', () => {
-    expect(blockClipped(tone(277, 0.995))).toBe(true);
-    expect(blockClipped(tone(277, 0.9))).toBe(false);
+    expect(blockClip(tone(277, 0.995))).toBe('full');
+    expect(blockClip(tone(277, 0.9))).toBe(null);
   });
 
   it('is a flat top, turned down after the cut', () => {
     // Cut off at full scale, then a volume of 0.976 (headless Edge's fake microphone).
-    expect(blockClipped(tone(277, 1.4, 1, 0.976))).toBe(true);
+    expect(blockClip(tone(277, 1.4, 1, 0.976))).toBe('down');
     // Cut off by a tenth of a decibel, then turned down by half.
-    expect(blockClipped(tone(277, 1.012, 1, 0.5))).toBe(true);
+    expect(blockClip(tone(277, 1.012, 1, 0.5))).toBe('down');
   });
 
   it('is never a voice, however low or plain, nor a quiet hum', () => {
-    expect(blockClipped(tone(60, 0.25))).toBe(false);
-    expect(blockClipped(tone(60, 0.25, 1, 1, 16))).toBe(false);
-    expect(blockClipped(tone(100, 0.8, 1, 1, 16))).toBe(false);
-    expect(blockClipped(tone(60, 0.2, 0.1))).toBe(false);
+    expect(blockClip(tone(60, 0.25))).toBe(null);
+    expect(blockClip(tone(60, 0.25, 1, 1, 16))).toBe(null);
+    expect(blockClip(tone(100, 0.8, 1, 1, 16))).toBe(null);
+    expect(blockClip(tone(60, 0.2, 0.1))).toBe(null);
     expect(CLIP_RUN).toBe(6);
+  });
+
+  it('is told once the voice is cut off again and again, for a while after', () => {
+    expect([OVERLOAD_BLOCKS, OVERLOAD_WITHIN, OVERLOAD_HOLD]).toEqual([3, 2, 3]);
+    const o = new Overload();
+    o.add(10, 'full', true);
+    o.add(10.5, 'full', true);
+    expect(o.now(10.5)).toBe(null);
+    o.add(11.9, 'full', true);
+    expect(o.now(11.9)).toBe('full');
+    expect(o.now(14.8)).toBe('full');
+    expect(o.now(14.95)).toBe(null);
+    // Cut off after the computer's level was turned down: said so.
+    o.add(20, 'down', true);
+    o.add(20.1, 'down', true);
+    o.add(20.2, 'down', true);
+    expect(o.now(20.3)).toBe('down');
+    o.clear();
+    expect(o.now(20.3)).toBe(null);
+  });
+
+  it('is not told for one cut, cuts far apart, or a knock with no voice in it', () => {
+    const o = new Overload();
+    o.add(1, 'full', true);
+    o.add(3.5, 'full', true);
+    o.add(6, 'full', true);
+    expect(o.now(6)).toBe(null);
+    for (let i = 0; i < 10; i++) o.add(8 + i * 0.02, 'full', false);
+    expect(o.now(8.2)).toBe(null);
   });
 });
 

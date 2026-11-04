@@ -26,7 +26,7 @@ import { Mic, MicError, micProblemText, type MicReading } from '../audio/mic';
 import type { BeatEntry } from '../audio/transport';
 import type { ParsedSong } from '../core/notation/types';
 import type { PitchDetail } from '../core/practice/session';
-import { levelDb, LevelRef, LineLevels, risePerOctave, widthStep } from '../core/pitch/loudness';
+import { levelDb, LevelRef, LineLevels, Overload, risePerOctave, widthStep } from '../core/pitch/loudness';
 import { beatNotes, centsFromSa, eventsByBeat, isGlitch, PitchTracker, SlipFilter, sliding, type ExpectedNote, type LineResult, type NoteResult, type Section } from '../core/pitch/track';
 import type { ScorePanel } from './fullscore';
 import { centsText, closeness, ragColour, type LinesUI } from './lines';
@@ -134,7 +134,7 @@ export function initPitch(host: PitchHost): PitchUI {
   let lineLv: { line: number; pass: number; L: LineLevels } | null = null;
   let lastLine: { line: number; rise: number | null } | null = null;
   let nowCents: number | null = null;
-  let clipAt = -Infinity;
+  const overload = new Overload();
 
   function setButton(on: boolean, label: string): void {
     btn.setAttribute('aria-pressed', String(on));
@@ -224,7 +224,7 @@ export function initPitch(host: PitchHost): PitchUI {
     width = null;
     nowCents = null;
     showLoud();
-    if (msgEl.textContent === CLIPPING) message('');
+    if (isClipping(msgEl.textContent)) message('');
     if (!armed) return;
     setButton(true, 'Pitch check on');
     message(text);
@@ -334,7 +334,7 @@ export function initPitch(host: PitchHost): PitchUI {
     lineLv = null;
     lastLine = null;
     nowCents = null;
-    clipAt = -Infinity;
+    overload.clear();
     tracker = new PitchTracker({ lag: host.devLag.get() ?? mic?.latency() ?? 0.05, anyOctave: !host.octave.get(), below: host.below(), saHz: host.saHz(), octave: host.voiceOct.get() });
     void listen();
   }
@@ -342,15 +342,21 @@ export function initPitch(host: PitchHost): PitchUI {
   // ── Drawing ────────────────────────────────────────────────────────────────
 
   /** Said under the lines while the microphone overloads (loudness by note says so too, in full
-   * screen): its input gain is too high, so the loudest moments are cut off. */
-  const CLIPPING = 'Too loud for the microphone: turn its input gain down a little.';
+   * screen): its gain is too high, so the loudest of the voice is cut off before the computer
+   * hears it, and the computer's input level cannot help (Rinat, 2026-11-04: "setting it to lowest
+   * still captures too loud"). When that level is turned down after the cut, it says so. */
+  const CLIPPING: Record<'full' | 'down', string> = {
+    full: "Too loud for the microphone: turn down the Gain knob on your audio interface or microphone, not the computer's input level.",
+    down: "Too loud for the microphone, before the computer's input level: turn down the Gain knob on your audio interface or microphone instead.",
+  };
+  const isClipping = (text: string | null) => text === CLIPPING.full || text === CLIPPING.down;
 
   /** Loudness by note: the line the voice is on, its notes so far and its rise, the note
    * sounding, and the line (or round) before. */
   function showLoud(): void {
     const levels = lineLv ? lineLv.L.levels() : [];
     const latest = recent[recent.length - 1]?.t ?? -Infinity;
-    host.lines.loud({ line: lineLv?.line ?? -1, levels, rise: risePerOctave(levels), now: nowCents, clipping: latest - clipAt < 3, last: lastLine });
+    host.lines.loud({ line: lineLv?.line ?? -1, levels, rise: risePerOctave(levels), now: nowCents, clipping: overload.now(latest) != null, last: lastLine });
   }
 
   function draw(): void {
@@ -367,8 +373,9 @@ export function initPitch(host: PitchHost): PitchUI {
     drawVoice(host.saHz());
     showLoud();
     const latest = recent[recent.length - 1]?.t ?? -Infinity;
-    if (latest - clipAt < 3) message(CLIPPING);
-    else if (msgEl.textContent === CLIPPING) message('');
+    const cut = overload.now(latest);
+    if (cut) message(CLIPPING[cut]);
+    else if (isClipping(msgEl.textContent)) message('');
   }
 
   /** How loud a reading is, as the voice is drawn: kept with the note it was sung against (a
@@ -376,8 +383,8 @@ export function initPitch(host: PitchHost): PitchUI {
    * it has been singing at. */
   function hear(r: MicReading, n: ExpectedNote | null): number | null {
     const db = levelDb(r.rms);
-    const clip = r.clip;
-    if (clip) clipAt = r.t;
+    const clip = r.clip != null;
+    overload.add(r.t, r.clip, r.hz > 0);
     if (!r.hz) {
       levelNow = null;
       width = null;
