@@ -12,16 +12,16 @@
  * score. Beside the line being sung, a taal figure draws each vibhag as a shape with a corner
  * for each beat (a square for four beats, a triangle for three, a lens for two), the edges
  * drawn on through each beat so a shape closes as its last beat ends, the corner of the beat
- * sounding lit. While "Check my pitch" is on, loudness by note at the end of the line being sung
- * shows how loud each of its notes was sung (Rinat, 2026-11-04; a pitch gauge from 2026-10-19),
- * and the voice is drawn thicker when louder. Any line tapped opens to the size of
- * the line being sung, to look back at how it was sung, each beat's cents under its strip
+ * sounding lit. While "Check my pitch" is on, a loudness gauge at the end of the line being sung
+ * shows how loud the voice is against how loud it has been singing (Rinat, 2026-11-04; a pitch
+ * gauge from 2026-10-19, loudness by note in between), and the voice is drawn thicker when
+ * louder. Any line tapped opens to the size of the line being sung, to look back at how it was sung, each beat's cents under its strip
  * (Rinat, 2026-10-19). The HTML builders are pure and tested in Node; initLines wires them to
  * the page.
  */
 import { asTaals, placeIn, type Taals } from '../core/notation/taalmap';
 import type { NotesLine, ParsedSong } from '../core/notation/types';
-import { lineLevel, riseText, riseWord, type NoteLevel } from '../core/pitch/loudness';
+import { GAUGE_REACH, gaugeY, ZONE_EDGES, ZONE_WORD, type LoudZone } from '../core/pitch/loudness';
 import { eventsByBeat, foldOctave } from '../core/pitch/track';
 import type { TaalInfo } from '../core/taal/taals';
 import { beatNoteHTML, esc, type Script } from './view';
@@ -237,40 +237,33 @@ export function centsText(cents: number): string {
   return n > 0 ? '+' + n : n < 0 ? '−' + -n : '0';
 }
 
-/** How long a note's bar is in loudness by note, percent, for a level `d` dB against the line's
- * own level: the line's level at 55 % (the tick), 3.75 % a decibel, so a note 12 dB louder
- * fills it; 6 % at least. */
-export const loudBar = (d: number): number => clamp(55 + d * 3.75, 6, 100);
-
-/** Loudness by note (Rinat, 2026-11-04, in place of the pitch gauge of 2026-10-19, which "moves
- * too quickly for me to take that as feedback"), at the end of the line being sung while the
- * pitch check is on: a row for each note of the line, high to low, its name and a bar as long as
- * the voice was loud on it against the line's own level (`loudBar`), filled as it is sung. In
- * full screen's panel, under the rows, the line's rise for each octave up, in words and as a
- * number, and the last line's. The rows come from `loudRowsHTML`. */
+/** The loudness gauge (Rinat's pick, 2026-11-04: "go with 2 but use green instead of gold. you
+ * can also show mic limit in number 2"; in place of loudness by note, "complicated and
+ * unintuitive"), at the end of the line being sung while the pitch check is on, and in full
+ * screen's panel: an upright scale, louder above its middle, the middle the level the voice has
+ * been singing at; green within 3 dB of it, light red or blue to 6, red or blue beyond; a needle
+ * at the voice's level, steadied; a red line where the microphone cuts the voice off, when that
+ * is within reach; in full screen "louder" above, "softer" below and the zone in words. */
 export function loudHTML(): string {
-  return '<div class="ldm" role="img" aria-label="Loudness by note: how loud you sing each note of the line, against the line as a whole; a longer bar is louder">' +
-    '<ol class="ldrs" aria-hidden="true"></ol><span class="ldw"></span><span class="ldx"></span>' +
-    '<span class="ldc">Too loud for the microphone: turn down its Gain knob</span><span class="ldp"></span></div>';
+  const edges = [GAUGE_REACH, ...[...ZONE_EDGES].reverse(), -GAUGE_REACH];
+  const cls = ['l2', 'l1', 'ok', 's1', 's2'];
+  const bands = cls.map((c, i) => '<span class="ldz ' + c + '" style="top:' + gaugeY(edges[i]!) + '%;height:' + (gaugeY(edges[i + 1]!) - gaugeY(edges[i]!)) + '%"></span>').join('');
+  return '<div class="ldm idle" role="img" aria-label="Loudness gauge: how loud you are singing against how loud you have been singing; louder above the middle, softer below; the red line is where the microphone cuts off">' +
+    '<span class="ldt">louder</span>' +
+    '<span class="ldg">' + bands + '<span class="ldmid"></span><span class="ldlim"><b>mic limit</b></span><span class="ldnd"></span></span>' +
+    '<span class="ldt">softer</span>' +
+    '<span class="ldw"></span>' +
+    '<span class="ldc">Too loud for the microphone: turn down its Gain knob</span></div>';
 }
 
-/** The rows of loudness by note for a line's notes (low to high, as `axisNotes` gives them):
- * high to low, each its note's name and an empty bar. */
-export function loudRowsHTML(notes: readonly { semi: number; oct: number; cents: number }[], script: Script): string {
-  return [...notes].reverse().map((x) => '<li class="ldr" data-note="' + x.cents + '"><span class="ldn">' + beatNoteHTML({ units: [{ k: 'note', semi: x.semi, oct: x.oct }] }, script) + '</span><span class="ldb"><i></i></span></li>').join('');
-}
-
-/** What loudness by note shows (pitch.ts): the line the voice is on and each of its notes sung
- * so far (cents as written), the line's rise for each octave up (null: not yet), the note
- * sounding (cents; null: none), whether the microphone has just overloaded, and the line sung
- * before (or the round before) with its rise. */
+/** What the loudness gauge shows (pitch.ts): the voice's level, steadied, dB against the level it
+ * has been singing at (null: no voice just now), its zone, where the microphone cuts off on the
+ * same scale (null: out of reach above, or not known yet), and whether it has just overloaded. */
 export interface LoudState {
-  line: number;
-  levels: readonly NoteLevel[];
-  rise: number | null;
-  now: number | null;
+  d: number | null;
+  zone: LoudZone | null;
+  limit: number | null;
   clipping: boolean;
-  last: { line: number; rise: number | null } | null;
 }
 
 // ── Wiring ───────────────────────────────────────────────────────────────────
@@ -288,8 +281,8 @@ export interface LinesHost {
   /** Full screen is on: the lines fill the screen, the strip of the line being sung as tall as
    * the rest leaves room for, its notes named up its side. */
   full(): boolean;
-  /** Where loudness by note goes in place of the end of the line being sung: full screen's panel
-   * for it when that is showing, else null. */
+  /** Where the loudness gauge goes in place of the end of the line being sung: full screen's
+   * panel for it when that is showing, else null. */
   loudBox(): HTMLElement | null;
 }
 
@@ -322,9 +315,9 @@ export interface LinesUI {
   clearRun(): void;
   /** The cells of song beat g, for the marks of how each beat was sung. */
   cells(g: number): readonly HTMLElement[];
-  /** Loudness by note shown at the end of the line being sung (the pitch check on), or not. */
+  /** The loudness gauge shown at the end of the line being sung (the pitch check on), or not. */
   loudOn(on: boolean): void;
-  /** What loudness by note shows (drawn every frame, so only changes touch the page). */
+  /** What the loudness gauge shows (drawn every frame, so only changes touch the page). */
   loud(s: LoudState): void;
 }
 
@@ -377,14 +370,10 @@ export function initLines(host: LinesHost): LinesUI {
   const tmp = document.createElement('div');
   tmp.innerHTML = loudHTML();
   const ld = tmp.firstElementChild as HTMLElement;
-  const ldRows = ld.querySelector<HTMLElement>('.ldrs')!;
   const ldWord = ld.querySelector<HTMLElement>('.ldw')!;
-  const ldNum = ld.querySelector<HTMLElement>('.ldx')!;
-  const ldLast = ld.querySelector<HTMLElement>('.ldp')!;
-  /** Loudness by note is on; the line its rows are for; what it shows (drawn every frame, so
-   * only changes touch the page). */
+  /** The loudness gauge is on; what it shows (drawn every frame, so only changes touch the
+   * page). */
   let loudShown = false;
-  let ldLine = -1;
   let ldNow = '';
 
   function build(): void {
@@ -397,7 +386,6 @@ export function initLines(host: LinesHost): LinesUI {
     dot.remove();
     fig.el?.remove();
     ld.remove();
-    ldLine = -1;
     opened.clear();
     list.innerHTML = html;
     lines = Array.from(list.querySelectorAll<HTMLElement>('.pll'));
@@ -433,7 +421,7 @@ export function initLines(host: LinesHost): LinesUI {
     if (!host.shown() || !view.clientWidth) return;
     placeLoud();
     const numW = lines[0]?.querySelector<HTMLElement>('.pln')?.offsetWidth ?? 60;
-    // Loudness by note's column, when on; on a phone a beat may then be a little narrower, so
+    // The loudness gauge's column, when on; on a phone a beat may then be a little narrower, so
     // that eight beats still go across a 360 px screen.
     const gw = loudShown ? parseFloat(getComputedStyle(view).getPropertyValue('--gw')) || 0 : 0;
     const phone = matchMedia('(max-width:520px)').matches;
@@ -801,9 +789,8 @@ export function initLines(host: LinesHost): LinesUI {
     if (on) revealTimer = window.setTimeout(() => reveal(n), 280);
   });
 
-  /** Loudness by note goes at the end of the line being sung, while it is on, with a row for each
-   * of its notes; in full screen's panel for it, when that shows, it stays there, faint while the
-   * pitch check is off. */
+  /** The loudness gauge goes at the end of the line being sung, while it is on; in full screen's
+   * panel for it, when that shows, it stays there, faint while the pitch check is off. */
   function placeLoud(): void {
     const L = lines[cur];
     const box = host.loudBox();
@@ -813,13 +800,6 @@ export function initLines(host: LinesHost): LinesUI {
     } else if (loudShown && L) {
       if (ld.parentElement !== L) L.appendChild(ld);
     } else ld.remove();
-    const P = host.parsed();
-    const NL = P.noteLines[cur];
-    if (cur !== ldLine && NL) {
-      ldLine = cur;
-      ldRows.innerHTML = loudRowsHTML(axisNotes(P, NL, byBeat, 0), host.script());
-      ldNow = '';
-    }
   }
 
   function loudOn(on: boolean): void {
@@ -832,38 +812,32 @@ export function initLines(host: LinesHost): LinesUI {
     if (host.shown()) refresh();
   }
 
-  /** Every bar empty, no words: a new run, or the pitch check switched on or off. */
+  /** The needle back in the middle, faint, with no words: a new run, or the pitch check switched
+   * on or off. */
   function loudClear(): void {
-    for (const li of ldRows.children) {
-      (li as HTMLElement).style.removeProperty('--w');
-      li.classList.remove('now', 'clip', 'sung');
-    }
-    ldWord.textContent = ldNum.textContent = ldLast.textContent = '';
-    ld.classList.remove('clipping');
+    ld.style.removeProperty('--y');
+    ld.style.removeProperty('--lim');
+    ld.removeAttribute('data-zone');
+    ld.classList.remove('clipping', 'haslim');
+    ld.classList.add('idle');
+    ldWord.textContent = '';
     ldNow = '';
   }
 
   function loud(s: LoudState): void {
-    // The voice is still on the line before, the rows already for the next: they wait for it.
-    if (s.line !== cur || ldLine !== cur) return;
-    const ref = lineLevel(s.levels);
-    const key = s.levels.map((x) => x.cents + ':' + Math.round(x.db * 2) + (x.clip ? 'c' : '')).join(' ') + '|' + s.now + '|' + (s.rise == null ? '' : Math.round(s.rise)) + '|' + s.clipping + '|' + (s.last ? s.last.line + ':' + (s.last.rise == null ? '' : Math.round(s.last.rise)) : '');
+    const y = s.d == null ? null : Math.round(gaugeY(s.d) * 2) / 2;
+    const lim = s.limit == null ? null : Math.round(gaugeY(s.limit) * 2) / 2;
+    const key = y + '|' + s.zone + '|' + lim + '|' + s.clipping;
     if (key === ldNow) return;
     ldNow = key;
-    const at = new Map(s.levels.map((x) => [x.cents, x]));
-    for (const el of ldRows.children) {
-      const li = el as HTMLElement;
-      const c = +li.dataset.note!;
-      const x = at.get(c);
-      if (x && ref != null) li.style.setProperty('--w', loudBar(x.db - ref).toFixed(1) + '%');
-      else li.style.removeProperty('--w');
-      li.classList.toggle('sung', !!x);
-      li.classList.toggle('clip', !!x?.clip);
-      li.classList.toggle('now', c === s.now);
-    }
-    ldWord.textContent = riseWord(s.rise);
-    ldNum.textContent = s.rise == null ? '' : riseText(s.rise);
-    ldLast.textContent = s.last && s.last.rise != null ? (s.last.line === s.line ? 'Last round: ' : 'Line ' + (s.last.line + 1) + ': ') + riseWord(s.last.rise).toLowerCase() + ', ' + riseText(s.last.rise) : '';
+    // With no voice just now the needle stays where it was, faint.
+    if (y != null) ld.style.setProperty('--y', y + '%');
+    ld.classList.toggle('idle', y == null);
+    if (s.zone) ld.dataset.zone = s.zone;
+    else ld.removeAttribute('data-zone');
+    ldWord.textContent = s.zone && y != null ? ZONE_WORD[s.zone] : '';
+    if (lim != null) ld.style.setProperty('--lim', lim + '%');
+    ld.classList.toggle('haslim', lim != null);
     ld.classList.toggle('clipping', s.clipping);
   }
 

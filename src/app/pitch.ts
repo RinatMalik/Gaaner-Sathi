@@ -2,9 +2,10 @@
  * Pitch feedback on the Practice view (docs/ROADMAP.md → Pitch feedback): the microphone
  * button, the voice drawn on each line's pitch strip against the notes (lines.ts), a mark on
  * each beat sung, a score for each line, the run's average as it goes (Rinat, 2026-10-15), and
- * how loud the voice sings (Rinat, 2026-11-04, src/core/pitch/loudness.ts): loudness by note at
- * the end of the line being sung, in place of a pitch gauge there from 2026-10-19, the voice
- * drawn thicker when louder, and a warning while the microphone overloads.
+ * how loud the voice sings (Rinat, 2026-11-04, src/core/pitch/loudness.ts): a loudness gauge at
+ * the end of the line being sung, in place of a pitch gauge there from 2026-10-19 (and loudness
+ * by note, for a day), the voice drawn thicker when louder, and a warning while the microphone
+ * overloads.
  * Readings, expected notes and scores come from src/core/pitch/track.ts; the microphone from
  * src/audio/mic.ts. Everything is judged when it was sung, moved back only by the device's
  * delay (measured with clicks, src/audio/latency.ts, else the device's own figure): the voice
@@ -26,7 +27,7 @@ import { Mic, MicError, micProblemText, type MicReading } from '../audio/mic';
 import type { BeatEntry } from '../audio/transport';
 import type { ParsedSong } from '../core/notation/types';
 import type { PitchDetail } from '../core/practice/session';
-import { levelDb, LevelRef, LineLevels, Overload, risePerOctave, widthStep } from '../core/pitch/loudness';
+import { GaugeLevel, levelDb, LevelRef, loudZone, micLimit, Overload, widthStep, type LoudZone } from '../core/pitch/loudness';
 import { beatNotes, centsFromSa, eventsByBeat, isGlitch, PitchTracker, SlipFilter, sliding, type ExpectedNote, type LineResult, type NoteResult, type Section } from '../core/pitch/track';
 import type { ScorePanel } from './fullscore';
 import { centsText, closeness, ragColour, type LinesUI } from './lines';
@@ -124,16 +125,18 @@ export function initPitch(host: PitchHost): PitchUI {
   /** This run, for its detail: the beats scheduled ([time, song beat, round, seconds a beat])
    * and every reading ([t, Hz], a glitch as no voice). */
   let log: { beats: number[][]; readings: number[] } | null = null;
-  /** How loud: the level the voice has been singing at, its level just now (smoothed over about
-   * 70 ms) and the thickness it is drawn at; the line (and round) the voice is on with each of
-   * its notes' levels, and the one before with its rise; the note sounding; and when the
-   * microphone last overloaded (AudioContext time). */
+  /** How loud: the level the voice has been singing at (the loudness gauge's middle) and how far
+   * its loudest moments stand above its level (for where the microphone cuts off), both medians
+   * of the last 10 s; its level just now (smoothed over about 70 ms) and the thickness it is
+   * drawn at; the gauge's level (steadied over about a third of a second) and zone; when the
+   * voice was last heard (AudioContext time); and the microphone overloading. */
   const levelRef = new LevelRef();
+  const crestRef = new LevelRef();
   let levelNow: number | null = null;
   let width: number | null = null;
-  let lineLv: { line: number; pass: number; L: LineLevels } | null = null;
-  let lastLine: { line: number; rise: number | null } | null = null;
-  let nowCents: number | null = null;
+  const gaugeLv = new GaugeLevel();
+  let zone: LoudZone | null = null;
+  let voicedAt = -Infinity;
   const overload = new Overload();
 
   function setButton(on: boolean, label: string): void {
@@ -222,7 +225,7 @@ export function initPitch(host: PitchHost): PitchUI {
     host.lines.voiceOff();
     levelNow = null;
     width = null;
-    nowCents = null;
+    voicedAt = -Infinity;
     showLoud();
     if (isClipping(msgEl.textContent)) message('');
     if (!armed) return;
@@ -329,11 +332,12 @@ export function initPitch(host: PitchHost): PitchUI {
     byBeat = eventsByBeat(parsedAt);
     slips = new SlipFilter<MicReading>();
     levelRef.clear();
+    crestRef.clear();
     levelNow = null;
     width = null;
-    lineLv = null;
-    lastLine = null;
-    nowCents = null;
+    gaugeLv.clear();
+    zone = null;
+    voicedAt = -Infinity;
     overload.clear();
     tracker = new PitchTracker({ lag: host.devLag.get() ?? mic?.latency() ?? 0.05, anyOctave: !host.octave.get(), below: host.below(), saHz: host.saHz(), octave: host.voiceOct.get() });
     void listen();
@@ -341,7 +345,7 @@ export function initPitch(host: PitchHost): PitchUI {
 
   // ── Drawing ────────────────────────────────────────────────────────────────
 
-  /** Said under the lines while the microphone overloads (loudness by note says so too, in full
+  /** Said under the lines while the microphone overloads (the loudness gauge says so too, in full
    * screen): its gain is too high, so the loudest of the voice is cut off before the computer
    * hears it, and the computer's input level cannot help (Rinat, 2026-11-04: "setting it to lowest
    * still captures too loud"). When that level is turned down after the cut, it says so. */
@@ -351,12 +355,21 @@ export function initPitch(host: PitchHost): PitchUI {
   };
   const isClipping = (text: string | null) => text === CLIPPING.full || text === CLIPPING.down;
 
-  /** Loudness by note: the line the voice is on, its notes so far and its rise, the note
-   * sounding, and the line (or round) before. */
+  /** The loudness gauge: the voice's level, steadied, against the level it has been singing at,
+   * while it was heard in the last 0.4 s (between words and notes the needle stays); where the
+   * microphone cuts off; and the overload. */
   function showLoud(): void {
-    const levels = lineLv ? lineLv.L.levels() : [];
     const latest = recent[recent.length - 1]?.t ?? -Infinity;
-    host.lines.loud({ line: lineLv?.line ?? -1, levels, rise: risePerOctave(levels), now: nowCents, clipping: overload.now(latest) != null, last: lastLine });
+    const ref = levelRef.value();
+    const g = gaugeLv.value();
+    const crest = crestRef.value();
+    const heard = ref != null && g != null && latest - voicedAt < 0.4;
+    host.lines.loud({
+      d: heard ? g - ref : null,
+      zone: heard ? zone : null,
+      limit: ref != null && crest != null ? micLimit(ref, crest) : null,
+      clipping: overload.now(latest) != null,
+    });
   }
 
   function draw(): void {
@@ -378,35 +391,25 @@ export function initPitch(host: PitchHost): PitchUI {
     else if (isClipping(msgEl.textContent)) message('');
   }
 
-  /** How loud a reading is, as the voice is drawn: kept with the note it was sung against (a
-   * note the singer only listens to, none), and the voice's thickness for it, against the level
-   * it has been singing at. */
-  function hear(r: MicReading, n: ExpectedNote | null): number | null {
+  /** How loud a reading is, as the voice is drawn: the voice's thickness for it and the loudness
+   * gauge's level and zone, against the level it has been singing at; how far its loudest sample
+   * stands above its level; and whether the microphone cut it off. */
+  function hear(r: MicReading): number | null {
     const db = levelDb(r.rms);
-    const clip = r.clip != null;
     overload.add(r.t, r.clip, r.hz > 0);
     if (!r.hz) {
       levelNow = null;
       width = null;
-      nowCents = null;
       return null;
     }
     levelRef.push(r.t, db);
+    if (r.peak > 0) crestRef.push(r.t, levelDb(r.peak) - db);
     levelNow = levelNow == null ? db : levelNow + 0.35 * (db - levelNow);
     const ref = levelRef.value();
     width = ref == null ? 2 : widthStep(levelNow - ref, width);
-    nowCents = null;
-    if (n && n.judged) {
-      if (!lineLv || lineLv.line !== n.line || lineLv.pass !== n.pass) {
-        if (lineLv) {
-          const lv = lineLv.L.levels();
-          if (lv.length) lastLine = { line: lineLv.line, rise: risePerOctave(lv) };
-        }
-        lineLv = { line: n.line, pass: n.pass, L: new LineLevels() };
-      }
-      nowCents = 100 * (n.semi + 12 * n.oct);
-      lineLv.L.add(nowCents, db, clip);
-    }
+    const g = gaugeLv.push(r.t, db);
+    if (ref != null) zone = loudZone(g - ref, zone);
+    voicedAt = r.t;
     return width;
   }
 
@@ -441,7 +444,7 @@ export function initPitch(host: PitchHost): PitchUI {
       const at = placeOf(t);
       if (!at) continue;
       const n = tracker.expectedAt(t);
-      const w = hear(r, n);
+      const w = hear(r);
       if (!r.hz) {
         host.lines.voice(at.s, at.pass, at.f, null, false, '');
         lastHz = 0;

@@ -139,7 +139,7 @@ describe('the page', () => {
   it('has the break inside the lines, and a bar for the deck’s controls after them', () => {
     expect(between('plView', 'pitchBox')).toContain('id="fullBreak"');
     expect(between('fullBreak', 'pitchBox')).toContain('id="fbCount"');
-    expect(between('pitchBox', 'keysRow')).toMatch(/<\/section>\s*<!--[^]*?-->\s*<aside class="floud" id="fullLoud"[^>]*><span class="fph">Loudness<\/span><p class="flidle">Turn on <b>Check my pitch<\/b>, below, to see how loud you sing each note\.<\/p><\/aside>\s*<!--[^]*?-->\s*<div class="fullctl" id="fullCtl"[^>]* hidden><\/div>\s*<section class="keyscard" $/);
+    expect(between('pitchBox', 'keysRow')).toMatch(/<\/section>\s*<!--[^]*?-->\s*<aside class="floud" id="fullLoud"[^>]*><span class="fph">Loudness<\/span><p class="flidle">Turn on <b>Check my pitch<\/b>, below, to see how loud you are singing\.<\/p><\/aside>\s*<!--[^]*?-->\s*<div class="fullctl" id="fullCtl"[^>]* hidden><\/div>\s*<section class="keyscard" $/);
     // The controls it moves there are the deck's.
     expect(between('deck', 'dpGuide')).toMatch(/<div class="transport">\s*<button id="playBtn"/);
     expect(between('deck', 'dpGuide')).toContain('<button id="micBtn"');

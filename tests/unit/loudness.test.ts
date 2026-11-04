@@ -1,14 +1,8 @@
-// How loud the voice sings (Rinat, 2026-11-04): each note's level in a line, the line's rise
-// for each octave up and its words, the level the voice has been singing at, and the voice
-// line's thickness.
+// How loud the voice sings (Rinat, 2026-11-04): the microphone overloading, the level the voice
+// has been singing at, the loudness gauge (its scale, zones, steadied needle and where the
+// microphone cuts off), and the voice line's thickness.
 import { describe, expect, it } from 'vitest';
-import { blockClip, CLIP_RUN, EVEN, levelDb, LevelRef, lineLevel, LineLevels, MIN_READINGS, Overload, OVERLOAD_BLOCKS, OVERLOAD_HOLD, OVERLOAD_WITHIN, riseText, riseWord, risePerOctave, widthStep, type NoteLevel } from '../../src/core/pitch/loudness';
-
-/** A note sung for `n` readings at `db`, a little either side. */
-const sing = (L: LineLevels, cents: number, db: number, n = 20, clip = false) => {
-  for (let i = 0; i < n; i++) L.add(cents, db + (i % 2 ? 0.5 : -0.5), clip && i === 3);
-};
-const note = (cents: number, db: number): NoteLevel => ({ cents, db, n: 20, clip: false });
+import { blockClip, CLIP_RUN, GAUGE_REACH, GaugeLevel, gaugeY, levelDb, LevelRef, loudZone, micLimit, Overload, OVERLOAD_BLOCKS, OVERLOAD_HOLD, OVERLOAD_WITHIN, widthStep, ZONE_EDGES, ZONE_WORD, ZONES } from '../../src/core/pitch/loudness';
 
 describe('a reading’s level', () => {
   it('is dB of full scale', () => {
@@ -62,6 +56,8 @@ describe('the microphone overloading', () => {
     o.add(20.1, 'down', true);
     o.add(20.2, 'down', true);
     expect(o.now(20.3)).toBe('down');
+    // With no reading since the microphone opened (stopped; going on after a pause): not told.
+    expect(o.now(-Infinity)).toBe(null);
     o.clear();
     expect(o.now(20.3)).toBe(null);
   });
@@ -74,60 +70,6 @@ describe('the microphone overloading', () => {
     expect(o.now(6)).toBe(null);
     for (let i = 0; i < 10; i++) o.add(8 + i * 0.02, 'full', false);
     expect(o.now(8.2)).toBe(null);
-  });
-});
-
-describe('each note of a line', () => {
-  it('has the median level of the voice on it, low to high, a note sung twice once', () => {
-    const L = new LineLevels();
-    sing(L, 700, -9);
-    sing(L, 0, -14);
-    sing(L, 700, -9, 10);
-    expect(L.levels().map((x) => [x.cents, x.db, x.n])).toEqual([[0, -14, 20], [700, -9, 30]]);
-  });
-
-  it('leaves out a note sung too briefly, and readings far under the voice (the guide in a rest)', () => {
-    const L = new LineLevels();
-    sing(L, 0, -10);
-    sing(L, 200, -10, MIN_READINGS - 1);
-    // A note not sung: the guide heard faintly through it.
-    sing(L, 400, -34);
-    sing(L, 700, -8);
-    expect(L.levels().map((x) => x.cents)).toEqual([0, 700]);
-  });
-
-  it('marks a note the microphone overloaded on', () => {
-    const L = new LineLevels();
-    sing(L, 0, -10);
-    sing(L, 1200, -1, 20, true);
-    expect(L.levels().map((x) => x.clip)).toEqual([false, true]);
-  });
-
-  it('is shown against the line’s own level: the mean of its notes, each once', () => {
-    expect(lineLevel([note(0, -14), note(700, -8), note(1200, -8)])).toBe(-10);
-    expect(lineLevel([])).toBeNull();
-  });
-});
-
-describe('the line’s rise for each octave up', () => {
-  it('is the slope across its notes, each note once', () => {
-    // 1 dB a semitone: 12 dB an octave.
-    expect(risePerOctave([0, 200, 400, 500, 700].map((c) => note(c, -20 + c / 100)))).toBeCloseTo(12);
-    // As loud all the way up.
-    expect(risePerOctave([0, 400, 700, 1200].map((c) => note(c, -10)))).toBe(0);
-    // Softer going up.
-    expect(risePerOctave([note(0, -8), note(700, -11.5), note(1200, -14)])).toBeCloseTo(-6);
-  });
-
-  it('needs three notes a fourth apart at least', () => {
-    expect(risePerOctave([note(0, -10), note(1200, -4)])).toBeNull();
-    expect(risePerOctave([note(0, -10), note(200, -8), note(400, -6)])).toBeNull();
-    expect(risePerOctave([note(0, -10), note(200, -8), note(500, -6)])).not.toBeNull();
-  });
-
-  it('is said in words, and as a number', () => {
-    expect([null, 0, EVEN, -EVEN, EVEN + 0.5, -(EVEN + 0.5)].map(riseWord)).toEqual(['', 'Even', 'Even', 'Even', 'Louder going up', 'Softer going up']);
-    expect([8.4, -5.2, 0.3].map(riseText)).toEqual(['+8 dB an octave', '−5 dB an octave', '0 dB an octave']);
   });
 });
 
@@ -144,6 +86,64 @@ describe('the level the voice has been singing at', () => {
     expect(R.value()).toBe(-6);
     R.push(14, -Infinity);
     expect(R.value()).toBe(-6);
+  });
+});
+
+describe('the loudness gauge (Rinat’s pick, 2026-11-04)', () => {
+  it('has its middle at the level the voice has been singing at, louder above, 12 dB to each end', () => {
+    expect(GAUGE_REACH).toBe(12);
+    expect([0, 6, 12, 20, -3, -12, -30].map(gaugeY)).toEqual([50, 25, 0, 0, 62.5, 100, 100]);
+  });
+
+  it('is just right within 3 dB, a little to 6, too loud or too soft beyond', () => {
+    expect(ZONE_EDGES).toEqual([-6, -3, 3, 6]);
+    expect([0, 3, -3, 3.5, 6, 6.5, -4, -6, -7].map((d) => loudZone(d, null))).toEqual(['ok', 'ok', 'ok', 'loud1', 'loud1', 'loud2', 'soft1', 'soft1', 'soft2']);
+    expect(ZONES.map((z) => ZONE_WORD[z])).toEqual(['Too soft', 'A little soft', 'Just right', 'A little loud', 'Too loud']);
+  });
+
+  it('holds a zone a decibel past its edge, so the word does not flicker', () => {
+    expect(loudZone(3.6, 'ok')).toBe('ok');
+    expect(loudZone(4.1, 'ok')).toBe('loud1');
+    expect(loudZone(2.4, 'loud1')).toBe('loud1');
+    expect(loudZone(1.9, 'loud1')).toBe('ok');
+    expect(loudZone(-6.8, 'soft1')).toBe('soft1');
+    expect(loudZone(-7.2, 'soft1')).toBe('soft2');
+    // A jump past two edges is not held.
+    expect(loudZone(9, 'ok')).toBe('loud2');
+  });
+
+  it('moves its needle steadily: about two thirds of the way to a new level in a third of a second', () => {
+    const g = new GaugeLevel();
+    expect(g.value()).toBeNull();
+    expect(g.push(0, -20)).toBe(-20);
+    let v = -20;
+    for (let i = 1; i <= 16; i++) v = g.push(i * 0.021, -10);
+    // 16 readings of 21 ms: 0.336 s, about one time constant (0.35 s).
+    expect(v).toBeGreaterThan(-14.2);
+    expect(v).toBeLessThan(-13.4);
+    for (let i = 17; i <= 120; i++) v = g.push(i * 0.021, -10);
+    expect(v).toBeCloseTo(-10, 1);
+  });
+
+  it('starts afresh after half a second without the voice', () => {
+    const g = new GaugeLevel();
+    g.push(0, -20);
+    g.push(0.02, -20);
+    expect(g.push(0.7, -8)).toBe(-8);
+    g.clear();
+    expect(g.value()).toBeNull();
+  });
+
+  it('marks where the microphone cuts off: the loudest moments at full scale', () => {
+    // A voice at −10 dB of full scale, its peaks 8 dB above: they reach full scale 2 dB louder
+    // (Rinat's takes of 25–27 Oct sat about there).
+    expect(micLimit(-10, 8)).toBe(2);
+    // At −18 with the same peaks there are 10 dB to spare.
+    expect(micLimit(-18, 8)).toBe(10);
+    // Beyond the gauge's reach above: not marked.
+    expect(micLimit(-24, 8)).toBeNull();
+    // Already cut off as the voice usually sings: under the middle.
+    expect(micLimit(-4, 8)).toBe(-4);
   });
 });
 

@@ -1165,25 +1165,36 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .tfv.done{fill:var(--vk);stroke:var(--vk)}
 .tfv.on{fill:var(--brass);stroke:var(--brass-ink);transform:scale(1.6)}
 .tfn{font-size:11px;font-weight:600;line-height:1.2;color:var(--ink-2);overflow-wrap:anywhere}
-/* Loudness by note (Rinat, 2026-11-04, in place of the pitch gauge of 2026-10-19, which "moves
-   too quickly for me to take that as feedback"): a column at the end of every line while the
-   pitch check is on (so the beats stay one under another), filled in the line being sung: a row
-   for each of its notes, high to low, a bar as long as the voice was loud on it against the
-   line's own level (the tick, at 55 %: lines.ts `loudBar`), filling as the note is sung; the note
-   sounding in brass; a red end where the microphone overloaded. */
-.pl.checking{--gw:80px}
-.ldm{display:flex;flex-direction:column;justify-content:center;gap:6px;min-width:0;padding:8px 6px 8px 4px;border-left:1px solid var(--rule)}
-.ldrs{display:flex;flex-direction:column;justify-content:center;gap:3px;min-height:0;margin:0;padding:0;list-style:none}
-.ldr{display:flex;align-items:center;gap:4px;flex:0 1 18px;min-height:0}
-.ldn{flex:none;min-width:1.6em;font-family:var(--f-note);font-size:12px;line-height:1;color:var(--ink-2);text-align:right;white-space:nowrap}
-.ldb{position:relative;flex:1 1 auto;height:8px;border-radius:4px;background:color-mix(in srgb,var(--ink) 8%,transparent)}
-.ldb::after{content:"";position:absolute;left:55%;top:-3px;bottom:-3px;width:1px;background:color-mix(in srgb,var(--ink) 35%,transparent)}
-.ldb i{position:absolute;inset:0 auto 0 0;width:var(--w,0%);border-radius:4px;background:var(--ink-2);opacity:.6;transition:width .25s ease-out}
-.ldr.now .ldb i{background:var(--brass);opacity:1}
-.ldr.now .ldn{color:var(--ink)}
-.ldr.clip .ldb i{box-shadow:inset -4px 0 0 var(--red-ink);opacity:1}
-.ldw,.ldx,.ldc,.ldp,.flidle{display:none}
-@media (prefers-reduced-motion:reduce){.ldb i{transition:none}}
+/* The loudness gauge (Rinat's pick of eight designs, 2026-11-04: "go with 2 but use green instead
+   of gold. you can also show mic limit in number 2"; in place of loudness by note): a column at
+   the end of every line while the pitch check is on (so the beats stay one under another), drawn
+   in the line being sung: an upright scale, louder above its middle, the middle the level the
+   voice has been singing at (the tick); green within 3 dB of it, light red or blue to 6, red or
+   blue beyond (core/pitch/loudness.ts `gaugeY`, lines.ts `loudHTML`); a needle at the voice's
+   level, steadied, faint while no voice is heard; a red line where the microphone cuts the voice
+   off, the scale hatched above it. In full screen "louder", "softer" and the zone in words. */
+.pl.checking{--gw:60px}
+.ldm{--y:50%;--lim:0%;--ld-loud:var(--red-ink);--ld-soft:#2560c7;--ld-ok:var(--good);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;min-height:0;padding:12px 0;border-left:1px solid var(--rule)}
+:root[data-theme="dark"] .ldm{--ld-soft:#86aaff}
+.ldg{position:relative;flex:1 1 auto;width:14px;min-height:0}
+.ldz{position:absolute;left:0;right:0}
+.ldz.l2{background:var(--ld-loud);border-radius:7px 7px 0 0}
+.ldz.l1{background:color-mix(in srgb,var(--ld-loud) 38%,var(--sheet))}
+.ldz.ok{background:var(--ld-ok)}
+.ldz.s1{background:color-mix(in srgb,var(--ld-soft) 36%,var(--sheet))}
+.ldz.s2{background:var(--ld-soft);border-radius:0 0 7px 7px}
+.ldmid{position:absolute;left:-5px;right:-5px;top:50%;height:2px;margin-top:-1px;background:var(--ink);opacity:.55}
+.ldlim{display:none;position:absolute;left:-5px;right:-5px;top:0;height:var(--lim);border-bottom:3px solid var(--red-ink);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--sheet) 75%,transparent) 0 3px,transparent 3px 6px);transition:height .4s ease-out}
+.ldm.haslim .ldlim{display:block}
+.ldlim b{display:none}
+.ldnd{position:absolute;left:-7px;right:-7px;top:var(--y);height:4px;margin-top:-2px;border-radius:2px;background:var(--ink);box-shadow:0 0 0 1.5px var(--sheet);transition:top .3s ease-out,opacity .3s}
+.ldnd::after{content:"";position:absolute;right:-11px;top:50%;margin-top:-6px;border-style:solid;border-width:6px 10px 6px 0;border-color:transparent var(--ink) transparent transparent}
+.ldm.idle .ldnd{opacity:.3}
+.ldt,.ldw,.ldc,.flidle{display:none}
+.ldm[data-zone^="loud"] .ldw{color:var(--ld-loud)}
+.ldm[data-zone^="soft"] .ldw{color:var(--ld-soft)}
+.ldm[data-zone="ok"] .ldw{color:var(--ld-ok)}
+@media (prefers-reduced-motion:reduce){.ldnd,.ldlim{transition:none}}
 /* Under the lines: the keys to press, and how the voice is doing while the pitch check is on,
    with the run's average as it goes, tinted by it. */
 .plfoot{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:8px 14px;border-top:1px solid var(--rule)}
@@ -1210,19 +1221,23 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
   .pl.checking{--gw:24px}
   .pll.open .plb[data-c]::after{font-size:11px}
   .pll.open .plb[data-c][data-late]::after{content:attr(data-c) "\A" attr(data-ls)}
-  .ldm{gap:3px;padding:6px 3px}
-  .ldrs{gap:2px}
-  .ldn{display:none}
-  .ldb{height:6px}
+  .ldm{padding:8px 0}
+  .ldg{width:8px}
+  .ldz.l2{border-radius:4px 4px 0 0}
+  .ldz.s2{border-radius:0 0 4px 4px}
+  .ldmid{left:-3px;right:-3px}
+  .ldlim{left:-3px;right:-3px;border-bottom-width:2px}
+  .ldnd{left:-5px;right:-5px;height:3px;margin-top:-1.5px}
+  .ldnd::after{display:none}
 }
 
 /* Full screen while practising (Rinat, 2026-10-31), as five panels (Rinat, 2026-11-01): at the
    top the rewaz bar and the title's bar with where it has got to; the lines as Practice shows
-   them with their scores in the middle, the score panel to their left and loudness by note to
+   them with their scores in the middle, the score panel to their left and the loudness gauge to
    their right, each as tall as the lines; the deck's controls at the foot, moved into a strip of
    the deck. The strip of the line being sung is as tall as the lines' panel leaves room for
    (--fsh, from lines.ts), its notes named up its side. On a phone held upright the score goes
-   under the lines in a strip and loudness by note stays at the end of the line being sung. Behind the
+   under the lines in a strip and the loudness gauge stays at the end of the line being sung. Behind the
    panels, seen in the room between them, a glow flashes with the beats, coloured by the notes.
    src/app/full.ts, fullscore.ts, fullfx.ts. */
 .pview{display:grid;gap:14px}
@@ -1264,7 +1279,7 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 :root[data-full] .pll:not(.cur) .pln{flex-direction:row;flex-wrap:wrap;align-items:baseline;align-content:flex-start;justify-content:center;gap:0 6px}
 :root[data-full] .pll.cur .plax{display:block;position:absolute;inset:0;z-index:1;pointer-events:none}
 .plan{position:absolute;left:2px;transform:translateY(-50%);padding:0 4px;border-radius:5px;background:color-mix(in srgb,var(--sheet) 82%,transparent);font-family:var(--f-note);font-size:14px;line-height:1.3;color:var(--ink);white-space:nowrap}
-/* Loudness by note is in its own panel: no column for it at the end of the line. */
+/* The loudness gauge is in its own panel: no column for it at the end of the line. */
 :root[data-full] .pl.checking{--gw:0px}
 /* The panels' names. */
 .fph,.fsh2{font-size:11.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--brass-text)}
@@ -1320,25 +1335,24 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 :root[data-full] .pview:not(:has(.pl.checking)) .fsring{opacity:.45}
 :root[data-full] .pview:not(:has(.pl.checking)) :is(.fsidle,.flidle){display:block}
 
-/* Loudness by note's panel, as tall as the lines: the rows of the line being sung, larger; under
-   them the line's rise for each octave up in words and as a number, and the line (or round)
-   before's; a warning while the microphone overloads; and, while the pitch check is off, how to
-   turn it on. */
+/* The loudness gauge's panel, as tall as the lines: the gauge larger, "louder" above it and
+   "softer" under it, "mic limit" by its line, the zone in words under it, a warning while the
+   microphone overloads, and, while the pitch check is off, how to turn it on. */
 :root[data-full] .floud{grid-area:loud;display:flex;flex-direction:column;gap:6px;padding:14px 12px 12px}
 :root[data-full] .floud>.fph{text-align:center}
-.floud .ldm{flex:1 1 auto;min-height:0;gap:12px;padding:4px 0 0;border-left:0;transition:opacity .3s}
+.floud .ldm{flex:1 1 auto;min-height:0;gap:8px;padding:6px 0 0;border-left:0;transition:opacity .3s}
 .floud .ldm.dim{opacity:.35}
-.floud .ldrs{flex:0 1 auto;gap:8px}
-.floud .ldr{flex:0 1 34px;gap:8px}
-.floud .ldn{min-width:1.9em;font-size:clamp(17px,1.6vw,24px)}
-.floud .ldb{height:14px;border-radius:7px}
-.floud .ldb::after{top:-5px;bottom:-5px;width:2px;margin-left:-1px}
-.floud .ldb i{border-radius:7px}
-.floud .ldr.clip .ldb i{box-shadow:inset -6px 0 0 var(--red-ink)}
-.floud :is(.ldw,.ldx,.ldp){display:block;margin:0;text-align:center}
-.floud .ldw{min-height:1.3em;margin-top:4px;font-size:17px;font-weight:700;line-height:1.3;color:var(--ink)}
-.floud .ldx{min-height:1.2em;margin-top:-10px;font-size:13px;line-height:1.2;color:var(--ink-2);font-variant-numeric:tabular-nums}
-.floud .ldp:not(:empty){padding-top:8px;border-top:1px solid var(--rule);font-size:12.5px;line-height:1.35;color:var(--ink-2)}
+.floud .ldg{width:28px;max-height:460px}
+.floud .ldz.l2{border-radius:10px 10px 0 0}
+.floud .ldz.s2{border-radius:0 0 10px 10px}
+.floud .ldmid{left:-9px;right:-9px}
+.floud .ldlim{left:-9px;right:-9px}
+.floud .ldlim b{display:block;position:absolute;right:calc(100% + 3px);bottom:-7px;width:min-content;font-size:11px;font-weight:700;line-height:1.1;color:var(--red-ink);text-align:right}
+.floud .ldnd{left:-12px;right:-12px;height:6px;margin-top:-3px;border-radius:3px}
+.floud .ldnd::after{right:-16px;margin-top:-9px;border-width:9px 15px 9px 0}
+.floud :is(.ldt,.ldw){display:block;margin:0;text-align:center}
+.floud .ldt{font-size:13px;line-height:1.2;color:var(--ink-2)}
+.floud .ldw{min-height:2.5em;margin-top:6px;font-size:clamp(17px,1.5vw,22px);font-weight:700;line-height:1.25}
 .floud .ldm.clipping .ldc{display:block;font-size:12.5px;font-weight:700;line-height:1.35;color:var(--red-ink);text-align:center}
 .flidle{margin:0;font-size:13px;line-height:1.45;color:var(--ink-2);text-align:center}
 
@@ -1362,12 +1376,12 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .fbcount{margin:6px 0 10px;font-size:clamp(56px,14vh,120px);font-weight:600;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
 @media (prefers-reduced-motion:reduce){.fsarc,.fsring b,.floud .ldm,:root[data-full] .fullfx{transition:none}.fsburst.go i,.fsstreak.go,.fsstreak.go svg,.fspop.go,.fsl,.fsb i{animation:none}}
 /* A phone or a tablet held upright: the lines, then the score in a strip under them (while the
-   pitch check is on), then the controls; loudness by note at the end of the line being sung, as
+   pitch check is on), then the controls; the loudness gauge at the end of the line being sung, as
    on Practice (three columns would leave the lines too narrow). */
 @media (max-width:640px),(orientation:portrait) and (max-width:1100px){
   :root[data-full] .pview{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto;grid-template-areas:"top" "lines" "score" "ctl"}
   :root[data-full] .floud,:root[data-full] .pview:not(:has(.pl.checking)) .fscore{display:none}
-  :root[data-full] .pl.checking{--gw:80px}
+  :root[data-full] .pl.checking{--gw:60px}
   :root[data-full] .fscore{flex-direction:row;gap:10px;padding:6px 10px}
   :root[data-full] .fscore>:is(.fph,.fsh2,.fssung,.fswait,.fsidle){display:none}
   .fsring{--rs:52px}
@@ -1395,7 +1409,6 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
   :root[data-full] .fullbtn{padding:5px 8px}
   :root[data-full] .fullbtn .fboff{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   :root[data-full] .pl.checking{--gw:30px}
-  :root[data-full] .ldn{display:none}
   .plan{font-size:12px;padding:0 3px}
   :root[data-full] .fullctl{gap:8px;padding:7px 8px}
   .fullctl .tbtn{padding:0 12px;font-size:0}
@@ -1405,7 +1418,7 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
   .fullctl .play{width:56px;height:56px}
 }
 /* A short screen (a phone on its side): the panels closer, the bars and the line being sung's
-   notes smaller, the ring and loudness by note smaller. */
+   notes smaller, the ring and the loudness gauge smaller. */
 @media (max-height:500px){
   :root[data-full] .pview{--fgap:8px;grid-template-columns:clamp(118px,15vw,170px) minmax(0,1fr) clamp(90px,11vw,120px)}
   :root[data-full] .sheetHead{padding-block:3px}
@@ -1429,10 +1442,8 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
   .fsl{font-size:12.5px;gap:5px;grid-template-columns:24px minmax(0,1fr) auto}
   :root[data-full] .floud{padding:8px 6px}
   :root[data-full] .floud>:is(.fph,.flidle){display:none}
-  .floud .ldm{gap:6px}
-  .floud .ldrs{gap:4px}
-  .floud .ldn{font-size:15px}
-  .floud .ldb{height:10px}
-  .floud .ldw{font-size:14px}
-  .floud .ldx{margin-top:-4px}
+  .floud .ldm{gap:4px}
+  .floud .ldg{width:18px}
+  .floud .ldw{min-height:0;margin-top:2px;font-size:14px}
+  .floud .ldlim b{display:none}
 }

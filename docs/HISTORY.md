@@ -21,6 +21,8 @@ historical interest.
 
 | Date | Decision | Authority / evidence | Consequence |
 |---|---|---|---|
+| 2026-11-04 | **The loudness panel is to be redesigned,** from eight designs on a Claude Design canvas, Rinat's needle dial among them (its middle the level Rinat has been singing at); round fifty-one's panel stays until Rinat picks. The voice line's widths stay as built for now. | Rinat, chat 2026-11-04 ("don't like the loudness panel one bit …"; "The thickness of the voice line also feel less intuitive but maybe i need to get used to it so leave it for now") | PH2-53. |
+| 2026-11-04 | **Loudness by note in place of the pitch gauge:** the gauge is taken out, at the end of the line and from full screen's right panel. In its place, while the pitch check is on, a row for each note of the line being sung, high to low, its bar as long as the voice was loud on that note against the line's own level (each note's median level; the line's, the mean of its notes, each once), filling as it is sung, the note sounding highlighted; in full screen, under the rows, the line's rise for each octave up in words (within 4 dB "Even", else "Louder going up" or "Softer going up") and as a number ("+8 dB an octave"), and the line before's or, when one line loops, the round before's. Nothing is set up: each line is measured against itself, so the singer may move about between lines, not within one. | Rinat, chat 2026-11-04 ("Yes, build it", to Claude's proposal after "The pitch guage on the right doesn't really help me in any meaningful way. It moves too quickly for me to take that as feedback", "I automatically take it as higher pitches comes with louder volume" and "does it mean i have a setup overhead … i may have to accept not to do that and that's fine"); the measures, thresholds and words are Claude's | Open question 6 answered and removed; the gauge's two decision rows moved to HISTORY.md; ENGINE.md → Loudness by note. |
 | 2026-11-04 | **A warning when the microphone overloads:** "Too loud for the microphone: turn its input gain down a little." under the lines (and in full screen's loudness panel) for 3 s after a block of samples was cut off at the top, and a red end on the bar of the note sung then. Cut off: a sample at 0.99 of full scale or more, or, from a quarter of full scale, six or more in a row at the block's loudest (a volume after the cut). | Claude's proposal, in the plan Rinat approved 2026-11-04; Rinat's takes of 25–27 Oct reached full scale in 0.5–4 % of the voice's windows | `blockClipped` in loudness.ts, on each block in mic.ts. Checked in headless Edge only with blocks scaled in the page (its fake microphone limits). |
 | 2026-11-01 | **Full screen's gauge has its own panel,** as tall as the lines: the note sung above, the note expected named beside its middle, ♯ above and ♭ below, the cents under it; faint while the pitch check is off. | Rinat, chat 2026-11-01 (the sketch's "Pitch guage height 75% Width 10%"); the note expected and the signs, Claude's | lines.ts `gaugeBox`, `gaugeHTML`; pitch.ts `showGauge`. |
 | 2026-10-19 | **The pitch gauge:** how close the voice is shows as a vertical gauge at the end of the line being sung, in place of the text under the lines ("In tune", "12 cents sharp", "You: সা"). While the pitch check is on every line has the gauge's column (60 px, 22 px on a phone), so beats stay one under another; on a phone a beat may be 30 px wide so eight still go across. The gauge: the note sung on top, coloured by how close; a scale with the note expected across its middle, green within 15 cents, amber within 35, red to 50, the marker held at the end beyond; the marker slides up when sharp and down when flat, as on the strip; the cents under it (not on a phone). The text under the lines keeps the status, the average and the hints. | Rinat, chat 2026-10-19 ("This is not a very good visual representation … maybe showing the cents vertically. tell me where can it go"; to Claude's proposal and mock-up: "Yes, build the vertical pitch gauge at the end of the line being sung, as in the mock-up"); the place, the bands and the phone form are Claude's | src/app/lines.ts (`gaugeHTML`, `gaugeOn`, `gauge`), pitch.ts (`showGauge`). docs/ENGINE.md → The gauge. |
@@ -52,6 +54,63 @@ historical interest.
 - 2026-10-09: `handover/`, merged into the framework (the original pack is at `e0ea8d8`).
 
 ## Work log, older entries
+
+### 2026-11-04 GMT — Claude (Opus 5.5) — PH2-51 loudness by note in place of the pitch gauge
+
+- **Goal:** Rinat: "Yes, build it", to Claude's proposal answering "The pitch guage on the right
+  doesn't really help me in any meaningful way. It moves too quickly for me to take that as
+  feedback … I automatically take it as higher pitches comes with louder volume … is that
+  possible without introducing any hardware? and ill it help do you think? How to best
+  implement it? A gauge? Also does it mean i have a setup overhead everytime i start to
+  practice".
+- **Inspected:** the 44 takes of 25–27 Oct in `feedback/` (the prompt before: the level rose
+  with pitch in every take); pitch.ts (readings through the glitch rule and the slip filter,
+  `take`, `drawVoice`); lines.ts (the gauge moved by `placeGauge` between the line and full
+  screen's panel); mic.ts (each hop's samples); pitch.ts `clearMarks`, which deletes every
+  `data-c` on the page as a run starts: the rows first kept their note in `data-c` and lost it
+  (seen in headless Edge, now `data-note`).
+- **Changed:** `feat(practice): loudness by note in place of the pitch gauge, the voice thicker
+  when louder` — src/core/pitch/loudness.ts (new); src/audio/mic.ts (`clip` on each reading);
+  src/app/pitch.ts (`hear`, `showLoud`, the warning; `steady`, `showGauge` gone); src/app/
+  lines.ts (`loudHTML`, `loudRowsHTML`, `loudBar`, `placeLoud`, `loudOn`, `loud`; a new piece
+  of the voice where its width changes; `gaugeHTML`, `gaugeY` gone); src/app/app.ts
+  (`loudBox`); index.html (`#fullLoud`); src/app/styles.css (`.ldm` and its rows in place of
+  `.pgauge`, `.pl.checking`, `.floud`, the grid area `loud`, `--vw`); comments in full.ts and
+  insights.ts; tests/unit/loudness.test.ts (new), lines.test.ts, full.test.ts; docs/ENGINE.md
+  (Loudness by note; the voice thicker when louder; the gauge's section gone); docs/ROADMAP.md
+  (row 51); docs/HISTORY.md (the PH2-49 entry; the gauge's two decisions); this file.
+- **Tests / verification:** `npx tsc --noEmit -p .` exit 0; `npx vitest run` → 45 files, 520
+  passed; `npm run build` → 399.97 kB JS, 91.30 kB CSS; `bash reference/tests/run-all.sh` →
+  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge
+  on `npm run dev` (scratchpad `cdp51.mjs`, `cdp51clip.mjs`; a fake voice on Sa from
+  `genwav51.mjs`: 16 s rising from −34 to −10 dB of full scale, 5 s cut off, 16 s falling, 3 s
+  at −22), আরোহ-অবরোহ line 1 looping at tempo 96, Sa C♯4, the pitch check on. Practice at 1280
+  × 800 by day: the column 64 px wide and as tall as the line (216 px), rows 18 px; widened to
+  80 px after the screenshots (bars 46 px); the bars filling note by note (on the way up Sa
+  48.3 %, Re 51.4 %, Ga 55.1 %, Ma 58.6 %, Pa 61.6 %), the note sounding in brass; "Louder going
+  up +6 dB an octave" on the way up, "Even +4" at the top, "Softer going up" −6 to −16 on the
+  way down, and each round "Last round: louder going up, +6 dB an octave" and so on; the voice
+  line's pieces stepping w2 → w3 → w4 up and w1 → w0 down (drawn 2.03 px at w1, 2.6 at w2 on
+  the line being sung). Full screen at 1280 × 800: the panel 141 × 575, rows 115 × 34, bars 68
+  × 14, names 20.5 px; with the pitch check off faint, with how to turn it on; the words as on
+  Practice; by night the same. At 3840 × 2160: zoom 2.4, score 13.8 %, lines 67.5 %, loudness
+  11.3 % of the width, the page 3840 × 2160. At 360 × 780 by night: Practice's column 24 px
+  without names, the page 345 px wide (the scrollbar); full screen's 30 px. The fake microphone
+  limits a file's loudest moments (the cut-off stretch came in as a smooth peak at 0.9757, no
+  two samples the same), so no warning showed; with each block that reached 0.97 scaled by
+  1.03 in the page (a stand-in for an interface cutting off at full scale): red ends on the
+  notes sung then (from Re to upper Sa as the round went on), the warning under the lines and
+  in full screen's panel, gone 3 s after the stretch ended; no console errors. A first run
+  was cut short by a page reload: lines.ts edited while it ran (Vite).
+- **Decisions made:** three 2026-11-04 rows (loudness by note in place of the gauge; the voice
+  thicker when louder; the overload warning); Open question 6 removed; the gauge's two rows
+  moved to HISTORY.md.
+- **Risks or disagreements:** a real voice's level moves within a note more than a steady
+  tone's (the median steadies the bar, not the voice line's width). The rise needs three
+  notes a fourth apart, so a line on two or three neighbouring notes shows no word. Moving
+  nearer the microphone within a line skews it. The warning is checked only with scaled
+  samples. The Practice column takes 80 px from the beats (the gauge took 60).
+- **Next handoff:** Rinat sings with it (Next single action); Claude adjusts.
 
 ### 2026-11-01 GMT — Claude (Opus 5.5) — PH2-50 full screen's glow and score list
 

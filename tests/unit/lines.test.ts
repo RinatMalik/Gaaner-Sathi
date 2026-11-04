@@ -1,7 +1,7 @@
 // The Practice view's lines (src/app/lines.ts): the layout, each line's strip and cells, and
 // the taal figure (Rinat, 2026-10-15).
 import { describe, expect, it } from 'vitest';
-import { axisNotes, centsText, closeness, columnsFor, figureProgress, lineRange, linesHTML, loudBar, loudHTML, loudRowsHTML, MIN_SPAN, ragColour, shapeCorners, shapePath, stripY, taalFigureHTML } from '../../src/app/lines';
+import { centsText, closeness, columnsFor, figureProgress, lineRange, linesHTML, loudHTML, MIN_SPAN, ragColour, shapeCorners, shapePath, stripY, taalFigureHTML } from '../../src/app/lines';
 import { eventsByBeat } from '../../src/core/pitch/track';
 import { parseSong } from '../../src/core/notation/parse';
 import { taalMap } from '../../src/core/notation/taalmap';
@@ -195,32 +195,19 @@ describe('how close the voice is', () => {
   });
 });
 
-describe('loudness by note (Rinat, 2026-11-04)', () => {
-  it('draws each note’s bar against the line’s own level: the tick at 55 %, 15 dB either way to the ends', () => {
-    expect(loudBar(0)).toBe(55);
-    expect(loudBar(4)).toBe(70);
-    expect(loudBar(-8)).toBe(25);
-    expect(loudBar(12)).toBe(100);
-    expect(loudBar(30)).toBe(100);
-    // A note sung far softer still shows a little bar.
-    expect(loudBar(-20)).toBe(6);
-  });
-
-  it('has a row for each note of the line, high to low, named in the song’s script', () => {
-    const P = parseSong("S R G P S'");
-    const notes = axisNotes(P, P.noteLines[0]!, eventsByBeat(P), 0);
-    const rows = loudRowsHTML(notes, 'lat');
-    // Not data-c: a new run clears every beat's cents (pitch.ts `clearMarks`), and the rows with them.
-    expect(Array.from(rows.matchAll(/<li class="ldr" data-note="(\d+)">/g), (m) => +m[1]!)).toEqual([1200, 700, 400, 200, 0]);
-    expect(rows).toContain('<span class="ldb"><i></i></span>');
-    expect(rows.split('<span class="ldn">').length - 1).toBe(5);
-    expect(loudRowsHTML(notes, 'bn')).not.toBe(rows);
-  });
-
-  it('says what it shows, with room for the line’s rise, the line before and a warning', () => {
+describe('the loudness gauge (Rinat’s pick, 2026-11-04)', () => {
+  it('says what it shows: an upright scale, louder above, and the microphone’s limit', () => {
     const h = loudHTML();
-    expect(h).toMatch(/^<div class="ldm" role="img" aria-label="Loudness by note[^"]+">/);
-    for (const c of ['ldrs', 'ldw', 'ldx', 'ldc', 'ldp']) expect(h).toContain('class="' + c + '"');
+    expect(h).toMatch(/^<div class="ldm idle" role="img" aria-label="Loudness gauge[^"]+louder above the middle[^"]+microphone cuts off">/);
+    for (const c of ['ldg', 'ldmid', 'ldlim', 'ldnd', 'ldw', 'ldc']) expect(h).toContain('class="' + c + '"');
+    expect(h).toContain('<b>mic limit</b>');
+    expect(h.indexOf('louder')).toBeLessThan(h.indexOf('softer'));
     expect(h).toContain('Too loud for the microphone');
+  });
+
+  it('has five zones top to bottom, the middle one ±3 dB, the scale 12 dB each way', () => {
+    const h = loudHTML();
+    const z = Array.from(h.matchAll(/<span class="ldz (\w+)" style="top:([\d.]+)%;height:([\d.]+)%">/g), (m) => [m[1], +m[2]!, +m[3]!]);
+    expect(z).toEqual([['l2', 0, 25], ['l1', 25, 12.5], ['ok', 37.5, 25], ['s1', 62.5, 12.5], ['s2', 75, 25]]);
   });
 });

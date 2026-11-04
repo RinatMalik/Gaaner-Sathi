@@ -35,11 +35,20 @@ class GsCapture extends AudioWorkletProcessor {
 registerProcessor('gs-capture', GsCapture);
 `;
 
-/** A reading, timed at the middle of its window on the AudioContext clock; `clip`, whether the
- * samples that came in for it were cut off at the top (the microphone overloading), and how. */
+/** A reading, timed at the middle of its window on the AudioContext clock; `peak`, its window's
+ * loudest sample (0 to 1, as `rms` is its level); `clip`, whether the samples that came in for it
+ * were cut off at the top (the microphone overloading), and how. */
 export interface MicReading extends PitchReading {
   t: number;
+  peak: number;
   clip: Clip;
+}
+
+/** A window's loudest sample, 0 to 1. */
+export function peakOf(data: ArrayLike<number>): number {
+  let p = 0;
+  for (let i = 0; i < data.length; i++) p = Math.max(p, Math.abs(data[i]!));
+  return p;
 }
 
 export type MicProblem = 'insecure' | 'unsupported' | 'denied' | 'nodevice' | 'busy' | 'other';
@@ -134,7 +143,7 @@ export class Mic {
         win.copyWithin(0, hop);
         win.set(data, N - hop);
         const r = detector.detect(win);
-        onReading({ ...r, t: (end - N / 2) / ctx.sampleRate, clip: blockClip(data) });
+        onReading({ ...r, t: (end - N / 2) / ctx.sampleRate, peak: peakOf(win), clip: blockClip(data) });
       });
       return new Mic(ctx, stream, source, node, sink);
     } catch (e) {
