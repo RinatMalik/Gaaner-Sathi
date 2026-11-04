@@ -177,7 +177,7 @@
 
   <main id="practice" role="tabpanel" aria-labelledby="tabPractice">
     <!-- Full screen (Rinat, 2026-10-31; laid out as five panels, 2026-11-01) shows a panel with the
-         rewaz bar and the title's bar, the score panel, the lines, the pitch gauge's panel and a
+         rewaz bar and the title's bar, the score panel, the lines, loudness by note's panel and a
          panel of the deck's controls, and hides the rest; src/app/full.ts. -->
     <div class="pview">
       <!-- Full screen's background, between the panels: it glows with the beats, coloured by the
@@ -231,8 +231,9 @@
           <div class="mx pmeasure"><button type="button" class="btn" id="pMeasure" title="Hold an earphone to the microphone (or turn the speakers up), keep quiet, and press it: eight clicks are played and timed, so the delay of your headphones or speakers is not marked as singing late">Measure the delay</button><span class="phint" id="pMeasureMsg" aria-live="polite"></span></div>
         </div>
       </section>
-      <!-- Full screen's pitch gauge, as tall as the lines (Rinat, 2026-11-01): lines.ts moves it here. -->
-      <aside class="fgauge" id="fullGauge" aria-label="Pitch gauge"><span class="fph">Pitch</span></aside>
+      <!-- Full screen's loudness by note, as tall as the lines (Rinat, 2026-11-04, in place of the
+           pitch gauge of 2026-11-01): lines.ts moves it here. -->
+      <aside class="floud" id="fullLoud" aria-label="Loudness by note"><span class="fph">Loudness</span><p class="flidle">Turn on <b>Check my pitch</b>, below, to see how loud you sing each note.</p></aside>
       <!-- Full screen's controls: the deck's Play, Stop, Restart, Check my pitch and Record me,
            moved here. -->
       <div class="fullctl" id="fullCtl" role="group" aria-label="Play, pitch check and recording" hidden></div>

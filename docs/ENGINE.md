@@ -330,7 +330,8 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   note that was playing when it was sung, as the singer heard it: `t − lag`, where `lag` is
   only the device's delay, sound out and back in (measured, below; else the device's own
   figure: output, base and input latency). Everything follows it: the voice drawn, its
-  colours, the gauge, the marks and the scores. Nothing is fitted to the singing. *Until
+  colours and thickness, loudness by note, the marks and the scores. Nothing is fitted to the
+  singing. *Until
   2026-10-19* the lag was fitted to the singing (the delay, 0–600 ms, at which most readings
   landed on their notes), which took the singer's lateness off without saying so, and each
   note was scored on its middle only.
@@ -412,7 +413,7 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   fine"); one too short to judge (under 30 ms) is skipped. Lines and runs are the
   duration-weighted mean of the sung notes. Any octave counts unless the singer asks for the
   octave too. Rounds where the guide plays in "every other round" are for listening, so not
-  scored. The gauge (below) calls a note in tune within 15 cents. Explained in Practice under
+  scored. The voice line (below) calls a note in tune within 15 cents. Explained in Practice under
   "How your singing is scored". (Until 2026-10-19: the median over the note's middle, from
   100 ms in to its last 10 %.)
 - **Shown** (Rinat, 2026-10-15) on the Practice view's lines (`src/app/lines.ts`): each
@@ -432,20 +433,64 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   as each line finishes, tinted the same way, and is the run's score at the end. A line's
   drawing is wiped when a new round of it starts. *Why on the lines:* the eye is already on
   the line being sung, so the voice is drawn where the notes are, not in a separate box.
-- **The gauge** (Rinat, 2026-10-19, in place of a line of text under the lines: "maybe
-  showing the cents vertically"): while the pitch check is on, a column at the end of every
-  line, filled in the line being sung (`gaugeHTML`, `gaugeY`). It shows the note sung (the
-  nearest to the voice), a scale with the note expected across its middle (green within 15
-  cents, amber within 35, red to 50, the marker held at the end beyond), a marker that slides
-  up when sharp and down when flat, as on the strip, and the cents (`centsText`; not on a
-  phone, where the column is 22 px). The marker is the median of the last ~100 ms of this
-  note's readings from its start (five; ~200 ms until 2026-10-19, which made it slow to
-  answer), gliding 60 ms to each new place, so a wobble does not shake it; a voice still on
-  the last note shows as off. With no note expected it shows "Rest", and outside a section
-  the distance to the nearest note. In full screen (Rinat, 2026-11-01) it has a panel of its
-  own to the right of the lines, as tall as they are, naming the note expected beside its
-  middle (`.pgx`) with ♯ above and ♭ below, faint while the pitch check is off (`gaugeBox` on
-  the lines' host); on a phone or tablet held upright it stays at the end of the line.
+- **Loudness by note** (Rinat, 2026-11-04: "I automatically take it as higher pitches comes
+  with louder volume … a loudness gauge or some sort of visualisation of my loudness might be
+  better to have instead of pitch gauge"; no setup wanted, and moving about while singing
+  "i may have to accept not to do that and that's fine"): while the pitch check is on, a
+  column at the end of every line, filled in the line being sung (`loudHTML`,
+  `loudRowsHTML`, `loudBar` in lines.ts; src/core/pitch/loudness.ts; pitch.ts `hear`,
+  `showLoud`). A row for each note of the line, high to low, its name and a bar (no names on a
+  phone, where the column is 24 px). Each reading with voice while a note is expected adds its
+  level (20·log10 of its rms: dB of full scale) to that note: the note expected, not the
+  note sung, so a note sung off pitch still counts. A note's level is the median of its
+  readings once it has 6 (about 0.14 s), leaving out readings more than 20 dB under the
+  line's 90th percentile (the guide heard faintly through a rest), each note once however
+  often the line sings it (`LineLevels`). Its bar is drawn against the line's own level, the
+  mean of its notes (`lineLevel`): at the tick (55 %) when as loud, 3.75 % a dB either way,
+  so 15 dB louder fills it and a note far softer keeps a sliver (6 %). The note sounding is
+  in brass. The line's rise for each octave up (`risePerOctave`) is the least-squares slope
+  of its notes' levels against their pitch, each note once, from three notes a fourth (500
+  cents) or more apart: within 4 dB an octave "Even", above it "Louder going up", below
+  "Softer going up" (`riseWord`), and as a number, "+8 dB an octave" (`riseText`). A note the
+  microphone overloaded on has a red end to its bar, and for 3 s after any reading that did,
+  the message under the lines (and full screen's panel) says "Too loud for the microphone:
+  turn its input gain down a little". Overloaded (`blockClipped`, on each block of samples as
+  it comes in, mic.ts): a sample at 0.99 of full scale or more, or, from a quarter of full
+  scale, six or more samples in a row at the block's loudest: the flat top of a waveform cut
+  off and then turned down by a volume after the cut (the system's input level for the device
+  under 100), which a plain 0.99 would miss. A voice never holds its top that long (at 60 Hz
+  and 48 kHz it changes within two samples, 16-bit or not). *Not checkable with headless
+  Edge's fake microphone:* it limits a file's loudest moments, rounding a cut-off top to a
+  smooth peak at 0.9757 (no two samples the same), so the warning was checked there with the
+  blocks scaled up in the page to reach full scale (Work log 2026-11-04). *Why against
+  the line's own level:* the microphone's gain and the singer's distance from it move the
+  level by tens of decibels, so an absolute level would need setting up every time and would
+  change as the singer moved; a line lasts a few seconds, in which the singer seldom moves,
+  and what Rinat wants to see is whether the high notes come out louder than the low ones.
+  *Why the rise an octave:* it is the habit in one number, the same whatever the line's
+  range. *Measured first* on the 44 takes of 25–27 Oct in `feedback/` (the app's detector on
+  each, each semitone's median level): the level rose with pitch in every take, the
+  exercises a median +3.3 dB an octave, the songs +7.2 (the slow Tagore songs +7 to +10; in
+  বড়ো আশা the low Pa 12.6 dB under Sa and the upper Sa 5.9 over it), and 0.5–4 % of the
+  voice's windows reached full scale (the Scarlett's gain). In full screen (the panel to the
+  right of the lines, as tall as they are, where the gauge was) the rows are larger and under
+  them stand the line's rise in words and as a number and the line before's (or, when one
+  line loops, the round before's: "Last round: louder going up, +7 dB an octave"), faint
+  while the pitch check is off with how to turn it on (`loudBox` on the lines' host); on a
+  phone or tablet held upright it stays at the end of the line. *Until 2026-11-04* a pitch
+  gauge stood there (2026-10-19, in place of a line of text: the note sung, a scale with the
+  note expected across its middle, a marker sliding up when sharp and down when flat, the
+  cents); Rinat found it "moves too quickly for me to take that as feedback" and the voice
+  line "already tells me the same information but better".
+- **The voice drawn thicker when louder** (Rinat, 2026-11-04, with loudness by note): in five
+  steps against the level the voice has been singing at, the median of its last 10 s with
+  the readings 20 dB under that time's 90th percentile left out (`LevelRef`). The level,
+  smoothed (each reading moves it 35 % of the way: about 60 ms), more than 6 dB under it is
+  step 0, 2–6 dB under step 1, within 2 dB step 2 (the usual width), 2–6 dB over step 3,
+  more than 6 dB over step 4; each step held until the level is 1 dB past its edge, so it
+  does not flicker (`widthStep`). Drawn 0.55, 0.78, 1, 1.5 and 2.1 times the usual width
+  (`.vt.w0`–`.w4`, `--vw`), the dot 0.8 to 1.45 times its size; a new piece of the line starts
+  where the step changes, as where the colour does.
 - **Looking back** (Rinat, 2026-10-19: "the experience of inspecting my performance after
   finish singing is not great"): a tap or click on any line (not its number box, which plays
   from it) opens it to the size of the line being sung: the words big, the tall strip with

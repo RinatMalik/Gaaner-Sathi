@@ -2802,8 +2802,8 @@ export function init(): void {
     rows: () => prefs.plRows ?? 7,
     at: () => prefs.plAt ?? 3,
     full: () => full.on,
-    gaugeBox: () => {
-      const box = $('#fullGauge');
+    loudBox: () => {
+      const box = $('#fullLoud');
       return full.on && getComputedStyle(box).display !== 'none' ? box : null;
     },
   });

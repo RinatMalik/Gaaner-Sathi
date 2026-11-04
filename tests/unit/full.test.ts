@@ -6,7 +6,7 @@ import page from '../../index.html?raw';
 import { fullZoom, whereText } from '../../src/app/full';
 import { beatGlow, beatKind, noteAt, noteHue } from '../../src/app/fullfx';
 import { scoreWord, streakOf } from '../../src/app/fullscore';
-import { axisNotes, gaugeHTML } from '../../src/app/lines';
+import { axisNotes } from '../../src/app/lines';
 import { itemWhat, type ItemSong } from '../../src/app/rewaz';
 import { parseSong } from '../../src/core/notation/parse';
 import { eventsByBeat } from '../../src/core/pitch/track';
@@ -125,21 +125,21 @@ describe('the page', () => {
     expect(between('rwLeft', 'rwSkip')).toMatch(/<button id="rwFull"[^>]*>.*Full screen<\/button>/);
   });
 
-  it('has five panels: the rewaz and title bars together, the score, the lines, the gauge, the controls', () => {
+  it('has five panels: the rewaz and title bars together, the score, the lines, loudness by note, the controls', () => {
     const top = page.split('<div class="ptop">')[1]!;
     expect(top.indexOf('id="rwBar"')).toBeGreaterThan(-1);
     expect(top.indexOf('id="rwBar"')).toBeLessThan(top.indexOf('<div class="sheetHead">'));
-    const order = ['class="ptop"', 'id="fullScore"', 'id="pl"', 'id="fullGauge"', 'id="fullCtl"'].map((x) => page.indexOf(x));
+    const order = ['class="ptop"', 'id="fullScore"', 'id="pl"', 'id="fullLoud"', 'id="fullCtl"'].map((x) => page.indexOf(x));
     expect(order.every((at, i) => at > 0 && (i === 0 || at > order[i - 1]!))).toBe(true);
     for (const id of ['fsRing', 'fsArc', 'fsAvg', 'fsSung', 'fsStreak', 'fsPop', 'fsLines', 'fsBurst']) expect(between('fullScore', 'pl')).toContain('id="' + id + '"');
-    // The gauge names the note expected beside its middle.
-    expect(gaugeHTML()).toContain('<span class="pgx"></span>');
+    // No pitch gauge left (Rinat, 2026-11-04: the voice line "already tells me the same information but better").
+    expect(page).not.toContain('fullGauge');
   });
 
   it('has the break inside the lines, and a bar for the deck’s controls after them', () => {
     expect(between('plView', 'pitchBox')).toContain('id="fullBreak"');
     expect(between('fullBreak', 'pitchBox')).toContain('id="fbCount"');
-    expect(between('pitchBox', 'keysRow')).toMatch(/<\/section>\s*<!--[^]*?-->\s*<aside class="fgauge" id="fullGauge"[^>]*><span class="fph">Pitch<\/span><\/aside>\s*<!--[^]*?-->\s*<div class="fullctl" id="fullCtl"[^>]* hidden><\/div>\s*<section class="keyscard" $/);
+    expect(between('pitchBox', 'keysRow')).toMatch(/<\/section>\s*<!--[^]*?-->\s*<aside class="floud" id="fullLoud"[^>]*><span class="fph">Loudness<\/span><p class="flidle">Turn on <b>Check my pitch<\/b>, below, to see how loud you sing each note\.<\/p><\/aside>\s*<!--[^]*?-->\s*<div class="fullctl" id="fullCtl"[^>]* hidden><\/div>\s*<section class="keyscard" $/);
     // The controls it moves there are the deck's.
     expect(between('deck', 'dpGuide')).toMatch(/<div class="transport">\s*<button id="playBtn"/);
     expect(between('deck', 'dpGuide')).toContain('<button id="micBtn"');

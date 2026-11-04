@@ -2,12 +2,13 @@
  * Pitch feedback on the Practice view (docs/ROADMAP.md → Pitch feedback): the microphone
  * button, the voice drawn on each line's pitch strip against the notes (lines.ts), a mark on
  * each beat sung, a score for each line, the run's average as it goes (Rinat, 2026-10-15), and
- * a gauge at the end of the line being sung showing the note sung and how close it is (Rinat,
- * 2026-10-19: in place of a line of text under the lines).
+ * how loud the voice sings (Rinat, 2026-11-04, src/core/pitch/loudness.ts): loudness by note at
+ * the end of the line being sung, in place of a pitch gauge there from 2026-10-19, the voice
+ * drawn thicker when louder, and a warning while the microphone overloads.
  * Readings, expected notes and scores come from src/core/pitch/track.ts; the microphone from
  * src/audio/mic.ts. Everything is judged when it was sung, moved back only by the device's
  * delay (measured with clicks, src/audio/latency.ts, else the device's own figure): the voice
- * drawn, its colours, the gauge and the scores (Rinat, 2026-10-19: "i should see the real time
+ * drawn, its colours, its loudness and the scores (Rinat, 2026-10-19: "i should see the real time
  * true feedback so i can work on my delay/lateness"). How far behind the guide the voice comes
  * is said under the lines. A reading the detector most likely got wrong is read as no voice;
  * the voice is drawn in the octave it sings in, all of it the same; a slide into a note is drawn
@@ -25,10 +26,11 @@ import { Mic, MicError, micProblemText, type MicReading } from '../audio/mic';
 import type { BeatEntry } from '../audio/transport';
 import type { ParsedSong } from '../core/notation/types';
 import type { PitchDetail } from '../core/practice/session';
-import { beatNotes, centsFromSa, eventsByBeat, isGlitch, nearestNote, PitchTracker, SlipFilter, sliding, type ExpectedNote, type LineResult, type NoteResult, type Section } from '../core/pitch/track';
+import { levelDb, LevelRef, LineLevels, risePerOctave, widthStep } from '../core/pitch/loudness';
+import { beatNotes, centsFromSa, eventsByBeat, isGlitch, PitchTracker, SlipFilter, sliding, type ExpectedNote, type LineResult, type NoteResult, type Section } from '../core/pitch/track';
 import type { ScorePanel } from './fullscore';
 import { centsText, closeness, ragColour, type LinesUI } from './lines';
-import { beatNoteHTML, type Script } from './view';
+import type { Script } from './view';
 
 export interface PitchHost {
   /** The app's AudioContext, made and resumed on demand (call from a tap). */
@@ -53,7 +55,7 @@ export interface PitchHost {
    * it sang in this time, when any octave counts. */
   voiceOct: { get(): number | undefined; set(v: number): void };
   /** The Practice view's lines: the voice is drawn on their strips, each line's score beside it. */
-  lines: Pick<LinesUI, 'voice' | 'voiceOff' | 'lineScore' | 'clearRun' | 'gaugeOn' | 'gauge'>;
+  lines: Pick<LinesUI, 'voice' | 'voiceOff' | 'lineScore' | 'clearRun' | 'loudOn' | 'loud'>;
   /** Full screen's score panel: each line's score and the average as they come. */
   panel: ScorePanel;
 }
@@ -122,6 +124,17 @@ export function initPitch(host: PitchHost): PitchUI {
   /** This run, for its detail: the beats scheduled ([time, song beat, round, seconds a beat])
    * and every reading ([t, Hz], a glitch as no voice). */
   let log: { beats: number[][]; readings: number[] } | null = null;
+  /** How loud: the level the voice has been singing at, its level just now (smoothed over about
+   * 70 ms) and the thickness it is drawn at; the line (and round) the voice is on with each of
+   * its notes' levels, and the one before with its rise; the note sounding; and when the
+   * microphone last overloaded (AudioContext time). */
+  const levelRef = new LevelRef();
+  let levelNow: number | null = null;
+  let width: number | null = null;
+  let lineLv: { line: number; pass: number; L: LineLevels } | null = null;
+  let lastLine: { line: number; rise: number | null } | null = null;
+  let nowCents: number | null = null;
+  let clipAt = -Infinity;
 
   function setButton(on: boolean, label: string): void {
     btn.setAttribute('aria-pressed', String(on));
@@ -141,7 +154,7 @@ export function initPitch(host: PitchHost): PitchUI {
     box.hidden = false;
     setButton(true, 'Pitch check on');
     message(WAITING);
-    host.lines.gaugeOn(true);
+    host.lines.loudOn(true);
     if (host.section()) startRun();
   }
 
@@ -150,7 +163,7 @@ export function initPitch(host: PitchHost): PitchUI {
     armed = false;
     setButton(false, 'Check my pitch');
     box.hidden = true;
-    host.lines.gaugeOn(false);
+    host.lines.loudOn(false);
     host.panel.clear();
   }
 
@@ -178,7 +191,7 @@ export function initPitch(host: PitchHost): PitchUI {
       wanted = false;
       armed = false;
       setButton(false, 'Check my pitch');
-      host.lines.gaugeOn(false);
+      host.lines.loudOn(false);
       message(micProblemText(e instanceof MicError ? e.problem : 'other'));
     } finally {
       starting = false;
@@ -207,7 +220,11 @@ export function initPitch(host: PitchHost): PitchUI {
     before = 0;
     lastHz = 0;
     host.lines.voiceOff();
-    host.lines.gauge('', null, '', '');
+    levelNow = null;
+    width = null;
+    nowCents = null;
+    showLoud();
+    if (msgEl.textContent === CLIPPING) message('');
     if (!armed) return;
     setButton(true, 'Pitch check on');
     message(text);
@@ -311,62 +328,79 @@ export function initPitch(host: PitchHost): PitchUI {
     parsedAt = host.parsed();
     byBeat = eventsByBeat(parsedAt);
     slips = new SlipFilter<MicReading>();
+    levelRef.clear();
+    levelNow = null;
+    width = null;
+    lineLv = null;
+    lastLine = null;
+    nowCents = null;
+    clipAt = -Infinity;
     tracker = new PitchTracker({ lag: host.devLag.get() ?? mic?.latency() ?? 0.05, anyOctave: !host.octave.get(), below: host.below(), saHz: host.saHz(), octave: host.voiceOct.get() });
     void listen();
   }
 
   // ── Drawing ────────────────────────────────────────────────────────────────
 
-  /** The median distance of the last ~100 ms of readings from a target, in cents: enough
-   * that a wobble does not shake the gauge, short so that it answers the voice quickly (it
-   * was ~200 ms until 2026-10-19). */
-  function steady(target: (r: MicReading) => number | null): number | null {
-    const last = recent.slice(-5);
-    if (!last.length || !last[last.length - 1]!.hz) return null;
-    const v = last.filter((r) => r.hz).map(target).filter((c): c is number => c != null).sort((a, b) => a - b);
-    return v.length ? v[v.length >> 1]! : null;
-  }
+  /** Said under the lines while the microphone overloads (loudness by note says so too, in full
+   * screen): its input gain is too high, so the loudest moments are cut off. */
+  const CLIPPING = 'Too loud for the microphone: turn its input gain down a little.';
 
-  /** The gauge: the note sung (`sungCents` from Sa) and `cents` off the note expected, or
-   * `label` in place of the cents; and the note expected, when there is one. */
-  function showGauge(cents: number | null, label: string, sungCents: number | null, expected: ExpectedNote | null = null): void {
-    const name = (semi: number, oct: number) => beatNoteHTML({ units: [{ k: 'note', semi, oct }] }, host.script());
-    let note = '';
-    if (sungCents != null) {
-      const nn = nearestNote(sungCents);
-      note = name(nn.semi, nn.oct);
-    }
-    host.lines.gauge(note, cents, cents == null ? '' : closeness(cents), label, expected ? name(expected.semi, expected.oct) : '');
+  /** Loudness by note: the line the voice is on, its notes so far and its rise, the note
+   * sounding, and the line (or round) before. */
+  function showLoud(): void {
+    const levels = lineLv ? lineLv.L.levels() : [];
+    const latest = recent[recent.length - 1]?.t ?? -Infinity;
+    host.lines.loud({ line: lineLv?.line ?? -1, levels, rise: risePerOctave(levels), now: nowCents, clipping: latest - clipAt < 3, last: lastLine });
   }
 
   function draw(): void {
     if (!mic) return;
     raf = requestAnimationFrame(draw);
     settle(false);
-    const sa = host.saHz();
-    const latest = recent[recent.length - 1];
-    const sungAbs = latest && latest.hz ? centsFromSa(latest.hz, sa) : null;
-    if (tracker && host.section()) {
-      const live = tracker.live();
-      const note = live?.note ?? null;
-      if (!note) showGauge(null, latest && latest.hz ? 'Rest' : '', sungAbs);
-      else {
-        // This note's readings, from its start: a voice still on the last note shows so.
-        const c = steady((r) => (r.t - tracker!.lag >= note.t0 && r.t - tracker!.lag < note.t1 ? tracker!.errorFor(r.hz, note) : null));
-        if (c != null || !latest?.hz) showGauge(c, '', sungAbs, note);
-      }
-      // The device's delay, measured or as it says; and how far behind the guide the voice
-      // has been coming (measured from the singing, not taken off anything).
-      const b = tracker.behind;
-      const lag = (host.devLag.get() != null ? 'Device delay ' + ms(tracker.lag) + ' (measured)' : 'Device delay ' + ms(tracker.lag) + ', as it says: measure it with Measure the delay, below') +
-        (b == null ? '' : ' · your voice ' + (Math.abs(b) < 0.02 ? 'with the guide' : ms(Math.abs(b)) + (b > 0 ? ' behind' : ' ahead of') + ' the guide'));
-      if (lagEl.textContent !== lag) lagEl.textContent = lag;
-      drawVoice(sa);
-    } else {
-      const c = steady((r) => nearestNote(centsFromSa(r.hz, sa)).off);
-      // No note expected (not in a section): how close to the nearest note.
-      showGauge(c, '', sungAbs);
+    if (!tracker || !host.section()) return;
+    // The device's delay, measured or as it says; and how far behind the guide the voice
+    // has been coming (measured from the singing, not taken off anything).
+    const b = tracker.behind;
+    const lag = (host.devLag.get() != null ? 'Device delay ' + ms(tracker.lag) + ' (measured)' : 'Device delay ' + ms(tracker.lag) + ', as it says: measure it with Measure the delay, below') +
+      (b == null ? '' : ' · your voice ' + (Math.abs(b) < 0.02 ? 'with the guide' : ms(Math.abs(b)) + (b > 0 ? ' behind' : ' ahead of') + ' the guide'));
+    if (lagEl.textContent !== lag) lagEl.textContent = lag;
+    drawVoice(host.saHz());
+    showLoud();
+    const latest = recent[recent.length - 1]?.t ?? -Infinity;
+    if (latest - clipAt < 3) message(CLIPPING);
+    else if (msgEl.textContent === CLIPPING) message('');
+  }
+
+  /** How loud a reading is, as the voice is drawn: kept with the note it was sung against (a
+   * note the singer only listens to, none), and the voice's thickness for it, against the level
+   * it has been singing at. */
+  function hear(r: MicReading, n: ExpectedNote | null): number | null {
+    const db = levelDb(r.rms);
+    const clip = r.clip;
+    if (clip) clipAt = r.t;
+    if (!r.hz) {
+      levelNow = null;
+      width = null;
+      nowCents = null;
+      return null;
     }
+    levelRef.push(r.t, db);
+    levelNow = levelNow == null ? db : levelNow + 0.35 * (db - levelNow);
+    const ref = levelRef.value();
+    width = ref == null ? 2 : widthStep(levelNow - ref, width);
+    nowCents = null;
+    if (n && n.judged) {
+      if (!lineLv || lineLv.line !== n.line || lineLv.pass !== n.pass) {
+        if (lineLv) {
+          const lv = lineLv.L.levels();
+          if (lv.length) lastLine = { line: lineLv.line, rise: risePerOctave(lv) };
+        }
+        lineLv = { line: n.line, pass: n.pass, L: new LineLevels() };
+      }
+      nowCents = 100 * (n.semi + 12 * n.oct);
+      lineLv.L.add(nowCents, db, clip);
+    }
+    return width;
   }
 
   /** The beat a moment of the song falls in, and how far through it, from the beats scheduled. */
@@ -399,6 +433,8 @@ export function initPitch(host: PitchHost): PitchUI {
       const t = r.t - tracker.lag;
       const at = placeOf(t);
       if (!at) continue;
+      const n = tracker.expectedAt(t);
+      const w = hear(r, n);
       if (!r.hz) {
         host.lines.voice(at.s, at.pass, at.f, null, false, '');
         lastHz = 0;
@@ -406,7 +442,6 @@ export function initPitch(host: PitchHost): PitchUI {
         continue;
       }
       const y = centsFromSa(r.hz, sa) - 1200 * tracker.octave;
-      const n = tracker.expectedAt(t);
       if (n) {
         if (n !== slideNote) {
           slideNote = n;
@@ -417,8 +452,8 @@ export function initPitch(host: PitchHost): PitchUI {
         const slide = sliding(slidePrev, err, slideSettled);
         if (!slide) slideSettled = true;
         slidePrev = err;
-        host.lines.voice(at.s, at.pass, at.f, y, false, slide ? '' : closeness(err));
-      } else host.lines.voice(at.s, at.pass, at.f, y, false, 'free');
+        host.lines.voice(at.s, at.pass, at.f, y, false, slide ? '' : closeness(err), w);
+      } else host.lines.voice(at.s, at.pass, at.f, y, false, 'free', w);
       lastHz = r.hz;
     }
   }

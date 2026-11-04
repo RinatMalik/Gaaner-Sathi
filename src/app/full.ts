@@ -4,8 +4,8 @@
  * turns it on whether or not anything plays. The page is then five panels (Rinat, 2026-11-01):
  * at the top the title, where it has got to and the time left (the rewaz's bar with it in a
  * rewaz); the Practice view's lines in the middle, as many and with the line being sung in the
- * same place as Practice shows them, the score panel to their left (fullscore.ts) and the pitch
- * gauge to their right (lines.ts moves it there); and at the foot the deck's own Play, Stop,
+ * same place as Practice shows them, the score panel to their left (fullscore.ts) and loudness
+ * by note to their right (lines.ts moves it there); and at the foot the deck's own Play, Stop,
  * Restart, Check my pitch and Record me, moved there while full screen is on. Where the browser
  * can (not on an iPhone), it goes truly full screen too, and leaving that (Esc, the back
  * gesture) leaves this. F turns it on and off on Practice; Esc leaves it.

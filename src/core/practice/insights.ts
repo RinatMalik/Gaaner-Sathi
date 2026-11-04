@@ -12,7 +12,7 @@ import type { NoteRow, SessionDetail } from './session';
 /** A note's score: in tune from 85, close from 60 (as the Practice view colours them). */
 export const GOOD = 85;
 export const OK = 60;
-/** Cents from the note: in tune within 15, close within 35 (as the gauge). */
+/** Cents from the note: in tune within 15, close within 35 (as the voice line is coloured). */
 export const IN_TUNE = 15;
 export const CLOSE = 35;
 /** Reaching a new note: on time within 0.1 s, a little late within 0.25 s. */

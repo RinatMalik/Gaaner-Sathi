@@ -1,7 +1,7 @@
 // The Practice view's lines (src/app/lines.ts): the layout, each line's strip and cells, and
 // the taal figure (Rinat, 2026-10-15).
 import { describe, expect, it } from 'vitest';
-import { centsText, closeness, columnsFor, figureProgress, gaugeHTML, gaugeY, lineRange, linesHTML, MIN_SPAN, ragColour, shapeCorners, shapePath, stripY, taalFigureHTML } from '../../src/app/lines';
+import { axisNotes, centsText, closeness, columnsFor, figureProgress, lineRange, linesHTML, loudBar, loudHTML, loudRowsHTML, MIN_SPAN, ragColour, shapeCorners, shapePath, stripY, taalFigureHTML } from '../../src/app/lines';
 import { eventsByBeat } from '../../src/core/pitch/track';
 import { parseSong } from '../../src/core/notation/parse';
 import { taalMap } from '../../src/core/notation/taalmap';
@@ -182,17 +182,7 @@ describe('the taal figure', () => {
   });
 });
 
-describe('the pitch gauge (Rinat, 2026-10-19)', () => {
-  it('puts the note expected in the middle, sharp up and flat down, held at a quarter tone', () => {
-    expect(gaugeY(0)).toBe(50);
-    expect(gaugeY(25)).toBe(25);
-    expect(gaugeY(-25)).toBe(75);
-    expect(gaugeY(50)).toBe(0);
-    expect(gaugeY(-50)).toBe(100);
-    expect(gaugeY(180)).toBe(0);
-    expect(gaugeY(-90)).toBe(100);
-  });
-
+describe('how close the voice is', () => {
   it('writes the cents whole and signed', () => {
     expect(centsText(12.4)).toBe('+12');
     expect(centsText(-7.6)).toBe('−8');
@@ -200,12 +190,37 @@ describe('the pitch gauge (Rinat, 2026-10-19)', () => {
     expect(centsText(-0.4)).toBe('0');
   });
 
-  it('has bands for in tune, close and off, as the voice is coloured', () => {
+  it('is in tune within 15 cents, close within 35, as the voice is coloured', () => {
     expect([0, 15, -15, 16, 35, -35, 36, -80].map(closeness)).toEqual(['good', 'good', 'good', 'ok', 'ok', 'ok', 'off', 'off']);
-    const bands = Array.from(gaugeHTML().matchAll(/<span class="pgb (\w+)" style="top:([\d.]+)%;height:([\d.]+)%"/g), (m) => [m[1], +m[2]!, +m[3]!]);
-    // From the top: off (sharp), close, in tune across the middle, close, off (flat); end to end.
-    expect(bands).toEqual([['off', 0, 15], ['ok', 15, 20], ['good', 35, 30], ['ok', 65, 20], ['off', 85, 15]]);
-    expect(gaugeHTML()).toContain('class="pgauge idle"');
-    expect(gaugeHTML()).toContain('class="pgm"');
+  });
+});
+
+describe('loudness by note (Rinat, 2026-11-04)', () => {
+  it('draws each note’s bar against the line’s own level: the tick at 55 %, 15 dB either way to the ends', () => {
+    expect(loudBar(0)).toBe(55);
+    expect(loudBar(4)).toBe(70);
+    expect(loudBar(-8)).toBe(25);
+    expect(loudBar(12)).toBe(100);
+    expect(loudBar(30)).toBe(100);
+    // A note sung far softer still shows a little bar.
+    expect(loudBar(-20)).toBe(6);
+  });
+
+  it('has a row for each note of the line, high to low, named in the song’s script', () => {
+    const P = parseSong("S R G P S'");
+    const notes = axisNotes(P, P.noteLines[0]!, eventsByBeat(P), 0);
+    const rows = loudRowsHTML(notes, 'lat');
+    // Not data-c: a new run clears every beat's cents (pitch.ts `clearMarks`), and the rows with them.
+    expect(Array.from(rows.matchAll(/<li class="ldr" data-note="(\d+)">/g), (m) => +m[1]!)).toEqual([1200, 700, 400, 200, 0]);
+    expect(rows).toContain('<span class="ldb"><i></i></span>');
+    expect(rows.split('<span class="ldn">').length - 1).toBe(5);
+    expect(loudRowsHTML(notes, 'bn')).not.toBe(rows);
+  });
+
+  it('says what it shows, with room for the line’s rise, the line before and a warning', () => {
+    const h = loudHTML();
+    expect(h).toMatch(/^<div class="ldm" role="img" aria-label="Loudness by note[^"]+">/);
+    for (const c of ['ldrs', 'ldw', 'ldx', 'ldc', 'ldp']) expect(h).toContain('class="' + c + '"');
+    expect(h).toContain('Too loud for the microphone');
   });
 });

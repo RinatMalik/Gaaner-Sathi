@@ -21,6 +21,8 @@ historical interest.
 
 | Date | Decision | Authority / evidence | Consequence |
 |---|---|---|---|
+| 2026-11-01 | **Full screen's gauge has its own panel,** as tall as the lines: the note sung above, the note expected named beside its middle, ♯ above and ♭ below, the cents under it; faint while the pitch check is off. | Rinat, chat 2026-11-01 (the sketch's "Pitch guage height 75% Width 10%"); the note expected and the signs, Claude's | lines.ts `gaugeBox`, `gaugeHTML`; pitch.ts `showGauge`. |
+| 2026-10-19 | **The pitch gauge:** how close the voice is shows as a vertical gauge at the end of the line being sung, in place of the text under the lines ("In tune", "12 cents sharp", "You: সা"). While the pitch check is on every line has the gauge's column (60 px, 22 px on a phone), so beats stay one under another; on a phone a beat may be 30 px wide so eight still go across. The gauge: the note sung on top, coloured by how close; a scale with the note expected across its middle, green within 15 cents, amber within 35, red to 50, the marker held at the end beyond; the marker slides up when sharp and down when flat, as on the strip; the cents under it (not on a phone). The text under the lines keeps the status, the average and the hints. | Rinat, chat 2026-10-19 ("This is not a very good visual representation … maybe showing the cents vertically. tell me where can it go"; to Claude's proposal and mock-up: "Yes, build the vertical pitch gauge at the end of the line being sung, as in the mock-up"); the place, the bands and the phone form are Claude's | src/app/lines.ts (`gaugeHTML`, `gaugeOn`, `gauge`), pitch.ts (`showGauge`). docs/ENGINE.md → The gauge. |
 | 2026-10-28 | **The sliders' knobs 30 px,** brass on a groove, each slider 32 px across (the browser's own knob was about 16 px). | Rinat, chat 2026-10-28 ("make the slider handles a lot bigger so they are easy to click on") | The deck's four sliders; drawn by hand for Chromium, Safari and Firefox. |
 | 2026-10-09 | Handover pack merged into the framework: kickoff → this file, `docs/ROADMAP.md`, `docs/PARITY.md`; specs → `docs/`; prototype and suites → `reference/`; `handover/` deleted. | Rinat, chat 2026-10-09 | The original pack stays in git history at `e0ea8d8`. This file is the hot path; `docs/` is cold. |
 | 2026-10-09 | Stack and architecture baseline: TypeScript, React, Vite, Vitest, Playwright, Node 24 LTS; one package with a DOM-free core. | Kickoff §5 defaults; `docs/adr/ADR-001-stack.md` | Node 24 needed on every dev machine; core tests run in plain Node. |
@@ -49,6 +51,38 @@ historical interest.
 - 2026-10-09: `handover/`, merged into the framework (the original pack is at `e0ea8d8`).
 
 ## Work log, older entries
+
+### 2026-11-01 GMT — Claude (Opus 5.5) — PH2-49 full screen on a big screen
+
+- **Goal:** Rinat: "i see in your screenshots that the proportions are good, they look good and
+  all. but in my 49inch 4k tv which i use as my monitor, the main panel takes up all the space
+  and the panels on the sides and top and bottom are relatively as lot thinner. not sure wht to
+  do about this, i guess I just need to acccept it."
+- **Inspected:** the full screen styles: the score panel at most 220 px wide, the gauge 180, the
+  room 30, the title 22 px, Play 60 px, the buttons 44, the ring 150, so past a laptop's size
+  only the lines grew; app code reading positions (`getBoundingClientRect`: boxes.ts, fold.ts,
+  rewaz.ts, none of them inside full screen; lines.ts `fit` measures only inside `.pview`).
+- **Changed:** `feat(practice): full screen drawn larger on a big screen, its panels keeping
+  their shares` — src/app/full.ts (`fullZoom`; `scale` sets `zoom` on `.pview` while full
+  screen is on, on each resize); tests/unit/full.test.ts (1 new); docs/ROADMAP.md (row 49);
+  docs/HISTORY.md (the PH2-47 entry); this file.
+- **Tests / verification:** `npx tsc --noEmit -p .` exit 0; `npx vitest run` → 44 files, 504
+  passed; `npm run build` → 396.72 kB JS, 90.51 kB CSS; `bash reference/tests/run-all.sh` →
+  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge
+  on `npm run dev` (scratchpad `cdp49.mjs`), কোমল ঋ ও ধ, তীব্র মা playing from line 4 with the
+  pitch check on, at 1280 × 800 / 1920 × 1080 / 2560 × 1440 / 3840 × 2160: zoom 1 / 1.2 / 1.6 /
+  2.4; score panel 14.0 / 13.8 / 13.8 / 13.8 % of the width, lines 67.5 % at each, gauge 11.0 /
+  11.3 / 11.3 / 11.3 %, top bar 6.4 / 5.6 / 5.6 / 5.6 % of the height, controls 9.8 / 8.7 / 8.7
+  / 8.7 %; the title drawn 22 / 26 / 35 / 53 px, Play 60 / 72 / 96 / 144 px; the page the
+  screen's size at each; 7 lines in view with the line being sung third (6 counted at 4K: the
+  eighth's foot within 2 screen px of the panel's, whole in the screenshot); each click checked
+  with `elementFromPoint` landed on its button; grown while on from 2560 × 1300 to 3840 × 2160
+  the zoom went 1.44 → 2.4; after Esc no zoom; no console errors.
+- **Decisions made:** one 2026-11-01 row (full screen drawn larger on a big screen).
+- **Risks or disagreements:** not seen on Rinat's TV: at 2.4 times everything may look too big
+  from close up, or still too small from a sofa (the 1440 × 900 base is easy to change). CSS
+  `zoom` needs Chrome or Edge 128, Firefox 126 or Safari; an older browser draws it as before.
+- **Next handoff:** Rinat looks at it on the TV (Next single action); Claude adjusts.
 
 ### 2026-11-01 GMT — Claude (Opus 5.5) — PH2-48 full screen's room, gauge, score and glow
 

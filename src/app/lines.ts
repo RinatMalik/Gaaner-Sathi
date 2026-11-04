@@ -12,14 +12,16 @@
  * score. Beside the line being sung, a taal figure draws each vibhag as a shape with a corner
  * for each beat (a square for four beats, a triangle for three, a lens for two), the edges
  * drawn on through each beat so a shape closes as its last beat ends, the corner of the beat
- * sounding lit. While "Check my pitch" is on, a gauge at the end of the line being sung shows
- * how close the voice is to the note (Rinat, 2026-10-19). Any line tapped opens to the size of
+ * sounding lit. While "Check my pitch" is on, loudness by note at the end of the line being sung
+ * shows how loud each of its notes was sung (Rinat, 2026-11-04; a pitch gauge from 2026-10-19),
+ * and the voice is drawn thicker when louder. Any line tapped opens to the size of
  * the line being sung, to look back at how it was sung, each beat's cents under its strip
  * (Rinat, 2026-10-19). The HTML builders are pure and tested in Node; initLines wires them to
  * the page.
  */
 import { asTaals, placeIn, type Taals } from '../core/notation/taalmap';
 import type { NotesLine, ParsedSong } from '../core/notation/types';
+import { lineLevel, riseText, riseWord, type NoteLevel } from '../core/pitch/loudness';
 import { eventsByBeat, foldOctave } from '../core/pitch/track';
 import type { TaalInfo } from '../core/taal/taals';
 import { beatNoteHTML, esc, type Script } from './view';
@@ -221,7 +223,7 @@ export function ragColour(score: number): string {
   return 'color-mix(in srgb, var(--good) ' + Math.round(((score - 75) / 20) * 100) + '%, var(--warn))';
 }
 
-// ── The pitch gauge ──────────────────────────────────────────────────────────
+// ── How close, and how loud ──────────────────────────────────────────────────
 
 /** How close a reading is to the note expected: in tune within 15 cents, close within 35 (as
  * the voice is coloured and the beats marked), off beyond. */
@@ -229,31 +231,46 @@ export const IN_TUNE = 15;
 export const CLOSE = 35;
 export const closeness = (cents: number): 'good' | 'ok' | 'off' => (Math.abs(cents) <= IN_TUNE ? 'good' : Math.abs(cents) <= CLOSE ? 'ok' : 'off');
 
-/** The gauge's reach either way, in cents (a quarter tone): beyond it the marker stays at the end. */
-export const GAUGE_REACH = 50;
-
-/** Where the gauge's marker sits for a reading `cents` off the note, in percent from its top:
- * sharp up and flat down, as on the pitch strip. */
-export const gaugeY = (cents: number): number => 50 - (clamp(cents, -GAUGE_REACH, GAUGE_REACH) / GAUGE_REACH) * 50;
-
-/** A reading's cents as the gauge writes them: whole and signed ("+12", "−8", "0"). */
+/** A reading's cents, whole and signed ("+12", "−8", "0"), as a line opened shows each beat's. */
 export function centsText(cents: number): string {
   const n = Math.round(cents);
   return n > 0 ? '+' + n : n < 0 ? '−' + -n : '0';
 }
 
-/** The pitch gauge (Rinat, 2026-10-19), at the end of the line being sung while the pitch check
- * is on: the note sung above, a scale as tall as the line with the note expected across its
- * middle (in tune green, close amber, off red, each band as tall as its share of the reach), a
- * marker sliding up when sharp and down when flat, and the cents under it. In full screen's
- * panel it is as tall as the lines, and names the note expected beside its middle. */
-export function gaugeHTML(): string {
-  const band = (cls: string, a: number, b: number) => '<span class="pgb ' + cls + '" style="top:' + gaugeY(b) + '%;height:' + (gaugeY(a) - gaugeY(b)) + '%"></span>';
-  const R = GAUGE_REACH;
-  return '<div class="pgauge idle" role="img" aria-label="Pitch gauge: how close your voice is to the note, sharp above the middle, flat below">' +
-    '<span class="pgn" aria-hidden="true"></span><span class="pgs" aria-hidden="true"><span class="pgt">' +
-    band('off', CLOSE, R) + band('ok', IN_TUNE, CLOSE) + band('good', -IN_TUNE, IN_TUNE) + band('ok', -CLOSE, -IN_TUNE) + band('off', -R, -CLOSE) +
-    '</span><span class="pgc"></span><span class="pgx"></span><span class="pgm"></span></span><span class="pgv" aria-hidden="true"></span></div>';
+/** How long a note's bar is in loudness by note, percent, for a level `d` dB against the line's
+ * own level: the line's level at 55 % (the tick), 3.75 % a decibel, so a note 12 dB louder
+ * fills it; 6 % at least. */
+export const loudBar = (d: number): number => clamp(55 + d * 3.75, 6, 100);
+
+/** Loudness by note (Rinat, 2026-11-04, in place of the pitch gauge of 2026-10-19, which "moves
+ * too quickly for me to take that as feedback"), at the end of the line being sung while the
+ * pitch check is on: a row for each note of the line, high to low, its name and a bar as long as
+ * the voice was loud on it against the line's own level (`loudBar`), filled as it is sung. In
+ * full screen's panel, under the rows, the line's rise for each octave up, in words and as a
+ * number, and the last line's. The rows come from `loudRowsHTML`. */
+export function loudHTML(): string {
+  return '<div class="ldm" role="img" aria-label="Loudness by note: how loud you sing each note of the line, against the line as a whole; a longer bar is louder">' +
+    '<ol class="ldrs" aria-hidden="true"></ol><span class="ldw"></span><span class="ldx"></span>' +
+    '<span class="ldc">Too loud for the microphone: turn its input gain down a little</span><span class="ldp"></span></div>';
+}
+
+/** The rows of loudness by note for a line's notes (low to high, as `axisNotes` gives them):
+ * high to low, each its note's name and an empty bar. */
+export function loudRowsHTML(notes: readonly { semi: number; oct: number; cents: number }[], script: Script): string {
+  return [...notes].reverse().map((x) => '<li class="ldr" data-note="' + x.cents + '"><span class="ldn">' + beatNoteHTML({ units: [{ k: 'note', semi: x.semi, oct: x.oct }] }, script) + '</span><span class="ldb"><i></i></span></li>').join('');
+}
+
+/** What loudness by note shows (pitch.ts): the line the voice is on and each of its notes sung
+ * so far (cents as written), the line's rise for each octave up (null: not yet), the note
+ * sounding (cents; null: none), whether the microphone has just overloaded, and the line sung
+ * before (or the round before) with its rise. */
+export interface LoudState {
+  line: number;
+  levels: readonly NoteLevel[];
+  rise: number | null;
+  now: number | null;
+  clipping: boolean;
+  last: { line: number; rise: number | null } | null;
 }
 
 // ── Wiring ───────────────────────────────────────────────────────────────────
@@ -271,9 +288,9 @@ export interface LinesHost {
   /** Full screen is on: the lines fill the screen, the strip of the line being sung as tall as
    * the rest leaves room for, its notes named up its side. */
   full(): boolean;
-  /** Where the gauge goes in place of the end of the line being sung: full screen's panel for it
-   * when that is showing, else null. */
-  gaugeBox(): HTMLElement | null;
+  /** Where loudness by note goes in place of the end of the line being sung: full screen's panel
+   * for it when that is showing, else null. */
+  loudBox(): HTMLElement | null;
 }
 
 export interface LinesUI {
@@ -294,8 +311,9 @@ export interface LinesUI {
   /** How far through the taal beat sounding playing is, 0 to 1: the figure's edges draw on. */
   taalFrac(f: number): void;
   /** The voice at fraction f of beat g in round `pass`: `cents` from Sa as drawn (`fold`: moved
-   * by octaves into the strip), `cls` how close it is; null cents: no voice (a gap). */
-  voice(g: number, pass: number, f: number, cents: number | null, fold: boolean, cls: string): void;
+   * by octaves into the strip), `cls` how close it is, `thick` how thick (0 soft to 4 loud, 2 as
+   * usual; `widthStep`); null cents: no voice (a gap). */
+  voice(g: number, pass: number, f: number, cents: number | null, fold: boolean, cls: string, thick?: number | null): void;
   /** Hide the voice's dot (playing paused or stopped). */
   voiceOff(): void;
   /** A line's score this run (NaN: not sung). */
@@ -304,13 +322,10 @@ export interface LinesUI {
   clearRun(): void;
   /** The cells of song beat g, for the marks of how each beat was sung. */
   cells(g: number): readonly HTMLElement[];
-  /** The pitch gauge shown at the end of the line being sung (the pitch check on), or not. */
-  gaugeOn(on: boolean): void;
-  /** The gauge: the note sung (HTML; '' for none), how far the voice is from the note expected
-   * in cents (null: no marker) and so how close (`good`, `ok`, `off`, or ''), and a word in place
-   * of the cents when there are none (a rest); and the note expected (HTML), named beside the
-   * gauge's middle in full screen's panel. */
-  gauge(note: string, cents: number | null, cls: string, label: string, target?: string): void;
+  /** Loudness by note shown at the end of the line being sung (the pitch check on), or not. */
+  loudOn(on: boolean): void;
+  /** What loudness by note shows (drawn every frame, so only changes touch the page). */
+  loud(s: LoudState): void;
 }
 
 interface Seg {
@@ -360,15 +375,17 @@ export function initLines(host: LinesHost): LinesUI {
   dot.className = 'pldot';
   dot.setAttribute('aria-hidden', 'true');
   const tmp = document.createElement('div');
-  tmp.innerHTML = gaugeHTML();
-  const gEl = tmp.firstElementChild as HTMLElement;
-  const gNote = gEl.querySelector<HTMLElement>('.pgn')!;
-  const gMark = gEl.querySelector<HTMLElement>('.pgm')!;
-  const gVal = gEl.querySelector<HTMLElement>('.pgv')!;
-  const gWant = gEl.querySelector<HTMLElement>('.pgx')!;
-  /** The gauge is on; what it shows (drawn every frame, so only changes touch the page). */
-  let gaugeShown = false;
-  const gNow = { note: '', y: '', cls: '', v: '', x: '' };
+  tmp.innerHTML = loudHTML();
+  const ld = tmp.firstElementChild as HTMLElement;
+  const ldRows = ld.querySelector<HTMLElement>('.ldrs')!;
+  const ldWord = ld.querySelector<HTMLElement>('.ldw')!;
+  const ldNum = ld.querySelector<HTMLElement>('.ldx')!;
+  const ldLast = ld.querySelector<HTMLElement>('.ldp')!;
+  /** Loudness by note is on; the line its rows are for; what it shows (drawn every frame, so
+   * only changes touch the page). */
+  let loudShown = false;
+  let ldLine = -1;
+  let ldNow = '';
 
   function build(): void {
     dirty = false;
@@ -379,7 +396,8 @@ export function initLines(host: LinesHost): LinesUI {
     head.remove();
     dot.remove();
     fig.el?.remove();
-    gEl.remove();
+    ld.remove();
+    ldLine = -1;
     opened.clear();
     list.innerHTML = html;
     lines = Array.from(list.querySelectorAll<HTMLElement>('.pll'));
@@ -413,13 +431,13 @@ export function initLines(host: LinesHost): LinesUI {
   let shownCols = 0;
   function layout(): void {
     if (!host.shown() || !view.clientWidth) return;
-    placeGauge();
+    placeLoud();
     const numW = lines[0]?.querySelector<HTMLElement>('.pln')?.offsetWidth ?? 60;
-    // The gauge's column, when on; on a phone a beat may then be a little narrower, so that
-    // eight beats still go across a 360 px screen.
-    const gw = gaugeShown ? parseFloat(getComputedStyle(view).getPropertyValue('--gw')) || 0 : 0;
+    // Loudness by note's column, when on; on a phone a beat may then be a little narrower, so
+    // that eight beats still go across a 360 px screen.
+    const gw = loudShown ? parseFloat(getComputedStyle(view).getPropertyValue('--gw')) || 0 : 0;
     const phone = matchMedia('(max-width:520px)').matches;
-    const cols = columnsFor(maxBeats, view.clientWidth - numW - gw - 2, phone ? (gaugeShown ? 30 : 32) : 46);
+    const cols = columnsFor(maxBeats, view.clientWidth - numW - gw - 2, phone ? (loudShown ? 30 : 32) : 46);
     if (cols !== shownCols) {
       shownCols = cols;
       list.style.setProperty('--cols', String(cols));
@@ -566,7 +584,7 @@ export function initLines(host: LinesHost): LinesUI {
         if (fig.el) L.querySelector('.pln')!.appendChild(fig.el);
         gridFor(n);
       }
-      placeGauge();
+      placeLoud();
       if (lines[was] && !opened.has(was)) clearGrid(was);
       for (const k of [was, was + 1, n, n + 1]) setState(k);
       if (!playing) beat(-1);
@@ -695,7 +713,9 @@ export function initLines(host: LinesHost): LinesUI {
     if (last?.n === n) last = null;
   }
 
-  function voice(g: number, pass: number, f: number, cents: number | null, fold: boolean, cls: string): void {
+  function voice(g: number, pass: number, f: number, cents: number | null, fold: boolean, how: string, thick: number | null = null): void {
+    // A new piece of line where the colour or the thickness changes.
+    const cls = thick == null ? how : (how ? how + ' ' : '') + 'w' + thick;
     const P = host.parsed();
     const n = P.lineOfBeat[g];
     const L = n == null ? null : lines[n];
@@ -781,45 +801,70 @@ export function initLines(host: LinesHost): LinesUI {
     if (on) revealTimer = window.setTimeout(() => reveal(n), 280);
   });
 
-  /** The gauge goes at the end of the line being sung, while it is on; in full screen's panel for
-   * it, when that shows, it stays there, faint while the pitch check is off. */
-  function placeGauge(): void {
+  /** Loudness by note goes at the end of the line being sung, while it is on, with a row for each
+   * of its notes; in full screen's panel for it, when that shows, it stays there, faint while the
+   * pitch check is off. */
+  function placeLoud(): void {
     const L = lines[cur];
-    const box = host.gaugeBox();
-    gEl.classList.toggle('dim', !gaugeShown);
+    const box = host.loudBox();
+    ld.classList.toggle('dim', !loudShown);
     if (box) {
-      if (gEl.parentElement !== box) box.appendChild(gEl);
-    } else if (gaugeShown && L) {
-      if (gEl.parentElement !== L) L.appendChild(gEl);
-    } else gEl.remove();
+      if (ld.parentElement !== box) box.appendChild(ld);
+    } else if (loudShown && L) {
+      if (ld.parentElement !== L) L.appendChild(ld);
+    } else ld.remove();
+    const P = host.parsed();
+    const NL = P.noteLines[cur];
+    if (cur !== ldLine && NL) {
+      ldLine = cur;
+      ldRows.innerHTML = loudRowsHTML(axisNotes(P, NL, byBeat, 0), host.script());
+      ldNow = '';
+    }
   }
 
-  function gaugeOn(on: boolean): void {
-    if (on === gaugeShown) return;
-    gaugeShown = on;
-    view.parentElement?.classList.toggle('gauged', on);
-    gauge('', null, '', '');
-    placeGauge();
+  function loudOn(on: boolean): void {
+    if (on === loudShown) return;
+    loudShown = on;
+    view.parentElement?.classList.toggle('checking', on);
+    loudClear();
+    placeLoud();
     shownCols = 0;
     if (host.shown()) refresh();
   }
 
-  function gauge(note: string, cents: number | null, cls: string, label: string, target = ''): void {
-    if (note !== gNow.note) gNote.innerHTML = gNow.note = note;
-    if (target !== gNow.x) gWant.innerHTML = gNow.x = target;
-    const y = cents == null ? '' : gaugeY(cents).toFixed(1) + '%';
-    if (y !== gNow.y) {
-      gNow.y = y;
-      gEl.classList.toggle('idle', !y);
-      if (y) gMark.style.top = y;
+  /** Every bar empty, no words: a new run, or the pitch check switched on or off. */
+  function loudClear(): void {
+    for (const li of ldRows.children) {
+      (li as HTMLElement).style.removeProperty('--w');
+      li.classList.remove('now', 'clip', 'sung');
     }
-    if (cls !== gNow.cls) {
-      gEl.classList.remove('good', 'ok', 'off');
-      if (cls) gEl.classList.add(cls);
-      gNow.cls = cls;
+    ldWord.textContent = ldNum.textContent = ldLast.textContent = '';
+    ld.classList.remove('clipping');
+    ldNow = '';
+  }
+
+  function loud(s: LoudState): void {
+    // The voice is still on the line before, the rows already for the next: they wait for it.
+    if (s.line !== cur || ldLine !== cur) return;
+    const ref = lineLevel(s.levels);
+    const key = s.levels.map((x) => x.cents + ':' + Math.round(x.db * 2) + (x.clip ? 'c' : '')).join(' ') + '|' + s.now + '|' + (s.rise == null ? '' : Math.round(s.rise)) + '|' + s.clipping + '|' + (s.last ? s.last.line + ':' + (s.last.rise == null ? '' : Math.round(s.last.rise)) : '');
+    if (key === ldNow) return;
+    ldNow = key;
+    const at = new Map(s.levels.map((x) => [x.cents, x]));
+    for (const el of ldRows.children) {
+      const li = el as HTMLElement;
+      const c = +li.dataset.note!;
+      const x = at.get(c);
+      if (x && ref != null) li.style.setProperty('--w', loudBar(x.db - ref).toFixed(1) + '%');
+      else li.style.removeProperty('--w');
+      li.classList.toggle('sung', !!x);
+      li.classList.toggle('clip', !!x?.clip);
+      li.classList.toggle('now', c === s.now);
     }
-    const v = cents == null ? label : centsText(cents);
-    if (v !== gNow.v) gVal.textContent = gNow.v = v;
+    ldWord.textContent = riseWord(s.rise);
+    ldNum.textContent = s.rise == null ? '' : riseText(s.rise);
+    ldLast.textContent = s.last && s.last.rise != null ? (s.last.line === s.line ? 'Last round: ' : 'Line ' + (s.last.line + 1) + ': ') + riseWord(s.last.rise).toLowerCase() + ', ' + riseText(s.last.rise) : '';
+    ld.classList.toggle('clipping', s.clipping);
   }
 
   /** A line sung: its score in its number box, tinted by it. */
@@ -885,9 +930,10 @@ export function initLines(host: LinesHost): LinesUI {
       linePass.clear();
       last = null;
       dot.remove();
+      loudClear();
     },
     cells: (g) => cellsOf.get(g) ?? [],
-    gaugeOn,
-    gauge,
+    loudOn,
+    loud,
   };
 }
