@@ -74,6 +74,11 @@ export interface PitchDetail {
   /** What the microphone heard, in pairs: [t, Hz (0: no voice)], t when it was taken, seconds
    * from the first beat. */
   readings: number[];
+  /** How loud each reading was, in pairs as `readings` are: [the level of the 43 ms or so around
+   * it, its loudest sample], dB of full scale to a tenth (0: the most the microphone's input can
+   * carry; `SILENT_DB` for silence). Kept from 2026-11-05 (Rinat: "add loudness data when
+   * export"); absent before, or when it does not match the readings. */
+  levels?: number[];
   /** The beats: [t, song beat, round, seconds a beat]. */
   beats: [number, number, number, number][];
 }
@@ -87,7 +92,12 @@ export interface SessionDetail {
   pitch?: PitchDetail;
 }
 
+/** A reading's level when there was no sound at all, dB of full scale. */
+export const SILENT_DB = -120;
+
 const num = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+/** Numbers kept as an array, or as a typed array (as stored). */
+const nums = (v: unknown): number[] => (Array.isArray(v) ? v.filter(num) : ArrayBuffer.isView(v) ? Array.from(v as Float32Array).filter(num) : []);
 const numOrNull = (v: unknown): number | null => (num(v) ? v : null);
 const str = (v: unknown, max = 200) => (typeof v === 'string' ? v.slice(0, max) : '');
 
@@ -124,7 +134,9 @@ export function cleanSession(v: unknown): SessionDetail | null {
   const q = o.pitch as Record<string, unknown> | undefined;
   if (q && typeof q === 'object') {
     const rd = q.readings;
-    const readings = Array.isArray(rd) ? rd.filter(num) : ArrayBuffer.isView(rd) ? Array.from(rd as Float32Array) : [];
+    const readings0 = Array.isArray(rd) ? rd.filter(num) : ArrayBuffer.isView(rd) ? Array.from(rd as Float32Array) : [];
+    const readings = readings0.length % 2 ? readings0.slice(0, -1) : readings0;
+    const levels = nums(q.levels);
     out.pitch = {
       lag: num(q.lag) ? q.lag : 0,
       measured: q.measured === true,
@@ -135,7 +147,8 @@ export function cleanSession(v: unknown): SessionDetail | null {
       lines: Array.isArray(q.lines)
         ? q.lines.filter((l): l is [number, number, number | null, number] => Array.isArray(l) && num(l[0]) && num(l[1]) && (l[2] === null || num(l[2])) && num(l[3]))
         : [],
-      readings: readings.length % 2 ? readings.slice(0, -1) : readings,
+      readings,
+      ...(levels.length && levels.length === readings.length ? { levels } : {}),
       beats: Array.isArray(q.beats) ? q.beats.filter((b): b is [number, number, number, number] => Array.isArray(b) && b.length === 4 && b.every(num)) : [],
     };
   }

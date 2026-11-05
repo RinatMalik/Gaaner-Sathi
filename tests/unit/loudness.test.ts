@@ -1,8 +1,8 @@
 // How loud the voice sings (Rinat, 2026-11-04): the microphone overloading, the level the voice
-// has been singing at, the loudness gauge (its scale, zones, steadied needle and where the
-// microphone cuts off), and the voice line's thickness.
+// has been singing at, the loudness gauge (its fixed middle, scale, zones, steadied needle, where
+// the microphone cuts off and the panel's tint), and the voice line's thickness.
 import { describe, expect, it } from 'vitest';
-import { blockClip, CLIP_RUN, GAUGE_REACH, GaugeLevel, gaugeY, levelDb, LevelRef, loudZone, micLimit, Overload, OVERLOAD_BLOCKS, OVERLOAD_HOLD, OVERLOAD_WITHIN, widthStep, ZONE_EDGES, ZONE_WORD, ZONES } from '../../src/core/pitch/loudness';
+import { blockClip, CLIP_RUN, GAUGE_MIDDLE, GAUGE_REACH, GaugeLevel, gaugeY, levelDb, LevelRef, loudTint, loudZone, micLimit, Overload, OVERLOAD_BLOCKS, OVERLOAD_HOLD, OVERLOAD_WITHIN, widthStep, ZONE_EDGES, ZONE_WORD, ZONES } from '../../src/core/pitch/loudness';
 
 describe('a reading’s level', () => {
   it('is dB of full scale', () => {
@@ -90,7 +90,9 @@ describe('the level the voice has been singing at', () => {
 });
 
 describe('the loudness gauge (Rinat’s pick, 2026-11-04)', () => {
-  it('has its middle at the level the voice has been singing at, louder above, 12 dB to each end', () => {
+  it('has its middle fixed at −18 dB of full scale, a usual level to record a voice at, louder above, 12 dB to each end (Rinat, 2026-11-05)', () => {
+    // Not the voice's own level of the last 10 s: singing too loud for 10 s no longer becomes the norm.
+    expect(GAUGE_MIDDLE).toBe(-18);
     expect(GAUGE_REACH).toBe(12);
     expect([0, 6, 12, 20, -3, -12, -30].map(gaugeY)).toEqual([50, 25, 0, 0, 62.5, 100, 100]);
   });
@@ -144,6 +146,24 @@ describe('the loudness gauge (Rinat’s pick, 2026-11-04)', () => {
     expect(micLimit(-24, 8)).toBeNull();
     // Already cut off as the voice usually sings: under the middle.
     expect(micLimit(-4, 8)).toBe(-4);
+    // Against the fixed middle: Rinat's takes of 26–27 Oct, peaks about 9 dB above the level,
+    // cut off 9 dB above −18, near the gauge's top.
+    expect(micLimit(GAUGE_MIDDLE, 9)).toBe(9);
+  });
+
+  it('tints the panel red when loud and blue when soft, the further the stronger (Rinat, 2026-11-05)', () => {
+    expect(loudTint(0, 'ok')).toBeNull();
+    expect(loudTint(3.5, 'ok')).toBeNull();
+    // From a tenth at the zone's edge to all of it at the gauge's end, and no further.
+    expect(loudTint(3.5, 'loud1')).toEqual({ hot: true, k: 0.1 });
+    expect(loudTint(7.5, 'loud2')).toEqual({ hot: true, k: 0.5 });
+    expect(loudTint(12, 'loud2')).toEqual({ hot: true, k: 1 });
+    expect(loudTint(20, 'loud2')).toEqual({ hot: true, k: 1 });
+    expect(loudTint(-7.5, 'soft2')).toEqual({ hot: false, k: 0.5 });
+    expect(loudTint(-12, 'soft2')).toEqual({ hot: false, k: 1 });
+    // A zone held past its edge still tints, faintly.
+    expect(loudTint(2.5, 'loud1')).toEqual({ hot: true, k: 0.1 });
+    expect(loudTint(-4, 'soft1')!.hot).toBe(false);
   });
 });
 

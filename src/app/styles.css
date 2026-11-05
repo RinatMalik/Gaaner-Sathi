@@ -1346,6 +1346,17 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 :root[data-full] .floud>.fph{text-align:center}
 .floud .ldm{flex:1 1 auto;min-height:0;gap:8px;padding:6px 0 0;border-left:0;transition:opacity .3s}
 .floud .ldm.dim{opacity:.35}
+/* Tinted red when loud and blue when soft, the more the further (Rinat, 2026-11-05): the gauge's
+   column on Practice, full screen's whole panel (its column then left clear); lines.ts tint(). */
+.ldm,.floud{--ld-hot:#e0322b;--ld-cold:#2a6be0}
+.ldm{transition:background-color .3s ease}
+.ldm.ldwarm{background-color:color-mix(in srgb,var(--ld-hot) var(--tint,0%),transparent)}
+.ldm.ldcool{background-color:color-mix(in srgb,var(--ld-cold) var(--tint,0%),transparent)}
+:root[data-full] .floud{transition:background-color .3s ease}
+:root[data-full] .floud.ldwarm{background-color:color-mix(in srgb,var(--ld-hot) var(--tint,0%),var(--sheet))}
+:root[data-full] .floud.ldcool{background-color:color-mix(in srgb,var(--ld-cold) var(--tint,0%),var(--sheet))}
+:root[data-full] .floud .ldm{background-color:transparent}
+:root[data-full] .floud.ldstrong :is(.fph,.ldt,.ldw,.ldc,.ldlim b){color:#fff}
 .floud .ldg{width:28px;max-height:460px}
 .floud .ldz.l2{border-radius:10px 10px 0 0}
 .floud .ldz.s2{border-radius:0 0 10px 10px}

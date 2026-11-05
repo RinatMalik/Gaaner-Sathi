@@ -124,25 +124,34 @@ export class LevelRef {
  * its edge, so it does not flicker on an edge. */
 const HOLD = 1;
 
-/** The loudness gauge's reach either way, dB against the level the voice has been singing at:
- * beyond it the needle stays at the end. */
+/** The level the loudness gauge's middle stands for, dB of full scale (Rinat, 2026-11-05: with
+ * the middle the level of the last 10 s, "if I am being too loud for ten or more seconds, it
+ * becomes the norm … maybe a fixed range of db? That would also help me understand if I am too
+ * far or too close to the mic"): where a voice is set to sit on average when it is recorded,
+ * leaving room above it for its loudest moments (a desk's 0 VU, −18 dB of full scale). Until
+ * 2026-11-05 the middle was the voice's own level over the last 10 s (`LevelRef`), which the
+ * voice line's thickness still follows. */
+export const GAUGE_MIDDLE = -18;
+
+/** The loudness gauge's reach either way, dB against its middle: beyond it the needle stays at
+ * the end (−30 to −6 dB of full scale). */
 export const GAUGE_REACH = 12;
 
-/** Where the gauge's needle (or the microphone's limit) sits for `d` dB against the level the
- * voice has been singing at, percent from the top: louder above the middle. */
+/** Where the gauge's needle (or the microphone's limit) sits for `d` dB against its middle,
+ * percent from the top: louder above the middle. */
 export const gaugeY = (d: number): number => 50 - (Math.max(-GAUGE_REACH, Math.min(GAUGE_REACH, d)) / GAUGE_REACH) * 50;
 
-/** The gauge's zones, softest first: within 3 dB of the level the voice has been singing at just
- * right, to 6 dB a little soft or loud, beyond that too soft or too loud. */
+/** The gauge's zones, softest first: within 3 dB of its middle just right, to 6 dB a little soft
+ * or loud, beyond that too soft or too loud. */
 export type LoudZone = 'soft2' | 'soft1' | 'ok' | 'loud1' | 'loud2';
 export const ZONES: readonly LoudZone[] = ['soft2', 'soft1', 'ok', 'loud1', 'loud2'];
 /** The edge above each zone but the last, dB. */
 export const ZONE_EDGES = [-6, -3, 3, 6];
 export const ZONE_WORD: Readonly<Record<LoudZone, string>> = { soft2: 'Too soft', soft1: 'A little soft', ok: 'Just right', loud1: 'A little loud', loud2: 'Too loud' };
 
-/** The gauge's zone for a level `d` dB against the level the voice has been singing at (±3 dB
- * itself just right), given the zone before (null: none): a zone holds until the level is a
- * decibel past its edge, so the word does not flicker on an edge. */
+/** The gauge's zone for a level `d` dB against its middle (±3 dB itself just right), given the
+ * zone before (null: none): a zone holds until the level is a decibel past its edge, so the word
+ * does not flicker on an edge. */
 export function loudZone(d: number, prev: LoudZone | null): LoudZone {
   let s = ZONE_EDGES.filter((e) => (e < 0 ? d >= e : d > e)).length;
   if (prev) {
@@ -179,13 +188,23 @@ export class GaugeLevel {
   }
 }
 
-/** Where the microphone cuts the voice off, dB against the level the voice has been singing at
- * (`ref`): its loudest moments stand `crest` dB above its level (a median, as `ref` is), so they
- * reach full scale once its level is −`crest` dB of full scale. Null when that is above the
- * gauge's reach (plenty of room). */
+/** Where the microphone cuts the voice off, dB against a level `ref` dB of full scale (the
+ * gauge's middle): the voice's loudest moments stand `crest` dB above its level (the median of
+ * the last 10 s), so they reach full scale once its level is −`crest` dB of full scale. Null
+ * when that is above the gauge's reach (plenty of room). */
 export function micLimit(ref: number, crest: number): number | null {
   const d = -crest - ref;
   return d > GAUGE_REACH ? null : d;
+}
+
+/** How strongly the loudness panel is tinted, 0 to 1, red when loud and blue when soft (Rinat,
+ * 2026-11-05: "if it is to loud, the background colour of the panel will go progressively red to
+ * bright red. and blue when its to flat"), for a level `d` dB against the gauge's middle in
+ * `zone`: none while just right; from a tenth at the zone's edge (3 dB) to all of it at the
+ * gauge's end (12 dB). */
+export function loudTint(d: number, zone: LoudZone): { hot: boolean; k: number } | null {
+  if (zone === 'ok') return null;
+  return { hot: zone === 'loud1' || zone === 'loud2', k: Math.max(0.1, Math.min(1, (Math.abs(d) - 3) / (GAUGE_REACH - 3))) };
 }
 
 /** The edges between the voice line's thicknesses, dB against the level the voice has been

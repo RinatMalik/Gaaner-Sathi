@@ -9,6 +9,7 @@ import { parseSong } from '../core/notation/parse';
 import { noteWords, type Insights } from '../core/practice/insights';
 import { LOG_FILE_FORMAT, type LogEntry } from '../core/practice/log';
 import type { PitchDetail, SessionDetail } from '../core/practice/session';
+import { GAUGE_MIDDLE } from '../core/pitch/loudness';
 import { centsFromSa } from '../core/pitch/track';
 import { taalInfo } from '../core/taal/taals';
 import { AKAR, BN_LETTER, REPH } from '../core/notation/symbols';
@@ -81,8 +82,10 @@ export const AI_BRIEF = {
     'session: when, how long, which lines, rounds, tempo, the score. song: the song as it was played, its notation and Sa. ' +
     'settings: how it was played. equipment: the device\'s delay and octave settings. findings_by_the_app: what the app itself ' +
     'concluded, by fixed rules, from the same data (check them, and say where you disagree). lines, rounds, notes_of_the_scale: ' +
-    'summaries. earlier_sessions_of_this_song: the song\'s earlier sessions, for progress. notes: every note the singer was asked ' +
-    'to sing, one row each (columns named in notes.columns). beats: every beat played. pitch_readings: every reading. ' + LONG_PARTS,
+    'summaries. loudness: how loud the singing was, against the app\'s loudness gauge (null for sessions from before 2026-11-05). ' +
+    'earlier_sessions_of_this_song: the song\'s earlier sessions, for progress. notes: every note the singer was asked ' +
+    'to sing, one row each (columns named in notes.columns). beats: every beat played. pitch_readings: every reading, with its ' +
+    'loudness from 2026-11-05. ' + LONG_PARTS,
   how_to_analyse: [
     'Start from findings_by_the_app, then check them against the numbers.',
     'Tell pitch from timing: a note can score low because it was reached late (reached_after_s) or because it was held off the note (cents_off).',
@@ -200,6 +203,7 @@ function sessionParts(o: SessionFileInput, texts: readonly { notes: string; word
     })),
     rounds: ins.rounds.map((x) => ({ round: x.round + 1, score: x.score })),
     notes_of_the_scale: ins.swaras.map((s) => ({ note: noteWords(s.semi, s.oct), bengali: bengali(s.semi, s.oct), times_sung: s.n, average_score: s.score, median_cents_off: s.cents })),
+    loudness: p ? loudnessPart(p) : null,
   };
 }
 
@@ -244,20 +248,67 @@ const notesTable = (p: PitchDetail) => ({
 });
 const beatsTable = (p: PitchDetail) => ({ columns: ['start_s', 'song_beat', 'round', 'seconds_a_beat'], rows: p.beats.map((b) => [r(b[0], 3), b[1] + 1, b[2] + 1, r(b[3], 4)]) });
 const readingsTable = (p: PitchDetail, saHz: number) => ({
-  columns: ['time_s', 'cents_above_sa'],
-  about: 'Every reading, when it was sung, at the pitch sung: a voice an octave below the notes (equipment.octave_sung_against_the_notes −1) reads about 1200 below them. cents_above_sa is null where there was no voice. Times to the hundredth of a second, cents to the whole cent; Hz = sa_hz × 2^(cents/1200).',
-  rows: readingRows(p.readings, p.lag, saHz),
+  columns: p.levels ? ['time_s', 'cents_above_sa', 'level_db', 'peak_db'] : ['time_s', 'cents_above_sa'],
+  about: 'Every reading, when it was sung, at the pitch sung: a voice an octave below the notes (equipment.octave_sung_against_the_notes −1) reads about 1200 below them. cents_above_sa is null where there was no voice. Times to the hundredth of a second, cents to the whole cent; Hz = sa_hz × 2^(cents/1200).' +
+    (p.levels ? ' ' + LEVELS_ABOUT : ' (Kept without its loudness: sessions from before 2026-11-05.)'),
+  rows: readingRows(p.readings, p.lag, saHz, p.levels),
 });
 
+const LEVELS_ABOUT =
+  'level_db: how loud the reading was, the 43 ms or so around it (its RMS), in dB of full scale: 0 is the most the microphone’s ' +
+  'input can carry, ' + GAUGE_MIDDLE + ' the middle of the app’s loudness gauge (a usual level to record a voice at), −120 silence. ' +
+  'peak_db: its loudest sample; 0 (or a hair under) means the voice was cut off there, too loud for the microphone. Both depend on ' +
+  'the microphone, its gain and how far the singer was from it, so compare them within a session, or between sessions with the same setup.';
+
 /** Times to 10 ms and cents to the cent (Rinat, 2026-10-21): the readings are ~21 ms apart and the
- * detector good to a cent or two, and they are most of a file's length. */
-function readingRows(readings: readonly number[], lag: number, saHz: number): (number | null)[][] {
+ * detector good to a cent or two, and they are most of a file's length; levels to a tenth of a
+ * decibel (Rinat, 2026-11-05: "add loudness data when export"). */
+function readingRows(readings: readonly number[], lag: number, saHz: number, levels?: readonly number[]): (number | null)[][] {
   const out: (number | null)[][] = [];
   for (let i = 0; i + 1 < readings.length; i += 2) {
     const hz = readings[i + 1]!;
-    out.push([r(readings[i]! - lag, 2), hz > 0 ? Math.round(centsFromSa(hz, saHz)) : null]);
+    const row: (number | null)[] = [r(readings[i]! - lag, 2), hz > 0 ? Math.round(centsFromSa(hz, saHz)) : null];
+    if (levels) row.push(r(levels[i]!, 1), r(levels[i + 1]!, 1));
+    out.push(row);
   }
   return out;
+}
+
+/** A session's loudness in a few numbers, over the readings with voice: its level's median and
+ * spread, its loudest sample, and how much of the singing was near the gauge's middle, louder,
+ * softer and cut off; null without levels (before 2026-11-05) or voice. */
+export function loudnessPart(p: PitchDetail): Record<string, unknown> | null {
+  const lv = p.levels;
+  if (!lv) return null;
+  const db: number[] = [];
+  let top = -Infinity;
+  let cut = 0;
+  for (let i = 0; i + 1 < p.readings.length; i += 2) {
+    if (!(p.readings[i + 1]! > 0)) continue;
+    db.push(lv[i]!);
+    top = Math.max(top, lv[i + 1]!);
+    if (lv[i + 1]! >= -0.1) cut++;
+  }
+  if (!db.length) return null;
+  db.sort((a, b) => a - b);
+  const q = (x: number) => db[Math.min(db.length - 1, Math.floor(x * db.length))]!;
+  const share = (f: (v: number) => boolean) => r(db.filter(f).length / db.length, 3);
+  const M = GAUGE_MIDDLE;
+  return {
+    about: 'Over the readings with voice, in dB of full scale (pitch_readings.about says how). The app’s loudness gauge reads green from ' +
+      (M - 3) + ' to ' + (M + 3) + ' dB, a little loud to ' + (M + 6) + ', too loud beyond; a little soft to ' + (M - 6) + ', too soft below. Mostly too loud ' +
+      'with some of it cut off: the gain too high or the singer too close to the microphone; mostly too soft: the gain too low or too far from it.',
+    median_level_db: r(q(0.5), 1),
+    level_db_10th_percentile: r(q(0.1), 1),
+    level_db_90th_percentile: r(q(0.9), 1),
+    loudest_peak_db: r(top, 1),
+    share_just_right: share((v) => v >= M - 3 && v <= M + 3),
+    share_louder: share((v) => v > M + 3),
+    share_too_loud: share((v) => v > M + 6),
+    share_softer: share((v) => v < M - 3),
+    share_too_soft: share((v) => v < M - 6),
+    share_cut_off: r(cut / db.length, 3),
+  };
 }
 
 /** Two-space JSON, but each row of a table on one line, so a file stays readable and small. */
@@ -290,8 +341,9 @@ export const PRACTICE_BRIEF = {
     'sessions: every practice session, oldest first, one for each time a song or exercise was practised for 10 seconds or more (count-in ' +
     'excluded): when, how long, which lines (numbered from 1), the rounds, the tempo, and, with the pitch check on, the score, each ' +
     'line\'s score and each note of the scale\'s (notes_of_the_scale: times sung, average score, median cents off). From 20 October 2026 ' +
-    'the newest 1,000 sessions also have detail: the settings, the equipment, every note the singer was asked to sing (notes), every ' +
-    'beat (beats) and every pitch reading (pitch_readings), laid out as in the app\'s file for AI of one session, with the song as ' +
+    'the newest 1,000 sessions also have detail: the settings, the equipment, how loud the singing was (loudness, from 5 November 2026), ' +
+    'every note the singer was asked to sing (notes), every beat (beats) and every pitch reading (pitch_readings, with its loudness from ' +
+    '5 November 2026), laid out as in the app\'s file for AI of one session, with the song as ' +
     'played named by song_as_played. Older sessions have only their summary. songs_as_played: each song as it was played (its ' +
     'notation, Sa, taal and tempo), once for each version the sessions used.',
   how_to_analyse: [
@@ -364,6 +416,7 @@ export function practiceFileParts(log: readonly LogEntry[], sessions: readonly S
             song_as_played: versionOf.get(e.at) ?? null,
             settings: { guide: d.settings.guide, guide_when_looping: d.settings.guideLoop, count_in: d.settings.countIn, speed_up_each_round: d.settings.ramp ? { by: d.settings.rampStep, up_to: d.settings.rampMax } : false, break_between_rounds_s: d.settings.gap ?? 0 },
             equipment: p ? { device_delay_s: r(p.lag, 3), delay_measured: p.measured, any_octave_counts: p.anyOctave, ...(p.anyOctave ? {} : { octave_below_counts: !!p.below }), octave_sung_against_the_notes: p.octave } : null,
+            loudness: p ? loudnessPart(p) : null,
             notes: p ? notesTable(p) : null,
             beats: p ? beatsTable(p) : null,
             pitch_readings: p ? readingsTable(p, d.played.saHz) : null,
@@ -400,7 +453,8 @@ export const DAY_BRIEF = {
     'day: the day in brief. sessions: each session, numbered (session_number) in the order sung, with what the file of one session has before its ' +
     'long tables: session (when, how long, which lines, rounds, tempo, the score), song_as_played (which of songs_as_played it is), ' +
     'settings, equipment (the device\'s delay and octave settings), findings_by_the_app (what the app itself concluded, by fixed ' +
-    'rules: check them, and say where you disagree), lines, rounds and notes_of_the_scale. songs_as_played: each song once, as it was ' +
+    'rules: check them, and say where you disagree), lines, rounds, notes_of_the_scale and loudness (how loud the singing was, ' +
+    'against the app\'s loudness gauge; null before 2026-11-05). songs_as_played: each song once, as it was ' +
     'played: its notation, Sa, taal, tempo, and its lines\' notes and words. earlier_sessions_of_each_song: each song\'s sessions ' +
     'before this day, for progress. notes: for each session (by session_number), every note the singer was asked to sing, one row ' +
     'each (columns named in columns). for_programs: for each session, every beat played (beats) and every pitch reading ' +

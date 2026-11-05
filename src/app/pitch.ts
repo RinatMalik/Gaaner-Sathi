@@ -27,8 +27,9 @@ import { Mic, MicError, micProblemText, type MicReading } from '../audio/mic';
 import type { BeatEntry } from '../audio/transport';
 import type { ParsedSong } from '../core/notation/types';
 import type { PitchDetail } from '../core/practice/session';
-import { GaugeLevel, levelDb, LevelRef, loudZone, micLimit, Overload, widthStep, type LoudZone } from '../core/pitch/loudness';
+import { GAUGE_MIDDLE, GaugeLevel, levelDb, LevelRef, loudZone, micLimit, Overload, widthStep, type LoudZone } from '../core/pitch/loudness';
 import { beatNotes, centsFromSa, eventsByBeat, isGlitch, PitchTracker, SlipFilter, sliding, type ExpectedNote, type LineResult, type NoteResult, type Section } from '../core/pitch/track';
+import { SILENT_DB } from '../core/practice/session';
 import type { ScorePanel } from './fullscore';
 import { centsText, closeness, ragColour, type LinesUI } from './lines';
 import type { Script } from './view';
@@ -123,10 +124,12 @@ export function initPitch(host: PitchHost): PitchUI {
   let slidePrev: number | null = null;
   let lastHz = 0;
   /** This run, for its detail: the beats scheduled ([time, song beat, round, seconds a beat])
-   * and every reading ([t, Hz], a glitch as no voice). */
-  let log: { beats: number[][]; readings: number[] } | null = null;
-  /** How loud: the level the voice has been singing at (the loudness gauge's middle) and how far
-   * its loudest moments stand above its level (for where the microphone cuts off), both medians
+   * and every reading ([t, Hz], a glitch as no voice), with how loud it was ([level, loudest
+   * sample], dB of full scale). */
+  let log: { beats: number[][]; readings: number[]; levels: number[] } | null = null;
+  /** How loud: the level the voice has been singing at (the voice line's thickness is against
+   * it; the loudness gauge's middle is fixed, at −18 dB of full scale) and how far its loudest
+   * moments stand above its level (for where the microphone cuts off), both medians
    * of the last 10 s; its level just now (smoothed over about 70 ms) and the thickness it is
    * drawn at; the gauge's level (steadied over about a third of a second) and zone; when the
    * voice was last heard (AudioContext time); and the microphone overloading. */
@@ -250,7 +253,10 @@ export function initPitch(host: PitchHost): PitchUI {
     recent.push(c);
     if (recent.length > 400) recent = recent.slice(-300);
     tracker?.addReading({ t: c.t, hz: c.hz });
-    if (log && log.readings.length < 120000) log.readings.push(c.t, c.hz);
+    if (log && log.readings.length < 120000) {
+      log.readings.push(c.t, c.hz);
+      log.levels.push(levelDb(c.rms), levelDb(c.peak));
+    }
   }
   const round = (v: number, d: number) => (Number.isFinite(v) ? Math.round(v * 10 ** d) / 10 ** d : null) as number;
 
@@ -327,7 +333,7 @@ export function initPitch(host: PitchHost): PitchUI {
     sched = [];
     drawnT = -Infinity;
     slideNote = null;
-    log = { beats: [], readings: [] };
+    log = { beats: [], readings: [], levels: [] };
     parsedAt = host.parsed();
     byBeat = eventsByBeat(parsedAt);
     slips = new SlipFilter<MicReading>();
@@ -355,19 +361,18 @@ export function initPitch(host: PitchHost): PitchUI {
   };
   const isClipping = (text: string | null) => text === CLIPPING.full || text === CLIPPING.down;
 
-  /** The loudness gauge: the voice's level, steadied, against the level it has been singing at,
-   * while it was heard in the last 0.4 s (between words and notes the needle stays); where the
-   * microphone cuts off; and the overload. */
+  /** The loudness gauge: the voice's level, steadied, against the gauge's middle (−18 dB of full
+   * scale), while it was heard in the last 0.4 s (between words and notes the needle stays); where
+   * the microphone cuts off; and the overload. */
   function showLoud(): void {
     const latest = recent[recent.length - 1]?.t ?? -Infinity;
-    const ref = levelRef.value();
     const g = gaugeLv.value();
     const crest = crestRef.value();
-    const heard = ref != null && g != null && latest - voicedAt < 0.4;
+    const heard = g != null && latest - voicedAt < 0.4;
     host.lines.loud({
-      d: heard ? g - ref : null,
+      d: heard ? g - GAUGE_MIDDLE : null,
       zone: heard ? zone : null,
-      limit: ref != null && crest != null ? micLimit(ref, crest) : null,
+      limit: crest != null ? micLimit(GAUGE_MIDDLE, crest) : null,
       clipping: overload.now(latest) != null,
     });
   }
@@ -391,9 +396,9 @@ export function initPitch(host: PitchHost): PitchUI {
     else if (isClipping(msgEl.textContent)) message('');
   }
 
-  /** How loud a reading is, as the voice is drawn: the voice's thickness for it and the loudness
-   * gauge's level and zone, against the level it has been singing at; how far its loudest sample
-   * stands above its level; and whether the microphone cut it off. */
+  /** How loud a reading is, as the voice is drawn: the voice's thickness for it, against the level
+   * it has been singing at; the loudness gauge's level and zone, against the gauge's middle; how
+   * far its loudest sample stands above its level; and whether the microphone cut it off. */
   function hear(r: MicReading): number | null {
     const db = levelDb(r.rms);
     overload.add(r.t, r.clip, r.hz > 0);
@@ -408,7 +413,7 @@ export function initPitch(host: PitchHost): PitchUI {
     const ref = levelRef.value();
     width = ref == null ? 2 : widthStep(levelNow - ref, width);
     const g = gaugeLv.push(r.t, db);
-    if (ref != null) zone = loudZone(g - ref, zone);
+    zone = loudZone(g - GAUGE_MIDDLE, zone);
     voicedAt = r.t;
     return width;
   }
@@ -479,6 +484,8 @@ export function initPitch(host: PitchHost): PitchUI {
     const r1 = (v: number) => (Number.isFinite(v) ? Math.round(v * 10) / 10 : null);
     const readings: number[] = [];
     for (let i = 0; i + 1 < log.readings.length; i += 2) readings.push(r3(log.readings[i]! - base) ?? 0, r1(log.readings[i + 1]!) ?? 0);
+    // How loud each reading was (Rinat, 2026-11-05: "add loudness data when export"), silence as −120.
+    const levels = log.levels.map((v) => Math.max(SILENT_DB, r1(v) ?? SILENT_DB));
     return {
       lag: r3(tr.lag) ?? 0,
       measured: host.devLag.get() != null,
@@ -491,6 +498,7 @@ export function initPitch(host: PitchHost): PitchUI {
       })),
       lines: tr.lines.map((l) => [l.line, l.pass, Number.isFinite(l.score) ? l.score : null, Math.round(l.sung * 1000) / 1000] as [number, number, number | null, number]),
       readings,
+      ...(levels.length === readings.length ? { levels } : {}),
       beats: log.beats.map((b) => [r3(b[0]! - base)!, b[1]!, b[2]!, b[3]!] as [number, number, number, number]),
     };
   }

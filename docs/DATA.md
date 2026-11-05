@@ -182,7 +182,8 @@ all of these while it plays.
 
 - **What it holds:** your songs and exercises with their ids (so the practice and routines that
   name them still do), the rewaz routines, the practice log, each session's detail (its
-  readings to the millisecond and the hundredth of a hertz) and the settings, but not this
+  readings to the millisecond and the hundredth of a hertz, their levels to a tenth of a
+  decibel) and the settings, but not this
   device's own (`deviceLag`, `pitchLag`, `midi`, `mic`, `lastSong`, `tab`). Takes
   (recordings) are left out: they are large (Rinat chose "no takes"). Its songs are a song
   file's, so an import of songs alone reads them.
@@ -359,7 +360,8 @@ itself was kept, and a second save had it all).
   "pitch": { "lag": 0.1, "measured": true, "anyOctave": true, "octave": 0,
     "notes": [{ "t0": 0, "t1": 0.6, "semi": 0, "oct": 0, "g": 0, "line": 0, "pass": 0, "status": "sung",
       "score": 88, "cents": -6.2, "arrive": 0.21, "wobble": 7.5 }],
-    "lines": [[0, 0, 82, 1]], "readings": [0.031, 262.4, …], "beats": [[0, 0, 0, 0.6]] } }
+    "lines": [[0, 0, 82, 1]], "readings": [0.031, 262.4, …], "levels": [-17.4, -8.9, …],
+    "beats": [[0, 0, 0, 0.6]] } }
 ```
 
 | Field | What |
@@ -367,11 +369,12 @@ itself was kept, and a second save had it all).
 | `at`, `song` | The log entry's `at` (the key) and the song's id |
 | `played` | The song as it was played (it may change later): title, taal, tempo, notation, Sa |
 | `settings` | The guide, the guide when looping, the count-in, the tempo trainer and `gap`, the break between rounds when there was one (the file for AI's `break_between_rounds_s`, 0 for none) |
-| `pitch` | Only with **Check my pitch**: the device's delay and whether it was measured; whether any octave counted, else `below` when the octave below counted too (the guide's bass reed; from 2026-10-28), and the octave sung in; every judged note's result (the scores shown while singing, never worked out again); each line's score per round; every reading as `[t, Hz]` pairs (0: no voice; a glitch is 0); every beat `[t, song beat, round, seconds a beat]` |
+| `pitch` | Only with **Check my pitch**: the device's delay and whether it was measured; whether any octave counted, else `below` when the octave below counted too (the guide's bass reed; from 2026-10-28), and the octave sung in; every judged note's result (the scores shown while singing, never worked out again); each line's score per round; every reading as `[t, Hz]` pairs (0: no voice; a glitch is 0); `levels`, from 2026-11-05, how loud each reading was, in pairs as `readings` are: `[level, loudest sample]`, dB of full scale to a tenth (the level the RMS of the 43 ms or so around it; 0 the most the microphone's input can carry; −120 silence), left out when it does not match the readings (Rinat, 2026-11-05: "add loudness data when export"); every beat `[t, song beat, round, seconds a beat]` |
 
 Times are seconds from the first beat after the count-in. A note at `t0` is heard at `t0`; a
-reading at `t` was sung at `t − lag`. Readings are stored as 32-bit floats: a session with the
-pitch check is about half a kilobyte a second of singing. The newest 1,000 sessions' detail is
+reading at `t` was sung at `t − lag`. Readings and levels are stored as 32-bit floats: a session
+with the pitch check is about three quarters of a kilobyte a second of singing (half, before
+the levels). The newest 1,000 sessions' detail is
 kept; an older one's goes, and its summary stays in the log. Details are checked when read
 (`cleanSession`).
 
@@ -396,10 +399,11 @@ kept; an older one's goes, and its summary stays in the log. Details are checked
 | `settings`, `equipment` | As played; the device's delay, measured or not, any octave; when not, `octave_below_counts` (the guide's bass reed; from 2026-10-28); octave sung |
 | `findings_by_the_app` | The headline, what went well, what to work on, what to bear in mind, and the numbers behind them |
 | `lines`, `rounds`, `notes_of_the_scale` | Summaries (lines and rounds from 1) |
+| `loudness` | From 2026-11-05 (null before, or with no voice): over the readings with voice, the level's median, 10th and 90th percentiles and the loudest sample, dB of full scale; the shares just right (within 3 dB of the gauge's middle, −18), louder, too loud (over 6 dB), softer, too soft, and cut off (a sample at −0.1 dB or more); `about` says what each means |
 | `earlier_sessions_of_this_song` | Each earlier log entry of the song: when, seconds, lines, rounds, tempo, score |
 | `notes` | `{ columns, rows }`: each judged note: line, round, song beat, note, Bengali, octave, cents above Sa, start, end, status, score, cents off, reached after, wobble |
 | `beats` | `{ columns, rows }`: start, song beat, round, seconds a beat |
-| `pitch_readings` | `{ columns: [time_s, cents_above_sa], rows }`: when sung (the delay taken off), at the pitch sung, to 10 ms and the whole cent (since 2026-10-21; before, 1 ms and a tenth of a cent); null with no voice |
+| `pitch_readings` | `{ columns: [time_s, cents_above_sa], rows }`: when sung (the delay taken off), at the pitch sung, to 10 ms and the whole cent (since 2026-10-21; before, 1 ms and a tenth of a cent); null with no voice. From 2026-11-05 also `level_db` and `peak_db` (the session's `levels`, to a tenth of a decibel); `about` says when a session was kept without them |
 
 Long tables have one row to a line, and come last (since 2026-10-21; `earlier_sessions_of_this_song`
 was after them). Rinat asked whether a local LLM would cope with several such files: the readings

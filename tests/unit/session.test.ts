@@ -98,6 +98,16 @@ describe('a session’s detail', () => {
     expect(d.pitch!.beats).toEqual([[0, 0, 0, 1]]);
     expect(cleanSession({ at: 5, song: 'a' })!.pitch).toBeUndefined();
   });
+
+  it('keeps each reading’s loudness when it matches the readings, from a typed array too (Rinat, 2026-11-05)', () => {
+    const at = (levels: unknown) => cleanSession({ at: 5, song: 'a', played: { title: 'T' }, pitch: { readings: [1, 220, 1.02, 0], levels } })!.pitch!;
+    expect(at([-18.3, -6.1, -120, -120]).levels).toEqual([-18.3, -6.1, -120, -120]);
+    expect(at(Float32Array.from([-18.5, -6.5, -120, -120])).levels).toEqual([-18.5, -6.5, -120, -120]);
+    // Not matching the readings, damaged or absent (sessions from before): left out.
+    expect(at([-18.3, -6.1])).not.toHaveProperty('levels');
+    expect(at([-18.3, 'x', -120, -120])).not.toHaveProperty('levels');
+    expect(at(undefined)).not.toHaveProperty('levels');
+  });
 });
 
 describe('what a session shows', () => {
@@ -208,6 +218,59 @@ describe('the file for AI', () => {
     const voiced = f.pitch_readings.rows.filter((r: (number | null)[]) => r[1] != null);
     expect(voiced.every(([t, c]: number[]) => Number.isInteger(c) && Math.abs(t * 100 - Math.round(t * 100)) < 1e-6)).toBe(true);
     expect(AI_BRIEF.the_parts_of_this_file).toContain('for checking with a program');
+  });
+
+  it('says how loud the singing was, and each reading’s loudness (Rinat, 2026-11-05: “add loudness data when export”)', () => {
+    const d = sing();
+    const rd = d.pitch!.readings;
+    const n = rd.filter((v, i) => i % 2 && v > 0).length;
+    const half = Math.floor(n / 2);
+    // The first half of the singing at about −18 dB of full scale, the rest at −10 (too loud), the
+    // loudest samples 9 dB above; one of them cut off at full scale; silence −120.
+    let v = 0;
+    const levels: number[] = [];
+    for (let i = 0; i < rd.length; i += 2) {
+      if (!(rd[i + 1]! > 0)) { levels.push(-120, -120); continue; }
+      const lv = v < half ? -18.04 : -10;
+      levels.push(lv, v === n - 1 ? 0 : lv + 9);
+      v++;
+    }
+    d.pitch!.levels = levels;
+    const f = aiFile(input(d)) as Record<string, any>;
+    expect(f.pitch_readings.columns).toEqual(['time_s', 'cents_above_sa', 'level_db', 'peak_db']);
+    expect(f.pitch_readings.about).toContain('level_db: how loud the reading was');
+    expect(f.pitch_readings.rows.find((r: (number | null)[]) => r[1] != null).slice(2)).toEqual([-18, -9]);
+    expect(f.pitch_readings.rows[f.pitch_readings.rows.length - 1].slice(1)).toEqual([null, -120, -120]);
+    expect(f.pitch_readings.rows.every((r: unknown[]) => r.length === 4)).toBe(true);
+    // A summary, with the other summaries, before the earlier sessions and the long tables.
+    const keys = Object.keys(f);
+    expect(keys.indexOf('loudness')).toBe(keys.indexOf('notes_of_the_scale') + 1);
+    expect(keys.indexOf('earlier_sessions_of_this_song')).toBe(keys.indexOf('loudness') + 1);
+    expect(f.loudness).toMatchObject({
+      level_db_10th_percentile: -18, level_db_90th_percentile: -10, loudest_peak_db: 0,
+      share_just_right: Math.round((half / n) * 1000) / 1000,
+      share_louder: Math.round(((n - half) / n) * 1000) / 1000,
+      share_too_loud: Math.round(((n - half) / n) * 1000) / 1000,
+      share_softer: 0, share_too_soft: 0,
+      share_cut_off: Math.round((1 / n) * 1000) / 1000,
+    });
+    expect(f.loudness.about).toContain('green from -21 to -15 dB');
+    expect(AI_BRIEF.the_parts_of_this_file).toContain('loudness: how loud the singing was');
+    // The day's file has it in each session, as the file of one session does.
+    const day = JSON.parse(dayFileParts([input(d)], '2026-10-20', T0).join(''));
+    expect(day.sessions[0].loudness).toEqual(JSON.parse(JSON.stringify(f.loudness)));
+    expect(day.for_programs[0].pitch_readings.columns).toHaveLength(4);
+    // And the whole practice file, in each session's detail.
+    const all = JSON.parse(practiceFileParts([entry()], [d], '2026-10-20', T0).join(''));
+    expect(all.sessions[0].detail.loudness).toEqual(JSON.parse(JSON.stringify(f.loudness)));
+  });
+
+  it('says a session from before 2026-11-05 was kept without its loudness', () => {
+    const f = aiFile(input(sing())) as Record<string, any>;
+    expect(f.loudness).toBeNull();
+    expect(f.pitch_readings.columns).toEqual(['time_s', 'cents_above_sa']);
+    expect(f.pitch_readings.about).toContain('Kept without its loudness: sessions from before 2026-11-05.');
+    expect(f.pitch_readings.rows.every((r: unknown[]) => r.length === 2)).toBe(true);
   });
 
   it('still says what the log knows for a session without detail', () => {

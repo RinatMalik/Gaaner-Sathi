@@ -21,6 +21,7 @@ historical interest.
 
 | Date | Decision | Authority / evidence | Consequence |
 |---|---|---|---|
+| 2026-11-04 | **The loudness gauge in place of loudness by note** (Rinat's pick, design 2 of eight, green where it was gold, the microphone's limit shown on it): while the pitch check is on, at the end of the line being sung and in full screen's right panel, an upright scale, louder above its middle; its middle the level the voice has been singing at (the median of the last 10 s), 12 dB to each end; within 3 dB green, "Just right"; 3–6 dB "A little loud" (light red) or "A little soft" (light blue); beyond, "Too loud" (red) or "Too soft" (blue); each zone held a decibel past its edge; a needle steadied over 0.35 s, faint where it was when no voice has been heard for 0.4 s; a red line, hatched above, where the voice's peaks reach full scale (its peaks over its level, the median of the last 10 s), shown within 12 dB above the middle. In full screen also "louder", "softer", "mic limit" and the zone in words. Nothing is set up: the middle follows the voice. Replaces the red end on a note's bar in the overload row above (the mic limit line instead). | Rinat, chat 2026-11-04 ("go with 2 but use green instead of gold. you can also show mic limit in number 2", of the eight designs on the Claude Design canvas "Loudness panel designs"); the reach, the zones' edges and words, blue for soft, the steadying and how the limit is measured are Claude's | Its two rows of the same day (loudness by note; the panel to be redesigned) moved to HISTORY.md. loudness.ts `gaugeY`, `loudZone`, `GaugeLevel`, `micLimit`; lines.ts `loudHTML`, `loud`; pitch.ts `showLoud`; ENGINE.md → The loudness gauge. |
 | 2026-11-04 | **The loudness panel is to be redesigned,** from eight designs on a Claude Design canvas, Rinat's needle dial among them (its middle the level Rinat has been singing at); round fifty-one's panel stays until Rinat picks. The voice line's widths stay as built for now. | Rinat, chat 2026-11-04 ("don't like the loudness panel one bit …"; "The thickness of the voice line also feel less intuitive but maybe i need to get used to it so leave it for now") | PH2-53. |
 | 2026-11-04 | **Loudness by note in place of the pitch gauge:** the gauge is taken out, at the end of the line and from full screen's right panel. In its place, while the pitch check is on, a row for each note of the line being sung, high to low, its bar as long as the voice was loud on that note against the line's own level (each note's median level; the line's, the mean of its notes, each once), filling as it is sung, the note sounding highlighted; in full screen, under the rows, the line's rise for each octave up in words (within 4 dB "Even", else "Louder going up" or "Softer going up") and as a number ("+8 dB an octave"), and the line before's or, when one line loops, the round before's. Nothing is set up: each line is measured against itself, so the singer may move about between lines, not within one. | Rinat, chat 2026-11-04 ("Yes, build it", to Claude's proposal after "The pitch guage on the right doesn't really help me in any meaningful way. It moves too quickly for me to take that as feedback", "I automatically take it as higher pitches comes with louder volume" and "does it mean i have a setup overhead … i may have to accept not to do that and that's fine"); the measures, thresholds and words are Claude's | Open question 6 answered and removed; the gauge's two decision rows moved to HISTORY.md; ENGINE.md → Loudness by note. |
 | 2026-11-04 | **A warning when the microphone overloads:** "Too loud for the microphone: turn its input gain down a little." under the lines (and in full screen's loudness panel) for 3 s after a block of samples was cut off at the top, and a red end on the bar of the note sung then. Cut off: a sample at 0.99 of full scale or more, or, from a quarter of full scale, six or more in a row at the block's loudest (a volume after the cut). | Claude's proposal, in the plan Rinat approved 2026-11-04; Rinat's takes of 25–27 Oct reached full scale in 0.5–4 % of the voice's windows | `blockClipped` in loudness.ts, on each block in mic.ts. Checked in headless Edge only with blocks scaled in the page (its fake microphone limits). |
@@ -54,6 +55,65 @@ historical interest.
 - 2026-10-09: `handover/`, merged into the framework (the original pack is at `e0ea8d8`).
 
 ## Work log, older entries
+
+### 2026-11-04 GMT — Claude (Opus 5.5) — PH2-53 the loudness gauge in place of loudness by note
+
+- **Goal:** Rinat, of the eight designs on the Claude Design canvas "Loudness panel designs":
+  "go with 2 but use green instead of gold. you can also show mic limit in number 2" (design 2,
+  the upright needle; Rinat had first asked for a gauge like the pitch gauge, "have the centre
+  as what ideal loudness should be. if i go higher or lower, then the needle moves").
+- **Inspected:** the canvas's design 2 (`.tmp/design52/`, ignored); round fifty-one's
+  lines.ts, pitch.ts and loudness.ts (what loudness by note needed and what the gauge does
+  not); mic.ts (each reading's samples, for its loudest).
+- **Changed:** `feat(practice): an upright loudness gauge in place of loudness by note, green
+  in the middle, the microphone's limit marked` — src/core/pitch/loudness.ts (`GAUGE_REACH`,
+  `gaugeY`, `LoudZone`, `ZONES`, `ZONE_EDGES`, `ZONE_WORD`, `loudZone`, `GaugeLevel`,
+  `micLimit` in place of `NoteLevel`, `LineLevels`, `lineLevel`, `risePerOctave`, `riseWord`,
+  `riseText`; `Overload.now` null with no reading yet, so Stop no longer leaves the gauge
+  saying the microphone overloads); src/audio/mic.ts (`peak`, `peakOf`); src/app/pitch.ts
+  (`hear`, `showLoud`, `crestRef`, `gaugeLv`, `zone`, `voicedAt`); src/app/lines.ts
+  (`loudHTML`, `LoudState`, `loud`, `loudClear`; `loudRowsHTML`, `loudBar` gone);
+  src/app/styles.css (`.ldm` as an upright scale: `.ldg`, `.ldz`, `.ldmid`, `.ldlim`,
+  `.ldnd`, `.ldt`, `.ldw`, `.ldc`; the column 60 px, 24 on a phone; full screen's sizes);
+  index.html (`#fullLoud`'s name and idle line); tests/unit/loudness.test.ts, lines.test.ts,
+  full.test.ts; docs/ENGINE.md (The loudness gauge); docs/ROADMAP.md (row 53);
+  docs/HISTORY.md (two decisions, the PH2-51 entry); this file. Not changed: the canvas (its
+  design 2 is still gold).
+- **Tests / verification:** `npx tsc --noEmit -p .` exit 0; `npx vitest run` → 45 files, 520
+  passed; `npm run build` → 399.73 kB JS, 92.07 kB CSS; `bash reference/tests/run-all.sh` →
+  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge
+  on `npm run dev` (scratchpad `cdp53.mjs`, `cdp53b.mjs`, `cdp53c.mjs`; round fifty-one's fake
+  voice `loud51.wav`: 16 s rising from −34 to −10 dB of full scale, 5 s cut off, 16 s falling,
+  3 s at −22; each block reaching 0.97 scaled by 1.03 in the page; আরোহ-অবরোহ line 1 looping at
+  tempo 96, Sa C♯4, the pitch check on). Practice at 1280 × 800 by day: faint in the middle
+  until the voice is heard; rising, "Just right" from 5.3 s, the needle 50 % → 34 %, "A little
+  loud" from 11.5 s, "Too loud" from 15.3 s (21 %); cut off, the needle at 3.5–5 %, the mic
+  limit from 1 % (16.8 s) moving down with the needle, the warning under the lines from 16.3 s
+  to 24.1 s; falling, "A little soft" from 22.3 s, "Too soft" from 24.1 s, steady at 79 % as
+  the middle followed the voice down, the mic limit rising to 1.5 % and off the scale (30.7 s);
+  the column 60 × 215 px, its scale 14 × 191, the line 216 tall, the zones red, light red,
+  green `rgb(46, 125, 50)`, light blue, blue; the page 1265 px wide. Full screen at 1280 × 800:
+  faint with how to turn the pitch check on while it is off; the panel 141 × 575, the scale
+  28 × 409, the needle 52 × 6, the word 19.2 px, "mic limit" beside its line inside the panel
+  (1138–1160 of 1115–1256 px), "Too loud for the microphone: turn down its Gain knob" under
+  the word while overloaded; every zone, the limit and the overload seen, by day and by night.
+  At 3840 × 2160: zoom 2.4, score 13.8 %, lines 67.5 %, loudness 11.3 % of the width, the page
+  3840 × 2160. At 360 × 780 by night: the column 24 px, the scale 8, the page 345 px wide (the
+  scrollbar); full screen keeps it at the line's end (30 px), its panel hidden, the page 360.
+  Paused, going on and stopped in full screen: the warning gone on pause and on Stop (until
+  this fix, Stop left the panel's line showing), back on going on within 3 s of the last cut;
+  no console errors.
+- **Decisions made:** a 2026-11-04 row (the loudness gauge); the rows "Loudness by note in
+  place of the pitch gauge" and "The loudness panel is to be redesigned" moved to HISTORY.md.
+- **Risks or disagreements:** the middle follows the voice over 10 s, so a long crescendo
+  reads "A little loud" and then "Just right" again as the middle catches up, and a long soft
+  stretch drifts back to the middle; the zones (3 and 6 dB) and the needle's 0.35 s are
+  guesses until Rinat sings with them. The mic limit is from the voice's peaks against its
+  level and assumes the interface cuts off at full scale; when the computer's level turns the
+  sound down after the cut, the line stands too high (the warning still says so). Not heard or
+  seen on a real voice; the fake microphone is a steady tone.
+- **Next handoff:** Rinat sings with the gauge and answers Open question 6 (Next single
+  action); Claude adjusts.
 
 ### 2026-11-04 GMT — Claude (Opus 5.5) — PH2-52 the overload warning; PH2-53 loudness panel designs
 

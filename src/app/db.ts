@@ -109,7 +109,7 @@ export class SessionStore {
   /** Keep a session's detail (the readings as 32-bit floats, half the size), and let the oldest
    * go past KEEP_SESSIONS. */
   async add(d: SessionDetail): Promise<void> {
-    const stored = d.pitch ? { ...d, pitch: { ...d.pitch, readings: Float32Array.from(d.pitch.readings) } } : d;
+    const stored = d.pitch ? { ...d, pitch: { ...d.pitch, readings: Float32Array.from(d.pitch.readings), ...(d.pitch.levels ? { levels: Float32Array.from(d.pitch.levels) } : {}) } } : d;
     await inTx(this.db, ['sessions'], 'readwrite', (tx) => {
       const os = tx.objectStore('sessions');
       os.put(stored);

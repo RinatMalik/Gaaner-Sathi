@@ -13,15 +13,16 @@
  * for each beat (a square for four beats, a triangle for three, a lens for two), the edges
  * drawn on through each beat so a shape closes as its last beat ends, the corner of the beat
  * sounding lit. While "Check my pitch" is on, a loudness gauge at the end of the line being sung
- * shows how loud the voice is against how loud it has been singing (Rinat, 2026-11-04; a pitch
- * gauge from 2026-10-19, loudness by note in between), and the voice is drawn thicker when
- * louder. Any line tapped opens to the size of the line being sung, to look back at how it was sung, each beat's cents under its strip
+ * shows how loud the voice is against a usual level to record a voice at (Rinat, 2026-11-04,
+ * the middle fixed 2026-11-05; a pitch gauge from 2026-10-19, loudness by note in between), its
+ * column tinted red when too loud and blue when too soft, and the voice is drawn thicker when
+ * louder than it has been singing. Any line tapped opens to the size of the line being sung, to look back at how it was sung, each beat's cents under its strip
  * (Rinat, 2026-10-19). The HTML builders are pure and tested in Node; initLines wires them to
  * the page.
  */
 import { asTaals, placeIn, type Taals } from '../core/notation/taalmap';
 import type { NotesLine, ParsedSong } from '../core/notation/types';
-import { GAUGE_REACH, gaugeY, ZONE_EDGES, ZONE_WORD, type LoudZone } from '../core/pitch/loudness';
+import { GAUGE_REACH, gaugeY, loudTint, ZONE_EDGES, ZONE_WORD, type LoudZone } from '../core/pitch/loudness';
 import { eventsByBeat, foldOctave } from '../core/pitch/track';
 import type { TaalInfo } from '../core/taal/taals';
 import { beatNoteHTML, esc, type Script } from './view';
@@ -240,15 +241,16 @@ export function centsText(cents: number): string {
 /** The loudness gauge (Rinat's pick, 2026-11-04: "go with 2 but use green instead of gold. you
  * can also show mic limit in number 2"; in place of loudness by note, "complicated and
  * unintuitive"), at the end of the line being sung while the pitch check is on, and in full
- * screen's panel: an upright scale, louder above its middle, the middle the level the voice has
- * been singing at; green within 3 dB of it, light red or blue to 6, red or blue beyond; a needle
- * at the voice's level, steadied; a red line where the microphone cuts the voice off, when that
- * is within reach; in full screen "louder" above, "softer" below and the zone in words. */
+ * screen's panel: an upright scale, louder above its middle, the middle a usual level to record a
+ * voice at (`GAUGE_MIDDLE`, fixed from 2026-11-05; before, the level the voice had been singing
+ * at); green within 3 dB of it, light red or blue to 6, red or blue beyond; a needle at the
+ * voice's level, steadied; a red line where the microphone cuts the voice off, when that is
+ * within reach; in full screen "louder" above, "softer" below and the zone in words. */
 export function loudHTML(): string {
   const edges = [GAUGE_REACH, ...[...ZONE_EDGES].reverse(), -GAUGE_REACH];
   const cls = ['l2', 'l1', 'ok', 's1', 's2'];
   const bands = cls.map((c, i) => '<span class="ldz ' + c + '" style="top:' + gaugeY(edges[i]!) + '%;height:' + (gaugeY(edges[i + 1]!) - gaugeY(edges[i]!)) + '%"></span>').join('');
-  return '<div class="ldm idle" role="img" aria-label="Loudness gauge: how loud you are singing against how loud you have been singing; louder above the middle, softer below; the red line is where the microphone cuts off">' +
+  return '<div class="ldm idle" role="img" aria-label="Loudness gauge: how loud the microphone hears you, against a usual level to record a voice at; louder above the middle, softer below; the red line is where the microphone cuts off">' +
     '<span class="ldt">louder</span>' +
     '<span class="ldg">' + bands + '<span class="ldmid"></span><span class="ldlim"><b>mic limit</b></span><span class="ldnd"></span></span>' +
     '<span class="ldt">softer</span>' +
@@ -256,8 +258,8 @@ export function loudHTML(): string {
     '<span class="ldc">Too loud for the microphone: turn down its Gain knob</span></div>';
 }
 
-/** What the loudness gauge shows (pitch.ts): the voice's level, steadied, dB against the level it
- * has been singing at (null: no voice just now), its zone, where the microphone cuts off on the
+/** What the loudness gauge shows (pitch.ts): the voice's level, steadied, dB against the gauge's
+ * middle (`GAUGE_MIDDLE`; null: no voice just now), its zone, where the microphone cuts off on the
  * same scale (null: out of reach above, or not known yet), and whether it has just overloaded. */
 export interface LoudState {
   d: number | null;
@@ -375,6 +377,20 @@ export function initLines(host: LinesHost): LinesUI {
    * page). */
   let loudShown = false;
   let ldNow = '';
+  /** Full screen's loudness panel, tinted with the gauge's own column. */
+  const ldPanel = document.querySelector<HTMLElement>('#fullLoud');
+  /** The gauge's column on Practice and full screen's panel tinted red when loud and blue when
+   * soft, the more the further (Rinat, 2026-11-05: "progressively red to bright red"), from about
+   * a fifth to 85 % of the colour; the panel's words white once the tint is strong. */
+  function tint(t: { hot: boolean; k: number } | null): void {
+    for (const el of [ld, ldPanel]) {
+      if (!el) continue;
+      el.classList.toggle('ldwarm', !!t && t.hot);
+      el.classList.toggle('ldcool', !!t && !t.hot);
+      el.classList.toggle('ldstrong', !!t && t.k >= 0.55);
+      if (t) el.style.setProperty('--tint', Math.round(15 + 70 * t.k) + '%');
+    }
+  }
 
   function build(): void {
     dirty = false;
@@ -822,12 +838,15 @@ export function initLines(host: LinesHost): LinesUI {
     ld.classList.add('idle');
     ldWord.textContent = '';
     ldNow = '';
+    tint(null);
   }
 
   function loud(s: LoudState): void {
     const y = s.d == null ? null : Math.round(gaugeY(s.d) * 2) / 2;
     const lim = s.limit == null ? null : Math.round(gaugeY(s.limit) * 2) / 2;
-    const key = y + '|' + s.zone + '|' + lim + '|' + s.clipping;
+    const t0 = s.d != null && s.zone ? loudTint(s.d, s.zone) : null;
+    const t = t0 && { hot: t0.hot, k: Math.round(t0.k * 20) / 20 };
+    const key = y + '|' + s.zone + '|' + lim + '|' + s.clipping + '|' + (t ? (t.hot ? '+' : '-') + t.k : '');
     if (key === ldNow) return;
     ldNow = key;
     // With no voice just now the needle stays where it was, faint.
@@ -839,6 +858,7 @@ export function initLines(host: LinesHost): LinesUI {
     if (lim != null) ld.style.setProperty('--lim', lim + '%');
     ld.classList.toggle('haslim', lim != null);
     ld.classList.toggle('clipping', s.clipping);
+    tint(t);
   }
 
   /** A line sung: its score in its number box, tinted by it. */

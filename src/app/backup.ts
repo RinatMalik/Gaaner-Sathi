@@ -35,7 +35,8 @@ export interface Backup {
 const r3 = (x: number) => Math.round(x * 1000) / 1000;
 const r2 = (x: number) => Math.round(x * 100) / 100;
 
-/** A session as written: its readings to the millisecond and the hundredth of a hertz. */
+/** A session as written: its readings to the millisecond and the hundredth of a hertz, their
+ * levels to a tenth of a decibel. */
 function sessionForFile(d: SessionDetail): SessionDetail {
   if (!d.pitch) return d;
   const rd = d.pitch.readings;
@@ -44,7 +45,8 @@ function sessionForFile(d: SessionDetail): SessionDetail {
     readings[i] = r3(rd[i]!);
     readings[i + 1] = r2(rd[i + 1]!);
   }
-  return { ...d, pitch: { ...d.pitch, readings } };
+  const lv = d.pitch.levels;
+  return { ...d, pitch: { ...d.pitch, readings, ...(lv ? { levels: Array.from(lv, (x) => Math.round(x * 10) / 10) } : {}) } };
 }
 
 const singerPrefs = (p: Record<string, unknown>): Record<string, unknown> =>

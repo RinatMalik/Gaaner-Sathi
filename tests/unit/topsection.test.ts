@@ -146,6 +146,15 @@ describe('Back up or export → Everything', () => {
     for (const k of ['deviceLag', 'midi', 'lastSong', 'tab']) expect(b.prefs).not.toHaveProperty(k);
   });
 
+  it('keeps each reading’s loudness to a tenth of a decibel, from the 32-bit floats kept on the device (Rinat, 2026-11-05)', () => {
+    const d = detail(1000, 'song-a');
+    const kept = { ...d, pitch: { ...d.pitch!, levels: Float32Array.from([-18.3, -6.1, -120, -120]) as unknown as number[] } };
+    const b = readBackup(fileOf({ ...BACKUP, sessions: [kept] }))!;
+    expect(b.sessions[0]!.pitch!.levels).toEqual([-18.3, -6.1, -120, -120]);
+    // A session from before has none.
+    expect(readBackup(fileOf(BACKUP))!.sessions[0]!.pitch).not.toHaveProperty('levels');
+  });
+
   it('is told from a file of songs, which an import of songs still reads from it', () => {
     expect(readBackup('{"format":"gaaner-sathi","version":1,"songs":[]}')).toBeNull();
     expect(readBackup('not json')).toBeNull();
