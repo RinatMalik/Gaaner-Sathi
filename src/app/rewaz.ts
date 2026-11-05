@@ -356,7 +356,9 @@ export function initRewaz(host: RewazHost): Rewaz {
     if (!run) return;
     showCard(i, 0);
     run.i = i;
-    showBar(itemText(i, run.r.items[i]!.rounds > 1 ? ' · round 1 of ' + run.r.items[i]!.rounds : ''));
+    // The round even when there is only one (Rinat, 2026-11-05: "round 1 of 1 - that way i can tell
+    // that there is only one round of this during rewaz").
+    showBar(itemText(i, roundText(0, run.r.items[i]!.rounds)));
     showLeft(i, null);
     if (!host.play(run.r.items[i]!, roundGapOf(run.r.items[i]!))) next(i + 1, 0);
   }
@@ -815,7 +817,7 @@ export function initRewaz(host: RewazHost): Rewaz {
     beat(pass) {
       if (!run || pass < 0) return;
       const it = run.r.items[run.i];
-      if (it && it.rounds > 1) showBar(itemText(run.i, roundText(pass, it.rounds)));
+      if (it) showBar(itemText(run.i, roundText(pass, it.rounds)));
     },
     rest(pass, left) {
       const it = run?.r.items[run.i];

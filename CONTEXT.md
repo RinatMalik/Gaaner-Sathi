@@ -3,7 +3,7 @@
 > The project's shared state, for Rinat, Claude, Codex and any other LLM: what the app is
 > for, how we work, where things stand, the decisions in force and the newest work log.
 >
-> **Last updated:** 2026-11-04 (GMT) by Claude (Opus 5.5)
+> **Last updated:** 2026-11-05 (GMT) by Claude (Opus 5.5)
 
 ## How to use this file
 
@@ -107,7 +107,9 @@ wins, except a later explicit decision by Rinat, which always wins.
   (PH2-52: that warning only when the singing is cut off again and again, naming the Gain knob
   on the interface, not the computer's input level) and fifty-three (PH2-53: Rinat's pick of
   eight designs, an upright loudness gauge in place of loudness by note, green in its middle,
-  the microphone's limit marked on it) are built and live.
+  the microphone's limit marked on it) and fifty-four (PH2-54: the screen kept on through a
+  rewaz and whatever plays, "round 1 of 1", Sa greyed while a song plays, the microphone heard
+  named under the lines and another picked) are built and live.
   Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
 - **Review of 25–27 Oct (Claude, 2026-10-28, in chat):** the three day files and 52 takes in
@@ -124,7 +126,17 @@ wins, except a later explicit decision by Rinat, which always wins.
   61-key keyboard); the songs and exercises are at Sa C♯4, and the default 3-reed guide is heard
   at C♯3 (its bass reed: the app's detector reads it at 138.5 Hz), so Rinat matches the guide.
   "Octave must match" judged against C♯4; from round forty-two the bass reed's octave counts too.
-- **Next single action:** Rinat sings with round fifty-three's loudness gauge, the pitch check
+- **Next single action:** Rinat, with round fifty-four: turns on Check my pitch, plays, and
+  reads the Microphone line under the lines (it should say "Hearing Microphone (2- Scarlett 2i2
+  USB)."; if it names another, picks the Scarlett there); while singing as loud as in a song,
+  watches the ring round GAIN 01 on the Scarlett (red: the Scarlett itself overloads, even at
+  its lowest gain; green while the app says cut off: something after it); records one take at
+  the lowest gain with Record me and puts its Recording.wav in `feedback/` for Claude to
+  measure; says which microphone it is (a Rode condenser: which model) and how far from the
+  mouth; keeps Windows' level for the Scarlett at 54 % (0 dB; above it Windows boosts, up to
+  +30 dB); does a rewaz in full screen without touching anything, to see the screen stay on
+  (the display goes off after 5 minutes otherwise). With it, Rinat sings with round fifty-three's
+  loudness gauge, the pitch check
   on, on Practice and in full screen, and says whether it can be read at a glance while
   singing; whether the needle is too quick or too slow; whether the green middle (3 dB either
   way) is too wide or too narrow; and whether the red "mic limit" line sits about where the
@@ -500,6 +512,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
 | PH2-45 | Claude | Review | The time left, a song's progress where it is practised, the library first, the notes in ink (Rinat, 2026-10-31): while playing, the time left beside the title, to the second, the rounds, breaks and count-ins to come included, "in this round" for a loop with no end, held while paused, gone on Stop (`secondsLeft` in transport.ts; `leftAt`, `showLeft` in app.ts; `leftText` in view.ts; `.songleft`); the whole rewaz's in its bar, "0:14 left in all", the item's own and the items after it with the breaks between them, counted through the break before an item (`rewazLeft`, `showLeft` and `Rewaz.left` in rewaz.ts; `routineSeconds` from an item; `#rwLeft`); My progress under My takes for the open song: tiles, where it stands, going well and to work on, the score each session, the latest five sessions with Report and For AI, and its Report, For AI and See all in Progress (`songProgressHTML`, `showSong` in progress.ts; `songHeadline` from songreport.ts; `renderSongProgress` in app.ts; `#progBox`); the Music library's tab before Practice (index.html, `TABS`); the Practice sheet's notes in `--ink` (styles.css `.pnt`) | Tests: 43 files, 490 passed (10 new in timeleft.test.ts); headless Edge on `npm run dev` at 1280 px day and 360 px night: the title 0:15 → 0:10 a second a second, held at 0:10 paused, hidden on Stop, "0:13 left in this round" looping; a two-item rewaz 0:14 → 0:00 left in all through rounds and a 3 s break, hidden at "Rewaz done"; My progress with 7 seeded sessions; See all in Progress opening Pitch for the song; page 360 px wide; no console errors (Work log 2026-10-31, PH2-45) | Waiting for Rinat to play, run a rewaz and open My progress |
+| PH2-54 | Claude | Review | The screen kept on, round 1 of 1, Sa while playing, the microphone named (Rinat, 2026-11-05: in a rewaz in full screen "the screen turned off. the app should stop the screen being turned off and also prevent pc from falling asleep when playing anything whether fullscreen or not"; "when there is only one round, i would still like to see round 1 of 1"; Sa changed while playing, "the voice line was still expecting me sound like the previous scale … just have the scale change drop down greyed out"; the Scarlett's gain "set to lowest now, absolute lowest. the mic still hears me"): the screen wake lock wanted while a song or a take plays, through a rewaz and its breaks and all the while full screen is on (`wantAwake`), asked for or let go after each change and every 5 s (`keepAwake`, `wake`, `unwake`); "round 1 of 1" in the rewaz bar and full screen's title line (`roundText`, `whereText`); the Sa pickers greyed while a song plays or is paused ("Stop to change Sa"), a Sa set from the Voice page stopping the song first (`setSa`); under the lines, while the pitch check is on, which microphone is heard and another picked (`chooseMic`, `listMics`, `onMicHeard`, `openStream`; micpick.ts; prefs `mic`, not backed up) | Tests: 46 files, 522 passed (micpick.test.ts new; full.test.ts and picker.test.ts for one round); headless Edge on `npm run dev`: a real wake lock took Windows' execution state from 0x0 to 0x3 and back; a two-item routine in full screen at 1280 × 800 held the lock from the first beat, through the 6 s break and after "Rewaz done", asked for it again 0.8 s after the browser let go, let go on leaving full screen; not in full screen, held while playing, let go on pause and Stop; "round 1 of 1" and "Line 1 of 2 · Round 1 of 1"; Sa disabled while playing and paused; a fake microphone picked and heard from the next play, kept after a reload; the practice settings still one line; 360 × 780 by night 345 px wide; no console errors (Work log 2026-11-05, PH2-54) | Waiting for Rinat: the Microphone line naming the Scarlett, GAIN 01's ring while singing, a take at the lowest gain to measure, the screen staying on through a rewaz |
 | PH2-53 | Claude | Review | The loudness gauge in place of loudness by note (Rinat, 2026-11-04: "don't like the loudness panel one bit … let's try the same design as the pitch gauge - have the centre as what ideal loudness should be"; of eight designs on the Claude Design canvas "Loudness panel designs", "go with 2 but use green instead of gold. you can also show mic limit in number 2"): while the pitch check is on, at the end of the line being sung (60 px; 24 on a phone) and in full screen's right panel (`#fullLoud`), an upright scale, louder above its middle, its middle the level the voice has been singing at (`LevelRef`, the last 10 s), 12 dB to each end (`GAUGE_REACH`, `gaugeY`); five zones, green within 3 dB, light red or light blue to 6, red or blue beyond, each held a decibel past its edge (`loudZone`, `ZONE_EDGES`, `ZONE_WORD`: "Just right", "A little loud", "Too loud", "A little soft", "Too soft"); a needle steadied over 0.35 s (`GaugeLevel`), faint after 0.4 s without the voice; the mic limit, a red line hatched above, where the voice's peaks reach full scale (`micLimit`, from each reading's loudest sample, mic.ts `peak`, `peakOf`; pitch.ts `crestRef`); in full screen "louder", "softer", "mic limit", the zone in words and "Too loud for the microphone: turn down its Gain knob" (lines.ts `loudHTML`, `loud`, `loudClear`, `placeLoud`; pitch.ts `hear`, `showLoud`; styles.css `.ldm`, `.ldg`, `.ldz`, `.ldmid`, `.ldlim`, `.ldnd`, `.ldw`, `.ldc`); the rows, the bars and the rise an octave (`LineLevels`, `lineLevel`, `risePerOctave`, `riseWord`, `riseText`, `loudRowsHTML`, `loudBar`) removed; the gauge no longer stays "too loud for the microphone" after Stop (`Overload.now` with no reading yet) | Tests: 45 files, 520 passed (the per-note tests replaced by six for the gauge in loudness.test.ts and two in lines.test.ts); headless Edge on `npm run dev`, round fifty-one's fake voice (rising, cut off, falling) with each block reaching 0.97 scaled to full scale, আরোহ-অবরোহ line 1 looping at tempo 96: "Just right" → "A little loud" (11.5 s) → "Too loud" (15.3 s) rising; the needle at the top, the mic limit from 1 % and the warning while cut off; "A little soft" (22.3 s) → "Too soft" (24.1 s) falling, the mic limit rising off the scale as the voice softened; Practice at 1280 × 800 by day (column 60 × 215 px, scale 14 × 191), full screen by day and by night (panel 141 × 575, scale 28 × 409, "mic limit" inside the panel), 3840 × 2160 (zoom 2.4, loudness 11.3 % of the width), 360 × 780 by night (column 24 px, page 345 px); the warning gone on pause and Stop; no console errors (Work log 2026-11-04, PH2-53) | Waiting for Rinat to sing with it and say whether it reads at a glance, and whether the needle's speed, the green middle and the mic limit are right |
 | PH2-52 | Claude | Review | The overload warning only when it matters, with the right knob (Rinat, 2026-11-04: "I kept reducing the mic volume but i kep getting notification that it is still too loud … setting it to lowest still captures too loud"): told once the voice has been cut off in three blocks within 2 s, only blocks with the voice in them, and for 3 s after the last (loudness.ts `Overload`, `OVERLOAD_BLOCKS`, `OVERLOAD_WITHIN`, `OVERLOAD_HOLD`; `blockClip` in place of `blockClipped`, telling `'full'` from `'down'`; mic.ts `clip`; pitch.ts `hear`, `CLIPPING`, `isClipping`): "Too loud for the microphone: turn down the Gain knob on your audio interface or microphone, not the computer's input level." or, cut off below full scale, "Too loud for the microphone, before the computer's input level: turn down the Gain knob on your audio interface or microphone instead."; the panel's line "Too loud for the microphone: turn down its Gain knob" | Tests: 45 files, 522 passed (2 new in loudness.test.ts); headless Edge on `npm run dev`, round fifty-one's fake voice with each block reaching 0.97 scaled to full scale, then, in a second run, cut off at 0.8 of its peak and halved: each message from 16.3 s until 3 s after the loud stretch (24.4 s, 24.2 s); the 44 full takes of 25–27 Oct measured (Work log 2026-11-04, PH2-52 and PH2-53) | Waiting for Rinat to turn the Scarlett's Gain knob down and say whether it still shows |
 | PH2-51 | Claude | Review | Loudness by note in place of the pitch gauge (Rinat, 2026-11-04: the gauge "moves too quickly for me to take that as feedback", the voice line "already tells me the same information but better"; "I automatically take it as higher pitches comes with louder volume … a loudness gauge or some sort of visualisation of my loudness might be better"; "Yes, build it"): while the pitch check is on, at the end of the line being sung (80 px; 24 on a phone, without names) and in full screen's right panel (`#fullLoud`, "Loudness"), a row for each note of the line, high to low, its bar as long as the voice was loud on it against the line's own level (the tick at 55 %, 3.75 % a dB), filling as it is sung, the note sounding in brass, a red end where the microphone overloaded; in full screen the line's rise for each octave up in words and as a number, the line or round before's, the overload warning, and how to turn the pitch check on while it is off (lines.ts `loudHTML`, `loudRowsHTML`, `loudBar`, `placeLoud`, `loudOn`, `loud`; app.ts `loudBox`; pitch.ts `hear`, `showLoud`; src/core/pitch/loudness.ts `levelDb`, `LineLevels`, `lineLevel`, `risePerOctave`, `riseWord`, `riseText`, `LevelRef`, `widthStep`, `blockClipped`); the voice line in five widths against the level of the last 10 s (`.vt.w0`–`.w4`); "Too loud for the microphone: turn its input gain down a little." under the lines for 3 s after a block cut off (mic.ts `clip`); the gauge (`gaugeHTML`, `gaugeY`, `showGauge`, `.pgauge`, `#fullGauge`) removed | Tests: 45 files, 520 passed (14 new in loudness.test.ts, 3 new in lines.test.ts, the gauge's scale test gone); headless Edge on `npm run dev`, a fake voice on Sa rising 1.5 dB a second, cut off, then falling, আরোহ-অবরোহ line 1 looping at tempo 96: the bars filling note by note, "Louder going up +6 dB an octave" rising, "Even +4" at the top, "Softer going up −6 to −16" falling, "Last round: …" each round; the voice line's widths w0–w4; full screen at 1280 × 800 by day and by night and at 3840 × 2160 (zoom 2.4: score 13.8 %, lines 67.5 %, loudness 11.3 % of the width); 360 × 780 by night; with blocks scaled to full scale in the page, red ends on the notes sung and the warning, gone 3 s after; no console errors (Work log 2026-11-04, PH2-51) | Rinat, 2026-11-04: "don't like the loudness panel one bit. Its complicated and unintuitive and doesn't help when looking at during singing": its rows replaced by the loudness gauge (PH2-53, 2026-11-04); the voice line's widths stay for now ("leave it for now") |
@@ -671,6 +684,10 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-11-04 | **The loudness gauge in place of loudness by note** (Rinat's pick, design 2 of eight, green where it was gold, the microphone's limit shown on it): while the pitch check is on, at the end of the line being sung and in full screen's right panel, an upright scale, louder above its middle; its middle the level the voice has been singing at (the median of the last 10 s), 12 dB to each end; within 3 dB green, "Just right"; 3–6 dB "A little loud" (light red) or "A little soft" (light blue); beyond, "Too loud" (red) or "Too soft" (blue); each zone held a decibel past its edge; a needle steadied over 0.35 s, faint where it was when no voice has been heard for 0.4 s; a red line, hatched above, where the voice's peaks reach full scale (its peaks over its level, the median of the last 10 s), shown within 12 dB above the middle. In full screen also "louder", "softer", "mic limit" and the zone in words. Nothing is set up: the middle follows the voice. Replaces the red end on a note's bar in the overload row above (the mic limit line instead). | Rinat, chat 2026-11-04 ("go with 2 but use green instead of gold. you can also show mic limit in number 2", of the eight designs on the Claude Design canvas "Loudness panel designs"); the reach, the zones' edges and words, blue for soft, the steadying and how the limit is measured are Claude's | Its two rows of the same day (loudness by note; the panel to be redesigned) moved to HISTORY.md. loudness.ts `gaugeY`, `loudZone`, `GaugeLevel`, `micLimit`; lines.ts `loudHTML`, `loud`; pitch.ts `showLoud`; ENGINE.md → The loudness gauge. |
 | 2026-11-04 | **The voice line drawn thicker when louder,** thinner when softer: five widths (0.55, 0.78, 1, 1.5 and 2.1 times the usual), from the level, smoothed, against the median of the last 10 s of voice (edges at −6, −2, +2 and +6 dB, each step held for a decibel more, so it does not flicker); its dot with it. | Claude's proposal, in the plan Rinat approved 2026-11-04 | `widthStep`, `LevelRef`; `.vt.w0`–`.w4`. |
 | 2026-11-04 | **The overload warning only when the singing is cut off again and again, naming the knob:** told once three blocks (about 21 ms each) with the voice in them have been cut off within 2 s, and for 3 s after the last (a knock, a breath or a single cut does not count); a red end on the bar of the note sung then, as before. It says to turn down the Gain knob on the audio interface or microphone, not the computer's input level, and, when the sound was cut off below full scale, that the computer's level was turned down after the cut. Cut off, as before: a sample at 0.99 of full scale or more, or, from a quarter of full scale, six or more in a row at the block's loudest. | Rinat, chat 2026-11-04 ("I kept reducing the mic volume but i kep getting notification that it is still too loud … setting it to lowest still captures too loud"); the counts and the words are Claude's. Rinat's takes of 25–27 Oct: the voice's median −8.5 to −13.3 dB of full scale, full scale reached in every take | Replaces the row of the same day moved to HISTORY.md. `Overload`, `blockClip` in loudness.ts. Checked in headless Edge only with blocks changed in the page. |
+| 2026-11-05 | **The screen kept on whenever anything plays,** and so the computer kept from sleeping: while a song or a take plays, through a rewaz and its breaks, and all the while full screen is on, paused or not; asked for again every 5 s while wanted, as the browser lets go of it whenever the page is hidden and can drop or refuse it. Paused outside full screen and a rewaz, it is let go. | Rinat, chat 2026-11-05 ("i was doing rewaz in full screen … the screen turned off. the app should stop the screen being turned off and also prevent pc from falling asleep when playing anything whether fullscreen or not"); asking every 5 s, and letting go while paused, are Claude's | Extends the 2026-10-31 rows (the screen kept on while playing and in full screen). app.ts `wantAwake`, `keepAwake`; ENGINE.md → Transport, The screen kept on. |
+| 2026-11-05 | **"Round 1 of 1" for an item of one round,** in the rewaz bar and in full screen's title line, as "round 2 of 3" is for more. | Rinat, chat 2026-11-05 ("when there is only one round, i would still like to see round 1 of 1 - that way i can tell that there is only one round of this during rewaz") | rewaz.ts `roundText` always; full.ts `whereText` with any set number of rounds. |
+| 2026-11-05 | **Sa is not changed while a song plays or is paused:** the Sa pickers are greyed ("Stop to change Sa"), and a Sa set from the Voice page stops the song first. | Rinat, chat 2026-11-05 (the guide followed a Sa changed while playing, the voice line did not; "if fixing this issue makes the code more delicate and prone to failure later … just have the scale change drop down greyed out when any song is playing"); Claude judged following it delicate: a run's notes, its session detail, report and file for AI are all against one Sa | app.ts `setPlayUI`, `setSa`; ENGINE.md → Pitch feedback. |
+| 2026-11-05 | **The microphone heard is named under the lines, and another can be picked there:** with the pitch check's row (Microphone, the computer's own or any the computer has), used from the next time the microphone comes on; one picked and not plugged in falls back to the computer's own, and the line says so. A device setting, not backed up. | Claude, from Rinat's chat 2026-11-05 (the Scarlett's gain at its lowest, "the mic still hears me"; Rinat's PC has a dozen inputs, a webcam's among them, and nothing said which was heard); under the lines, not in the practice settings, to keep those one line (Rinat, 2026-10-23) | mic.ts `chooseMic`, `listMics`, `onMicHeard`; micpick.ts; prefs `mic`; backup.ts `DEVICE_PREFS`; ENGINE.md → Pitch feedback, Capture. |
 | 2026-10-23 | **Built-in exercises stay read-only for now** (Open question 6 answered): they cannot be changed or deleted; copy one to change it. Claude's proposal (changed in place as the user's own, deleted or hidden, a "Bring back the built-in exercises" button) is not built. | Rinat, chat 2026-10-23 ("Keep the built-in exercises read-only for now.") | Invariants → Never lose a song unchanged; Open question 6 removed. |
 | 2026-10-23 | **A break between rounds,** when looping on the Practice view (the Guide panel's "Break between rounds", seconds) and in a rewaz (each routine's "Break between rounds", separate from its break between items): silence with the drone going on, then the count-in again when it is on, and any pickup, then the next round; the line's box counts it down; none after the last round; the note before it fades as at an ending. A pause in a break goes on with the next round. Takes keep it. | Rinat, chat 2026-10-23 ("i'd like the option to add some delay between loops and also between rounds when doing rewaz with multiple rounds"); the count-in again, the drone going on, the countdown, a setting on the Guide panel and per routine are Claude's | transport.ts `gap`; prefs `loopGap`; Routine `roundGap`; Take `gap`; session settings `gap`; docs/ENGINE.md → Transport, DATA.md |
 | 2026-10-23 | **My takes as a table:** grouped by song or by date, each group folding (the first three open), a tick box on each take, on each song's or day's group and Tick all; the takes ticked are deleted together, asked first in the table's bar. | Rinat, chat 2026-10-23 ("needs all the bells and whistles of a table - should be collapsible the song name or the date taken. want to be able to select all the takes in a particular day and delete together. also all the takes of a particular song"; "if multiple takes are deleted together, only then confirmation is fine") | takes.ts `takeGroups`, `allTakesHTML`; prefs `tkGroup`; docs/ENGINE.md → Takes |
@@ -728,7 +745,15 @@ records were folded into on 2026-10-11 (the last rows say where).*
    `gaanersathi.rinatmalik.com` (one DNS record at Hostinger) or a dedicated domain. Each
    person's songs live in their own browser under the site's address, so moving later means
    everyone backing up at the old address and importing at the new one. Settle it before
-   anyone besides Rinat relies on the web app (explained to Rinat 2026-10-11).
+   anyone besides Rinat relies on the web app (explained to Rinat 2026-10-11). Rinat,
+   2026-11-05: "I am now ready for the site to go public … I am going to buy a domain"; Claude
+   advised keeping GitHub Pages as the host, with the domain as its custom domain (each push
+   still deploys it; no second copy at Hostinger), the build already working at any address
+   (`base: './'`). To do when the domain is bought: Rinat backs up everything at the old
+   address first (GitHub then forwards the old address to the new one); DNS at the registrar
+   (four A records for the bare domain to GitHub Pages, `www` a CNAME to
+   `rinatmalik.github.io`); the domain verified in Rinat's GitHub settings and set in the
+   repository's Pages settings, Enforce HTTPS ticked; README.md and DATA.md's address changed.
 4. **Free, paid or donations?** Matters once the native app heads for an app store (Phase 3).
 5. **Two taal forms.** Khemta is the 12-matra form of the Bengali tabla books, not Tagore's
    6-matra Kashmiri Khemta; Dhamar is divided as in Rabindrasangeet (3+2+2+3+4), not the
@@ -738,6 +763,13 @@ records were folded into on 2026-10-11 (the last rows say where).*
    Scarlett 2i2, its big Monitor knob, which changes only what is heard, or Windows' input
    level); the Scarlett's generation (a 4th has Auto gain and Clip Safe); whether that input's
    gain ring shows red while singing. Default: the warning as built in round fifty-two.
+   Rinat, 2026-11-05: the Gain knob, GAIN 01 on the Scarlett, at its "absolute lowest" (a photo:
+   a 2i2 with toggle switches and no Air button, so not a 4th generation; the microphone on
+   input 1 by XLR, 48V on), "the mic still hears me", and the gauge's mic limit about 2 dB above
+   its middle from the start of a song. Found (Work log 2026-11-05): Windows' default recording
+   device is "Microphone (2- Scarlett 2i2 USB)" at 54 % = 0 dB; the gauge agrees with the 26–27
+   Oct takes (their limit 3.6–4.7 dB above the middle). Still open: the ring while singing; the
+   microphone's model and distance; a take at the lowest gain, measured.
 
 ## Work log
 
@@ -754,6 +786,87 @@ Template:
     - **Decisions made:** rows added above.
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
+
+### 2026-11-05 GMT — Claude (Opus 5.5) — PH2-54 the screen kept on, round 1 of 1, Sa while playing, the microphone named
+
+- **Goal:** Rinat, 2026-11-05: (1) "i am talking about the gain knob in scarlett. I have it set
+  to lowest now, absolute lowest. the mic still hears me … the app shows mic limit as low as
+  what should be ideal volume as soon as i start a song" (with a photo of the Scarlett 2i2,
+  GAIN 01 at its lowest, 48V on, and a screenshot of the gauge, the mic limit about 2 dB above
+  its middle); (2) "i was doing rewaz in full screen … the screen turned off. the app should
+  stop the screen being turned off and also prevent pc from falling asleep when playing
+  anything whether fullscreen or not"; (3) "when there is only one round, i would still like to
+  see round 1 of 1"; (4) Sa changed while playing: "The scale changed and guide sound updated
+  perfectly. But the voice line was still expecting me sound like the previous scale … if
+  fixing this issue makes the code more delicate … just have the scale change drop down greyed
+  out"; (5) going public on a domain of Rinat's own (answered in chat; Open question 3).
+- **Inspected:** app.ts's wake lock (`wake`, `unwake`: asked for only as playing started, full
+  screen opened or the page came back into view; never again if the browser let go or refused);
+  full.ts `whereText` and rewaz.ts `roundText` (the round left out at one round); the tracker
+  (`PitchTracker.saHz` fixed at the run's start; a session's `played.saHz`, its report and file
+  for AI against one Sa); mic.ts `openStream` (voice processing and automatic gain already off;
+  no device chosen, none named). Rinat's two Data.json of 2026-11-05 (pitch only, no levels).
+  Rinat's takes of 26–27 Oct measured (scratchpad `lvl54.py`, 43 ms windows as the app's): the
+  voiced level's median −12.1 to −13.8 dB of full scale, windows' peaks' median −3.1 to −4.7,
+  their crest 8.6–8.9 dB, a sample at full scale in 2.5–4.9 % of voiced windows; the gauge's mic
+  limit worked out the app's way, 3.6–4.7 dB above the middle (its 10th percentile +0.7 to +1.2):
+  the gauge agrees with the recordings. On Rinat's PC (Windows' Core Audio through PowerShell):
+  the default recording device, for apps and calls, "Microphone (2- Scarlett 2i2 USB)", two
+  channels, its level 54 % = 0.0 dB, its range −96 to +30 dB (above 54 % Windows boosts it);
+  other live inputs: the BRIO 4K webcam's microphone, Stereo Mix, Voicemeeter's and VB-Cable's
+  outputs (Voicemeeter not running); the display off after 300 s and sleep after 600 s on mains
+  (`powercfg /query`), no screen saver set. Focusrite's figures for the first generation (spec
+  comparisons): the mic input full at +4 dBu at its lowest gain.
+- **Changed:** `feat(practice): the screen kept on through a rewaz, round 1 of 1, Sa held while
+  playing, the microphone named and picked` — src/app/app.ts (`wantAwake`, `keepAwake`, `wake`
+  one request at a time and kept only while wanted, its `release` listened to, `unwake`; asked
+  for after each play, pause, stop, full screen on or off, a take played alone, the page coming
+  back into view and every 5 s; the Sa pickers disabled while `active()`, titled "Stop to change
+  Sa"; `setSa` stops a song playing first; `initMicPick`); src/app/rewaz.ts and src/app/full.ts
+  ("round 1 of 1"); src/audio/mic.ts (`chooseMic`, `listMics`, `micHeard`, `onMicHeard`;
+  `openStream` opens the one picked, else the computer's own); src/app/micpick.ts (new:
+  `micName`, `heardText`, `initMicPick`); src/app/store.ts (prefs `mic`); src/app/backup.ts
+  (`mic` a device setting, not backed up); index.html (Microphone under the lines, with the
+  pitch check's row); src/app/styles.css (`.pmic`, the Sa pickers greyed); tests/unit/
+  micpick.test.ts (new), full.test.ts, picker.test.ts; docs/ENGINE.md (The screen kept on, The
+  microphone, Sa while playing, round 1 of 1); docs/DATA.md (`mic`); docs/ROADMAP.md (row 54);
+  docs/HISTORY.md (the PH2-52 entry); this file.
+- **Tests / verification:** `npx tsc --noEmit -p .` exit 0; `npx vitest run` → 46 files, 522
+  passed; `npm run build` → 402.13 kB JS, 92.29 kB CSS; `bash reference/tests/run-all.sh` →
+  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge
+  on `npm run dev` (scratchpad `cdp54.mjs`, `es54.ps1`; the fake microphone `loud51.wav`):
+  a real screen wake lock held in headless Edge took Windows' execution state
+  (`CallNtPowerInformation(SystemExecutionState)`) from 0x0 to 0x3 (system and display
+  required) and back to 0x0 on release. With the lock counted in the page: a routine of
+  আরোহ-অবরোহ line 1 once, a 6 s break, then twice, in full screen at 1280 × 800 by day: held
+  from the first beat; the bar "Test 54 · 1 of 2 · আরোহ-অবরোহ · round 1 of 1", the title line
+  "Line 1 of 2 · Round 1 of 1"; the lock let go of by the browser (simulated), asked for again
+  0.8 s later; held through the break (6 … 1), item 2's "round 1 of 2", "round 2 of 2", and
+  after "Rewaz done" while full screen stayed; let go on leaving full screen. Not in full
+  screen: held while playing, let go on pause and Stop. The Sa pickers disabled while playing
+  and paused ("Stop to change Sa"), enabled in the break between items and after Stop. The
+  Microphone list: the computer's own, "Fake Audio Input 1", "Fake Audio Input 2"; "Hearing Fake
+  Default Audio Input." once the microphone was on; Fake Audio Input 1 picked, "Used from the
+  next time the microphone comes on.", then "Hearing Fake Audio Input 1." at the next play;
+  prefs `mic` `{ id, label }`; still picked after a reload. The practice settings one line
+  (56 px tall), the pitch check's row two (72 px); the picker hidden in full screen; at 360 × 780
+  by night the page 345 px wide (its scrollbar), the picker 152 px. No console errors.
+- **Decisions made:** four 2026-11-05 rows (the screen kept on; round 1 of 1; Sa not changed while
+  playing; the microphone named and picked); Open questions 3 and 6 brought up to date.
+- **Risks or disagreements:** why the screen went off in Rinat's rewaz is not known for certain:
+  with the lock held, Windows keeps the display on (measured here, in headless Edge), so it was
+  dropped or refused and not asked for again; the 5 s asking covers that, but Rinat's own
+  browser has not been watched. Paused, the screen may go off (nothing plays). The mic limit's
+  cause is not settled: the gauge agrees with the 26–27 Oct takes, but no take at the lowest
+  gain has been measured; with a studio condenser (Rode), a strong voice close to it can still
+  overload a 2i2 at its lowest gain, or the browser may hear another input (the new line says
+  which). The overload message says "not the computer's input level", which is wrong when
+  Windows' level for the Scarlett is above 54 % (a boost of up to +30 dB). Windows keeps a level
+  for each USB port the Scarlett has been in ("Scarlett 2i2 USB" and "2- Scarlett 2i2 USB").
+- **Next handoff:** Rinat checks that the Microphone line under the lines names the Scarlett,
+  watches GAIN 01's ring while singing loudest, records one take at the lowest gain with Record
+  me for Claude to measure, and does a rewaz in full screen to see the screen stay on (Next
+  single action).
 
 ### 2026-11-04 GMT — Claude (Opus 5.5) — PH2-53 the loudness gauge in place of loudness by note
 
@@ -813,53 +926,3 @@ Template:
   seen on a real voice; the fake microphone is a steady tone.
 - **Next handoff:** Rinat sings with the gauge and answers Open question 6 (Next single
   action); Claude adjusts.
-
-### 2026-11-04 GMT — Claude (Opus 5.5) — PH2-52 the overload warning; PH2-53 loudness panel designs
-
-- **Goal:** Rinat: "don't like the loudness panel one bit. Its complicated and unintuitive and
-  doesn't help when looking at during singing. I don't know if you can summon claude design
-  through here. if you can, get it to generate 5 or 10 designs for this panel which are
-  effective for its purpose. If you can't get claude design then let's try the same design as
-  the pitch gauge - have the centre as what ideal loudness should be … Also, I kept reducing
-  the mic volume but i kep getting notification that it is still too loud … setting it to
-  lowest still captures too loud. The thickness of the voice line also feel less intuitive but
-  maybe i need to get used to it so leave it for now."
-- **Inspected:** the 44 full takes of 25–27 Oct in `feedback/` (scratchpad `hot51.py`,
-  `agc51.py`): the voice's median level −8.5 to −13.3 dB of full scale in every take, its 10th
-  and 90th percentiles 5.5–13.1 dB apart (the songs spread as widely as ever: no sign of an
-  automatic gain); samples at 32700 or more in every take (3–197; the takes are kept at
-  22 050 Hz, filtered, so fewer than came in). pitch.ts `hear`, which counted a cut on any
-  block, with the voice or not (a knock, a breath, a "p"), and told it for 3 s after one
-  block; mic.ts's constraints (`autoGainControl`, `echoCancellation`, `noiseSuppression` all
-  false). A web search (Focusrite's guide, forums): the Scarlett's gain is set by its Gain
-  knob (or Focusrite Control), not by Windows' input slider.
-- **Changed:** `fix(practice): the overload warning only when the singing is cut off again and
-  again, naming the Gain knob` — src/core/pitch/loudness.ts (`Clip`, `blockClip` in place of
-  `blockClipped`, `Overload`, `OVERLOAD_BLOCKS`, `OVERLOAD_WITHIN`, `OVERLOAD_HOLD`);
-  src/audio/mic.ts (`clip` says how); src/app/pitch.ts (`hear`, `CLIPPING`, `isClipping`);
-  src/app/lines.ts (the panel's line); tests/unit/loudness.test.ts; docs/ENGINE.md (Loudness
-  by note: the warning); docs/ROADMAP.md (row 52); docs/HISTORY.md (the round-51 overload
-  decision; the PH2-50 entry); this file. Not in the repo: the Claude Design canvas "Loudness
-  panel designs" in Rinat's claude.ai artifacts, nine artboards (full screen at 1440 × 900 with
-  the needle dial in place; eight panels at 180 × 600, each with Tweaks for the simulated level
-  and night; panel 5 also for the usual level), its files in the ignored `.tmp/design52/`.
-- **Tests / verification:** `npx tsc --noEmit -p .` exit 0; `npx vitest run` → 45 files, 522
-  passed; `npm run build` → 400.53 kB JS, 91.30 kB CSS; `bash reference/tests/run-all.sh` →
-  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge
-  on `npm run dev` (scratchpad `cdp52.mjs`; round fifty-one's fake voice `loud51.wav`;
-  আরোহ-অবরোহ line 1 looping at tempo 96, the pitch check on): with each block that reached
-  0.97 scaled by 1.03, "Too loud for the microphone: turn down the Gain knob on your audio
-  interface or microphone, not the computer's input level." from 16.3 s to 24.4 s; with each
-  such block cut off at 0.8 of its peak and halved, "Too loud for the microphone, before the
-  computer's input level: turn down the Gain knob on your audio interface or microphone
-  instead." from 16.3 s to 24.2 s. The canvas was not opened or looked at after publishing
-  (the Design type's rule: only when asked).
-- **Decisions made:** two 2026-11-04 rows (the overload warning; the panel to be redesigned);
-  round fifty-one's overload row moved to HISTORY.md; Open question 6 (the microphone setup).
-- **Risks or disagreements:** why the warning still showed with Windows' slider at its lowest
-  is not settled: had that slider turned the sound down, the app would have heard less than a
-  quarter of full scale and said nothing, so either it does not act on the Scarlett's input or
-  another knob was turned (Open question 6). Three cut blocks within 2 s is a guess; the rule
-  is checked only with blocks changed in the page. The canvas's artboards are unseen.
-- **Next handoff:** Rinat picks a panel and answers Open question 6 (Next single action);
-  Claude builds the pick (PH2-53).

@@ -41,6 +41,8 @@ describe("a rewaz round's break", () => {
     // Its count-in: the round to come, no seconds.
     expect(roundText(1, 3, 0)).toBe(' · round 2 of 3');
     expect(roundText(5, 3)).toBe(' · round 3 of 3');
+    // One round is said too (Rinat, 2026-11-05).
+    expect(roundText(0, 1)).toBe(' · round 1 of 1');
   });
 });
 

@@ -112,7 +112,9 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
   once. Set for each rewaz item (`roundGap` on the item, from 2026-10-28: Rinat, "the break between
   rounds can be set for each song/exercises"; until then one for the whole routine, read now as
   each item's), separate from the routine's break between items; the rewaz bar counts it down as it does the break between items ("round 2 of 3
-  starting in 3 s", then "round 2 of 3" through the count-in; `roundText` in rewaz.ts). The
+  starting in 3 s", then "round 2 of 3" through the count-in; `roundText` in rewaz.ts). An item
+  of one round says so too, "round 1 of 1", in the bar and in full screen's title line (Rinat,
+  2026-11-05: "that way i can tell that there is only one round of this during rewaz"). The
   Guide panel's own "Break between rounds", for the Lines to practise and a section looped, was
   taken out on 2026-10-26 (Rinat: "Just in the rewaz is good enough"). A take keeps it, so it
   plays back with the same breaks.
@@ -132,10 +134,20 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
 - **Hooks:** `onBeat` reports every scheduled matra (pitch feedback, takes); `onNote(t, dur,
   midi)` hears each guide note as it is scheduled, and `localGuide = false` leaves the
   harmonium out (MIDI keyboards).
-- The screen wake lock is requested while playing, and all the while full screen is on, paused
-  or not (Rinat, 2026-10-31: a singer standing back from the phone should not have to touch it);
-  `wake()` asks once, however often it is called, and `unwake()` lets go only once full screen
-  is off.
+- **The screen kept on** (the screen wake lock; on Windows it keeps the computer from sleeping
+  too): while a song or a take plays, through a rewaz and its breaks, and all the while full
+  screen is on, paused or not (Rinat, 2026-10-31: a singer standing back from the phone should
+  not have to touch it; 2026-11-05, after the screen went off in a rewaz in full screen: "the
+  app should stop the screen being turned off and also prevent pc from falling asleep when
+  playing anything whether fullscreen or not"). `wantAwake()` says whether it is wanted;
+  `keepAwake()` asks for it (`wake()`, one request at a time) or lets it go (`unwake()`), after
+  each play, pause, stop, full screen on or off, take played alone, the page coming back into
+  view, and every 5 s. *Why every 5 s:* the browser lets go of it whenever the page is hidden
+  and can refuse or drop it at other times; until 2026-11-05 it was asked for only as playing
+  started, full screen opened or the page came back into view, so a lock dropped or refused
+  then was never asked for again, and Windows turned the screen off after its 5 minutes
+  without a key or the mouse. Measured on Rinat's PC (Work log 2026-11-05): Windows' execution
+  state 0x0 → 0x3 (display and system required) while headless Edge held the lock, 0x0 after.
 
 ## Taals
 
@@ -284,7 +296,22 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
 `src/audio/mic.ts`, `src/audio/dsp/mpm.ts`, `src/core/pitch/track.ts`, `src/app/pitch.ts`.
 
 - **Capture:** `getUserMedia` with echo cancellation, noise suppression and automatic gain
-  off (they distort pitch), into the same `AudioContext` as the guide. "Check my pitch" turns
+  off (they distort pitch), into the same `AudioContext` as the guide. **The microphone** is the
+  computer's own choice, or the one picked under the lines (Microphone, beside the device's
+  delay, while the pitch check is on; `chooseMic`, `listMics`, `onMicHeard` in mic.ts,
+  micpick.ts; prefs `mic`), used from the next time the microphone comes on; one picked and not
+  plugged in falls back to the computer's own, and the line says which is heard ("Hearing
+  Microphone (2- Scarlett 2i2 USB)."). Every use of the microphone (pitch, takes, the delay,
+  the Voice page) opens it through `openStream`. *Why:* Rinat, 2026-11-05, with the Scarlett's
+  gain at its lowest: "the mic still hears me"; Rinat's PC has a dozen inputs (the Scarlett, a
+  webcam's microphone, Stereo Mix, Voicemeeter's), and nothing said which one was heard.
+- **Sa is not changed while a song plays or is paused:** its pickers are greyed ("Stop to change
+  Sa"), and a Sa set from the Voice page stops the song first (Rinat, 2026-11-05: changed while
+  playing, the guide followed it but the voice line was still judged against the Sa it started
+  in; "if fixing this issue makes the code more delicate … just have the scale change drop down
+  greyed out when any song is playing"). *Why not follow it:* a run's notes are judged, kept and
+  reported against one Sa (the tracker's `saHz`, a session's `played.saHz`, its report and its
+  file for AI), so following a change mid-run would touch all of them. "Check my pitch" turns
   feedback on; the microphone then listens only while a song plays (Rinat, 2026-10-12): it
   opens when playing starts (or goes on after a pause) and closes when it stops, pauses or
   ends. Scoring starts with the first beat scheduled; notes before the microphone was open

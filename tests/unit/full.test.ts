@@ -17,7 +17,7 @@ describe('where playing has got to', () => {
     expect(whereText(2, 12, { pass: 1, rounds: 3 })).toBe('Line 3 of 12 · Round 2 of 3');
     // A loop with no end; one round only says nothing of rounds.
     expect(whereText(0, 4, { pass: 4, rounds: 0 })).toBe('Line 1 of 4 · Round 5');
-    expect(whereText(0, 4, { pass: 0, rounds: 1 })).toBe('Line 1 of 4');
+    expect(whereText(0, 4, { pass: 0, rounds: 1 })).toBe('Line 1 of 4 · Round 1 of 1');
     expect(whereText(0, 0, null)).toBe('');
   });
 });

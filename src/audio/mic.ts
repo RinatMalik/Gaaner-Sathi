@@ -79,14 +79,55 @@ export function micProblemText(p: MicProblem): string {
 
 const loaded = new WeakSet<BaseAudioContext>();
 
-/** Ask for the microphone with the voice processing off. Call from a tap or click. */
+/** The microphone picked in the practice settings, a device id ('' the computer's own choice),
+ * and the one heard last (Rinat, 2026-11-05: the Scarlett's gain at its lowest and the voice
+ * still too loud; a computer can have a dozen inputs, a webcam's among them, and nothing said
+ * which one was being heard). */
+let wanted = '';
+let heard: { id: string; label: string } | null = null;
+const heardBy = new Set<(m: { id: string; label: string }) => void>();
+export function chooseMic(id: string): void {
+  wanted = id;
+}
+export const micHeard = (): { id: string; label: string } | null => heard;
+/** Told each time a microphone comes on, with which one it is. */
+export function onMicHeard(f: (m: { id: string; label: string }) => void): void {
+  heardBy.add(f);
+}
+
+/** The microphones the computer has, by name ('' names until it has let the page use one). The
+ * computer's own choice and its choice for calls, which Chrome and Edge list again, left out. */
+export async function listMics(): Promise<{ id: string; label: string }[]> {
+  if (!navigator.mediaDevices?.enumerateDevices) return [];
+  try {
+    const ds = await navigator.mediaDevices.enumerateDevices();
+    return ds.filter((d) => d.kind === 'audioinput' && d.deviceId && d.deviceId !== 'default' && d.deviceId !== 'communications').map((d) => ({ id: d.deviceId, label: d.label }));
+  } catch {
+    return [];
+  }
+}
+
+/** Ask for the microphone with the voice processing off: the one picked, or the computer's own
+ * choice when none is picked or the one picked is not plugged in. Call from a tap or click. */
 export async function openStream(ctx: AudioContext): Promise<MediaStream> {
   if (typeof isSecureContext !== 'undefined' && !isSecureContext) throw new MicError('insecure', 'not a secure context');
   if (!navigator.mediaDevices?.getUserMedia || !ctx.audioWorklet || typeof AudioWorkletNode === 'undefined') throw new MicError('unsupported', 'no getUserMedia or AudioWorklet');
+  const audio: MediaTrackConstraints = { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 };
   try {
-    return await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 },
-    });
+    let s: MediaStream;
+    try {
+      s = await navigator.mediaDevices.getUserMedia({ audio: wanted ? { ...audio, deviceId: { exact: wanted } } : audio });
+    } catch (e) {
+      const name = e instanceof Error ? e.name : '';
+      if (!wanted || (name !== 'OverconstrainedError' && name !== 'NotFoundError')) throw e;
+      s = await navigator.mediaDevices.getUserMedia({ audio });
+    }
+    const t = s.getAudioTracks()[0];
+    if (t) {
+      heard = { id: t.getSettings().deviceId ?? '', label: t.label };
+      for (const f of heardBy) f(heard);
+    }
+    return s;
   } catch (e) {
     const name = e instanceof Error ? e.name : '';
     const p: MicProblem = name === 'NotAllowedError' || name === 'SecurityError' ? 'denied'

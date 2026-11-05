@@ -24,10 +24,10 @@ export interface Full {
 }
 
 /** Where playing has got to, for the top bar: the line being sung of the song's lines and, when
- * the lines loop for more than one round, the round ("Round 2 of 3", or "Round 2" with no end). */
+ * the lines loop, the round ("Round 2 of 3", "Round 1 of 1" for one round, or "Round 2" with no end). */
 export function whereText(line: number, lines: number, round: { pass: number; rounds: number } | null): string {
   let t = lines ? 'Line ' + (line + 1) + ' of ' + lines : '';
-  if (round && round.rounds !== 1) t += (t ? ' · ' : '') + 'Round ' + (round.pass + 1) + (round.rounds > 1 ? ' of ' + round.rounds : '');
+  if (round) t += (t ? ' · ' : '') + 'Round ' + (round.pass + 1) + (round.rounds >= 1 ? ' of ' + round.rounds : '');
   return t;
 }
 

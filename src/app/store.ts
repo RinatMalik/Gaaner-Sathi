@@ -89,6 +89,9 @@ export interface Prefs extends SoundSettings {
   pitchLag?: number;
   /** The device's own delay, sound out and back in, as last measured with clicks, seconds. */
   deviceLag?: number;
+  /** The microphone picked in the practice settings: the browser's id for it and its name;
+   * unset: the computer's own choice (Rinat, 2026-11-05). */
+  mic?: { id: string; label: string };
   /** The Sa the voice sang on last time, Hz (the song's Sa moved by the octave it sang in), when
    * any octave counts; the next run, of any song, starts drawing the voice in the octave nearest
    * it (`octaveFor`). */
@@ -198,6 +201,8 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
   if (r.pitchOctave === true) p.pitchOctave = true;
   if (typeof r.pitchLag === 'number' && r.pitchLag >= 0 && r.pitchLag <= 0.6) p.pitchLag = r.pitchLag;
   if (typeof r.deviceLag === 'number' && r.deviceLag >= 0 && r.deviceLag <= 0.6) p.deviceLag = r.deviceLag;
+  const m = r.mic as { id?: unknown; label?: unknown } | undefined;
+  if (m && typeof m.id === 'string' && m.id && m.id.length <= 512) p.mic = { id: m.id, label: typeof m.label === 'string' ? m.label.slice(0, 200) : '' };
   if (typeof r.voiceSa === 'number' && r.voiceSa >= 30 && r.voiceSa <= 1100) p.voiceSa = r.voiceSa;
   if (Number.isInteger(r.voiceOct) && Math.abs(r.voiceOct as number) <= 2) p.voiceOct = r.voiceOct as number;
   const ro = Array.isArray(r.rewazOpen) ? r.rewazOpen.filter((x): x is string => typeof x === 'string' && !!x).slice(0, 100) : [];

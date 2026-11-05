@@ -49,6 +49,7 @@ import { isTaalId, taalInfo, TAALS, type TaalId, type TaalInfo } from '../core/t
 import { BACKUP_BYTES, BACKUP_FORMAT, backupParts, backupWords, readBackup, restoredPrefs, restorePlan, type Backup } from './backup';
 import { aiFileName, aiFileText, dayFileName, dayFileParts, practiceFileParts, type SessionFileInput } from './aifile';
 import { openOnce, SessionStore } from './db';
+import { initMicPick } from './micpick';
 import { initPitch, type PitchUI } from './pitch';
 import { initBoxes, withNewHeading, type Boxes } from './boxes';
 import { initKeyboard, keyboardHTML, keyName, keyRange, keysToFill, type KeyboardUI } from './keyboard';
@@ -345,7 +346,7 @@ function play(ask: PlayAsk = pickedLines(), at: { s: number; pass: number } | nu
   setLine(at ? (parsed.lineOfBeat[at.s] ?? r.from) : r.from, r.pre > 0 ? 'In ' + r.pre : 'Now', true);
   timer = window.setInterval(tick, 25);
   raf = requestAnimationFrame(frame);
-  void wake();
+  keepAwake();
 }
 
 /** Stop playing, or end a pause. `ended`: the song or its rounds came to their end by
@@ -378,7 +379,6 @@ function stop(silent?: boolean, ended = false): void {
   leftAt = null;
   showLeft(null);
   setPlayUI();
-  unwake();
   deckBeat = -1;
   if (takePlay?.how === 'guide') {
     const src = takePlay.src;
@@ -396,6 +396,7 @@ function stop(silent?: boolean, ended = false): void {
   if (ended) rewaz.finished();
   else rewaz.cancel();
   if (!rewaz.active) clearOverride();
+  keepAwake();
 }
 
 /** Pause: the sound stops where it is and the beat stays marked; Play goes on from that beat
@@ -423,7 +424,7 @@ function pause(): void {
   clearInterval(timer);
   timer = 0;
   cancelAnimationFrame(raf);
-  unwake();
+  keepAwake();
   setPlayUI();
   if (lastLine >= 0) setLine(lastLine, 'Paused', true);
 }
@@ -657,17 +658,39 @@ function setLine(n: number, state: string, playing: boolean): void {
   if (el.textContent !== t) el.textContent = t;
 }
 
-/** The screen kept on while playing, and all the while full screen is on (Rinat, 2026-10-31). */
+/** The screen kept on, and so the computer kept from sleeping (Rinat, 2026-10-31; 2026-11-05:
+ * in a rewaz in full screen "the screen turned off. the app should stop the screen being turned
+ * off and also prevent pc from falling asleep when playing anything whether fullscreen or not"):
+ * while a song or a take plays, through a rewaz and its breaks, and all the while full screen is
+ * on. The browser lets go of it whenever the page is hidden, and can refuse it, so it is asked for
+ * again every few seconds while it is wanted (until then it was asked for only as playing
+ * started, full screen opened or the page came back into view). */
+const wantAwake = (): boolean => playing() || full.on || rewaz.active || takePlay?.how === 'me';
+let waking = false;
 async function wake(): Promise<void> {
-  if (wakeLock && !wakeLock.released) return;
+  if (waking || (wakeLock && !wakeLock.released) || !navigator.wakeLock || document.visibilityState !== 'visible') return;
+  waking = true;
   try {
-    if (navigator.wakeLock) wakeLock = await navigator.wakeLock.request('screen');
+    const s = await navigator.wakeLock.request('screen');
+    if (wantAwake()) {
+      wakeLock = s;
+      s.addEventListener('release', () => {
+        if (wakeLock === s) wakeLock = null;
+      });
+    } else void s.release();
   } catch {
     wakeLock = null;
+  } finally {
+    waking = false;
   }
 }
+/** Ask for the screen to be kept on, or let it go, as wanted now. */
+function keepAwake(): void {
+  if (wantAwake()) void wake();
+  else unwake();
+}
 function unwake(): void {
-  if (full.on) return;
+  if (wantAwake()) return;
   try {
     if (wakeLock) void wakeLock.release();
   } catch {
@@ -1274,6 +1297,15 @@ function setPlayUI(): void {
   b.title = on ? 'Pause' : paused ? 'Go on from here' : 'Play';
   $<HTMLButtonElement>('#stopBtn').disabled = !active();
   $<HTMLButtonElement>('#restartBtn').disabled = !active() || rewaz.active;
+  // Sa is not changed while a song plays or is paused (Rinat, 2026-11-05: changed while playing,
+  // the guide followed it but the voice line was still judged against the Sa it started in; a
+  // run's notes, its report and its file for AI are all against one Sa).
+  for (const id of ['#saKey', '#saOct']) {
+    const s = select(id);
+    s.dataset.title ??= s.title;
+    s.disabled = active();
+    s.title = active() ? 'Stop to change Sa' : s.dataset.title;
+  }
 }
 /** The side instruments the rhythm's instrument can have (the one it goes back to, while muted). */
 function renderLayerChips(): void {
@@ -1349,8 +1381,10 @@ function forgetSound(): void {
   T?.applyDrone();
   T?.resetTanpura();
 }
-/** Set the open song's Sa (the deck's pickers too); on an exercise it becomes your Sa. */
+/** Set the open song's Sa (the deck's pickers too); on an exercise it becomes your Sa. A song
+ * playing or paused is stopped first: a run is judged against one Sa. */
 function setSa(s: SaChoice): void {
+  if (active()) stop();
   const oct = s.saOct === 3 || s.saOct === 5 ? s.saOct : 4;
   showSa(s.saKey, oct);
   changed('saKey', s.saKey);
@@ -1604,9 +1638,11 @@ async function playTakeAlone(t: Take): Promise<void> {
     if (takePlay?.src === src) {
       takePlay = null;
       void renderTakes();
+      keepAwake();
     }
   };
   void renderTakes();
+  keepAwake();
 }
 function stopTakeAlone(): void {
   if (takePlay?.how !== 'me') return;
@@ -1618,6 +1654,7 @@ function stopTakeAlone(): void {
     // already stopped
   }
   void renderTakes();
+  keepAwake();
 }
 
 /** A click in a list of takes: the open song's, or every song's on the Voice page. */
@@ -2874,6 +2911,14 @@ export function init(): void {
     routines: routineChoices,
     addTo: addToRoutine,
   });
+  initMicPick({
+    get: () => prefs.mic,
+    set: (m) => {
+      if (m) prefs.mic = m;
+      else delete prefs.mic;
+      savePrefs();
+    },
+  });
   pitchUI = initPitch({
     audio: () => {
       try {
@@ -2944,10 +2989,9 @@ export function init(): void {
   // Full screen while practising (Rinat, 2026-10-31): the lines laid out to fill it, and the
   // screen kept on until it is left.
   full = initFull({
-    changed(on) {
+    changed() {
       lines.refresh();
-      if (on) void wake();
-      else if (!playing()) unwake();
+      keepAwake();
     },
     practice: () => !$('#practice').hidden,
   });
@@ -3542,8 +3586,9 @@ export function init(): void {
   });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') flushNow();
-    else if (playing() || full.on) void wake();
+    else keepAwake();
   });
+  window.setInterval(keepAwake, 5000);
   // Leaving the page stops playing, so the practice so far is logged.
   window.addEventListener('pagehide', () => stop(true));
 

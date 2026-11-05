@@ -55,6 +55,56 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-11-04 GMT — Claude (Opus 5.5) — PH2-52 the overload warning; PH2-53 loudness panel designs
+
+- **Goal:** Rinat: "don't like the loudness panel one bit. Its complicated and unintuitive and
+  doesn't help when looking at during singing. I don't know if you can summon claude design
+  through here. if you can, get it to generate 5 or 10 designs for this panel which are
+  effective for its purpose. If you can't get claude design then let's try the same design as
+  the pitch gauge - have the centre as what ideal loudness should be … Also, I kept reducing
+  the mic volume but i kep getting notification that it is still too loud … setting it to
+  lowest still captures too loud. The thickness of the voice line also feel less intuitive but
+  maybe i need to get used to it so leave it for now."
+- **Inspected:** the 44 full takes of 25–27 Oct in `feedback/` (scratchpad `hot51.py`,
+  `agc51.py`): the voice's median level −8.5 to −13.3 dB of full scale in every take, its 10th
+  and 90th percentiles 5.5–13.1 dB apart (the songs spread as widely as ever: no sign of an
+  automatic gain); samples at 32700 or more in every take (3–197; the takes are kept at
+  22 050 Hz, filtered, so fewer than came in). pitch.ts `hear`, which counted a cut on any
+  block, with the voice or not (a knock, a breath, a "p"), and told it for 3 s after one
+  block; mic.ts's constraints (`autoGainControl`, `echoCancellation`, `noiseSuppression` all
+  false). A web search (Focusrite's guide, forums): the Scarlett's gain is set by its Gain
+  knob (or Focusrite Control), not by Windows' input slider.
+- **Changed:** `fix(practice): the overload warning only when the singing is cut off again and
+  again, naming the Gain knob` — src/core/pitch/loudness.ts (`Clip`, `blockClip` in place of
+  `blockClipped`, `Overload`, `OVERLOAD_BLOCKS`, `OVERLOAD_WITHIN`, `OVERLOAD_HOLD`);
+  src/audio/mic.ts (`clip` says how); src/app/pitch.ts (`hear`, `CLIPPING`, `isClipping`);
+  src/app/lines.ts (the panel's line); tests/unit/loudness.test.ts; docs/ENGINE.md (Loudness
+  by note: the warning); docs/ROADMAP.md (row 52); docs/HISTORY.md (the round-51 overload
+  decision; the PH2-50 entry); this file. Not in the repo: the Claude Design canvas "Loudness
+  panel designs" in Rinat's claude.ai artifacts, nine artboards (full screen at 1440 × 900 with
+  the needle dial in place; eight panels at 180 × 600, each with Tweaks for the simulated level
+  and night; panel 5 also for the usual level), its files in the ignored `.tmp/design52/`.
+- **Tests / verification:** `npx tsc --noEmit -p .` exit 0; `npx vitest run` → 45 files, 522
+  passed; `npm run build` → 400.53 kB JS, 91.30 kB CSS; `bash reference/tests/run-all.sh` →
+  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge
+  on `npm run dev` (scratchpad `cdp52.mjs`; round fifty-one's fake voice `loud51.wav`;
+  আরোহ-অবরোহ line 1 looping at tempo 96, the pitch check on): with each block that reached
+  0.97 scaled by 1.03, "Too loud for the microphone: turn down the Gain knob on your audio
+  interface or microphone, not the computer's input level." from 16.3 s to 24.4 s; with each
+  such block cut off at 0.8 of its peak and halved, "Too loud for the microphone, before the
+  computer's input level: turn down the Gain knob on your audio interface or microphone
+  instead." from 16.3 s to 24.2 s. The canvas was not opened or looked at after publishing
+  (the Design type's rule: only when asked).
+- **Decisions made:** two 2026-11-04 rows (the overload warning; the panel to be redesigned);
+  round fifty-one's overload row moved to HISTORY.md; Open question 6 (the microphone setup).
+- **Risks or disagreements:** why the warning still showed with Windows' slider at its lowest
+  is not settled: had that slider turned the sound down, the app would have heard less than a
+  quarter of full scale and said nothing, so either it does not act on the Scarlett's input or
+  another knob was turned (Open question 6). Three cut blocks within 2 s is a guess; the rule
+  is checked only with blocks changed in the page. The canvas's artboards are unseen.
+- **Next handoff:** Rinat picks a panel and answers Open question 6 (Next single action);
+  Claude builds the pick (PH2-53).
+
 ### 2026-11-04 GMT — Claude (Opus 5.5) — PH2-51 loudness by note in place of the pitch gauge
 
 - **Goal:** Rinat: "Yes, build it", to Claude's proposal answering "The pitch guage on the right
