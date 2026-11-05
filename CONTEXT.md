@@ -111,7 +111,10 @@ wins, except a later explicit decision by Rinat, which always wins.
   rewaz and whatever plays, "round 1 of 1", Sa greyed while a song plays, the microphone heard
   named under the lines and another picked) and fifty-five (PH2-55: the loudness gauge against
   −18 dB of full scale, its panel tinted red when too loud and blue when too soft, each
-  reading's loudness in the files for AI) are built and live.
+  reading's loudness in the files for AI) and fifty-six (PH2-56: the loudness gauge on the
+  voice's loudest moments, as the ring round the Gain knob reads, against −12 dB of full scale,
+  its top the mic limit, a thin border round its scale, the voice line one width again) are
+  built and live.
   Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
 - **Review of 25–27 Oct (Claude, 2026-10-28, in chat):** the three day files and 52 takes in
@@ -128,16 +131,18 @@ wins, except a later explicit decision by Rinat, which always wins.
   61-key keyboard); the songs and exercises are at Sa C♯4, and the default 3-reed guide is heard
   at C♯3 (its bass reed: the app's detector reads it at 138.5 Hz), so Rinat matches the guide.
   "Octave must match" judged against C♯4; from round forty-two the bass reed's octave counts too.
-- **Next single action:** Rinat, with round fifty-five: sings a song with Check my pitch on and
-  the Scarlett picked, and watches where the needle sits now that the gauge's middle is −18 dB
-  of full scale: mostly in the red, turns GAIN 01 down a little or sits further from the
-  microphone; mostly in the blue, the other way; until a song sits mostly in the green, and
-  says what it took; says whether the panel's red and blue catch the eye without being too much,
-  by day and by night, and whether its words stay readable at the strongest; saves that
-  session's For AI file (`pitch_readings` now with `level_db` and `peak_db`, and a `loudness`
-  summary) into `feedback/`; once, picks "The computer's own" again and reads the Microphone
-  line (if it names the Scarlett and the gauge reads the same, the earlier difference was not
-  the device). With it, round fifty-four: turns on Check my pitch, plays, and
+- **Next single action:** Rinat, with round fifty-six: sings a song with Check my pitch on and
+  the Scarlett picked, and turns GAIN 01 until the needle sits mostly in the green (it now reads
+  the voice's loudest moments, as the ring round GAIN 01 does, green from −15 to −9 dB of full
+  scale, the top where the microphone cuts off); says whether the gauge and the ring now agree
+  (green on the gauge with the ring green; the needle near the top, "Too loud", when the ring
+  flashes red) and where GAIN 01 ends up; says whether the needle is too quick or too slow
+  (it rises within a tenth of a second and falls 8 dB a second); whether the thin border makes
+  the scale stand out from a red or blue panel, by day and by night; saves that session's For
+  AI file into `feedback/` (its `loudness` now with the loudest samples' spread, its shares as
+  the gauge moved); once, picks "The computer's own" again and reads the Microphone line (if it
+  names the Scarlett and the gauge reads the same, the earlier difference was not the device).
+  With it, round fifty-four: turns on Check my pitch, plays, and
   reads the Microphone line under the lines (it should say "Hearing Microphone (2- Scarlett 2i2
   USB)."; if it names another, picks the Scarlett there); while singing as loud as in a song,
   watches the ring round GAIN 01 on the Scarlett (red: the Scarlett itself overloads, even at
@@ -150,12 +155,10 @@ wins, except a later explicit decision by Rinat, which always wins.
   loudness gauge, the pitch check
   on, on Practice and in full screen, and says whether it can be read at a glance while
   singing; whether the needle is too quick or too slow; whether the green middle (3 dB either
-  way) is too wide or too narrow; and whether the red "mic limit" line sits about where the
-  Scarlett's gain ring turns red; answers Open question 6 (the microphone setup);
+  way) is too wide or too narrow; answers Open question 6 (the microphone setup);
   turns down the Gain knob for the microphone's input on the Scarlett (not the big Monitor
   knob, not Windows' input level) until its ring stays green when singing loudest, and says
-  whether "Too loud for the microphone" still shows (round fifty-two). Round fifty-one's voice
-  line, thicker when louder, stays for Rinat to get used to ("leave it for now"). With it
+  whether "Too loud for the microphone" still shows (round fifty-two). With it
   round fifty: says whether the glow is
   now noticeable enough without distracting (it stays bright about twice as long, no brighter),
   and scrolls the score panel's list back through a long run's lines (the mouse wheel over it;
@@ -527,6 +530,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
 | PH2-45 | Claude | Review | The time left, a song's progress where it is practised, the library first, the notes in ink (Rinat, 2026-10-31): while playing, the time left beside the title, to the second, the rounds, breaks and count-ins to come included, "in this round" for a loop with no end, held while paused, gone on Stop (`secondsLeft` in transport.ts; `leftAt`, `showLeft` in app.ts; `leftText` in view.ts; `.songleft`); the whole rewaz's in its bar, "0:14 left in all", the item's own and the items after it with the breaks between them, counted through the break before an item (`rewazLeft`, `showLeft` and `Rewaz.left` in rewaz.ts; `routineSeconds` from an item; `#rwLeft`); My progress under My takes for the open song: tiles, where it stands, going well and to work on, the score each session, the latest five sessions with Report and For AI, and its Report, For AI and See all in Progress (`songProgressHTML`, `showSong` in progress.ts; `songHeadline` from songreport.ts; `renderSongProgress` in app.ts; `#progBox`); the Music library's tab before Practice (index.html, `TABS`); the Practice sheet's notes in `--ink` (styles.css `.pnt`) | Tests: 43 files, 490 passed (10 new in timeleft.test.ts); headless Edge on `npm run dev` at 1280 px day and 360 px night: the title 0:15 → 0:10 a second a second, held at 0:10 paused, hidden on Stop, "0:13 left in this round" looping; a two-item rewaz 0:14 → 0:00 left in all through rounds and a 3 s break, hidden at "Rewaz done"; My progress with 7 seeded sessions; See all in Progress opening Pitch for the song; page 360 px wide; no console errors (Work log 2026-10-31, PH2-45) | Waiting for Rinat to play, run a rewaz and open My progress |
+| PH2-56 | Claude | Review | The loudness gauge on the voice's loudest moments, its top the mic limit, a border round its scale, the voice line one width (Rinat, 2026-11-05: "if i increase the gain enough to have the app show just right, it is too high for scarlett … I guess i have to tune things to they match"; "the mic limit slightly moves up and down when singing - why is that?"; "Put a thin border around the scale of the loudness gauge"; "Get rid of the voice line thickness"): the needle on each reading's loudest sample, as a peak meter's, against −12 dB of full scale (`GAUGE_MIDDLE`, `GaugeLevel`); the mic limit fixed at the scale's top; the scale bordered; the thickness gone (`widthStep`, `LevelRef`, `micLimit` removed); the files for AI's loudness with the loudest samples' spread, its shares as the gauge moved | Tests: 46 files, 524 passed (loudness.test.ts, session.test.ts); headless Edge on `npm run dev` with a fake voice whose loudest samples go from −28 to −5 dB of full scale, cut off at −0.2, and back: "Too soft" and blue to about −17, "Just right" from about −14, red from about −8, the needle at the top when cut off, the same back down, on Practice and in full screen by day and by night, at 3840 × 2160 and at 360 × 780; the voice line 2.6 px throughout; the For AI file's `loudness` with `median_peak_db`; no console errors (Work log 2026-11-05, PH2-56) | Waiting for Rinat: whether the gauge and the Scarlett's ring now agree, where GAIN 01 ends up, whether the needle's speed suits, whether the border makes the scale stand out, a For AI file with loudness |
 | PH2-55 | Claude | Review | The loudness gauge against −18 dB of full scale, its panel tinted, loudness in the files for AI (Rinat, 2026-11-05: "Taking last 10 seconds as the reference loudness makes it so that if I am being too loud for ten or more seconds, it becomes the norm … maybe a fixed range of db? That would also help me understand if I am too far or too close to the mic"; "if it is to loud, the background colour of the panel will go progressively red to bright red. and blue when its to flat"; "add loudness data when export"): the gauge's middle fixed at −18 dB of full scale (`GAUGE_MIDDLE`; the zones, the needle and the mic limit against it; the voice line's thickness still against the last 10 s); outside the green the gauge's column on Practice and full screen's panel turning red or blue, from 22 % at the zone's edge to 85 % at the gauge's end, the words white once strong (`loudTint`, `tint`); each reading's level and loudest sample kept with the session (`levels`), backed up, and in the files for AI (`level_db`, `peak_db`, a `loudness` summary in each session's parts) | Tests: 46 files, 527 passed (loudness.test.ts, session.test.ts, topsection.test.ts); headless Edge on `npm run dev` with a fake voice from −34 to −10 dB of full scale and back: "Too soft" and blue to −24, "A little soft", clear from about −20 ("Just right"), red from −15, 85 % red at the top, the same back down, on Practice and in full screen by day and by night, at 3840 × 2160 and at 360 × 780; the For AI file's `pitch_readings` with `level_db` and `peak_db`, `loudness` after `notes_of_the_scale`; no console errors (Work log 2026-11-05, PH2-55) | Waiting for Rinat: where a song sits on the gauge now, the gain or distance changed to bring it to the green, whether the red and blue catch the eye without being too much, a For AI file with loudness |
 | PH2-54 | Claude | Review | The screen kept on, round 1 of 1, Sa while playing, the microphone named (Rinat, 2026-11-05: in a rewaz in full screen "the screen turned off. the app should stop the screen being turned off and also prevent pc from falling asleep when playing anything whether fullscreen or not"; "when there is only one round, i would still like to see round 1 of 1"; Sa changed while playing, "the voice line was still expecting me sound like the previous scale … just have the scale change drop down greyed out"; the Scarlett's gain "set to lowest now, absolute lowest. the mic still hears me"): the screen wake lock wanted while a song or a take plays, through a rewaz and its breaks and all the while full screen is on (`wantAwake`), asked for or let go after each change and every 5 s (`keepAwake`, `wake`, `unwake`); "round 1 of 1" in the rewaz bar and full screen's title line (`roundText`, `whereText`); the Sa pickers greyed while a song plays or is paused ("Stop to change Sa"), a Sa set from the Voice page stopping the song first (`setSa`); under the lines, while the pitch check is on, which microphone is heard and another picked (`chooseMic`, `listMics`, `onMicHeard`, `openStream`; micpick.ts; prefs `mic`, not backed up) | Tests: 46 files, 522 passed (micpick.test.ts new; full.test.ts and picker.test.ts for one round); headless Edge on `npm run dev`: a real wake lock took Windows' execution state from 0x0 to 0x3 and back; a two-item routine in full screen at 1280 × 800 held the lock from the first beat, through the 6 s break and after "Rewaz done", asked for it again 0.8 s after the browser let go, let go on leaving full screen; not in full screen, held while playing, let go on pause and Stop; "round 1 of 1" and "Line 1 of 2 · Round 1 of 1"; Sa disabled while playing and paused; a fake microphone picked and heard from the next play, kept after a reload; the practice settings still one line; 360 × 780 by night 345 px wide; no console errors (Work log 2026-11-05, PH2-54) | Waiting for Rinat: the Microphone line naming the Scarlett, GAIN 01's ring while singing, a take at the lowest gain to measure, the screen staying on through a rewaz |
 | PH2-53 | Claude | Review | The loudness gauge in place of loudness by note (Rinat, 2026-11-04: "don't like the loudness panel one bit … let's try the same design as the pitch gauge - have the centre as what ideal loudness should be"; of eight designs on the Claude Design canvas "Loudness panel designs", "go with 2 but use green instead of gold. you can also show mic limit in number 2"): while the pitch check is on, at the end of the line being sung (60 px; 24 on a phone) and in full screen's right panel (`#fullLoud`), an upright scale, louder above its middle, its middle the level the voice has been singing at (`LevelRef`, the last 10 s), 12 dB to each end (`GAUGE_REACH`, `gaugeY`); five zones, green within 3 dB, light red or light blue to 6, red or blue beyond, each held a decibel past its edge (`loudZone`, `ZONE_EDGES`, `ZONE_WORD`: "Just right", "A little loud", "Too loud", "A little soft", "Too soft"); a needle steadied over 0.35 s (`GaugeLevel`), faint after 0.4 s without the voice; the mic limit, a red line hatched above, where the voice's peaks reach full scale (`micLimit`, from each reading's loudest sample, mic.ts `peak`, `peakOf`; pitch.ts `crestRef`); in full screen "louder", "softer", "mic limit", the zone in words and "Too loud for the microphone: turn down its Gain knob" (lines.ts `loudHTML`, `loud`, `loudClear`, `placeLoud`; pitch.ts `hear`, `showLoud`; styles.css `.ldm`, `.ldg`, `.ldz`, `.ldmid`, `.ldlim`, `.ldnd`, `.ldw`, `.ldc`); the rows, the bars and the rise an octave (`LineLevels`, `lineLevel`, `risePerOctave`, `riseWord`, `riseText`, `loudRowsHTML`, `loudBar`) removed; the gauge no longer stays "too loud for the microphone" after Stop (`Overload.now` with no reading yet) | Tests: 45 files, 520 passed (the per-note tests replaced by six for the gauge in loudness.test.ts and two in lines.test.ts); headless Edge on `npm run dev`, round fifty-one's fake voice (rising, cut off, falling) with each block reaching 0.97 scaled to full scale, আরোহ-অবরোহ line 1 looping at tempo 96: "Just right" → "A little loud" (11.5 s) → "Too loud" (15.3 s) rising; the needle at the top, the mic limit from 1 % and the warning while cut off; "A little soft" (22.3 s) → "Too soft" (24.1 s) falling, the mic limit rising off the scale as the voice softened; Practice at 1280 × 800 by day (column 60 × 215 px, scale 14 × 191), full screen by day and by night (panel 141 × 575, scale 28 × 409, "mic limit" inside the panel), 3840 × 2160 (zoom 2.4, loudness 11.3 % of the width), 360 × 780 by night (column 24 px, page 345 px); the warning gone on pause and Stop; no console errors (Work log 2026-11-04, PH2-53) | Waiting for Rinat to sing with it and say whether it reads at a glance, and whether the needle's speed, the green middle and the mic limit are right |
@@ -697,15 +701,16 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-11-01 | **The glow lingers a little longer:** each flash fades over 1.25 beats (at least 220 ms), on a curve that stays above half way from rest to its peak about a fifth of the way through (183 ms at tempo 96, from 91), the next beat's flash taking over as it all but rests; its peaks as before. Replaces "fades back over the beat" in the glow's row above. | Rinat, chat 2026-11-01 ("not noticeable enough, although i don't want it to be distracting either. maybe increase the fade out time just a tad longer"); the curve, Claude's | src/app/fullfx.ts. |
 | 2026-11-01 | **The score panel's list of lines scrolls:** every line of the run is kept (up to 500) and the list scrolls inside the panel (the mouse wheel or a finger; sideways along the strip on a phone), fading at an end only when there is more past it; scrolled back, the rows in view stay as new lines come in at the top. Full screen's page does not scroll, so this list catching the wheel takes nothing from it (unlike the lists of 2026-10-23). | Rinat, chat 2026-11-01 ("could it be scrollable to see the rest?") | src/app/fullscore.ts `edges`; styles.css `.fslines`. |
 | 2026-11-01 | **A layout that fills the screen is checked at 4K too:** full screen (and anything like it) is measured at 3840 × 2160 as well as at a laptop's and a phone's size; Rinat's monitor is a 49-inch 4K TV. | Claude, after Rinat's report of thin panels on the TV (round forty-nine) | CONTEXT.md, Definition of done. |
-| 2026-11-04 | **The voice line drawn thicker when louder,** thinner when softer: five widths (0.55, 0.78, 1, 1.5 and 2.1 times the usual), from the level, smoothed, against the median of the last 10 s of voice (edges at −6, −2, +2 and +6 dB, each step held for a decibel more, so it does not flicker); its dot with it. | Claude's proposal, in the plan Rinat approved 2026-11-04 | `widthStep`, `LevelRef`; `.vt.w0`–`.w4`. |
 | 2026-11-04 | **The overload warning only when the singing is cut off again and again, naming the knob:** told once three blocks (about 21 ms each) with the voice in them have been cut off within 2 s, and for 3 s after the last (a knock, a breath or a single cut does not count); a red end on the bar of the note sung then, as before. It says to turn down the Gain knob on the audio interface or microphone, not the computer's input level, and, when the sound was cut off below full scale, that the computer's level was turned down after the cut. Cut off, as before: a sample at 0.99 of full scale or more, or, from a quarter of full scale, six or more in a row at the block's loudest. | Rinat, chat 2026-11-04 ("I kept reducing the mic volume but i kep getting notification that it is still too loud … setting it to lowest still captures too loud"); the counts and the words are Claude's. Rinat's takes of 25–27 Oct: the voice's median −8.5 to −13.3 dB of full scale, full scale reached in every take | Replaces the row of the same day moved to HISTORY.md. `Overload`, `blockClip` in loudness.ts. Checked in headless Edge only with blocks changed in the page. |
 | 2026-11-05 | **The screen kept on whenever anything plays,** and so the computer kept from sleeping: while a song or a take plays, through a rewaz and its breaks, and all the while full screen is on, paused or not; asked for again every 5 s while wanted, as the browser lets go of it whenever the page is hidden and can drop or refuse it. Paused outside full screen and a rewaz, it is let go. | Rinat, chat 2026-11-05 ("i was doing rewaz in full screen … the screen turned off. the app should stop the screen being turned off and also prevent pc from falling asleep when playing anything whether fullscreen or not"); asking every 5 s, and letting go while paused, are Claude's | Extends the 2026-10-31 rows (the screen kept on while playing and in full screen). app.ts `wantAwake`, `keepAwake`; ENGINE.md → Transport, The screen kept on. |
 | 2026-11-05 | **"Round 1 of 1" for an item of one round,** in the rewaz bar and in full screen's title line, as "round 2 of 3" is for more. | Rinat, chat 2026-11-05 ("when there is only one round, i would still like to see round 1 of 1 - that way i can tell that there is only one round of this during rewaz") | rewaz.ts `roundText` always; full.ts `whereText` with any set number of rounds. |
 | 2026-11-05 | **Sa is not changed while a song plays or is paused:** the Sa pickers are greyed ("Stop to change Sa"), and a Sa set from the Voice page stops the song first. | Rinat, chat 2026-11-05 (the guide followed a Sa changed while playing, the voice line did not; "if fixing this issue makes the code more delicate and prone to failure later … just have the scale change drop down greyed out when any song is playing"); Claude judged following it delicate: a run's notes, its session detail, report and file for AI are all against one Sa | app.ts `setPlayUI`, `setSa`; ENGINE.md → Pitch feedback. |
 | 2026-11-05 | **The microphone heard is named under the lines, and another can be picked there:** with the pitch check's row (Microphone, the computer's own or any the computer has), used from the next time the microphone comes on; one picked and not plugged in falls back to the computer's own, and the line says so. A device setting, not backed up. | Claude, from Rinat's chat 2026-11-05 (the Scarlett's gain at its lowest, "the mic still hears me"; Rinat's PC has a dozen inputs, a webcam's among them, and nothing said which was heard); under the lines, not in the practice settings, to keep those one line (Rinat, 2026-10-23) | mic.ts `chooseMic`, `listMics`, `onMicHeard`; micpick.ts; prefs `mic`; backup.ts `DEVICE_PREFS`; ENGINE.md → Pitch feedback, Capture. |
-| 2026-11-05 | **The loudness gauge's middle fixed at −18 dB of full scale,** a usual level to record a voice at (where a desk's meter reads 0 VU), no longer the level the voice has been singing at; the rest of the gauge as picked on 2026-11-04: while the pitch check is on, at the end of the line being sung and in full screen's right panel, an upright scale, louder above its middle, 12 dB to each end (−30 to −6); within 3 dB green, "Just right"; 3–6 dB "A little loud" (light red) or "A little soft" (light blue); beyond, "Too loud" (red) or "Too soft" (blue); each zone held a decibel past its edge; a needle steadied over 0.35 s, faint where it was when no voice has been heard for 0.4 s; a red line, hatched above, where the voice's peaks reach full scale (its peaks over its level, the median of the last 10 s), shown within 12 dB above the middle; in full screen also "louder", "softer", "mic limit" and the zone in words. The voice line's thickness stays against the voice's own last 10 s. | Rinat, chat 2026-11-05 ("Taking last 10 seconds as the reference loudness makes it so that if I am being too loud for ten or more seconds, it becomes the norm. Is there a better way to calculate this? Is there a industry standard for loudness? maybe a fixed range of db? That would also help me understand if I am too far or too close to the mic"); the gauge itself Rinat's pick of 2026-11-04; −18 dB of full scale, not a LUFS target (for finished programmes, measured over minutes), is Claude's | Supersedes the 2026-11-04 row "The loudness gauge in place of loudness by note" (its middle the level of the last 10 s), moved to HISTORY.md. loudness.ts `GAUGE_MIDDLE`, `micLimit`; pitch.ts `showLoud`, `hear`; ENGINE.md → The loudness gauge. |
 | 2026-11-05 | **The loudness panel tinted red when too loud and blue when too soft,** the more the further: outside the green, the gauge's column on Practice and full screen's loudness panel, from 22 % of the colour at the zone's edge (3 dB) to 85 % at the gauge's end (12 dB), in twentieths, eased over 0.3 s; the panel's words white once past about half the way; the scale itself unchanged. | Rinat, chat 2026-11-05 ("The loudness colour coding could be more eye-catching. Have the panel's background colour change (Leave the scale/meter as it is for now). So if it is to loud, the background colour of the panel will go progressively red to bright red. and blue when its to flat."); the shades (#e0322b, #2a6be0), the steps, the white words and, on Practice, the gauge's own column as its panel are Claude's | loudness.ts `loudTint`; lines.ts `tint`; styles.css `.ldwarm`, `.ldcool`, `.ldstrong`; ENGINE.md → The loudness gauge. |
 | 2026-11-05 | **Each reading's loudness kept and in the files for AI:** with the pitch check, every reading's level and loudest sample (dB of full scale, to a tenth; −120 silence) in the session's detail (`levels`), in the backup, and as `level_db` and `peak_db` in `pitch_readings`; and in each session's parts (the file of one session, a day's, the whole practice's) a `loudness` summary: the level's median, 10th and 90th percentiles, the loudest sample, and the shares just right, louder, too loud, softer, too soft and cut off against the gauge. Sessions from before have none, and the files say so. | Rinat, chat 2026-11-05 ("add loudness data when export"); what is kept and how it is summed up are Claude's | session.ts `PitchDetail.levels`, `cleanSession`; pitch.ts `runDetail`; db.ts; backup.ts `sessionForFile`; aifile.ts `loudnessPart`, `readingsTable`; DATA.md → Session detail, reports and the file for AI. |
+| 2026-11-05 | **The loudness gauge on the voice's loudest moments, against −12 dB of full scale, its top the mic limit,** as the ring round an audio interface's Gain knob reads: the needle on each reading's loudest sample, rising to a louder one over 0.05 s and falling 8 dB a second, as a peak meter's; green within 3 dB of −12 ("Just right", −15 to −9), "A little loud" to −6, "Too loud" beyond, up to 0; "A little soft" to −18, "Too soft" below; each zone held a decibel past its edge; the scale −24 to 0, its top full scale, marked by a fixed red bar ("mic limit" by it in full screen); the rest as picked on 2026-11-04 (an upright scale at the end of the line being sung and in full screen's panel, louder above; the needle faint when no voice has been heard for 0.4 s; "louder", "softer" and the zone in words in full screen). The files for AI's loudness summary adds the loudest samples' median and percentiles, and its shares are of the gauge so moved. | Rinat, chat 2026-11-05 ("there is a discrepancy between the gauge in app and the gain indicator in scarlett. The app is showing my voice to be too flat most of the time. if i increase the gain enough to have the app show just right, it is too high for scarlett. is that normal? I guess i have to tune things to they match"; "the mic limit slightly moves up and down when singing - why is that?"); measured on Rinat's takes of 25–27 Oct (the loudest moments about 16 dB over the average); the loudest moments, −12, the needle's speeds and the fixed limit are Claude's | Supersedes the 2026-11-05 row "The loudness gauge's middle fixed at −18 dB of full scale" (the average against −18; the mic limit from the voice's peaks over its level), moved to HISTORY.md. loudness.ts `GAUGE_MIDDLE`, `GaugeLevel`; pitch.ts `hear`, `showLoud`; aifile.ts `loudnessPart`; styles.css `.ldlim`; ENGINE.md → The loudness gauge. |
+| 2026-11-05 | **A thin border round the loudness gauge's scale:** a ring of the sheet's colour inside a line of ink, its corners as round as the scale's ends, on Practice, in full screen and on a phone, so the scale's red and blue ends stand out from the tinted panel. | Rinat, chat 2026-11-05 ("Put a thin border around the scale of the loudness gauge - currently the panel colour blends in with the scale colour when too loud or too flat."); the ring and its widths are Claude's | styles.css `.ldg`. The 2026-11-05 tint row's "the scale itself unchanged" stands but for this border. |
+| 2026-11-05 | **The voice line one width again,** no longer thicker when louder: 1.5 px, 2.6 in the line being sung and a line opened, its dot one size. | Rinat, chat 2026-11-05 ("Get rid of the voice line thickness. it's too much information to process and confuses me.") | Supersedes the 2026-11-04 row "The voice line drawn thicker when louder", moved to HISTORY.md. `widthStep`, `LevelRef` and `micLimit` gone from loudness.ts; lines.ts `voice`; styles.css `.vt`. |
 | 2026-10-23 | **Built-in exercises stay read-only for now** (Open question 6 answered): they cannot be changed or deleted; copy one to change it. Claude's proposal (changed in place as the user's own, deleted or hidden, a "Bring back the built-in exercises" button) is not built. | Rinat, chat 2026-10-23 ("Keep the built-in exercises read-only for now.") | Invariants → Never lose a song unchanged; Open question 6 removed. |
 | 2026-10-23 | **A break between rounds,** when looping on the Practice view (the Guide panel's "Break between rounds", seconds) and in a rewaz (each routine's "Break between rounds", separate from its break between items): silence with the drone going on, then the count-in again when it is on, and any pickup, then the next round; the line's box counts it down; none after the last round; the note before it fades as at an ending. A pause in a break goes on with the next round. Takes keep it. | Rinat, chat 2026-10-23 ("i'd like the option to add some delay between loops and also between rounds when doing rewaz with multiple rounds"); the count-in again, the drone going on, the countdown, a setting on the Guide panel and per routine are Claude's | transport.ts `gap`; prefs `loopGap`; Routine `roundGap`; Take `gap`; session settings `gap`; docs/ENGINE.md → Transport, DATA.md |
 | 2026-10-23 | **My takes as a table:** grouped by song or by date, each group folding (the first three open), a tick box on each take, on each song's or day's group and Tick all; the takes ticked are deleted together, asked first in the table's bar. | Rinat, chat 2026-10-23 ("needs all the bells and whistles of a table - should be collapsible the song name or the date taken. want to be able to select all the takes in a particular day and delete together. also all the takes of a particular song"; "if multiple takes are deleted together, only then confirmation is fine") | takes.ts `takeGroups`, `allTakesHTML`; prefs `tkGroup`; docs/ENGINE.md → Takes |
@@ -795,7 +800,11 @@ records were folded into on 2026-10-11 (the last rows say where).*
    explained for certain (most likely what the computer's own pointed at then: Windows moves its
    default when a device is unplugged, and the Scarlett is a separate device, with its own
    level, in each USB socket). From round fifty-five the gauge is against −18 dB of full scale,
-   so the gain and the distance show on it directly.
+   so the gain and the distance show on it directly. Rinat, 2026-11-05, with round fifty-five:
+   "The app is showing my voice to be too flat most of the time. if i increase the gain enough
+   to have the app show just right, it is too high for scarlett": the gauge read the voice's
+   average, the ring its loudest moments, about 16 dB over it; from round fifty-six the gauge
+   reads the loudest moments, against −12, its top the mic limit.
 
 ## Work log
 
@@ -812,6 +821,75 @@ Template:
     - **Decisions made:** rows added above.
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
+
+### 2026-11-05 GMT — Claude (Opus 5.5) — PH2-56 the gauge on the loudest moments, its top the mic limit, a border, one width
+
+- **Goal:** Rinat, 2026-11-05: (1) "now there is a discrepancy between the gauge in app and the
+  gain indicator in scarlett. The app is showing my voice to be too flat most of the time. if i
+  increase the gain enough to have the app show just right, it is too high for scarlett. is that
+  normal? I guess i have to tune things to they match."; (2) "Also the mic limit slightly moves
+  up and down when singing - why is that?"; (3) "Put a thin border around the scale of the
+  loudness gauge - currently the panel colour blends in with the scale colour when too loud or
+  too flat."; (4) "Get rid of the voice line thickness. it's too much information to process and
+  confuses me."
+- **Inspected:** loudness.ts, pitch.ts (`hear`, `showLoud`), lines.ts (`loudHTML`, `loud`,
+  `voice`), styles.css (`.ldg`, `.ldlim`, `.vt`, `.pldot`), aifile.ts (`loudnessPart`); the two
+  files of 2026-11-05 in `feedback/` (saved before round fifty-five: no levels). Rinat's takes of
+  25–27 Oct measured as the app reads (scratchpad `crest56.mjs`: windows of 4096 samples every
+  2048): a window's loudest sample a median 8.1–9.1 dB over its level; the level's 90th
+  percentile 4–5 dB over its median; the takes cut off at full scale (peaks' median −0.2 to
+  −4.4). Turned down 10 dB (`needle56.mjs`, four songs): the needle on the level against −18
+  "Too soft" 30–51 % of the singing, "Just right" 24–43 %; a needle on the loudest samples
+  (rising over 0.05 s, falling 8 dB a second) against −12 "Just right" 66–83 %, "Too soft"
+  6–13 %; moving a median 0.5–0.7 dB a tenth of a second (90th percentile 0.9–1.2), the needle
+  on the level 0.5 (1.5). Focusrite's guides (web search): the ring lights green, then amber
+  as the input nears clipping, then red; Rinat's 2i2 is not a 4th generation (Open question 6).
+- **Changed:** `feat(practice): the loudness gauge on the loudest moments, its top the mic
+  limit, a border round its scale, the voice line one width` — src/core/pitch/loudness.ts
+  (`GAUGE_MIDDLE` −12, `GaugeLevel` as a peak meter's needle; `LevelRef`, `micLimit`,
+  `widthStep` removed); src/app/pitch.ts (the needle fed each reading's loudest sample; the
+  crest, the level of the last 10 s and the thickness gone); src/app/lines.ts (`LoudState`
+  without `limit`, `voice` without `thick`, the label and comments); src/app/styles.css (`.ldg`
+  bordered, `.ldlim` a fixed red bar on the scale's top, "mic limit" on two lines in full
+  screen, `.vt` one width, the `w0`–`w4` rules gone); src/app/aifile.ts (`loudnessPart`: the
+  loudest samples' median and percentiles, the shares as the gauge's needle moved;
+  `LEVELS_ABOUT`); tests/unit/loudness.test.ts, session.test.ts; docs/ENGINE.md (the gauge, why
+  the loudest moments, the voice line one width); docs/DATA.md (`loudness`); docs/ROADMAP.md
+  (row 56); docs/HISTORY.md (the two superseded decision rows, the PH2-54 entry); this file.
+- **Tests / verification:** `npx tsc --noEmit -p .` exit 0; `npx vitest run` → 46 files, 524
+  passed; `npm run build` → 404.49 kB JS, 92.90 kB CSS; `bash reference/tests/run-all.sh` →
+  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge
+  on `npm run dev`, restarted and checked with `curl` first (scratchpad `cdp56.mjs`; the fake
+  microphone `loud51.wav`: its loudest samples −27.9 to −5.3 dB of full scale over 16 s, 5 s
+  at −0.2, back down, then −17.3). On Practice at 1280 × 800 by day: "Too soft" with the column
+  blue at 61 %, "A little soft" from about −17, "Just right" from about −14 (the needle 57.5 %
+  down), "A little loud" from about −8, "Too loud" from about −5 (each zone held a decibel past
+  its edge), the needle at 1 % from the top when cut off, the column 85 % red; the same back
+  down, blue to 85 % at the bottom; the last −17.3 stayed "Too soft", rising from the bottom
+  (held a decibel past −18). The scale's border `rgb(251, 251, 248) 0 0 0 2px, rgb(27, 28, 36) 0 0 0
+  3.5px`; the mic limit 6 px above the scale, 4 px tall, 26 px wide over the scale's 14; the
+  voice line 2.6 px in the line being sung throughout, no `w0`–`w4`. In full screen by day the
+  same zones, the needle 1 % from the top when cut off, the panel at its reddest and the words
+  white; by night the same; at 3840 × 2160 by night; at 360 × 780 by night on Practice (page
+  345 px wide) and in full screen (360). A first run showed "mic limit" in full screen on one
+  line, against the panel's edge and under "louder": now on two lines beside the bar, the scale
+  10 px lower; run again, the same zones, no console errors. The session's
+  For AI file: `loudness` after `notes_of_the_scale`, median level −21.8, loudest samples'
+  median −17.2, 10th −27.2, 90th −0.2, loudest −0.2, shares just right 0.192, louder 0.237, too
+  loud 0.147, softer 0.571, too soft 0.475, cut off 0. No console errors.
+- **Decisions made:** three 2026-11-05 rows (the gauge on the loudest moments against −12, its
+  top the mic limit, superseding the −18 row; the border round the scale; the voice line one
+  width, superseding the 2026-11-04 thickness row; both moved to HISTORY.md); Open question 6
+  brought up to date.
+- **Risks or disagreements:** −12 for the loudest moments is a usual aim, not measured on
+  Rinat's voice at today's gain (no file with levels yet); a voice with loud consonants may read
+  louder on the gauge than it sounds. The needle no longer shows the average loudness a
+  listener hears, only how near the top the voice comes. Shares in files of sessions sung with
+  round fifty-five are worked out against the gauge as it is now, not as it was shown. The
+  Scarlett 2i2's ring (not 4th generation) may light amber or red at a level the guides do not
+  say; the gauge's "Too loud" starts at −6.
+- **Next handoff:** Rinat sings with the gauge on the loudest moments, sets GAIN 01 by it, says
+  whether it agrees with the ring, and saves a For AI file with loudness (Next single action).
 
 ### 2026-11-05 GMT — Claude (Opus 5.5) — PH2-55 the gauge against −18 dB, its panel tinted, loudness in the files for AI
 
@@ -885,84 +963,3 @@ Template:
 - **Next handoff:** Rinat sings with the gauge against −18, brings a song to the green with the
   Gain knob or the distance, says whether the tint catches the eye, and saves a For AI file with
   loudness (Next single action).
-
-### 2026-11-05 GMT — Claude (Opus 5.5) — PH2-54 the screen kept on, round 1 of 1, Sa while playing, the microphone named
-
-- **Goal:** Rinat, 2026-11-05: (1) "i am talking about the gain knob in scarlett. I have it set
-  to lowest now, absolute lowest. the mic still hears me … the app shows mic limit as low as
-  what should be ideal volume as soon as i start a song" (with a photo of the Scarlett 2i2,
-  GAIN 01 at its lowest, 48V on, and a screenshot of the gauge, the mic limit about 2 dB above
-  its middle); (2) "i was doing rewaz in full screen … the screen turned off. the app should
-  stop the screen being turned off and also prevent pc from falling asleep when playing
-  anything whether fullscreen or not"; (3) "when there is only one round, i would still like to
-  see round 1 of 1"; (4) Sa changed while playing: "The scale changed and guide sound updated
-  perfectly. But the voice line was still expecting me sound like the previous scale … if
-  fixing this issue makes the code more delicate … just have the scale change drop down greyed
-  out"; (5) going public on a domain of Rinat's own (answered in chat; Open question 3).
-- **Inspected:** app.ts's wake lock (`wake`, `unwake`: asked for only as playing started, full
-  screen opened or the page came back into view; never again if the browser let go or refused);
-  full.ts `whereText` and rewaz.ts `roundText` (the round left out at one round); the tracker
-  (`PitchTracker.saHz` fixed at the run's start; a session's `played.saHz`, its report and file
-  for AI against one Sa); mic.ts `openStream` (voice processing and automatic gain already off;
-  no device chosen, none named). Rinat's two Data.json of 2026-11-05 (pitch only, no levels).
-  Rinat's takes of 26–27 Oct measured (scratchpad `lvl54.py`, 43 ms windows as the app's): the
-  voiced level's median −12.1 to −13.8 dB of full scale, windows' peaks' median −3.1 to −4.7,
-  their crest 8.6–8.9 dB, a sample at full scale in 2.5–4.9 % of voiced windows; the gauge's mic
-  limit worked out the app's way, 3.6–4.7 dB above the middle (its 10th percentile +0.7 to +1.2):
-  the gauge agrees with the recordings. On Rinat's PC (Windows' Core Audio through PowerShell):
-  the default recording device, for apps and calls, "Microphone (2- Scarlett 2i2 USB)", two
-  channels, its level 54 % = 0.0 dB, its range −96 to +30 dB (above 54 % Windows boosts it);
-  other live inputs: the BRIO 4K webcam's microphone, Stereo Mix, Voicemeeter's and VB-Cable's
-  outputs (Voicemeeter not running); the display off after 300 s and sleep after 600 s on mains
-  (`powercfg /query`), no screen saver set. Focusrite's figures for the first generation (spec
-  comparisons): the mic input full at +4 dBu at its lowest gain.
-- **Changed:** `feat(practice): the screen kept on through a rewaz, round 1 of 1, Sa held while
-  playing, the microphone named and picked` — src/app/app.ts (`wantAwake`, `keepAwake`, `wake`
-  one request at a time and kept only while wanted, its `release` listened to, `unwake`; asked
-  for after each play, pause, stop, full screen on or off, a take played alone, the page coming
-  back into view and every 5 s; the Sa pickers disabled while `active()`, titled "Stop to change
-  Sa"; `setSa` stops a song playing first; `initMicPick`); src/app/rewaz.ts and src/app/full.ts
-  ("round 1 of 1"); src/audio/mic.ts (`chooseMic`, `listMics`, `micHeard`, `onMicHeard`;
-  `openStream` opens the one picked, else the computer's own); src/app/micpick.ts (new:
-  `micName`, `heardText`, `initMicPick`); src/app/store.ts (prefs `mic`); src/app/backup.ts
-  (`mic` a device setting, not backed up); index.html (Microphone under the lines, with the
-  pitch check's row); src/app/styles.css (`.pmic`, the Sa pickers greyed); tests/unit/
-  micpick.test.ts (new), full.test.ts, picker.test.ts; docs/ENGINE.md (The screen kept on, The
-  microphone, Sa while playing, round 1 of 1); docs/DATA.md (`mic`); docs/ROADMAP.md (row 54);
-  docs/HISTORY.md (the PH2-52 entry); this file.
-- **Tests / verification:** `npx tsc --noEmit -p .` exit 0; `npx vitest run` → 46 files, 522
-  passed; `npm run build` → 402.13 kB JS, 92.29 kB CSS; `bash reference/tests/run-all.sh` →
-  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge
-  on `npm run dev` (scratchpad `cdp54.mjs`, `es54.ps1`; the fake microphone `loud51.wav`):
-  a real screen wake lock held in headless Edge took Windows' execution state
-  (`CallNtPowerInformation(SystemExecutionState)`) from 0x0 to 0x3 (system and display
-  required) and back to 0x0 on release. With the lock counted in the page: a routine of
-  আরোহ-অবরোহ line 1 once, a 6 s break, then twice, in full screen at 1280 × 800 by day: held
-  from the first beat; the bar "Test 54 · 1 of 2 · আরোহ-অবরোহ · round 1 of 1", the title line
-  "Line 1 of 2 · Round 1 of 1"; the lock let go of by the browser (simulated), asked for again
-  0.8 s later; held through the break (6 … 1), item 2's "round 1 of 2", "round 2 of 2", and
-  after "Rewaz done" while full screen stayed; let go on leaving full screen. Not in full
-  screen: held while playing, let go on pause and Stop. The Sa pickers disabled while playing
-  and paused ("Stop to change Sa"), enabled in the break between items and after Stop. The
-  Microphone list: the computer's own, "Fake Audio Input 1", "Fake Audio Input 2"; "Hearing Fake
-  Default Audio Input." once the microphone was on; Fake Audio Input 1 picked, "Used from the
-  next time the microphone comes on.", then "Hearing Fake Audio Input 1." at the next play;
-  prefs `mic` `{ id, label }`; still picked after a reload. The practice settings one line
-  (56 px tall), the pitch check's row two (72 px); the picker hidden in full screen; at 360 × 780
-  by night the page 345 px wide (its scrollbar), the picker 152 px. No console errors.
-- **Decisions made:** four 2026-11-05 rows (the screen kept on; round 1 of 1; Sa not changed while
-  playing; the microphone named and picked); Open questions 3 and 6 brought up to date.
-- **Risks or disagreements:** why the screen went off in Rinat's rewaz is not known for certain:
-  with the lock held, Windows keeps the display on (measured here, in headless Edge), so it was
-  dropped or refused and not asked for again; the 5 s asking covers that, but Rinat's own
-  browser has not been watched. Paused, the screen may go off (nothing plays). The mic limit's
-  cause is not settled: the gauge agrees with the 26–27 Oct takes, but no take at the lowest
-  gain has been measured; with a studio condenser (Rode), a strong voice close to it can still
-  overload a 2i2 at its lowest gain, or the browser may hear another input (the new line says
-  which). The overload message says "not the computer's input level", which is wrong when
-  Windows' level for the Scarlett is above 54 % (a boost of up to +30 dB). Windows keeps a level
-  for each USB port the Scarlett has been in ("Scarlett 2i2 USB" and "2- Scarlett 2i2 USB").
-- **Next handoff:** Rinat checks that the Microphone line under the lines names the Scarlett,
-  watches GAIN 01's ring while singing loudest, records one take at the lowest gain with Record
-  me for Claude to measure, and does a rewaz in full screen to see the screen stay on (Next
-  single action).

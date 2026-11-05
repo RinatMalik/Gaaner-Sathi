@@ -1,8 +1,8 @@
-// How loud the voice sings (Rinat, 2026-11-04): the microphone overloading, the level the voice
-// has been singing at, the loudness gauge (its fixed middle, scale, zones, steadied needle, where
-// the microphone cuts off and the panel's tint), and the voice line's thickness.
+// How loud the voice sings (Rinat, 2026-11-04): the microphone overloading and the loudness gauge
+// (its middle for the voice's loudest moments, its scale up to where the microphone cuts off, its
+// zones, its needle as a peak meter's and the panel's tint).
 import { describe, expect, it } from 'vitest';
-import { blockClip, CLIP_RUN, GAUGE_MIDDLE, GAUGE_REACH, GaugeLevel, gaugeY, levelDb, LevelRef, loudTint, loudZone, micLimit, Overload, OVERLOAD_BLOCKS, OVERLOAD_HOLD, OVERLOAD_WITHIN, widthStep, ZONE_EDGES, ZONE_WORD, ZONES } from '../../src/core/pitch/loudness';
+import { blockClip, CLIP_RUN, GAUGE_MIDDLE, GAUGE_REACH, GaugeLevel, gaugeY, levelDb, loudTint, loudZone, Overload, OVERLOAD_BLOCKS, OVERLOAD_HOLD, OVERLOAD_WITHIN, ZONE_EDGES, ZONE_WORD, ZONES } from '../../src/core/pitch/loudness';
 
 describe('a reading’s level', () => {
   it('is dB of full scale', () => {
@@ -73,28 +73,24 @@ describe('the microphone overloading', () => {
   });
 });
 
-describe('the level the voice has been singing at', () => {
-  it('is the median of the last ten seconds, the guide in the rests left out', () => {
-    const R = new LevelRef();
-    expect(R.value()).toBeNull();
-    for (let i = 0; i < 100; i++) R.push(i * 0.02, -12 + (i % 3));
-    expect(R.value()).toBe(-11);
-    for (let i = 0; i < 40; i++) R.push(2 + i * 0.02, -40);
-    expect(R.value()).toBe(-11);
-    // Ten seconds on, only what came since counts.
-    for (let i = 0; i < 50; i++) R.push(13 + i * 0.02, -6);
-    expect(R.value()).toBe(-6);
-    R.push(14, -Infinity);
-    expect(R.value()).toBe(-6);
-  });
-});
-
 describe('the loudness gauge (Rinat’s pick, 2026-11-04)', () => {
-  it('has its middle fixed at −18 dB of full scale, a usual level to record a voice at, louder above, 12 dB to each end (Rinat, 2026-11-05)', () => {
-    // Not the voice's own level of the last 10 s: singing too loud for 10 s no longer becomes the norm.
-    expect(GAUGE_MIDDLE).toBe(-18);
+  it('has its middle at −12 dB of full scale for the voice’s loudest moments, louder above, its top full scale (Rinat, 2026-11-05)', () => {
+    // Not the voice's own level of the last 10 s: singing too loud for 10 s does not become the norm.
+    expect(GAUGE_MIDDLE).toBe(-12);
     expect(GAUGE_REACH).toBe(12);
     expect([0, 6, 12, 20, -3, -12, -30].map(gaugeY)).toEqual([50, 25, 0, 0, 62.5, 100, 100]);
+    // The top is where the microphone cuts the voice off: the mic limit, fixed, at the top.
+    expect(GAUGE_MIDDLE + GAUGE_REACH).toBe(0);
+    expect(gaugeY(0 - GAUGE_MIDDLE)).toBe(0);
+  });
+
+  it('agrees with the ring round the Gain knob (Rinat, 2026-11-05: “if i increase the gain enough to have the app show just right, it is too high for scarlett”)', () => {
+    // A voice's loudest moments stand about 16 dB over its average (Rinat's takes of 25–27 Oct).
+    // Its average at −18 dB of full scale (round fifty-five's just right) puts them at −2, near
+    // full scale, where the ring goes red: too loud on the gauge now.
+    expect(loudZone(-18 + 16 - GAUGE_MIDDLE, null)).toBe('loud2');
+    // Its average at −26, the loudest at −10: just right, and the ring stays green.
+    expect(loudZone(-26 + 16 - GAUGE_MIDDLE, null)).toBe('ok');
   });
 
   it('is just right within 3 dB, a little to 6, too loud or too soft beyond', () => {
@@ -114,17 +110,24 @@ describe('the loudness gauge (Rinat’s pick, 2026-11-04)', () => {
     expect(loudZone(9, 'ok')).toBe('loud2');
   });
 
-  it('moves its needle steadily: about two thirds of the way to a new level in a third of a second', () => {
+  it('moves its needle as a peak meter’s: up to a louder moment within a tenth of a second, down 8 dB a second', () => {
     const g = new GaugeLevel();
     expect(g.value()).toBeNull();
     expect(g.push(0, -20)).toBe(-20);
+    // Readings 21 ms apart: three of them (63 ms) take it most of the way up, ten all of it.
     let v = -20;
-    for (let i = 1; i <= 16; i++) v = g.push(i * 0.021, -10);
-    // 16 readings of 21 ms: 0.336 s, about one time constant (0.35 s).
-    expect(v).toBeGreaterThan(-14.2);
-    expect(v).toBeLessThan(-13.4);
-    for (let i = 17; i <= 120; i++) v = g.push(i * 0.021, -10);
-    expect(v).toBeCloseTo(-10, 1);
+    for (let i = 1; i <= 3; i++) v = g.push(i * 0.021, -10);
+    expect(v).toBeGreaterThan(-13.5);
+    expect(v).toBeLessThan(-12);
+    for (let i = 4; i <= 10; i++) v = g.push(i * 0.021, -10);
+    expect(v).toBeCloseTo(-10, 0);
+    // Then softer: it falls 8 dB a second, no faster, and stops at the new level.
+    const t0 = 10 * 0.021;
+    const top = v;
+    for (let i = 1; i <= 24; i++) v = g.push(t0 + i * 0.021, -30);
+    expect(v).toBeCloseTo(top - 8 * 24 * 0.021, 6);
+    for (let i = 25; i <= 200; i++) v = g.push(t0 + i * 0.021, -30);
+    expect(v).toBe(-30);
   });
 
   it('starts afresh after half a second without the voice', () => {
@@ -132,23 +135,9 @@ describe('the loudness gauge (Rinat’s pick, 2026-11-04)', () => {
     g.push(0, -20);
     g.push(0.02, -20);
     expect(g.push(0.7, -8)).toBe(-8);
+    expect(g.push(1.3, -30)).toBe(-30);
     g.clear();
     expect(g.value()).toBeNull();
-  });
-
-  it('marks where the microphone cuts off: the loudest moments at full scale', () => {
-    // A voice at −10 dB of full scale, its peaks 8 dB above: they reach full scale 2 dB louder
-    // (Rinat's takes of 25–27 Oct sat about there).
-    expect(micLimit(-10, 8)).toBe(2);
-    // At −18 with the same peaks there are 10 dB to spare.
-    expect(micLimit(-18, 8)).toBe(10);
-    // Beyond the gauge's reach above: not marked.
-    expect(micLimit(-24, 8)).toBeNull();
-    // Already cut off as the voice usually sings: under the middle.
-    expect(micLimit(-4, 8)).toBe(-4);
-    // Against the fixed middle: Rinat's takes of 26–27 Oct, peaks about 9 dB above the level,
-    // cut off 9 dB above −18, near the gauge's top.
-    expect(micLimit(GAUGE_MIDDLE, 9)).toBe(9);
   });
 
   it('tints the panel red when loud and blue when soft, the further the stronger (Rinat, 2026-11-05)', () => {
@@ -164,22 +153,5 @@ describe('the loudness gauge (Rinat’s pick, 2026-11-04)', () => {
     // A zone held past its edge still tints, faintly.
     expect(loudTint(2.5, 'loud1')).toEqual({ hot: true, k: 0.1 });
     expect(loudTint(-4, 'soft1')!.hot).toBe(false);
-  });
-});
-
-describe('the voice line’s thickness', () => {
-  it('goes from 0 (soft) to 4 (loud), 2 as usual', () => {
-    expect([-9, -4, 0, 4, 9].map((d) => widthStep(d, null))).toEqual([0, 1, 2, 3, 4]);
-  });
-
-  it('holds until a decibel past the next edge, so it does not flicker', () => {
-    expect(widthStep(2.5, 2)).toBe(2);
-    expect(widthStep(3, 2)).toBe(3);
-    expect(widthStep(1.5, 3)).toBe(3);
-    expect(widthStep(0.9, 3)).toBe(2);
-    expect(widthStep(-2.5, 2)).toBe(2);
-    expect(widthStep(-3.1, 2)).toBe(1);
-    // A jump far past the edges goes straight there.
-    expect(widthStep(10, 1)).toBe(4);
   });
 });

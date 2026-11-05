@@ -1,17 +1,18 @@
 /**
  * How loud the voice sings (Rinat, 2026-11-04: "I automatically take it as higher pitches comes
  * with louder volume"), shown on an upright gauge (Rinat's pick of eight designs, 2026-11-04: "go
- * with 2 but use green instead of gold. you can also show mic limit in number 2"): its middle is
- * the level the voice has been singing at (the last 10 s), louder above, softer below, so nothing
- * is set up and moving about between phrases does not matter. Its needle is steadied over about a
- * third of a second, its zones (just right, a little, too) hold a decibel past their edges, and a
- * line marks where the microphone cuts the voice off, from how far its loudest moments stand above
- * its level. The voice line is drawn thicker when louder than the voice has been singing. Levels
- * are dB of full scale, from each reading's root mean square (the browser's automatic gain is
- * off, src/audio/mic.ts). Pure: tested in Node.
+ * with 2 but use green instead of gold. you can also show mic limit in number 2"): how near the
+ * voice's loudest moments come to the most the microphone's input can carry, as the ring round the
+ * Gain knob on an audio interface shows it (Rinat, 2026-11-05: with the gauge on the voice's
+ * average, "if i increase the gain enough to have the app show just right, it is too high for
+ * scarlett"), louder above, softer below. Its needle rises quickly and falls slowly, as a peak
+ * meter's does; its zones (just right, a little, too) hold a decibel past their edges; its top is
+ * where the microphone cuts the voice off. Levels are dB of full scale (the browser's automatic
+ * gain is off, src/audio/mic.ts). Pure: tested in Node.
  */
 
-/** A reading's level in dB of full scale (−Infinity for silence). */
+/** A reading's level (its root mean square) or its loudest sample, 0 to 1, in dB of full scale
+ * (−Infinity for silence). */
 export const levelDb = (rms: number): number => (rms > 0 ? 20 * Math.log10(rms) : -Infinity);
 
 /** A sample this near full scale: the microphone is overloading (its input gain too high). */
@@ -84,61 +85,27 @@ export class Overload {
   }
 }
 
-/** Readings this far under the voice's loud ones are taken for the guide heard in a rest, or a
- * note not sung, not the voice. */
-const BELOW = 20;
-
-const median = (xs: readonly number[]): number => {
-  const s = [...xs].sort((a, b) => a - b);
-  return s.length % 2 ? s[s.length >> 1]! : (s[s.length / 2 - 1]! + s[s.length / 2]!) / 2;
-};
-const quantile = (sorted: readonly number[], q: number): number => sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))]!;
-
-/** The level the voice has been singing at: the median of the last `secs` of its readings, those
- * far under its loud ones left out; null before any. */
-export class LevelRef {
-  private xs: { t: number; db: number }[] = [];
-  constructor(readonly secs = 10) {}
-
-  push(t: number, db: number): void {
-    if (!Number.isFinite(db)) return;
-    this.xs.push({ t, db });
-    let k = 0;
-    while (k < this.xs.length && this.xs[k]!.t < t - this.secs) k++;
-    if (k) this.xs.splice(0, k);
-  }
-
-  value(): number | null {
-    if (!this.xs.length) return null;
-    const s = this.xs.map((x) => x.db).sort((a, b) => a - b);
-    const floor = quantile(s, 0.9) - BELOW;
-    return median(s.filter((v) => v >= floor));
-  }
-
-  clear(): void {
-    this.xs = [];
-  }
-}
-
-/** A zone of the gauge, or a thickness of the voice line, holds until the level is this far past
- * its edge, so it does not flicker on an edge. */
+/** A zone of the gauge holds until the level is this far past its edge, so it does not flicker on
+ * an edge. */
 const HOLD = 1;
 
-/** The level the loudness gauge's middle stands for, dB of full scale (Rinat, 2026-11-05: with
- * the middle the level of the last 10 s, "if I am being too loud for ten or more seconds, it
- * becomes the norm … maybe a fixed range of db? That would also help me understand if I am too
- * far or too close to the mic"): where a voice is set to sit on average when it is recorded,
- * leaving room above it for its loudest moments (a desk's 0 VU, −18 dB of full scale). Until
- * 2026-11-05 the middle was the voice's own level over the last 10 s (`LevelRef`), which the
- * voice line's thickness still follows. */
-export const GAUGE_MIDDLE = -18;
+/** Where the voice's loudest moments are best kept, dB of full scale, the loudness gauge's middle:
+ * a usual aim when recording a voice (peaks about −12, under −6), leaving room for a louder note
+ * before the microphone cuts it off (Rinat, 2026-11-05: "maybe a fixed range of db? That would
+ * also help me understand if I am too far or too close to the mic"). Against the loudest moments,
+ * as the ring round an audio interface's Gain knob is, from round fifty-six: in round fifty-five
+ * the middle was −18 dB of full scale for the voice's average, and a voice's loudest moments
+ * stand about 16 dB over its average (Rinat's takes of 25–27 Oct: 9 dB within 43 ms, and its loud
+ * notes 5 to 7 dB over its usual), so green on the gauge was red on the ring; before that, the
+ * middle was the voice's own average over the last 10 s. */
+export const GAUGE_MIDDLE = -12;
 
-/** The loudness gauge's reach either way, dB against its middle: beyond it the needle stays at
- * the end (−30 to −6 dB of full scale). */
+/** The loudness gauge's reach either way, dB against its middle (−24 to 0 dB of full scale): its
+ * top is the most the microphone's input can carry, where it cuts the voice off. */
 export const GAUGE_REACH = 12;
 
-/** Where the gauge's needle (or the microphone's limit) sits for `d` dB against its middle,
- * percent from the top: louder above the middle. */
+/** Where the gauge's needle sits for `d` dB against its middle, percent from the top: louder above
+ * the middle. */
 export const gaugeY = (d: number): number => 50 - (Math.max(-GAUGE_REACH, Math.min(GAUGE_REACH, d)) / GAUGE_REACH) * 50;
 
 /** The gauge's zones, softest first: within 3 dB of its middle just right, to 6 dB a little soft
@@ -162,18 +129,22 @@ export function loudZone(d: number, prev: LoudZone | null): LoudZone {
   return ZONES[s]!;
 }
 
-/** The gauge's level, steadied (the pitch gauge before it "moves too quickly for me to take that
- * as feedback"): eased towards each reading over about `tau` seconds, started afresh after half a
- * second without the voice. */
+/** The gauge's needle on the voice's loudest moments, as a peak meter's: it rises to a louder
+ * reading over about `rise` seconds and falls `fall` dB a second (a peak programme meter falls 24
+ * dB in about 3 s), so it shows how near the loudest of the last moments came to the top, and it
+ * moves no more than the needle on the average did (the pitch gauge before it "moves too quickly
+ * for me to take that as feedback"); started afresh after half a second without the voice. */
 export class GaugeLevel {
   private v: number | null = null;
   private t = -Infinity;
-  constructor(readonly tau = 0.35) {}
+  constructor(readonly rise = 0.05, readonly fall = 8) {}
 
   push(t: number, db: number): number {
     if (!Number.isFinite(db)) return this.v ?? db;
-    if (this.v == null || t - this.t > 0.5) this.v = db;
-    else this.v += (1 - Math.exp(-Math.max(0, t - this.t) / this.tau)) * (db - this.v);
+    const dt = Math.max(0, t - this.t);
+    if (this.v == null || dt > 0.5) this.v = db;
+    else if (db > this.v) this.v += (1 - Math.exp(-dt / this.rise)) * (db - this.v);
+    else this.v = Math.max(db, this.v - this.fall * dt);
     this.t = t;
     return this.v;
   }
@@ -188,15 +159,6 @@ export class GaugeLevel {
   }
 }
 
-/** Where the microphone cuts the voice off, dB against a level `ref` dB of full scale (the
- * gauge's middle): the voice's loudest moments stand `crest` dB above its level (the median of
- * the last 10 s), so they reach full scale once its level is −`crest` dB of full scale. Null
- * when that is above the gauge's reach (plenty of room). */
-export function micLimit(ref: number, crest: number): number | null {
-  const d = -crest - ref;
-  return d > GAUGE_REACH ? null : d;
-}
-
 /** How strongly the loudness panel is tinted, 0 to 1, red when loud and blue when soft (Rinat,
  * 2026-11-05: "if it is to loud, the background colour of the panel will go progressively red to
  * bright red. and blue when its to flat"), for a level `d` dB against the gauge's middle in
@@ -205,19 +167,4 @@ export function micLimit(ref: number, crest: number): number | null {
 export function loudTint(d: number, zone: LoudZone): { hot: boolean; k: number } | null {
   if (zone === 'ok') return null;
   return { hot: zone === 'loud1' || zone === 'loud2', k: Math.max(0.1, Math.min(1, (Math.abs(d) - 3) / (GAUGE_REACH - 3))) };
-}
-
-/** The edges between the voice line's thicknesses, dB against the level the voice has been
- * singing at: thinnest under −6, then −2, as usual to +2, then +6, thickest beyond. */
-const WIDTH_EDGES = [-6, -2, 2, 6];
-
-/** The voice line's thickness, 0 (softest) to 4 (loudest; 2 as usual), for a level `d` dB against
- * the level the voice has been singing at, given the thickness before (null: none). */
-export function widthStep(d: number, prev: number | null): number {
-  let s = WIDTH_EDGES.filter((e) => d >= e).length;
-  if (prev != null) {
-    if (s > prev && d < WIDTH_EDGES[prev]! + HOLD) s = prev;
-    else if (s < prev && d >= WIDTH_EDGES[prev - 1]! - HOLD) s = prev;
-  }
-  return s;
 }

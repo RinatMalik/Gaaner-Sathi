@@ -225,13 +225,14 @@ describe('the file for AI', () => {
     const rd = d.pitch!.readings;
     const n = rd.filter((v, i) => i % 2 && v > 0).length;
     const half = Math.floor(n / 2);
-    // The first half of the singing at about −18 dB of full scale, the rest at −10 (too loud), the
-    // loudest samples 9 dB above; one of them cut off at full scale; silence −120.
+    // The first half of the singing at about −21 dB of full scale, its loudest samples 9 dB above
+    // (−12, the gauge's middle: just right), the rest at −10, its loudest at −1 (too loud); one of
+    // them cut off at full scale; silence −120.
     let v = 0;
     const levels: number[] = [];
     for (let i = 0; i < rd.length; i += 2) {
       if (!(rd[i + 1]! > 0)) { levels.push(-120, -120); continue; }
-      const lv = v < half ? -18.04 : -10;
+      const lv = v < half ? -21.04 : -10;
       levels.push(lv, v === n - 1 ? 0 : lv + 9);
       v++;
     }
@@ -239,7 +240,7 @@ describe('the file for AI', () => {
     const f = aiFile(input(d)) as Record<string, any>;
     expect(f.pitch_readings.columns).toEqual(['time_s', 'cents_above_sa', 'level_db', 'peak_db']);
     expect(f.pitch_readings.about).toContain('level_db: how loud the reading was');
-    expect(f.pitch_readings.rows.find((r: (number | null)[]) => r[1] != null).slice(2)).toEqual([-18, -9]);
+    expect(f.pitch_readings.rows.find((r: (number | null)[]) => r[1] != null).slice(2)).toEqual([-21, -12]);
     expect(f.pitch_readings.rows[f.pitch_readings.rows.length - 1].slice(1)).toEqual([null, -120, -120]);
     expect(f.pitch_readings.rows.every((r: unknown[]) => r.length === 4)).toBe(true);
     // A summary, with the other summaries, before the earlier sessions and the long tables.
@@ -247,14 +248,19 @@ describe('the file for AI', () => {
     expect(keys.indexOf('loudness')).toBe(keys.indexOf('notes_of_the_scale') + 1);
     expect(keys.indexOf('earlier_sessions_of_this_song')).toBe(keys.indexOf('loudness') + 1);
     expect(f.loudness).toMatchObject({
-      level_db_10th_percentile: -18, level_db_90th_percentile: -10, loudest_peak_db: 0,
-      share_just_right: Math.round((half / n) * 1000) / 1000,
-      share_louder: Math.round(((n - half) / n) * 1000) / 1000,
-      share_too_loud: Math.round(((n - half) / n) * 1000) / 1000,
+      level_db_10th_percentile: -21, level_db_90th_percentile: -10,
+      peak_db_10th_percentile: -12, peak_db_90th_percentile: -1, loudest_peak_db: 0,
       share_softer: 0, share_too_soft: 0,
       share_cut_off: Math.round((1 / n) * 1000) / 1000,
     });
-    expect(f.loudness.about).toContain('green from -21 to -15 dB');
+    // As the gauge's needle moved: it rises to the loud half over a reading or two, just right and
+    // a little loud on the way (a zone holds a decibel past its edge).
+    expect(f.loudness.share_just_right).toBeCloseTo(half / n, 2);
+    expect(f.loudness.share_just_right + f.loudness.share_louder).toBeCloseTo(1, 6);
+    expect(f.loudness.share_too_loud).toBeGreaterThan(f.loudness.share_louder - 0.01);
+    expect(f.loudness.share_too_loud).toBeLessThanOrEqual(f.loudness.share_louder);
+    expect(f.loudness.about).toContain('green from -15 to -9 dB');
+    expect(f.loudness.about).toContain('reads the loudest samples');
     expect(AI_BRIEF.the_parts_of_this_file).toContain('loudness: how loud the singing was');
     // The day's file has it in each session, as the file of one session does.
     const day = JSON.parse(dayFileParts([input(d)], '2026-10-20', T0).join(''));

@@ -1118,11 +1118,8 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .pll.cur .plb.now .nb{stroke:var(--brass);stroke-opacity:1}
 .sg{stroke:var(--rule);stroke-width:1px;vector-effect:non-scaling-stroke}
 .sg.sa{stroke:var(--margin);stroke-width:1.5px}
-.vt{fill:none;stroke:var(--ink-2);stroke-width:calc(1.5px * var(--vw,1));vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
-.pll:is(.cur,.open) .vt{stroke-width:calc(2.6px * var(--vw,1))}
-/* The voice drawn thicker when it sings louder than it has been, thinner when softer
-   (core/pitch/loudness.ts `widthStep`: 2 as usual), and its dot with it. */
-.vt.w0{--vw:.55}.vt.w1{--vw:.78}.vt.w3{--vw:1.5}.vt.w4{--vw:2.1}
+.vt{fill:none;stroke:var(--ink-2);stroke-width:1.5px;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
+.pll:is(.cur,.open) .vt{stroke-width:2.6px}
 /* Looking back (Rinat, 2026-10-19): a tap or click on a line opens it to full size, and again
    closes it; an opened line shows each beat's cents under its strip, in its mark's colour. The
    button that does the same shows only when focused from the keyboard. */
@@ -1144,7 +1141,6 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .plph{position:absolute;top:0;bottom:0;z-index:1;width:2px;margin-left:-1px;border-radius:1px;background:var(--ink);opacity:.7;pointer-events:none}
 .pldot{position:absolute;z-index:2;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;border:2px solid var(--sheet);background:var(--ink-2);pointer-events:none}
 .pldot.good{background:var(--good)}.pldot.ok{background:var(--warn)}.pldot.off{background:var(--red-ink)}
-.pldot.w0{transform:scale(.8)}.pldot.w3{transform:scale(1.2)}.pldot.w4{transform:scale(1.45)}
 /* The taal figure, as big as the number box allows: a shape per vibhag, a corner per beat, in
    its kind's colour (sam, tali, khali, as in the beat boxes; khali's outline dashed). Each
    beat draws the edge on to the next corner, so a shape closes as its last beat ends and then
@@ -1180,7 +1176,9 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .pl.checking{--gw:60px}
 .ldm{--y:50%;--lim:0%;--ld-loud:var(--red-ink);--ld-soft:#2560c7;--ld-ok:var(--good);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;min-height:0;padding:12px 0;border-left:1px solid var(--rule)}
 :root[data-theme="dark"] .ldm{--ld-soft:#86aaff}
-.ldg{position:relative;flex:1 1 auto;width:14px;min-height:0}
+/* A thin border round the scale, a ring of the sheet's colour inside a line of ink, so it stands
+   out from the panel when that is tinted red or blue (Rinat, 2026-11-05). */
+.ldg{position:relative;flex:1 1 auto;width:14px;min-height:0;border-radius:7px;box-shadow:0 0 0 2px var(--sheet),0 0 0 3.5px var(--ink)}
 .ldz{position:absolute;left:0;right:0}
 .ldz.l2{background:var(--ld-loud);border-radius:7px 7px 0 0}
 .ldz.l1{background:color-mix(in srgb,var(--ld-loud) 38%,var(--sheet))}
@@ -1188,8 +1186,9 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .ldz.s1{background:color-mix(in srgb,var(--ld-soft) 36%,var(--sheet))}
 .ldz.s2{background:var(--ld-soft);border-radius:0 0 7px 7px}
 .ldmid{position:absolute;left:-5px;right:-5px;top:50%;height:2px;margin-top:-1px;background:var(--ink);opacity:.55}
-.ldlim{display:none;position:absolute;left:-5px;right:-5px;top:0;height:var(--lim);border-bottom:3px solid var(--red-ink);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--sheet) 75%,transparent) 0 3px,transparent 3px 6px);transition:height .4s ease-out}
-.ldm.haslim .ldlim{display:block}
+/* The mic limit: the scale's top, full scale, where the microphone cuts the voice off; a red line
+   across it, edged in the sheet's colour so it shows on a red panel too. */
+.ldlim{position:absolute;left:-6px;right:-6px;top:-6px;height:4px;border-radius:2px;background:var(--red-ink);box-shadow:0 0 0 1.5px var(--sheet)}
 .ldlim b{display:none}
 .ldnd{position:absolute;left:-7px;right:-7px;top:var(--y);height:4px;margin-top:-2px;border-radius:2px;background:var(--ink);box-shadow:0 0 0 1.5px var(--sheet);transition:top .3s ease-out,opacity .3s}
 .ldnd::after{content:"";position:absolute;right:-11px;top:50%;margin-top:-6px;border-style:solid;border-width:6px 10px 6px 0;border-color:transparent var(--ink) transparent transparent}
@@ -1198,7 +1197,7 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .ldm[data-zone^="loud"] .ldw{color:var(--ld-loud)}
 .ldm[data-zone^="soft"] .ldw{color:var(--ld-soft)}
 .ldm[data-zone="ok"] .ldw{color:var(--ld-ok)}
-@media (prefers-reduced-motion:reduce){.ldnd,.ldlim{transition:none}}
+@media (prefers-reduced-motion:reduce){.ldnd{transition:none}}
 /* Under the lines: the keys to press, and how the voice is doing while the pitch check is on,
    with the run's average as it goes, tinted by it. */
 .plfoot{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:8px 14px;border-top:1px solid var(--rule)}
@@ -1226,11 +1225,11 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
   .pll.open .plb[data-c]::after{font-size:11px}
   .pll.open .plb[data-c][data-late]::after{content:attr(data-c) "\A" attr(data-ls)}
   .ldm{padding:8px 0}
-  .ldg{width:8px}
+  .ldg{width:8px;border-radius:4px;box-shadow:0 0 0 1.5px var(--sheet),0 0 0 2.5px var(--ink)}
   .ldz.l2{border-radius:4px 4px 0 0}
   .ldz.s2{border-radius:0 0 4px 4px}
   .ldmid{left:-3px;right:-3px}
-  .ldlim{left:-3px;right:-3px;border-bottom-width:2px}
+  .ldlim{left:-4px;right:-4px;top:-5px;height:3px}
   .ldnd{left:-5px;right:-5px;height:3px;margin-top:-1.5px}
   .ldnd::after{display:none}
 }
@@ -1357,12 +1356,12 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 :root[data-full] .floud.ldcool{background-color:color-mix(in srgb,var(--ld-cold) var(--tint,0%),var(--sheet))}
 :root[data-full] .floud .ldm{background-color:transparent}
 :root[data-full] .floud.ldstrong :is(.fph,.ldt,.ldw,.ldc,.ldlim b){color:#fff}
-.floud .ldg{width:28px;max-height:460px}
+.floud .ldg{width:28px;max-height:460px;margin-top:10px;border-radius:10px;box-shadow:0 0 0 2.5px var(--sheet),0 0 0 4px var(--ink)}
 .floud .ldz.l2{border-radius:10px 10px 0 0}
 .floud .ldz.s2{border-radius:0 0 10px 10px}
 .floud .ldmid{left:-9px;right:-9px}
-.floud .ldlim{left:-9px;right:-9px}
-.floud .ldlim b{display:block;position:absolute;right:calc(100% + 3px);bottom:-7px;width:min-content;font-size:11px;font-weight:700;line-height:1.1;color:var(--red-ink);text-align:right}
+.floud .ldlim{left:-10px;right:-10px;top:-9px;height:5px}
+.floud .ldlim b{display:block;position:absolute;right:calc(100% + 4px);top:50%;transform:translateY(-50%);width:min-content;font-size:11px;font-weight:700;line-height:1.1;color:var(--red-ink);text-align:right}
 .floud .ldnd{left:-12px;right:-12px;height:6px;margin-top:-3px;border-radius:3px}
 .floud .ldnd::after{right:-16px;margin-top:-9px;border-width:9px 15px 9px 0}
 .floud :is(.ldt,.ldw){display:block;margin:0;text-align:center}

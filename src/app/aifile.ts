@@ -9,7 +9,7 @@ import { parseSong } from '../core/notation/parse';
 import { noteWords, type Insights } from '../core/practice/insights';
 import { LOG_FILE_FORMAT, type LogEntry } from '../core/practice/log';
 import type { PitchDetail, SessionDetail } from '../core/practice/session';
-import { GAUGE_MIDDLE } from '../core/pitch/loudness';
+import { GAUGE_MIDDLE, GaugeLevel, loudZone, type LoudZone } from '../core/pitch/loudness';
 import { centsFromSa } from '../core/pitch/track';
 import { taalInfo } from '../core/taal/taals';
 import { AKAR, BN_LETTER, REPH } from '../core/notation/symbols';
@@ -256,9 +256,10 @@ const readingsTable = (p: PitchDetail, saHz: number) => ({
 
 const LEVELS_ABOUT =
   'level_db: how loud the reading was, the 43 ms or so around it (its RMS), in dB of full scale: 0 is the most the microphone’s ' +
-  'input can carry, ' + GAUGE_MIDDLE + ' the middle of the app’s loudness gauge (a usual level to record a voice at), −120 silence. ' +
-  'peak_db: its loudest sample; 0 (or a hair under) means the voice was cut off there, too loud for the microphone. Both depend on ' +
-  'the microphone, its gain and how far the singer was from it, so compare them within a session, or between sessions with the same setup.';
+  'input can carry, −120 silence. peak_db: its loudest sample; 0 (or a hair under) means the voice was cut off there, too loud for ' +
+  'the microphone. The app’s loudness gauge reads the loudest samples, as the ring round an audio interface’s gain knob does, its ' +
+  'middle at ' + GAUGE_MIDDLE + '; a voice’s loudest samples stand about 9 dB over its level. Both depend on the microphone, its ' +
+  'gain and how far the singer was from it, so compare them within a session, or between sessions with the same setup.';
 
 /** Times to 10 ms and cents to the cent (Rinat, 2026-10-21): the readings are ~21 ms apart and the
  * detector good to a cent or two, and they are most of a file's length; levels to a tenth of a
@@ -275,39 +276,51 @@ function readingRows(readings: readonly number[], lag: number, saHz: number, lev
 }
 
 /** A session's loudness in a few numbers, over the readings with voice: its level's median and
- * spread, its loudest sample, and how much of the singing was near the gauge's middle, louder,
- * softer and cut off; null without levels (before 2026-11-05) or voice. */
+ * spread, its loudest samples' median and spread and the loudest of all, and how much of the
+ * singing the loudness gauge showed just right, louder, softer (its needle on the loudest samples,
+ * as the app moved it) and cut off; null without levels (before 2026-11-05) or voice. */
 export function loudnessPart(p: PitchDetail): Record<string, unknown> | null {
   const lv = p.levels;
   if (!lv) return null;
   const db: number[] = [];
-  let top = -Infinity;
+  const pk: number[] = [];
+  const zones: Record<LoudZone, number> = { soft2: 0, soft1: 0, ok: 0, loud1: 0, loud2: 0 };
+  const needle = new GaugeLevel();
+  let zone: LoudZone | null = null;
   let cut = 0;
   for (let i = 0; i + 1 < p.readings.length; i += 2) {
     if (!(p.readings[i + 1]! > 0)) continue;
     db.push(lv[i]!);
-    top = Math.max(top, lv[i + 1]!);
+    pk.push(lv[i + 1]!);
     if (lv[i + 1]! >= -0.1) cut++;
+    zone = loudZone(needle.push(p.readings[i]!, lv[i + 1]!) - GAUGE_MIDDLE, zone);
+    zones[zone]++;
   }
   if (!db.length) return null;
   db.sort((a, b) => a - b);
-  const q = (x: number) => db[Math.min(db.length - 1, Math.floor(x * db.length))]!;
-  const share = (f: (v: number) => boolean) => r(db.filter(f).length / db.length, 3);
+  pk.sort((a, b) => a - b);
+  const q = (xs: number[], x: number) => r(xs[Math.min(xs.length - 1, Math.floor(x * xs.length))]!, 1);
+  const share = (n: number) => r(n / db.length, 3);
   const M = GAUGE_MIDDLE;
   return {
-    about: 'Over the readings with voice, in dB of full scale (pitch_readings.about says how). The app’s loudness gauge reads green from ' +
-      (M - 3) + ' to ' + (M + 3) + ' dB, a little loud to ' + (M + 6) + ', too loud beyond; a little soft to ' + (M - 6) + ', too soft below. Mostly too loud ' +
-      'with some of it cut off: the gain too high or the singer too close to the microphone; mostly too soft: the gain too low or too far from it.',
-    median_level_db: r(q(0.5), 1),
-    level_db_10th_percentile: r(q(0.1), 1),
-    level_db_90th_percentile: r(q(0.9), 1),
-    loudest_peak_db: r(top, 1),
-    share_just_right: share((v) => v >= M - 3 && v <= M + 3),
-    share_louder: share((v) => v > M + 3),
-    share_too_loud: share((v) => v > M + 6),
-    share_softer: share((v) => v < M - 3),
-    share_too_soft: share((v) => v < M - 6),
-    share_cut_off: r(cut / db.length, 3),
+    about: 'Over the readings with voice, in dB of full scale (pitch_readings.about says how). The app’s loudness gauge reads the ' +
+      'loudest samples, its needle rising quickly and falling slowly as a peak meter’s does: green from ' + (M - 3) + ' to ' + (M + 3) +
+      ' dB, a little loud to ' + (M + 6) + ', too loud beyond, up to 0, where the microphone cuts the voice off; a little soft to ' +
+      (M - 6) + ', too soft below. The shares are of the readings with voice in each of its zones. Mostly too loud with some of it ' +
+      'cut off: the gain too high or the singer too close to the microphone; mostly too soft: the gain too low or too far from it.',
+    median_level_db: q(db, 0.5),
+    level_db_10th_percentile: q(db, 0.1),
+    level_db_90th_percentile: q(db, 0.9),
+    median_peak_db: q(pk, 0.5),
+    peak_db_10th_percentile: q(pk, 0.1),
+    peak_db_90th_percentile: q(pk, 0.9),
+    loudest_peak_db: r(pk[pk.length - 1]!, 1),
+    share_just_right: share(zones.ok),
+    share_louder: share(zones.loud1 + zones.loud2),
+    share_too_loud: share(zones.loud2),
+    share_softer: share(zones.soft1 + zones.soft2),
+    share_too_soft: share(zones.soft2),
+    share_cut_off: share(cut),
   };
 }
 

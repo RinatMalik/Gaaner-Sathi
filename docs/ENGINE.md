@@ -357,7 +357,7 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   note that was playing when it was sung, as the singer heard it: `t − lag`, where `lag` is
   only the device's delay, sound out and back in (measured, below; else the device's own
   figure: output, base and input latency). Everything follows it: the voice drawn, its
-  colours and thickness, the loudness gauge, the marks and the scores. Nothing is fitted to the
+  colours, the loudness gauge, the marks and the scores. Nothing is fitted to the
   singing. *Until
   2026-10-19* the lag was fitted to the singing (the delay, 0–600 ms, at which most readings
   landed on their notes), which took the singer's lateness off without saying so, and each
@@ -467,22 +467,27 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   Design canvas, "go with 2 but use green instead of gold. you can also show mic limit in
   number 2"): while the pitch check is on, a column at the end of every line, drawn in the
   line being sung (`loudHTML` in lines.ts; src/core/pitch/loudness.ts; pitch.ts `hear`,
-  `showLoud`). An upright scale, louder above its middle; the middle (a tick) is −18 dB of
-  full scale (`GAUGE_MIDDLE`, since 2026-11-05), a usual level to record a voice at; 12 dB to
-  each end, −30 to −6 (`GAUGE_REACH`, `gaugeY`). Its zones (`loudZone`, `ZONE_WORD`): within 3 dB of the
-  middle green, "Just right"; 3–6 dB light red, "A little loud", or light blue, "A little
-  soft"; beyond, red, "Too loud", or blue, "Too soft"; a zone held until the level is 1 dB
-  past its edge. The needle is the voice's level (20·log10 of each reading's rms: dB of full
-  scale) eased towards each reading over 0.35 s (`GaugeLevel`; about two thirds of the way
-  in a third of a second), started afresh after half a second without the voice; it moves
-  in 0.3 s, and stays, faint, where it was when no voice has been heard for 0.4 s. *The mic
-  limit:* a red line across the scale, hatched above, where the microphone cuts the voice
-  off (`micLimit`): each reading's loudest sample (`peak`, mic.ts) stands some dB above its
-  level, the median of the last 10 s of that (the crest); the voice's peaks reach full scale
-  once its level is −crest dB of full scale, so the line stands at −crest + 18 dB over the
-  middle, shown when within 12 dB above (Rinat's takes of 26–27 Oct, peaks about 9 dB over the
-  level, put it 9 dB over the middle, near the top). It no longer moves with the Gain knob
-  (the needle does); only with how the voice is sung. *The panel tinted* (Rinat, 2026-11-05:
+  `showLoud`). An upright scale, louder above its middle: how near the voice's loudest moments
+  come to full scale, the most the microphone's input can carry, as the ring round an audio
+  interface's Gain knob shows it. The middle (a tick) is −12 dB of full scale (`GAUGE_MIDDLE`,
+  since round fifty-six), the top 0, the bottom −24 (`GAUGE_REACH` 12, `gaugeY`). Its zones
+  (`loudZone`, `ZONE_WORD`): within 3 dB of the middle green, "Just right" (−15 to −9); 3–6 dB
+  light red, "A little loud" (to −6), or light blue, "A little soft" (to −18); beyond, red,
+  "Too loud", or blue, "Too soft"; a zone held until the level is 1 dB past its edge. The
+  needle is the voice's loudest moments (20·log10 of each reading's loudest sample, `peak` in
+  mic.ts, over its 43 ms or so: dB of full scale), moved as a peak meter's needle is
+  (`GaugeLevel`): up to a louder reading over 0.05 s (most of the way in three readings,
+  63 ms), down 8 dB a second (a peak programme meter falls 24 dB in about 3 s), started afresh
+  after half a second without the voice; it moves in 0.3 s, and stays, faint, where it was
+  when no voice has been heard for 0.4 s. On four of Rinat's takes turned down 10 dB it moved a
+  median 0.5–0.7 dB in a tenth of a second (0.9–1.2 at the 90th percentile), as the needle on
+  the average had (0.5, 1.5). *The mic limit:* the scale's top, full scale, a red bar across
+  it edged in the sheet's colour (`.ldlim`), fixed: the needle reaches it when the voice is cut
+  off. *A border round the scale* (Rinat, 2026-11-05: "Put a thin border around the scale of
+  the loudness gauge - currently the panel colour blends in with the scale colour when too
+  loud or too flat"): a ring of the sheet's colour inside a line of ink (2 and 1.5 px; 2.5
+  and 1.5 in full screen; 1.5 and 1 on a phone), its corners as round as the scale's ends, so
+  the scale's red and blue ends stand out from a tinted panel, by day and by night. *The panel tinted* (Rinat, 2026-11-05:
   "The loudness colour coding could be more eye-catching. Have the panel's background colour
   change (Leave the scale/meter as it is for now). So if it is to loud, the background colour
   of the panel will go progressively red to bright red. and blue when its to flat"; `loudTint`,
@@ -490,10 +495,10 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   turn red when loud and blue when soft, from 22 % of the colour at the zone's edge (3 dB) to
   85 % at the gauge's end (12 dB), in steps of 5 % of the way, eased over 0.3 s; once past
   about half the way (55 %), the panel's words turn white. Red #e0322b and blue #2a6be0, by day
-  and by night; the scale itself unchanged. The column is 60 px wide on Practice (scale
+  and by night; the scale itself unchanged but for its border (round fifty-six). The column is 60 px wide on Practice (scale
   14 px), 24 on a phone (8 px, no point on the needle). In full screen (the panel to the right
   of the lines, as tall as they are): the scale 28 px wide and up to 460 tall, "louder" above
-  it, "softer" under it, "mic limit" by its line, the zone in words under it, faint while the
+  it, "softer" under it, "mic limit" by the bar on its top, the zone in words under it, faint while the
   pitch check is off with how to turn it on (`loudBox` on the lines' host); on a phone or
   tablet held upright it stays at the end of the line. Overloaded (`blockClip`, on each block
   of samples as it comes in, mic.ts): a sample at 0.99 of full scale or more ('full'), or,
@@ -514,18 +519,34 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   headless Edge's fake microphone:* it limits a file's loudest moments, rounding a cut-off top
   to a smooth peak at 0.9757 (no two samples the same), so the warning was checked there with
   the blocks scaled up in the page to reach full scale, or cut off and turned down by half
-  (Work log 2026-11-04). *Why a fixed middle* (Rinat, 2026-11-05: "Taking last 10 seconds as
-  the reference loudness makes it so that if I am being too loud for ten or more seconds, it
-  becomes the norm … maybe a fixed range of db? That would also help me understand if I am too
-  far or too close to the mic"): −18 dB of full scale is where a desk's meter reads 0 VU, the
-  usual average to record a voice at, leaving about 18 dB for its loudest moments; a voice
-  sitting there with peaks 9 dB over (Rinat's takes) is never cut off. LUFS (EBU R128's
-  −23, streaming's −14) is for finished programmes, measured over minutes, not for a
-  singer's level as it goes. So the needle says where the gain and the distance from the
-  microphone put the voice: high all the time, turn the Gain knob down or step back; low, the
-  other way. *Until 2026-11-05* the middle was the level the voice had been singing at, the
-  median of its last 10 s (`LevelRef`; it still sets the voice line's thickness): the gain
-  and the distance mattered less, but a voice too loud for 10 s read "Just right". *Measured first* on the 44 takes of 25–27 Oct in `feedback/` (the app's detector
+  (Work log 2026-11-04). *Why the loudest moments, against −12* (Rinat, 2026-11-05, with
+  the gauge on the voice's average against −18: "there is a discrepancy between the gauge in
+  app and the gain indicator in scarlett. The app is showing my voice to be too flat most of
+  the time. if i increase the gain enough to have the app show just right, it is too high for
+  scarlett"): the ring round the Gain knob lights on the voice's loudest moments, and a voice's
+  average stands well under them: in Rinat's takes of 25–27 Oct, 9 dB within a reading's
+  43 ms (the median), and the loud notes 5–7 dB over the usual, about 16 dB in all, so an
+  average at −18 put the loudest at about −2, red on the ring. On four of those takes turned
+  down 10 dB (about where Rinat's gain is now), the needle on the average read "Too soft" for
+  30–51 % of the singing and "Just right" for 24–43 %; on the loudest moments against −12,
+  "Just right" for 66–83 % and "Too soft" for 6–13 % (the takes were cut off at full scale, so
+  turned down they have nothing over −10: a voice at that gain, not cut off, would show some
+  "A little loud"). Peaks about −12 and under −6 dB of full scale are a usual aim when recording
+  a voice; −18 for its average (a desk's 0 VU) suits a voice whose peaks stand less over it.
+  With it the mic limit stopped moving. *In round fifty-five (2026-11-05)* the middle was −18
+  dB of full scale for the voice's average, the needle that eased over 0.35 s, and the mic
+  limit a red line, hatched above, where the voice's peaks would reach full scale (`micLimit`:
+  its peaks over its level, the median of the last 10 s, so it moved a decibel or two as the
+  vowel and the note changed: Rinat, "the mic limit slightly moves up and down when singing").
+  *Why a fixed middle at all* (Rinat, 2026-11-05: "Taking last 10 seconds as the reference
+  loudness makes it so that if I am being too loud for ten or more seconds, it becomes the
+  norm … maybe a fixed range of db? That would also help me understand if I am too far or too
+  close to the mic"): the needle says where the gain and the distance from the microphone put
+  the voice: high all the time, turn the Gain knob down or step back; low, the other way. LUFS
+  (EBU R128's −23, streaming's −14) is for finished programmes, measured over minutes, not for
+  a singer's level as it goes. *Until 2026-11-05* the middle was the level the voice had been
+  singing at, the median of its last 10 s (`LevelRef`): the gain and the distance mattered
+  less, but a voice too loud for 10 s read "Just right". *Measured first* on the 44 takes of 25–27 Oct in `feedback/` (the app's detector
   on each, each semitone's median level): the level rose with pitch in every take, the
   exercises a median +3.3 dB an octave, the songs +7.2 (the slow Tagore songs +7 to +10; in
   বড়ো আশা the low Pa 12.6 dB under Sa and the upper Sa 5.9 over it), and 0.5–4 % of the
@@ -538,17 +559,11 @@ All sources → master gain 0.8 → compressor (threshold −14 dB, knee 10, rat
   was loud on it against the line's own level, and the line's rise for each octave up in
   words and as a number; Rinat: "complicated and unintuitive and doesn't help when looking at
   during singing".
-- **The voice drawn thicker when louder** (Rinat, 2026-11-04, with loudness by note; kept
-  with the gauge, "leave it for now"): in five steps against the level the voice has been singing at, the median of its last 10 s with
-  the readings 20 dB under that time's 90th percentile left out (`LevelRef`). The level,
-  smoothed (each reading moves it 35 % of the way: about 60 ms), more than 6 dB under it is
-  step 0, 2–6 dB under step 1, within 2 dB step 2 (the usual width), 2–6 dB over step 3,
-  more than 6 dB over step 4; each step held until the level is 1 dB past its edge, so it
-  does not flicker (`widthStep`). Drawn 0.55, 0.78, 1, 1.5 and 2.1 times the usual width
-  (`.vt.w0`–`.w4`, `--vw`), the dot 0.8 to 1.45 times its size; a new piece of the line starts
-  where the step changes, as where the colour does. Still against the voice's own last 10 s
-  after the gauge's middle was fixed (2026-11-05): it shows a note sung louder or softer than
-  those around it, whatever the gain.
+- **The voice line is one width** (1.5 px; 2.6 in the line being sung and a line opened). *From
+  2026-11-04 to round fifty-six* it was drawn thicker when louder, in five steps (0.55 to 2.1
+  times the usual, its dot with it) against the median of the voice's last 10 s (`widthStep`,
+  `LevelRef`); Rinat, 2026-11-05: "Get rid of the voice line thickness. it's too much
+  information to process and confuses me".
 - **Looking back** (Rinat, 2026-10-19: "the experience of inspecting my performance after
   finish singing is not great"): a tap or click on any line (not its number box, which plays
   from it) opens it to the size of the line being sung: the words big, the tall strip with
