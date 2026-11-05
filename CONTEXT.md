@@ -210,7 +210,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   C♯3) was the microphone; tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `4ce4601` (CI run `42021525366` green: round fifty-four live; the site serves `index-BnZaihCV.js`).
+- **Last known-good commit:** `c745c3a` (CI run `42029695859` green: round fifty-five live; the site serves `index-B9gRyPYO.js`).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -869,6 +869,8 @@ Template:
   cut off 0. No console errors. The first run's file had no levels: the dev server was serving
   session.ts as it was midway through the edits (it missed a later write; Environment gotchas);
   restarted, it served the files on disk, checked with `curl`, and the run was repeated.
+  Pushed as `c745c3a`; CI run `42029695859` green; the site serves `index-B9gRyPYO.js`
+  (`level_db`, the tint's `ldwarm` and the brief's loudness in it).
 - **Decisions made:** three 2026-11-05 rows (the gauge's middle fixed at −18, superseding the
   2026-11-04 gauge row, moved to HISTORY.md; the panel tinted; each reading's loudness kept and in
   the files for AI); Open question 6 brought up to date.
