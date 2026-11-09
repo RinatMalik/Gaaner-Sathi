@@ -58,6 +58,79 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-11-05 GMT — Claude (Opus 5.5) — PH2-55 the gauge against −18 dB, its panel tinted, loudness in the files for AI
+
+- **Goal:** Rinat, 2026-11-05: (1) "add loudness data when export"; (2) "I have selected scarlett
+  instead of computer's own in the app and it seems a lot more realistic now … scarlett was the
+  default option anyway … i don't understand why" (answered in chat; Open question 6); (3) "The
+  loudness colour coding could be more eye-catching. Have the panel's background colour change
+  (Leave the scale/meter as it is for now). So if it is to loud, the background colour of the
+  panel will go progressively red to bright red. and blue when its to flat"; (4) "Taking last 10
+  seconds as the reference loudness makes it so that if I am being too loud for ten or more
+  seconds, it becomes the norm. Is there a better way to calculate this? Is there a industry
+  standard for loudness? maybe a fixed range of db? That would also help me understand if I am
+  too far or too close to the mic."
+- **Inspected:** pitch.ts `showLoud`, `hear`, `take`, `runDetail` (the gauge against `LevelRef`;
+  each reading's rms and peak heard but not kept); session.ts `cleanSession`; db.ts `add`;
+  backup.ts `sessionForFile`; aifile.ts (`sessionParts`, `readingsTable`, the briefs). Round
+  fifty-four's measurement of Rinat's 26–27 Oct takes (voiced level's median −12.1 to −13.8 dB of
+  full scale, peaks about 9 dB over): against −18 the needle would sit 4–6 dB up, "A little
+  loud", the mic limit about 9 dB up. On Rinat's PC, Windows' Core Audio through PowerShell
+  (scratchpad `ca55.ps1`, reads only): the default recording device for apps and for calls both
+  "Microphone (2- Scarlett 2i2 USB)" (`{ec025a47-…}`), 54 % = 0.0 dB; live inputs now the Scarlett,
+  Stereo Mix and Voicemeeter's outputs (the BRIO webcam's microphone, live in round fifty-four, no
+  longer). Rinat's own browser not looked at.
+- **Changed:** `feat(practice): the loudness gauge against −18 dB of full scale, its panel tinted
+  red and blue, loudness in the files for AI` — src/core/pitch/loudness.ts (`GAUGE_MIDDLE` −18,
+  `loudTint`; comments against the middle); src/app/pitch.ts (the gauge's zone, needle and mic
+  limit against `GAUGE_MIDDLE`, shown from the first reading with voice; each reading's level and
+  loudest sample logged, kept as `levels`, silence −120); src/app/lines.ts (`tint` on the
+  gauge's column and `#fullLoud`; the label and comments); src/app/styles.css (`.ldwarm`,
+  `.ldcool`, `.ldstrong`, `--tint`, `--ld-hot` #e0322b, `--ld-cold` #2a6be0); src/core/practice/
+  session.ts (`PitchDetail.levels`, `SILENT_DB`, kept when it matches the readings); src/app/db.ts
+  (levels as 32-bit floats); src/app/backup.ts (levels to a tenth); src/app/aifile.ts
+  (`level_db`, `peak_db` in `pitch_readings`, `loudnessPart` in `sessionParts` and the whole
+  practice's detail, the three briefs); tests/unit/loudness.test.ts, session.test.ts,
+  topsection.test.ts; docs/ENGINE.md (the fixed middle and why, the tint, the voice line still
+  relative); docs/DATA.md (`levels`, `loudness`, `level_db`, `peak_db`, the backup);
+  docs/ROADMAP.md (row 55); docs/HISTORY.md (the 2026-11-04 gauge row, the PH2-53 entry); this
+  file.
+- **Tests / verification:** `npx tsc --noEmit -p .` exit 0; `npx vitest run` → 46 files, 527
+  passed; `npm run build` → 405.12 kB JS, 92.96 kB CSS; `bash reference/tests/run-all.sh` →
+  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge
+  on `npm run dev` (scratchpad `cdp55.mjs`; the fake microphone `loud51.wav`: −34 to −10 dB of
+  full scale over 16 s, 5 s at −4.9, back down to −34, then −22). On Practice at 1280 × 800 by
+  day: "Too soft" with the column blue at 54 %, easing to 22 % at "A little soft", clear at "Just
+  right" from about −19.8 dB (the needle 57.5 % down, held a decibel past −21), "A little loud"
+  22–43 % red, "Too loud" 50 % and 85 % at the top, white words from 57 %; the same on the way
+  down, blue to 85 % at −34. In full screen by day the panel from rgb(251, 251, 248) to
+  srgb(0.894, 0.314, 0.289) at its reddest, the words white when strong (else the zone's
+  colour); by night the same from rgb(25, 25, 31); at 3840 × 2160 by night; at 360 × 780 by night
+  on Practice (page 345 px wide) and in full screen (360). The session's For AI file: keys in
+  order with `loudness` after `notes_of_the_scale`; `pitch_readings` columns time_s,
+  cents_above_sa, level_db, peak_db; 1,798 rows, the first with voice [−5.13, 3, −38.7, −29.3],
+  silence [−5.15, null, −120, −120]; `loudness` median −21.9, 10th −31.9, 90th −4.9 dB, loudest
+  peak −0.2, shares just right 0.195, louder 0.278, too loud 0.183, softer 0.527, too soft 0.36,
+  cut off 0. No console errors. The first run's file had no levels: the dev server was serving
+  session.ts as it was midway through the edits (it missed a later write; Environment gotchas);
+  restarted, it served the files on disk, checked with `curl`, and the run was repeated.
+  Pushed as `c745c3a`; CI run `42029695859` green; the site serves `index-B9gRyPYO.js`
+  (`level_db`, the tint's `ldwarm` and the brief's loudness in it).
+- **Decisions made:** three 2026-11-05 rows (the gauge's middle fixed at −18, superseding the
+  2026-11-04 gauge row, moved to HISTORY.md; the panel tinted; each reading's loudness kept and in
+  the files for AI); Open question 6 brought up to date.
+- **Risks or disagreements:** −18 dB of full scale assumes the setup should bring a voice there;
+  a quiet microphone at full gain may never reach it, and Rinat's takes sat about 5 dB over it,
+  so the gauge may read "A little loud" for most of a song until the gain or the distance
+  changes. The mic limit no longer moves with the Gain knob (only the needle does). The tint on
+  Practice is the gauge's own 60 px column, not a larger panel (there is none there). Why
+  picking the Scarlett read "more realistic" is not known for certain: today Windows' default
+  for apps and calls is that same Scarlett at 0 dB. A file's `share_cut_off` counts samples at
+  −0.1 dB of full scale or more; the overload warning's own test (`blockClip`) is finer.
+- **Next handoff:** Rinat sings with the gauge against −18, brings a song to the green with the
+  Gain knob or the distance, says whether the tint catches the eye, and saves a For AI file with
+  loudness (Next single action).
+
 ### 2026-11-05 GMT — Claude (Opus 5.5) — PH2-54 the screen kept on, round 1 of 1, Sa while playing, the microphone named
 
 - **Goal:** Rinat, 2026-11-05: (1) "i am talking about the gain knob in scarlett. I have it set

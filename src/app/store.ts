@@ -101,6 +101,12 @@ export interface Prefs extends SoundSettings {
   voiceOct?: number;
   /** The rewaz routines unfolded, by id; absent: all folded. */
   rewazOpen?: string[];
+  /** The rewaz routines in the order dragged, by id; absent: by name (Rinat, 2026-11-09). */
+  rewazOrder?: string[];
+  /** How loud the drone is, 0–1, for every song (Rinat, 2026-11-09); absent: droneLevelOf. */
+  droneLevel?: number;
+  /** The rhythm muted, for every song (Rinat, 2026-11-09), as the guide's mute is. */
+  beatMute?: true;
   /** Day or night colours; unset follows the device. */
   theme?: 'light' | 'dark';
   /** The editor shows the notation as free text; unset: beat boxes. */
@@ -207,6 +213,10 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
   if (Number.isInteger(r.voiceOct) && Math.abs(r.voiceOct as number) <= 2) p.voiceOct = r.voiceOct as number;
   const ro = Array.isArray(r.rewazOpen) ? r.rewazOpen.filter((x): x is string => typeof x === 'string' && !!x).slice(0, 100) : [];
   if (ro.length) p.rewazOpen = ro;
+  const rwo = Array.isArray(r.rewazOrder) ? r.rewazOrder.filter((x): x is string => typeof x === 'string' && !!x).slice(0, 500) : [];
+  if (rwo.length) p.rewazOrder = rwo;
+  if (typeof r.droneLevel === 'number' && Number.isFinite(r.droneLevel)) p.droneLevel = num(r.droneLevel, 0, 1, 0.5);
+  if (r.beatMute === true) p.beatMute = true;
   if (r.theme === 'light' || r.theme === 'dark') p.theme = r.theme;
   if (r.editMode === 'text') p.editMode = 'text';
   const my = r.mySa as Record<string, unknown> | undefined;
@@ -407,7 +417,7 @@ export class RoutineStore {
   /** Save one routine: re-read the stored ones and change only this, so another tab's survive. */
   save(r: Routine): WriteResult {
     const t = songTable(readJSON(this.S, STORE_KEYS.routines));
-    t[r.id] = { name: r.name, items: r.items, updatedAt: r.updatedAt, ...(r.gap != null ? { gap: r.gap } : {}) };
+    t[r.id] = { name: r.name, items: r.items, updatedAt: r.updatedAt, ...(r.gap != null ? { gap: r.gap } : {}), ...(r.sa ? { sa: r.sa } : {}) };
     return writeJSON(this.S, STORE_KEYS.routines, t);
   }
 

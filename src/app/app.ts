@@ -25,7 +25,7 @@ import { wavFile } from '../audio/dsp/pcm';
 import { createEngine, createLiveContext } from '../audio/engine';
 import { MicError, micProblemText } from '../audio/mic';
 import { Recorder } from '../audio/recorder';
-import { guideSlider, type BeatStyle, type GuideLevel, type GuideLoop, type SoundSettings, type TanTune } from '../audio/sound';
+import { droneLevelOf, guideSlider, type BeatStyle, type GuideLevel, type GuideLoop, type SoundSettings, type TanTune } from '../audio/sound';
 import { Transport, type BeatEntry, type BreakEntry, type PlaySource } from '../audio/transport';
 import { EXERCISES } from '../core/exercises';
 import type { Exercise } from '../core/exercises/types';
@@ -39,7 +39,7 @@ import { dayNumber, lastPractised, lengthText, MIN_LOG_SECS, noteTally, type Log
 import type { PitchDetail, PlayedSettings, PlayedSong, SessionDetail } from '../core/practice/session';
 import { eventsByBeat, octaveFor } from '../core/pitch/track';
 import { songSpan } from '../core/pitch/voice';
-import { itemLines, newRoutineId, ROUTINE_LIMITS, STARTER, type Routine, type RoutineItem } from '../core/practice/routine';
+import { itemLines, newRoutineId, ROUTINE_LIMITS, STARTER, type Routine, type RoutineItem, type RoutineSa } from '../core/practice/routine';
 import { clockText, keepsTake, newTakeId, textSig, type Take } from '../core/practice/take';
 import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefix, type ImportedSong } from '../core/song/file';
 import { titleFixes, uniqueTitle } from '../core/song/library';
@@ -158,9 +158,11 @@ let parseTimer = 0;
 const boxesMode = () => prefs.editMode !== 'text';
 const boxesShown = () => boxesMode() && !$('#edit').hidden;
 const routineStore = new RoutineStore(storage);
-/** While a rewaz item plays: its own tempo and guide, over the song's and the settings'. */
+/** While a rewaz item plays: its own tempo and guide and the rewaz's Sa, over the song's and the
+ * settings'. */
 let itemOverride: {
   tempo?: number;
+  sa?: RoutineSa;
   guide?: GuideLevel;
   guideLoop?: GuideLoop;
   /** A take playing back: the song's tempo then, and its count-in and tempo trainer. */
@@ -218,13 +220,13 @@ let leftShown = -1;
 /** The round full screen's title bar says (0-based): the last one shown. */
 let wherePass = 0;
 
-/** The song as played: a rewaz item's tempo over the song's own. */
+/** The song as played: a rewaz item's tempo and the rewaz's Sa over the song's own. */
 const songSource = {
   get saKey() {
-    return current.saKey;
+    return itemOverride?.sa?.saKey ?? current.saKey;
   },
   get saOct() {
-    return current.saOct;
+    return itemOverride?.sa?.saOct ?? current.saOct;
   },
   get startOn() {
     return current.startOn;
@@ -242,9 +244,12 @@ const sound = new Proxy<SoundSettings>(prefs, {
     return own && SONG_SOUND_KEYS.includes(k as keyof SongSound) && Object.hasOwn(own, k) ? own[k as keyof SongSound] : Reflect.get(t, k);
   },
 });
-/** The sound settings as played: a rewaz item's guide over the open song's. */
+/** The sound settings as played: a rewaz item's guide over the open song's, and the levels of
+ * the rhythm and the drone, which are the same for every song (Rinat, 2026-11-09). */
 const soundSource = new Proxy<SoundSettings>(prefs, {
   get(_t, k) {
+    if (k === 'beat' && prefs.beatMute) return 'off';
+    if (k === 'droneVol') return sound.droneVol > 0 ? droneLevelOf(prefs) : 0;
     if (k === 'guide' && itemOverride?.guide) return itemOverride.guide;
     if (k === 'guideLoop' && itemOverride?.guideLoop) return itemOverride.guideLoop;
     if ((k === 'countIn' || k === 'ramp' || k === 'rampStep' || k === 'rampMax') && itemOverride && itemOverride[k] != null) return itemOverride[k];
@@ -525,12 +530,23 @@ function showTempo(t: number): void {
 }
 function clearOverride(): void {
   if (!itemOverride) return;
+  const hadSa = !!itemOverride.sa;
   itemOverride = null;
   if (current) showTempo(shownTempo());
+  if (current && hadSa) {
+    showPlayedSa();
+    setPlayUI();
+  }
+}
+/** Sa as it plays (a rewaz's, while one lies over the song), in the deck and on the keys. */
+function showPlayedSa(): void {
+  showSa(songSource.saKey, songSource.saOct);
+  renderKeys();
 }
 
-/** Play a rewaz item: its song, its lines for its rounds, at its tempo, with its guide. */
-function playItem(it: RoutineItem, gap: number): boolean {
+/** Play a rewaz item: its song, its lines for its rounds, at its tempo, with its guide, in the
+ * rewaz's Sa if it has one. */
+function playItem(it: RoutineItem, gap: number, sa?: RoutineSa): boolean {
   const s = songs.get(it.song) || EXERCISES.find((x) => x.id === it.song);
   if (!s) return false;
   runnerLoading = true;
@@ -543,8 +559,9 @@ function playItem(it: RoutineItem, gap: number): boolean {
   if (!parsed.noteLines.length) return false;
   const [a, b] = itemLines(it, parsed.noteLines.length);
   const g = it.guide;
-  itemOverride = { tempo: it.tempo, guide: g === 'off' ? 'off' : g && sound.guide === 'off' ? 'full' : undefined, guideLoop: g && g !== 'off' ? g : undefined };
+  itemOverride = { tempo: it.tempo, guide: g === 'off' ? 'off' : g && sound.guide === 'off' ? 'full' : undefined, guideLoop: g && g !== 'off' ? g : undefined, sa };
   showTempo(shownTempo());
+  if (sa) showPlayedSa();
   play({ from: a, to: b, loop: true, rounds: it.rounds, gap });
   return playing();
 }
@@ -642,7 +659,8 @@ function showLeft(secs: number | null): void {
   const el = $('#songLeft');
   el.hidden = n < 0;
   if (n < 0) return;
-  el.textContent = V.leftText(n) + (T && T.loop && !T.rounds ? ' in this round' : '');
+  const pass = shownQ && shownQ.pass >= 0 ? shownQ.pass : (shownBrk?.pass ?? 0);
+  el.textContent = V.leftText(n, T?.secondsTotal(pass)) + (T && T.loop && !T.rounds ? ' in this round' : '');
   rewaz.left(n);
 }
 
@@ -1300,16 +1318,19 @@ function setPlayUI(): void {
   // Sa is not changed while a song plays or is paused (Rinat, 2026-11-05: changed while playing,
   // the guide followed it but the voice line was still judged against the Sa it started in; a
   // run's notes, its report and its file for AI are all against one Sa).
+  // A rewaz with a Sa of its own holds it through its breaks too (Rinat, 2026-11-09).
+  const held = rewaz.active && !!itemOverride?.sa;
   for (const id of ['#saKey', '#saOct']) {
     const s = select(id);
     s.dataset.title ??= s.title;
-    s.disabled = active();
-    s.title = active() ? 'Stop to change Sa' : s.dataset.title;
+    s.disabled = active() || held;
+    s.title = held ? 'This rewaz sets Sa. Stop it to change Sa.' : active() ? 'Stop to change Sa' : s.dataset.title;
   }
+  $('#saLab').textContent = held ? 'Sa · this rewaz’s' : 'Sa · your key';
 }
-/** The side instruments the rhythm's instrument can have (the one it goes back to, while muted). */
+/** The side instruments the rhythm's instrument can have. */
 function renderLayerChips(): void {
-  const st = sound.beat === 'off' ? beatWas : sound.beat;
+  const st = sound.beat;
   const r = V.layerChipsHTML(st, (sound.layers as Record<string, string[] | undefined>)[st] || []);
   $('#layerRow').hidden = r.hidden;
   $('#layerChips').innerHTML = r.html;
@@ -1320,20 +1341,22 @@ function setSeg(id: string, v: string | number): void {
 
 // ── Each song's own sound ────────────────────────────────────────────────────
 
-/** The rhythm's instrument to go back to when it is unmuted, which its picker shows meanwhile. */
-let beatWas: Exclude<BeatStyle, 'off'> = 'tabla';
 /** The drone picker's value: off, the tanpura with its first string, or the harmonium. */
 const droneValue = (): string => (sound.droneVol <= 0 ? 'off' : sound.droneType === 'harmonium' ? 'harmonium' : 'tanpura:' + sound.tanTune);
 
-/** The top section's harmonium, drone and rhythm controls, showing the open song's sound. */
+/** The top section's harmonium, drone and rhythm controls: the open song's sound, and the levels
+ * and the rhythm's mute, which are the same for every song. */
 function renderSoundControls(): void {
   setSeg('reedSeg', sound.reeds);
   select('#droneSel').value = droneValue();
-  input('#droneVol').value = String(sound.droneVol);
-  if (sound.beat !== 'off') beatWas = sound.beat;
-  select('#beatSel').value = beatWas;
-  $('#beatMute').setAttribute('aria-pressed', String(sound.beat === 'off'));
-  input('#tablaVol').value = String(sound.tablaVol);
+  const dl = input('#droneVol');
+  dl.value = String(droneLevelOf(prefs));
+  // Its level is every song's, so it cannot be what brings a drone to this one.
+  dl.disabled = sound.droneVol <= 0;
+  dl.title = dl.disabled ? 'No drone here: choose one to set how loud it is' : 'How loud the drone is';
+  select('#beatSel').value = sound.beat;
+  $('#beatMute').setAttribute('aria-pressed', String(!!prefs.beatMute));
+  input('#tablaVol').value = String(prefs.tablaVol);
   select('#speedSel').value = sound.speed;
   input('#fillsChk').checked = !!sound.fills;
   renderLayerChips();
@@ -1346,6 +1369,16 @@ function renderGuide(): void {
   $('#guideMute').setAttribute('aria-pressed', String(prefs.guide === 'off'));
 }
 
+/** The tags on the deck saying whose its settings are: this song's or your usual ones. */
+function renderScope(): void {
+  const w = V.scopeWords(current);
+  for (const el of $$('[data-scope]')) {
+    const t = el.dataset.scope === 'tempo' ? w.tempo : w.song;
+    el.textContent = t.text;
+    el.title = t.title;
+  }
+}
+
 /** "Use my usual sound", shown while one of the user's songs keeps a sound of its own. */
 function renderUsualSound(): void {
   if (!current) return;
@@ -1355,7 +1388,8 @@ function renderUsualSound(): void {
 }
 
 /**
- * Change the song's harmonium, drone or rhythm. One of the user's songs keeps them: the
+ * Change the song's harmonium, drone or rhythm (not how loud they are, which is every song's).
+ * One of the user's songs keeps them: the
  * first change saves its whole sound with it, so it sounds the same however the usual sound
  * changes later. On an exercise they change the usual sound, which every song without its
  * own uses.
@@ -1498,6 +1532,7 @@ function startTakeRun(from: number, loop: boolean, track: number): void {
     lag: prefs.deviceLag ?? recorder.latency(), sig: textSig(current.text), track,
   };
   if (itemOverride?.tempo) takeRun.flat = itemOverride.tempo;
+  if (itemOverride?.sa) takeRun.sa = itemOverride.sa;
   if (T?.gap) takeRun.gap = T.gap;
   recorder.begin(runFirst);
   setRecUI();
@@ -1597,6 +1632,10 @@ async function playTakeWithGuide(t: Take): Promise<void> {
     guideLoop: 'all', guide: sound.guide === 'off' ? 'full' : undefined,
   };
   if (t.flat) itemOverride.tempo = t.flat;
+  if (t.sa) {
+    itemOverride.sa = t.sa;
+    showPlayedSa();
+  }
   takePlay = { take: t, how: 'guide', src: null };
   takeBuf = buf;
   play({ from: t.from, to: t.to, loop: t.loop, rounds: t.loop ? t.rounds : undefined, gap: t.gap });
@@ -1780,7 +1819,7 @@ function renderKeys(): void {
   row.hidden = !prefs.showKeys;
   input('#keysChk').checked = !!prefs.showKeys;
   if (!prefs.showKeys) return;
-  const sa = saMidi(current);
+  const sa = saMidi(songSource);
   const span = songSpan(parsed) ?? { lo: 0, hi: 12 };
   const [lo, hi] = keyRange(sa + span.lo, sa + span.hi);
   const board = $('#keysBoard');
@@ -1802,7 +1841,7 @@ function nextBeat(g: number): number {
 /** Press the keys of beat `now` and outline the first note of beat `next`. */
 function markKeys(now: number, next: number): void {
   keysShown = [now, next];
-  const notes = (g: number) => (parsed.beatList[g]?.units ?? []).flatMap((u) => (u.k === 'note' ? [saMidi(current) + u.semi + 12 * u.oct] : []));
+  const notes = (g: number) => (parsed.beatList[g]?.units ?? []).flatMap((u) => (u.k === 'note' ? [saMidi(songSource) + u.semi + 12 * u.oct] : []));
   const on = new Set(now >= 0 ? notes(now) : []);
   const soon = next >= 0 ? notes(next).slice(0, 1) : [];
   for (const k of $$('#keysBoard [data-m]')) {
@@ -2137,6 +2176,7 @@ function loadSong(song: Song | Exercise): void {
   renderAbout();
   notationBox().value = current.text;
   showSa(current.saKey, current.saOct);
+  renderScope();
   select('#taalSel').value = current.taal;
   taal = taalInfo(current.taal);
   renderStartOn();
@@ -2929,7 +2969,7 @@ export function init(): void {
         return null;
       }
     },
-    saHz: () => saFreq(current),
+    saHz: () => saFreq(songSource),
     script: () => prefs.script,
     parsed: () => parsed,
     beatEls: (g) => lines.cells(g),
@@ -2953,9 +2993,9 @@ export function init(): void {
       },
     },
     voiceOct: {
-      get: () => (prefs.voiceSa ? octaveFor(prefs.voiceSa, saFreq(current)) : prefs.voiceOct),
+      get: () => (prefs.voiceSa ? octaveFor(prefs.voiceSa, saFreq(songSource)) : prefs.voiceOct),
       set: (v) => {
-        const hz = Math.round(saFreq(current) * 2 ** v * 100) / 100;
+        const hz = Math.round(saFreq(songSource) * 2 ** v * 100) / 100;
         if (prefs.voiceSa === hz && prefs.voiceOct == null) return;
         prefs.voiceSa = hz;
         delete prefs.voiceOct;
@@ -2982,6 +3022,15 @@ export function init(): void {
       },
     },
     play: playItem,
+    over: clearOverride,
+    openSa: () => ({ saKey: current.saKey, saOct: current.saOct === 3 || current.saOct === 5 ? current.saOct : 4 }),
+    order: {
+      get: () => prefs.rewazOrder,
+      set: (next) => {
+        prefs.rewazOrder = next;
+        savePrefs();
+      },
+    },
     stop: () => stop(),
     playing: active,
     showPractice: () => switchTab('practice'),
@@ -2997,7 +3046,7 @@ export function init(): void {
   });
   fx = initFullFx($('#fullFx'), () => full.on);
   keyboard = initKeyboard({
-    saMidi: () => saMidi(current),
+    saMidi: () => saMidi(songSource),
     editorOpen: () => !$('#edit').hidden,
     type: (token) => {
       if (boxesMode()) boxes.type(token);
@@ -3061,7 +3110,7 @@ export function init(): void {
         savePrefs();
       },
     },
-    sound: () => sound,
+    sound: () => soundSource,
     script: () => prefs.script,
   });
   progressView = initProgress({
@@ -3242,14 +3291,22 @@ export function init(): void {
     T?.applyBeatLevel();
   };
   select('#beatSel').addEventListener('change', (e) => setBeat({ beat: (e.target as HTMLSelectElement).value as BeatStyle }));
-  $('#beatMute').addEventListener('click', () => setBeat({ beat: sound.beat === 'off' ? beatWas : 'off' }));
+  // How loud the rhythm is, and its mute, are every song's, as the guide's are (Rinat, 2026-11-09);
+  // moving the slider unmutes it.
+  $('#beatMute').addEventListener('click', () => {
+    if (prefs.beatMute) delete prefs.beatMute;
+    else prefs.beatMute = true;
+    savePrefs();
+    renderSoundControls();
+    T?.applyBeatLevel();
+  });
   input('#tablaVol').addEventListener('input', (e) => {
-    const tablaVol = +(e.target as HTMLInputElement).value;
-    if (sound.beat === 'off') setBeat({ tablaVol, beat: beatWas });
-    else {
-      setSound({ tablaVol });
-      T?.applyBeatLevel();
-    }
+    prefs.tablaVol = +(e.target as HTMLInputElement).value;
+    const wasMuted = prefs.beatMute;
+    delete prefs.beatMute;
+    savePrefs();
+    if (wasMuted) renderSoundControls();
+    T?.applyBeatLevel();
   });
   $('#reedSeg').addEventListener('click', (e) => {
     const b = segButton(e);
@@ -3270,7 +3327,7 @@ export function init(): void {
     const b = (e.target as Element).closest<HTMLElement>('button[data-layer]');
     if (!b) return;
     const id = b.dataset.layer!;
-    const st = sound.beat === 'off' ? beatWas : sound.beat;
+    const st = sound.beat;
     if (st !== 'tabla' && st !== 'dholak' && st !== 'kit') return;
     const layers = soundOf(sound).layers;
     const list = new Set(layers[st]);
@@ -3294,8 +3351,8 @@ export function init(): void {
     if (sound.tanTune !== tune) T?.resetTanpura();
   });
   input('#droneVol').addEventListener('input', (e) => {
-    setSound({ droneVol: +(e.target as HTMLInputElement).value });
-    select('#droneSel').value = droneValue();
+    prefs.droneLevel = +(e.target as HTMLInputElement).value;
+    savePrefs();
     T?.applyDrone();
   });
   select('#taalPick').addEventListener('change', (e) => pickTaal((e.target as HTMLSelectElement).value));

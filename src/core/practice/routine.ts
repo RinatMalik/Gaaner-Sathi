@@ -24,10 +24,19 @@ export interface RoutineItem {
   roundGap?: number;
 }
 
+/** A Sa, as a song keeps it. */
+export interface RoutineSa {
+  saKey: number;
+  saOct: 3 | 4 | 5;
+}
+
 export interface Routine {
   id: string;
   name: string;
   items: RoutineItem[];
+  /** One Sa for all its items while it runs, never saved to a song (Rinat, 2026-11-09: a rewaz
+   * meant for C played its later songs in C♯); absent: each song's own. */
+  sa?: RoutineSa;
   /** Seconds of break between items, 0–120 (Rinat, 2026-10-15); absent: ITEM_GAP. */
   gap?: number;
   /** ms since epoch. */
@@ -72,6 +81,13 @@ export function cleanItem(v: unknown): RoutineItem | null {
   return it;
 }
 
+/** A stored Sa, checked: null when it cannot be read. */
+export function cleanSa(v: unknown): RoutineSa | null {
+  if (!v || typeof v !== 'object') return null;
+  const { saKey, saOct } = v as Record<string, unknown>;
+  return Number.isInteger(saKey) && (saKey as number) >= 0 && (saKey as number) <= 11 && (saOct === 3 || saOct === 4 || saOct === 5) ? { saKey: saKey as number, saOct } : null;
+}
+
 /** A stored routine, checked: every field clamped, damaged items dropped. */
 export function cleanRoutine(id: string, v: unknown): Routine | null {
   if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
@@ -81,6 +97,8 @@ export function cleanRoutine(id: string, v: unknown): Routine | null {
   const r: Routine = { id, name, items, updatedAt: typeof o.updatedAt === 'number' && Number.isFinite(o.updatedAt) ? o.updatedAt : 0 };
   const gap = int(o.gap, 0, ROUTINE_LIMITS.gap);
   if (gap != null) r.gap = gap;
+  const sa = cleanSa(o.sa);
+  if (sa) r.sa = sa;
   // Until 2026-10-28 the break between rounds was the routine's, for all its items: now each
   // item's own, starting from it.
   const roundGap = int(o.roundGap, 0, ROUTINE_LIMITS.gap);

@@ -99,6 +99,37 @@ describe('the time left', () => {
     expect(leftText(-3)).toBe('0:00 left');
   });
 
+  it('says what it counts down from, as 3:25/4:30 (Rinat, 2026-11-09)', () => {
+    expect(leftText(205, 270)).toBe('3:25/4:30 left');
+    expect(leftText(204.2, 269.6)).toBe('3:25/4:30 left');
+    expect(leftText(0, 270)).toBe('0:00/4:30 left');
+    // Never more left than it counts down from.
+    expect(leftText(280, 270)).toBe('4:40/4:40 left');
+  });
+
+  it('the whole run is what is left at its first beat, count-in, rounds and breaks with it', () => {
+    const rounds = run(SONG, { from: 0, to: 0, loop: true, rounds: 3, gap: 2 });
+    // The count-in, 3 rounds of 4 s and 2 breaks of 2 s each with the count-in again: 28 s.
+    expect(rounds.T.secondsTotal(0)).toBeCloseTo(28, 6);
+    expect(rounds.T.secondsTotal(2)).toBeCloseTo(28, 6);
+    expect(rounds.T.secondsTotal(0)).toBeCloseTo(rounds.T.secondsLeft(-8, 0), 6);
+    // A play through to the end, and the same without a count-in.
+    expect(run(TWO, { from: 0, to: 0, loop: false }).T.secondsTotal(0)).toBeCloseTo(12, 6);
+    expect(run(TWO, { from: 0, to: 0, loop: false }, { countIn: false }).T.secondsTotal(0)).toBeCloseTo(8, 6);
+  });
+
+  it('a loop with no end counts one round, the first with its count-in', () => {
+    const { T } = run(SONG, { from: 0, to: 0, loop: true }, {}, undefined, 3);
+    expect(T.secondsTotal(0)).toBeCloseTo(8, 6);
+    expect(T.secondsTotal(5)).toBeCloseTo(4, 6);
+  });
+
+  it('follows the tempo trainer, as the time left does', () => {
+    const { T } = run(SONG, { from: 0, to: 0, loop: true, rounds: 2 }, { ramp: true, rampStep: 40, rampMax: 240 }, undefined, 1);
+    // The count-in (8 beats) and round 1 at 120, 4 s each; round 2 at 160, 3 s.
+    expect(T.secondsTotal(0)).toBeCloseTo(11, 6);
+  });
+
   it('in a rewaz, adds the items after this one and the breaks between them', () => {
     const shape = () => ({ tempo: 120, lineBeats: [8], cycle: 8 });
     // a: a count-in and 3 rounds, 16 s; the break between items, 4 s; b: a count-in and 1 round, 8 s.

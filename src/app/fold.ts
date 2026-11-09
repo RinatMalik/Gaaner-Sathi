@@ -48,20 +48,32 @@ export function inOrder<T extends string>(ids: readonly T[], order: readonly T[]
   return [...known, ...ids.filter((id) => !known.includes(id))];
 }
 
+/** Which parts of a list are moved by initSectionDrag: a section's and its heading's selectors,
+ * and the names of the data attributes naming it (`data-<id>`) and its grip (`data-<grip>`). */
+export interface DragParts {
+  sec: string;
+  head: string;
+  id: string;
+  grip: string;
+}
+const SECTION_PARTS: DragParts = { sec: '.lsec', head: '.lheadrow', id: 'sec', grip: 'grip' };
+
 /**
- * Moving the sections in `list` (its `.lsec` children, each with a `[data-grip]`): `move`
- * gets the new order (the sections shown, then any others in the stored order) and draws it
- * again; the grip moved keeps the keyboard.
+ * Moving the sections in `list` (by default its `.lsec` children, each with a `[data-grip]`):
+ * `move` gets the new order (the sections shown, then any others in the stored order) and draws
+ * it again; the grip moved keeps the keyboard.
  */
-export function initSectionDrag(list: HTMLElement, o: { order(): readonly string[]; move(next: string[]): void }): void {
-  const sectionsShown = () => Array.from(list.querySelectorAll<HTMLElement>('.lsec'));
+export function initSectionDrag(list: HTMLElement, o: { order(): readonly string[]; move(next: string[]): void }, parts: DragParts = SECTION_PARTS): void {
+  const gripAt = '[data-' + parts.grip + ']';
+  const idOf = (s: HTMLElement) => s.dataset[parts.id]!;
+  const sectionsShown = () => Array.from(list.querySelectorAll<HTMLElement>(parts.sec));
   function moveTo(id: string, at: number): void {
-    const shown = sectionsShown().map((s) => s.dataset.sec!).filter((s) => s !== id);
+    const shown = sectionsShown().map(idOf).filter((s) => s !== id);
     shown.splice(Math.max(0, Math.min(shown.length, at)), 0, id);
     const rest = o.order().filter((s) => !shown.includes(s));
     const next = [...shown, ...rest];
     if (next.join() !== o.order().join()) o.move(next);
-    list.querySelector<HTMLElement>('[data-grip="' + CSS.escape(id) + '"]')?.focus();
+    list.querySelector<HTMLElement>('[data-' + parts.grip + '="' + CSS.escape(id) + '"]')?.focus();
   }
   let drag: { id: string; pointer: number; y0: number; grab: number; on: boolean; at: number } | null = null;
   let dropLine: HTMLElement | null = null;
@@ -77,12 +89,12 @@ export function initSectionDrag(list: HTMLElement, o: { order(): readonly string
     drag = null;
   }
   list.addEventListener('pointerdown', (e) => {
-    const g = (e.target as Element).closest<HTMLElement>('[data-grip]');
+    const g = (e.target as Element).closest<HTMLElement>(gripAt);
     if (!g || e.button !== 0) return;
     e.preventDefault();
     g.setPointerCapture(e.pointerId);
-    const head = g.closest<HTMLElement>('.lheadrow')!;
-    drag = { id: g.dataset.grip!, pointer: e.pointerId, y0: e.clientY, grab: e.clientY - head.getBoundingClientRect().top, on: false, at: -1 };
+    const head = g.closest<HTMLElement>(parts.head)!;
+    drag = { id: g.dataset[parts.grip]!, pointer: e.pointerId, y0: e.clientY, grab: e.clientY - head.getBoundingClientRect().top, on: false, at: -1 };
   });
   list.addEventListener('pointermove', (e) => {
     if (!drag || e.pointerId !== drag.pointer) return;
@@ -91,15 +103,20 @@ export function initSectionDrag(list: HTMLElement, o: { order(): readonly string
       // While moving, the sections show only their headings, so a long one is easy to move;
       // the list keeps its height, so the page does not scroll from under the pointer.
       drag.on = true;
+      const held = sectionsShown().find((s) => idOf(s) === drag!.id);
+      const wasAt = held?.getBoundingClientRect().top ?? 0;
       list.style.minHeight = list.offsetHeight + 'px';
       list.classList.add('sorting');
-      sectionsShown().find((s) => s.dataset.sec === drag!.id)?.classList.add('dragging');
+      held?.classList.add('dragging');
+      // Whatever was open above it has just folded away: the page follows it, so the headings
+      // around it stay in view instead of jumping off the top of a phone's screen.
+      if (held) window.scrollBy(0, held.getBoundingClientRect().top - wasAt);
       dropLine = document.createElement('div');
       dropLine.className = 'ldrop';
       list.appendChild(dropLine);
     }
     const secs = sectionsShown();
-    const me = secs.find((s) => s.dataset.sec === drag!.id);
+    const me = secs.find((s) => idOf(s) === drag!.id);
     if (!me) return;
     me.style.transform = '';
     const top = me.getBoundingClientRect().top;
@@ -125,11 +142,11 @@ export function initSectionDrag(list: HTMLElement, o: { order(): readonly string
   });
   list.addEventListener('pointercancel', endDrag);
   list.addEventListener('keydown', (e) => {
-    const g = (e.target as Element).closest<HTMLElement>('[data-grip]');
+    const g = (e.target as Element).closest<HTMLElement>(gripAt);
     if (!g || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
     e.preventDefault();
-    const id = g.dataset.grip!;
-    const i = sectionsShown().findIndex((s) => s.dataset.sec === id);
+    const id = g.dataset[parts.grip]!;
+    const i = sectionsShown().findIndex((s) => idOf(s) === id);
     moveTo(id, i + (e.key === 'ArrowUp' ? -1 : 1));
   });
 }

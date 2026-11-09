@@ -7,12 +7,12 @@
  * (Rinat, 2026-10-30). The HTML builders are pure and tested in Node.
  */
 import { durationText } from '../core/practice/log';
-import { gapOf, itemLines, moveItems, newRoutineId, ROUTINE_LIMITS, roundGapOf, routineSeconds, STARTER, stepAt, wholeIfAll, type ItemGuide, type Routine, type RoutineItem, type SongShape } from '../core/practice/routine';
+import { gapOf, itemLines, moveItems, newRoutineId, ROUTINE_LIMITS, roundGapOf, routineSeconds, STARTER, stepAt, wholeIfAll, type ItemGuide, type Routine, type RoutineItem, type RoutineSa, type SongShape } from '../core/practice/routine';
 import type { WriteResult } from './store';
 import { foldText } from '../core/song/model';
 import { isTaalId, TAALS } from '../core/taal/taals';
-import { GRIP_ICON } from './fold';
-import { esc, leftText, showMixed, tickHTML } from './view';
+import { GRIP_ICON, initSectionDrag, inOrder, type DragParts } from './fold';
+import { esc, KEYS, leftText, OCTS, saKeyName, showMixed, tickHTML } from './view';
 
 const svg = (body: string) => '<svg viewBox="0 0 24 24" aria-hidden="true">' + body + '</svg>';
 const ICON = {
@@ -150,8 +150,30 @@ export interface RoutineRow {
  * warm-up is not saved. */
 export function metaText(r: Routine, saved: boolean, secs: number): string {
   const count = r.items.length;
-  return (count ? count + ' item' + (count === 1 ? '' : 's') + ' · about ' + durationText(Math.max(60, secs)) : 'No items yet') + (saved ? '' : ' · ready-made');
+  return (count ? count + ' item' + (count === 1 ? '' : 's') + ' · about ' + durationText(Math.max(60, secs)) : 'No items yet') + (r.sa ? ' · Sa ' + saKeyName(r.sa.saKey, r.sa.saOct) : '') + (saved ? '' : ' · ready-made');
 }
+
+/** A routine's Sa (Rinat, 2026-11-09): each song's own, or a key, then its octave, for all its
+ * items while it runs. Never saved to the songs. */
+export function saFieldHTML(sa: RoutineSa | undefined): string {
+  const keys = KEYS.map((k, i) => '<option value="' + i + '"' + (sa?.saKey === i ? ' selected' : '') + '>' + k[0] + ' · ' + k[1] + '</option>').join('');
+  const octs = sa ? OCTS.map((o) => '<option value="' + o[0] + '"' + (sa.saOct === o[0] ? ' selected' : '') + '>' + saKeyName(sa.saKey, o[0]) + ' · ' + o[1].toLowerCase() + '</option>').join('') : '';
+  return '<div class="rwf rwsaf" role="group" aria-label="Sa for every item" title="Sing every item in this Sa while the rewaz runs. The songs keep their own."><span>Sa for every item</span><div class="rwsa">' +
+    '<select data-act="sakey" aria-label="Key of Sa for every item"><option value=""' + (sa ? '' : ' selected') + '>Each song’s own</option>' + keys + '</select>' +
+    (sa ? '<select data-act="saoct" aria-label="Octave of Sa for every item">' + octs + '</select>' : '') + '</div></div>';
+}
+
+/** Every routine in the order dragged (by name before any is), the ready-made warm-up first while
+ * it is not saved: it stays on offer, like the exercises, and changing it saves it as the
+ * user's. A routine new since the last drag comes after those dragged. */
+export function routinesInOrder(saved: Iterable<Routine>, order: readonly string[] | undefined): { r: Routine; saved: boolean }[] {
+  const all = Array.from(saved).sort((a, b) => a.name.localeCompare(b.name)).map((r) => ({ r, saved: true }));
+  const list = all.some((x) => x.r.id === STARTER.id) ? all : [{ r: structuredClone(STARTER), saved: false }, ...all];
+  return inOrder(list.map((x) => x.r.id), order).map((id) => list.find((x) => x.r.id === id)!);
+}
+
+/** What moves when a routine is dragged by its grip. */
+const ROUTINE_PARTS: DragParts = { sec: '.rwr', head: '.rwhead', id: 'r', grip: 'rmove' };
 
 /**
  * One routine: a heading row (its name and length; tapped anywhere it folds the routine
@@ -171,12 +193,12 @@ export function routineHTML(r: Routine, n: number, o: RoutineRow, song: (id: str
       ? '<span class="confirm">Delete this routine? <button type="button" class="btn danger" data-act="delyes">Delete</button><button type="button" class="btn" data-act="delno">Keep</button></span>'
       : '<button type="button" class="btn danger" data-act="del">Delete routine</button>';
   return '<section class="rwr' + (o.open ? ' open' : '') + '" data-r="' + esc(r.id) + '">' +
-    '<div class="rwhead"><h3 class="rwh"><button type="button" class="rwfold" data-act="fold" aria-expanded="' + o.open + '" aria-controls="rwb-' + n + '">' + ICON.fold +
+    '<div class="rwhead"><button type="button" class="lgrip rwgrip" data-rmove="' + esc(r.id) + '" aria-label="Move ' + esc(r.name) + ': drag, or press the up or down arrow" title="Drag to move this routine">' + GRIP_ICON + '</button><h3 class="rwh"><button type="button" class="rwfold" data-act="fold" aria-expanded="' + o.open + '" aria-controls="rwb-' + n + '">' + ICON.fold +
     '<span class="rwname">' + esc(r.name) + '</span><span class="rwmeta">' + meta + '</span></button></h3>' +
     '<button type="button" class="rwgo" data-act="start"' + (count ? '' : ' disabled') + '>' + ICON.play + '<span>Start rewaz</span></button></div>' +
     '<div class="rwbody" id="rwb-' + n + '"' + (o.open ? '' : ' hidden') + '>' +
     '<div class="rwopts"><label class="rwf rwnamef"><span>Name</span><input type="text" data-act="name" value="' + esc(r.name) + '" maxlength="' + ROUTINE_LIMITS.name + '" autocomplete="off"></label>' +
-    '<label class="rwf rwnum rwgapf"><span>Break between items, seconds</span><input type="number" min="0" max="' + ROUTINE_LIMITS.gap + '" step="1" inputmode="numeric" data-act="gap" value="' + gapOf(r) + '"></label></div>' +
+    '<label class="rwf rwnum rwgapf"><span>Break between items, seconds</span><input type="number" min="0" max="' + ROUTINE_LIMITS.gap + '" step="1" inputmode="numeric" data-act="gap" value="' + gapOf(r) + '"></label>' + saFieldHTML(r.sa) + '</div>' +
     (count ? tickBarHTML(count, r.items.filter((_, i) => ticked.has(i)).length, !!o.removing) : '') +
     // A column for "to" only where an item plays some of its lines.
     '<ol class="rwlist' + (r.items.some((it) => it.from != null) ? ' rwranges' : '') + '">' + items + '</ol>' +
@@ -199,9 +221,16 @@ export interface RewazHost {
   remove(id: string): WriteResult;
   /** Which routines are unfolded, kept on the device. */
   unfolded: { has(id: string): boolean; set(id: string, open: boolean): void };
-  /** Load the item's song and play its lines for its rounds, with its tempo and guide and
-   * `roundGap` seconds of break between rounds; false when there is nothing to play. */
-  play(it: RoutineItem, roundGap: number): boolean;
+  /** Load the item's song and play its lines for its rounds, with its tempo and guide,
+   * `roundGap` seconds of break between rounds and the routine's Sa if it has one; false when
+   * there is nothing to play. */
+  play(it: RoutineItem, roundGap: number, sa?: RoutineSa): boolean;
+  /** The rewaz is over: what it laid over the open song (its tempo, guide and Sa) goes. */
+  over(): void;
+  /** The open song's Sa: a key picked for a routine starts in its octave. */
+  openSa(): RoutineSa;
+  /** The routines in the order dragged. */
+  order: { get(): readonly string[] | undefined; set(next: string[]): void };
   /** Stop playing (the routine continues: Skip). */
   stop(): void;
   playing(): boolean;
@@ -250,7 +279,9 @@ export function initRewaz(host: RewazHost): Rewaz {
   const barText = $('#rwBarText');
   const barLeft = $('#rwLeft');
 
-  let run: { r: Routine; i: number; started: number; timer: number; skipping: boolean } | null = null;
+  /** `total`: the seconds the bar counts down from, for "3:25/4:30": its estimate, more if the
+   * time left ever comes to more. */
+  let run: { r: Routine; i: number; started: number; timer: number; skipping: boolean; total: number } | null = null;
   /** The routine whose "Delete routine" was pressed, asking to confirm. */
   let confirming = '';
   /** Choosing what to add to a routine: which, and what is ticked so far, in order. */
@@ -259,14 +290,7 @@ export function initRewaz(host: RewazHost): Rewaz {
   const ticks = new Map<string, Set<number>>();
   let removing = '';
 
-  const byName = (a: Routine, b: Routine) => a.name.localeCompare(b.name);
-
-  /** Every routine, by name; the ready-made warm-up first while it is not saved: it stays on
-   * offer, like the exercises, and changing it saves it as the user's. */
-  function routines(): { r: Routine; saved: boolean }[] {
-    const all = Array.from(host.routines().values()).sort(byName).map((r) => ({ r, saved: true }));
-    return all.some((x) => x.r.id === STARTER.id) ? all : [{ r: structuredClone(STARTER), saved: false }, ...all];
-  }
+  const routines = () => routinesInOrder(host.routines().values(), host.order.get());
   function routine(id: string): { r: Routine; saved: boolean } | null {
     const saved = host.routines().get(id);
     if (saved) return { r: saved, saved: true };
@@ -328,7 +352,10 @@ export function initRewaz(host: RewazHost): Rewaz {
    * (null: not started) and `wait` seconds of break before it; hidden once it is done. */
   function showLeft(i: number, itemLeft: number | null, wait = 0): void {
     barLeft.hidden = !run;
-    if (run) barLeft.textContent = leftText(wait + rewazLeft(run.r, i, itemLeft, host.song, host.countIn())) + ' in all';
+    if (!run) return;
+    const left = wait + rewazLeft(run.r, i, itemLeft, host.song, host.countIn());
+    run.total = Math.max(run.total, left);
+    barLeft.textContent = leftText(left, run.total) + ' in all';
   }
 
   function itemText(i: number, extra = ''): string {
@@ -360,7 +387,7 @@ export function initRewaz(host: RewazHost): Rewaz {
     // that there is only one round of this during rewaz").
     showBar(itemText(i, roundText(0, run.r.items[i]!.rounds)));
     showLeft(i, null);
-    if (!host.play(run.r.items[i]!, roundGapOf(run.r.items[i]!))) next(i + 1, 0);
+    if (!host.play(run.r.items[i]!, roundGapOf(run.r.items[i]!), run.r.sa)) next(i + 1, 0);
   }
 
   function next(from: number, gap: number): void {
@@ -376,6 +403,7 @@ export function initRewaz(host: RewazHost): Rewaz {
       showLeft(i, null);
       $('#rwSkip').hidden = true;
       $('#rwStop').textContent = 'Close';
+      host.over();
       return;
     }
     if (!gap) {
@@ -408,7 +436,7 @@ export function initRewaz(host: RewazHost): Rewaz {
     const { r, saved } = got;
     if (!saved) store(r);
     if (run) cancelRun();
-    run = { r: structuredClone(r), i: 0, started: Date.now(), timer: 0, skipping: false };
+    run = { r: structuredClone(r), i: 0, started: Date.now(), timer: 0, skipping: false, total: routineSeconds(r, host.song, host.countIn()) };
     $('#rwSkip').hidden = false;
     $('#rwStop').textContent = 'Stop rewaz';
     host.showPractice();
@@ -421,6 +449,7 @@ export function initRewaz(host: RewazHost): Rewaz {
     run = null;
     bar.hidden = true;
     card.hidden = true;
+    host.over();
   }
 
   // ── Events ─────────────────────────────────────────────────────────────────
@@ -631,6 +660,15 @@ export function initRewaz(host: RewazHost): Rewaz {
     if (on && at >= 0) moveTo(id, moving, at, grip);
   });
   list.addEventListener('pointercancel', endDrag);
+  // The routines themselves, by the grip at the start of each heading (Rinat, 2026-11-09), as the
+  // Music library's sections are.
+  initSectionDrag(list, {
+    order: () => routines().map((x) => x.r.id),
+    move(next) {
+      host.order.set(next);
+      render();
+    },
+  }, ROUTINE_PARTS);
   list.addEventListener('keydown', (e) => {
     const g = (e.target as Element).closest<HTMLElement>('[data-grip]');
     if (!g || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
@@ -679,6 +717,16 @@ export function initRewaz(host: RewazHost): Rewaz {
     }
     const id = routineOf(el);
     const act = el.dataset.act;
+    if (act === 'sakey' || act === 'saoct') {
+      change(id, (r) => {
+        const v = Number(el.value);
+        if (act === 'sakey' && el.value === '') delete r.sa;
+        else if (act === 'sakey') r.sa = { saKey: v, saOct: r.sa?.saOct ?? host.openSa().saOct };
+        else if (r.sa) r.sa.saOct = v === 3 || v === 5 ? v : 4;
+      });
+      refocus(id, act);
+      return;
+    }
     if (act === 'gap') {
       const got = routine(id);
       if (!got) return;

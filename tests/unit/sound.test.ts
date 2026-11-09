@@ -10,7 +10,7 @@ import { cleanSound, SONG_SOUND_KEYS, SOUND_CHOICES, soundOf, type SongSound } f
 
 const OWN: SongSound = {
   reeds: 2, droneType: 'harmonium', droneVol: 0.4, tanTune: 'M',
-  beat: 'dholak', tablaVol: 0.55, speed: 'double', fills: false, layers: { tabla: [], dholak: ['manjira', 'tambourine'], kit: [] },
+  beat: 'dholak', speed: 'double', fills: false, layers: { tabla: [], dholak: ['manjira', 'tambourine'], kit: [] },
 };
 
 class Memory implements KeyValueStore {
@@ -38,7 +38,7 @@ describe('a song’s own sound', () => {
   it('leaves out what it cannot read, so the device’s setting shows through', () => {
     expect(cleanSound({ guide: 'loud', reeds: 4, beat: 'Tabla', speed: 1, fills: 'yes', tanTune: 'S', droneType: 'sitar', droneVol: 'half' })).toBeUndefined();
     expect(cleanSound({ guide: 'loud', beat: 'kit' })).toEqual({ beat: 'kit' });
-    expect(cleanSound({ droneVol: 3, tablaVol: -1 })).toEqual({ droneVol: 1, tablaVol: 0 });
+    expect(cleanSound({ droneVol: 3, tablaVol: -1 })).toEqual({ droneVol: 1 });
     expect(cleanSound({ droneVol: NaN, tablaVol: Infinity })).toBeUndefined();
     for (const junk of [null, undefined, 'tabla', 5, [], [OWN], true]) expect(cleanSound(junk)).toBeUndefined();
     // The prototype's practice settings are not part of a song's sound.

@@ -4,6 +4,7 @@
  * tempo trainer as they were, and the delay from a beat to the voice reaching the app. Pure,
  * so it is tested in Node; the samples themselves are kept beside it (src/app/takes.ts).
  */
+import { cleanSa } from './routine';
 
 export interface Take {
   id: string;
@@ -19,6 +20,8 @@ export interface Take {
   to: number;
   loop: boolean;
   rounds: number;
+  /** The Sa a rewaz sang it in, where that was not the song's own (Rinat, 2026-11-09). */
+  sa?: { saKey: number; saOct: 3 | 4 | 5 };
   /** The song's tempo then; and a rewaz item's, which every beat took, if one played. */
   tempo: number;
   flat?: number;
@@ -81,6 +84,8 @@ export function cleanTake(v: unknown): Take | null {
   if (flat != null) t.flat = Math.round(flat);
   const gap = num(o.gap, 0, 120);
   if (gap) t.gap = gap;
+  const sa = cleanSa(o.sa);
+  if (sa) t.sa = sa;
   return t;
 }
 

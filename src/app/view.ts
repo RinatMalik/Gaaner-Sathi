@@ -26,8 +26,28 @@ export const tickHTML = (attr: string, label: string, all: boolean, some: boolea
   '<label class="tkchk" title="' + label + '"><input type="checkbox" ' + attr + ' aria-label="' + label + '"' + (all ? ' checked' : '') + (some && !all ? ' data-mixed="1"' : '') + '></label>';
 
 /** A time still to go, to the second, rounded up so it reaches 0:00 at the end: "2:05 left"
- * (Rinat, 2026-10-31: beside the title while a song plays, and in the rewaz bar). */
-export const leftText = (secs: number): string => clockText(Math.max(0, Math.ceil(secs - 1e-6))) + ' left';
+ * (Rinat, 2026-10-31: beside the title while a song plays, and in the rewaz bar); with the time
+ * it counts down from, "2:05/4:30 left" (Rinat, 2026-11-09). */
+export function leftText(secs: number, total?: number): string {
+  const left = Math.max(0, Math.ceil(secs - 1e-6));
+  return clockText(left) + (total == null ? '' : '/' + clockText(Math.max(left, Math.ceil(total - 1e-6)))) + ' left';
+}
+
+/** What a setting's tag on the deck says when it is not the open song's: the same everywhere,
+ * or only until another song opens (Rinat, 2026-11-09: "no way for the user to know which ones
+ * are global and which ones aren't"). */
+export const SCOPE_ALL = 'The same for every song and exercise.';
+export const SCOPE_NOW = 'Only for now: nothing is saved, and it goes when another song opens.';
+/**
+ * What the tags on the deck's song settings say, for what is open: a song or an exercise of your
+ * own keeps them; on a built-in exercise, which cannot be changed, Sa and the sound are your
+ * usual ones, and its tempo lasts until another song opens.
+ */
+export function scopeWords(s: { example?: boolean; exercise?: boolean }): { song: { text: string; title: string }; tempo: { text: string; title: string } } {
+  if (s.example) return { song: { text: 'all exercises', title: 'On an exercise these are your usual ones: Sa for every exercise and new song, the sound for those and for any song without its own.' }, tempo: { text: 'for now', title: SCOPE_NOW } };
+  const song = { text: s.exercise ? 'this exercise' : 'this song', title: 'Saved with this ' + (s.exercise ? 'exercise' : 'song') + '. The others keep their own.' };
+  return { song, tempo: song };
+}
 
 /** Tick boxes drawn as some of a group's, under `root`. */
 export function showMixed(root: ParentNode): void {

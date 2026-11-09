@@ -43,7 +43,7 @@ as it was set up (its sound and notes included), without the sender's log, takes
   "fav": true,
   "notes": "From Gitabitan. Teacher: slower in the antara.",
   "sound": { "reeds": 3, "droneType": "tanpura", "droneVol": 0.5, "tanTune": "M",
-             "beat": "dholak", "tablaVol": 0.7, "speed": "normal", "fills": true,
+             "beat": "dholak", "speed": "normal", "fills": true,
              "layers": { "tabla": [], "dholak": ["manjira"], "kit": [] } }
 }
 ```
@@ -62,7 +62,7 @@ as it was set up (its sound and notes included), without the sender's log, takes
 | `exercise` | `true` for one of your songs listed under Exercises (your own exercise: "List under" in Edit notation, "+ New exercise", or a copy of a built-in one); absent: under My songs. Never on a built-in exercise, which is `example` in the app and never stored. |
 | `notes` | Notes about the song (its meaning, source, a teacher's comments): free text, at most 20 000 characters, shown above the sheet, printed and searched. Absent when empty. |
 | `dismissed` | The checker's warnings dismissed on this song, as short fingerprints (base-36, NOTATION.md → Checker → Dismissing), the newest 200; absent when none. Never on a built-in exercise. |
-| `sound` | The song's own harmonium, drone and rhythm (set in the top section since 2026-10-22; in Edit notation → Sound of this song before), with the same names and values as the device settings below. Absent while the song uses the usual sound. The app writes the whole set; reading checks each field and leaves out any it cannot read, so the device's setting shows through for that one. A `guide` written before 2026-10-13 is left out: the guide's level is a practice setting now. |
+| `sound` | The song's own harmonium, drone and rhythm (set in the top section since 2026-10-22; in Edit notation → Sound of this song before), with the same names and values as the device settings below. Absent while the song uses the usual sound. The app writes the whole set; reading checks each field and leaves out any it cannot read, so the device's setting shows through for that one. A `guide` written before 2026-10-13 is left out: the guide's level is a practice setting now; so is a `tablaVol` written before 2026-11-09, the rhythm's level being the device's. `droneVol` here says only whether the song has a drone: 0 none, any other value one, heard at the device's level (`droneLevel`). |
 
 `normalize()` runs on every song read or imported and clamps every field, as the prototype's
 does. `tags`, `fav`, `exercise`, `notes`, `dismissed` and `sound` are left out when unset, so a prototype song reads
@@ -113,14 +113,16 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `script` | `bn` or `lat` |
 | `guide` | `full` (on), `off` (muted), or `soft` (from before 2026-10-22: a third of Full while `guideVol` is unset) |
 | `guideVol` | The guide's volume, 0–1 of Full, from the top section's slider (2026-10-22); absent: as `guide` says. Moving the slider unmutes; muting keeps it |
-| `beat` | `tabla`, `dholak`, `kit`, `click` or `off` (the rhythm muted, its picker showing the one it goes back to) |
-| `tablaVol` | 0–1 |
+| `beat` | `tabla`, `dholak`, `kit`, `click` or `off` (No rhythm, a choice in the instrument picker from 2026-11-09, kept with a song like the others; until then `off` was the mute, which is `beatMute` now) |
+| `beatMute` | `true` while the rhythm is muted, for every song and exercise (2026-11-09); absent: not muted. Moving the Rhythm fader unmutes |
+| `tablaVol` | The rhythm's level, 0–1, for every song and exercise (a song could keep its own until 2026-11-09) |
 | `speed` | `half`, `normal` or `double` |
 | `fills` | boolean |
 | `layers` | `{ tabla: [...], dholak: [...], kit: [...] }` |
 | `reeds` | 1, 2 or 3 |
 | `droneType` | `tanpura` or `harmonium` |
-| `droneVol` | 0–1 |
+| `droneVol` | 0–1. In your usual sound, 0 is no drone and any other value a drone; it gives the drone's level only until `droneLevel` is set |
+| `droneLevel` | The drone's level, 0–1, for every song and exercise, from the Guide panel's slider (2026-11-09); absent: `droneVol` if above 0, else 0.5 |
 | `tanTune` | `P`, `M` or `N` |
 | `countIn` | boolean |
 | `guideLoop` | `all`, `first` or `alt` |
@@ -145,6 +147,7 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `voiceSa` | The Sa the voice sang on in the last run where something was sung, Hz (30–1100: the song's Sa moved by the octave sung in), when any octave counts; the next run, of any song, starts drawing the voice in the octave nearest it (ENGINE.md → The octave sung in). Written in place of `voiceOct` from 2026-10-21 (PH2-33). Absent until a run with the pitch check |
 | `voiceOct` | Kept until 2026-10-21 (PH2-33): the octave the voice sang in against the notes at the end of the last run (−2 to 2; −1: an octave below). Read only while `voiceSa` is absent, and dropped when it is written |
 | `rewazOpen` | The ids of the rewaz routines unfolded on the Rewaz view; absent: all folded. (`rewazId`, the routine last chosen, is no longer read) |
+| `rewazOrder` | The rewaz routines' ids in the order dragged (2026-11-09); absent: by name, the starter first. A routine not in it goes after those that are |
 | `theme` | `light` (Day) or `dark` (Night); absent: Auto, as the device says. Read by a line in the page's head before the app runs, so a reload never flashes the other colours |
 | `editMode` | `text` when the editor shows free text; absent: beat boxes |
 | `mySa` | Your Sa, `{ saKey, saOct }`: from the range finder's "Use as my Sa", or a Sa changed on an exercise. Exercises open in it and new songs start in it |
@@ -156,7 +159,7 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `midi` | A MIDI keyboard: `{ route: 'app' \| 'kb' \| 'both', sound: 'keep' \| 'organ' \| 'accordion', out?: id }`: where the guide plays, in what sound, on which keyboard |
 
 **Each song's own sound.** The harmonium, drone and rhythm settings (`reeds`, `droneType`,
-`droneVol`, `tanTune`, `beat`, `tablaVol`, `speed`, `fills`, `layers`) kept here are *your
+`droneVol`, `tanTune`, `beat`, `speed`, `fills`, `layers`) kept here are *your
 usual sound*. Exercises use it, and so does every song without a `sound` of its own (new
 songs, and songs from before this existed). They are set in the top section's guide and rhythm
 panels (Rinat, 2026-10-22; in Edit notation's Sound of this song before). Changing one of them
@@ -165,8 +168,12 @@ alone; while an exercise is open, it changes the usual sound. "Use my usual soun
 rhythm panel while a song has its own, removes it. The guide and practice settings
 (`guide`, `guideVol`, `countIn`, `guideLoop`, `ramp`, `rampStep`, `rampMax`) are always
 the device's: the guide's level is how much help the singer wants that
-day, not part of how a song is arranged (2026-10-13). A rewaz item's tempo and guide lie over
-all of these while it plays.
+day, not part of how a song is arranged (2026-10-13). So, from 2026-11-09, are the rhythm's and
+the drone's levels and the rhythm's mute (`tablaVol`, `droneLevel`, `beatMute`): moving one
+gives a song no sound of its own. The top section says of each control what it changes: "this
+song" (on a built-in exercise, "all exercises"), "all songs", or "for now". A rewaz item's
+tempo and guide lie over all of these while it plays, and so does the routine's `sa` over the
+song's Sa.
 
 ## Backups (everything, and restoring it)
 
@@ -287,7 +294,7 @@ routines, takes and settings stay.
 ## Rewaz routines
 
 ```json
-{ "routine-mv2pq1x0-k3a9c": { "name": "Morning", "updatedAt": 1791655308398, "gap": 10, "items": [
+{ "routine-mv2pq1x0-k3a9c": { "name": "Morning", "updatedAt": 1791655308398, "gap": 10, "sa": { "saKey": 0, "saOct": 3 }, "items": [
   { "song": "ex-long-notes", "rounds": 1 },
   { "song": "song-mv2pb608-a4kmn", "from": 0, "to": 1, "rounds": 4, "tempo": 80, "guide": "alt" } ] } }
 ```
@@ -295,6 +302,10 @@ routines, takes and settings stay.
 `gap` is the routine's break between items, 0–120 seconds; absent: 4 (Rinat, 2026-10-15).
 Until 2026-10-28 a routine's `roundGap` was the break between its items' rounds; it is read as
 the `roundGap` of each item without one, and saved there.
+
+`sa` is the Sa every item is played in, `{ saKey, saOct }` as a song's; absent: each song's own
+(Rinat, 2026-11-09). It lies over the song only while the routine runs: no song is changed, and
+the Sa at the top comes back when the routine ends or is stopped.
 
 | Item field | Meaning |
 |---|---|
@@ -328,6 +339,7 @@ in IndexedDB, never in song files; Download writes one as a mono 16-bit WAV file
 | `at`, `secs`, `rate` | When its first beat sounded; its length; its sample rate (half the device's) |
 | `from`, `to`, `loop`, `rounds` | Lines played, whether they looped, rounds begun |
 | `tempo`, `flat` | The song's tempo then; a rewaz item's tempo, which every beat took, if one played |
+| `sa` | The routine's Sa, `{ saKey, saOct }`, when the take was sung in a rewaz that set one (2026-11-09), so the guide played with it is in that Sa; absent: the song's |
 | `countIn`, `ramp`, `rampStep`, `rampMax` | The count-in and tempo trainer as they were, so playback is the same run |
 | `gap` | Seconds of break between rounds, when there were any (0–120; absent: none), so playback has the same breaks |
 | `lag` | Seconds from a beat to the voice reaching the app; playback skips that much of the take. From 2026-10-19 the device's delay only (`deviceLag`, else its own figure), so a take is heard as it was sung; before, the delay fitted to the singing |

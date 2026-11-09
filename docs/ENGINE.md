@@ -129,6 +129,11 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
   holds the rounds, breaks, count-in and tempos already, and a beat is the moment the tempo can
   change, so working it out per beat follows a tempo slider moved mid-song. The rewaz bar adds the
   items after the one playing, as estimated for the routine's length (`rewazLeft` in rewaz.ts).
+  The total shown after it, "3:25/4:30" (`secondsTotal(pass)`; Rinat, 2026-11-09), is the same
+  sum from the first beat of the lines played, with the break before them: of the whole run, or
+  in a loop with no end, of that round, so it shrinks with the tempo trainer's rounds. The rewaz
+  bar's total starts at the routine's estimate and only ever grows, so a slower tempo never shows
+  more left than the whole.
   `tests/unit/timeleft.test.ts` checks that every beat's and break's time plus its time left is
   the end entry's time, with breaks, the tempo trainer and a section's slower tempo.
 - **Hooks:** `onBeat` reports every scheduled matra (pitch feedback, takes); `onNote(t, dur,

@@ -3,7 +3,7 @@
 > The project's shared state, for Rinat, Claude, Codex and any other LLM: what the app is
 > for, how we work, where things stand, the decisions in force and the newest work log.
 >
-> **Last updated:** 2026-11-05 (GMT) by Claude (Opus 5.5)
+> **Last updated:** 2026-11-09 (GMT) by Claude (Opus 5.5)
 
 ## How to use this file
 
@@ -113,7 +113,10 @@ wins, except a later explicit decision by Rinat, which always wins.
   −18 dB of full scale, its panel tinted red when too loud and blue when too soft, each
   reading's loudness in the files for AI) and fifty-six (PH2-56: the loudness gauge on the
   voice's loudest moments, as the ring round the Gain knob reads, against −12 dB of full scale,
-  its top the mic limit, a thin border round its scale, the voice line one width again) are
+  its top the mic limit, a thin border round its scale, the voice line one width again) and
+  fifty-seven (PH2-57: a Sa on each rewaz routine, the rhythm's and the drone's levels and the
+  rhythm's mute the same for every song, small tags saying what each control changes, routines
+  dragged into order, the time left with its total) are
   built and live.
   Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
@@ -131,7 +134,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   61-key keyboard); the songs and exercises are at Sa C♯4, and the default 3-reed guide is heard
   at C♯3 (its bass reed: the app's detector reads it at 138.5 Hz), so Rinat matches the guide.
   "Octave must match" judged against C♯4; from round forty-two the bass reed's octave counts too.
-- **Next single action:** Rinat, with round fifty-six: sings a song with Check my pitch on and
+- **Next single action:** Rinat, with round fifty-seven: opens a rewaz routine, picks "Sa for every item", starts it, and says whether every song is heard in that Sa and the Sa at the top comes back afterwards; moves the Rhythm and Drone faders on one song, opens another and says whether they stayed where they were and whether anything sounds too loud or too soft now that a song's saved levels are not used; reads the tags at the top ("this song", "all songs", "for now") and says whether they answer which is which; drags the routines by the dots, on the computer and on the phone; watches "3:25/4:30 left" beside the title and in the rewaz bar. With it, round fifty-six: sings a song with Check my pitch on and
   the Scarlett picked, and turns GAIN 01 until the needle sits mostly in the green (it now reads
   the voice's loudest moments, as the ring round GAIN 01 does, green from −15 to −9 dB of full
   scale, the top where the microphone cuts off); says whether the gauge and the ring now agree
@@ -449,7 +452,7 @@ decision.
 ### Commands
 
 - `npm install` once.
-- `npm test`: every Vitest suite (504 tests in 44 files, about 15 s). Read the "Test Files" line: a
+- `npm test`: every Vitest suite (548 tests in 47 files, about 15 s). Read the "Test Files" line: a
   file that fails to load is not counted as a failed test.
 - `npm run typecheck`: the whole project, then `src/core` and `src/audio/dsp` with no DOM
   library (a DOM call there fails).
@@ -530,6 +533,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
 | PH2-45 | Claude | Review | The time left, a song's progress where it is practised, the library first, the notes in ink (Rinat, 2026-10-31): while playing, the time left beside the title, to the second, the rounds, breaks and count-ins to come included, "in this round" for a loop with no end, held while paused, gone on Stop (`secondsLeft` in transport.ts; `leftAt`, `showLeft` in app.ts; `leftText` in view.ts; `.songleft`); the whole rewaz's in its bar, "0:14 left in all", the item's own and the items after it with the breaks between them, counted through the break before an item (`rewazLeft`, `showLeft` and `Rewaz.left` in rewaz.ts; `routineSeconds` from an item; `#rwLeft`); My progress under My takes for the open song: tiles, where it stands, going well and to work on, the score each session, the latest five sessions with Report and For AI, and its Report, For AI and See all in Progress (`songProgressHTML`, `showSong` in progress.ts; `songHeadline` from songreport.ts; `renderSongProgress` in app.ts; `#progBox`); the Music library's tab before Practice (index.html, `TABS`); the Practice sheet's notes in `--ink` (styles.css `.pnt`) | Tests: 43 files, 490 passed (10 new in timeleft.test.ts); headless Edge on `npm run dev` at 1280 px day and 360 px night: the title 0:15 → 0:10 a second a second, held at 0:10 paused, hidden on Stop, "0:13 left in this round" looping; a two-item rewaz 0:14 → 0:00 left in all through rounds and a 3 s break, hidden at "Rewaz done"; My progress with 7 seeded sessions; See all in Progress opening Pitch for the song; page 360 px wide; no console errors (Work log 2026-10-31, PH2-45) | Waiting for Rinat to play, run a rewaz and open My progress |
+| PH2-57 | Claude | Review | Which settings are the song's, and saying so: a Sa on each rewaz routine, the rhythm's and the drone's levels and the rhythm's mute the same for every song, small tags in the top section, routines dragged into order, the time left with its total (Rinat, 2026-11-09) | 548 unit tests (20 in the new scope.test.ts); headless Edge `run57` (67 checks, the oscillators measured) and `layout57` (61 checks at 360, 800, 1280 px, day and night, and full screen at 3840 × 2160) (Work log 2026-11-09) | Waiting for Rinat's use and ears; not tried on a real touch screen |
 | PH2-56 | Claude | Review | The loudness gauge on the voice's loudest moments, its top the mic limit, a border round its scale, the voice line one width (Rinat, 2026-11-05: "if i increase the gain enough to have the app show just right, it is too high for scarlett … I guess i have to tune things to they match"; "the mic limit slightly moves up and down when singing - why is that?"; "Put a thin border around the scale of the loudness gauge"; "Get rid of the voice line thickness"): the needle on each reading's loudest sample, as a peak meter's, against −12 dB of full scale (`GAUGE_MIDDLE`, `GaugeLevel`); the mic limit fixed at the scale's top; the scale bordered; the thickness gone (`widthStep`, `LevelRef`, `micLimit` removed); the files for AI's loudness with the loudest samples' spread, its shares as the gauge moved | Tests: 46 files, 524 passed (loudness.test.ts, session.test.ts); headless Edge on `npm run dev` with a fake voice whose loudest samples go from −28 to −5 dB of full scale, cut off at −0.2, and back: "Too soft" and blue to about −17, "Just right" from about −14, red from about −8, the needle at the top when cut off, the same back down, on Practice and in full screen by day and by night, at 3840 × 2160 and at 360 × 780; the voice line 2.6 px throughout; the For AI file's `loudness` with `median_peak_db`; no console errors (Work log 2026-11-05, PH2-56) | Waiting for Rinat: whether the gauge and the Scarlett's ring now agree, where GAIN 01 ends up, whether the needle's speed suits, whether the border makes the scale stand out, a For AI file with loudness |
 | PH2-55 | Claude | Review | The loudness gauge against −18 dB of full scale, its panel tinted, loudness in the files for AI (Rinat, 2026-11-05: "Taking last 10 seconds as the reference loudness makes it so that if I am being too loud for ten or more seconds, it becomes the norm … maybe a fixed range of db? That would also help me understand if I am too far or too close to the mic"; "if it is to loud, the background colour of the panel will go progressively red to bright red. and blue when its to flat"; "add loudness data when export"): the gauge's middle fixed at −18 dB of full scale (`GAUGE_MIDDLE`; the zones, the needle and the mic limit against it; the voice line's thickness still against the last 10 s); outside the green the gauge's column on Practice and full screen's panel turning red or blue, from 22 % at the zone's edge to 85 % at the gauge's end, the words white once strong (`loudTint`, `tint`); each reading's level and loudest sample kept with the session (`levels`), backed up, and in the files for AI (`level_db`, `peak_db`, a `loudness` summary in each session's parts) | Tests: 46 files, 527 passed (loudness.test.ts, session.test.ts, topsection.test.ts); headless Edge on `npm run dev` with a fake voice from −34 to −10 dB of full scale and back: "Too soft" and blue to −24, "A little soft", clear from about −20 ("Just right"), red from −15, 85 % red at the top, the same back down, on Practice and in full screen by day and by night, at 3840 × 2160 and at 360 × 780; the For AI file's `pitch_readings` with `level_db` and `peak_db`, `loudness` after `notes_of_the_scale`; no console errors (Work log 2026-11-05, PH2-55) | Waiting for Rinat: where a song sits on the gauge now, the gain or distance changed to bring it to the green, whether the red and blue catch the eye without being too much, a For AI file with loudness |
 | PH2-54 | Claude | Review | The screen kept on, round 1 of 1, Sa while playing, the microphone named (Rinat, 2026-11-05: in a rewaz in full screen "the screen turned off. the app should stop the screen being turned off and also prevent pc from falling asleep when playing anything whether fullscreen or not"; "when there is only one round, i would still like to see round 1 of 1"; Sa changed while playing, "the voice line was still expecting me sound like the previous scale … just have the scale change drop down greyed out"; the Scarlett's gain "set to lowest now, absolute lowest. the mic still hears me"): the screen wake lock wanted while a song or a take plays, through a rewaz and its breaks and all the while full screen is on (`wantAwake`), asked for or let go after each change and every 5 s (`keepAwake`, `wake`, `unwake`); "round 1 of 1" in the rewaz bar and full screen's title line (`roundText`, `whereText`); the Sa pickers greyed while a song plays or is paused ("Stop to change Sa"), a Sa set from the Voice page stopping the song first (`setSa`); under the lines, while the pitch check is on, which microphone is heard and another picked (`chooseMic`, `listMics`, `onMicHeard`, `openStream`; micpick.ts; prefs `mic`, not backed up) | Tests: 46 files, 522 passed (micpick.test.ts new; full.test.ts and picker.test.ts for one round); headless Edge on `npm run dev`: a real wake lock took Windows' execution state from 0x0 to 0x3 and back; a two-item routine in full screen at 1280 × 800 held the lock from the first beat, through the 6 s break and after "Rewaz done", asked for it again 0.8 s after the browser let go, let go on leaving full screen; not in full screen, held while playing, let go on pause and Stop; "round 1 of 1" and "Line 1 of 2 · Round 1 of 1"; Sa disabled while playing and paused; a fake microphone picked and heard from the next play, kept after a reload; the practice settings still one line; 360 × 780 by night 345 px wide; no console errors (Work log 2026-11-05, PH2-54) | Waiting for Rinat: the Microphone line naming the Scarlett, GAIN 01's ring while singing, a take at the lowest gain to measure, the screen staying on through a rewaz |
@@ -711,6 +715,12 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-11-05 | **The loudness gauge on the voice's loudest moments, against −12 dB of full scale, its top the mic limit,** as the ring round an audio interface's Gain knob reads: the needle on each reading's loudest sample, rising to a louder one over 0.05 s and falling 8 dB a second, as a peak meter's; green within 3 dB of −12 ("Just right", −15 to −9), "A little loud" to −6, "Too loud" beyond, up to 0; "A little soft" to −18, "Too soft" below; each zone held a decibel past its edge; the scale −24 to 0, its top full scale, marked by a fixed red bar ("mic limit" by it in full screen); the rest as picked on 2026-11-04 (an upright scale at the end of the line being sung and in full screen's panel, louder above; the needle faint when no voice has been heard for 0.4 s; "louder", "softer" and the zone in words in full screen). The files for AI's loudness summary adds the loudest samples' median and percentiles, and its shares are of the gauge so moved. | Rinat, chat 2026-11-05 ("there is a discrepancy between the gauge in app and the gain indicator in scarlett. The app is showing my voice to be too flat most of the time. if i increase the gain enough to have the app show just right, it is too high for scarlett. is that normal? I guess i have to tune things to they match"; "the mic limit slightly moves up and down when singing - why is that?"); measured on Rinat's takes of 25–27 Oct (the loudest moments about 16 dB over the average); the loudest moments, −12, the needle's speeds and the fixed limit are Claude's | Supersedes the 2026-11-05 row "The loudness gauge's middle fixed at −18 dB of full scale" (the average against −18; the mic limit from the voice's peaks over its level), moved to HISTORY.md. loudness.ts `GAUGE_MIDDLE`, `GaugeLevel`; pitch.ts `hear`, `showLoud`; aifile.ts `loudnessPart`; styles.css `.ldlim`; ENGINE.md → The loudness gauge. |
 | 2026-11-05 | **A thin border round the loudness gauge's scale:** a ring of the sheet's colour inside a line of ink, its corners as round as the scale's ends, on Practice, in full screen and on a phone, so the scale's red and blue ends stand out from the tinted panel. | Rinat, chat 2026-11-05 ("Put a thin border around the scale of the loudness gauge - currently the panel colour blends in with the scale colour when too loud or too flat."); the ring and its widths are Claude's | styles.css `.ldg`. The 2026-11-05 tint row's "the scale itself unchanged" stands but for this border. |
 | 2026-11-05 | **The voice line one width again,** no longer thicker when louder: 1.5 px, 2.6 in the line being sung and a line opened, its dot one size. | Rinat, chat 2026-11-05 ("Get rid of the voice line thickness. it's too much information to process and confuses me.") | Supersedes the 2026-11-04 row "The voice line drawn thicker when louder", moved to HISTORY.md. `widthStep`, `LevelRef` and `micLimit` gone from loudness.ts; lines.ts `voice`; styles.css `.vt`. |
+| 2026-11-09 | **What belongs to a song and what to the day:** a setting stays on the song if it says how the song goes (Sa, tempo, taal, the reeds, which drone, the instrument, beat speed, fills, side instruments), and is the same for every song if it says how you are practising today (the guide's, rhythm's and drone's levels and mutes, the count-in, looping, the tempo trainer, Octave must match). | Rinat, chat 2026-11-09 ("ok, go ahead with both changes", after Claude's advice; on beat speed, "keping that song specific helps a lot") | Open question 7 closed. Narrows the 2026-10-11 and 2026-10-22 rows on each song's own sound: its levels are no longer part of it. |
+| 2026-11-09 | **A Sa on each rewaz routine:** "Sa for every item" in its settings ("Each song's own" until a key is picked), said beside its name. While the routine runs every item is played in it, the Sa at the top shows it and is held, and the song's own comes back when the routine ends or is stopped; no song is changed; a take sung in it keeps it. | Rinat, chat 2026-11-09 ("I have designed a rewaz which I wanted to sing in a different scale, so I chose C on the top panel, but the later songs played in c#"; "ok, go ahead with both changes"); its place in the routine's settings, the octave starting at the open song's and the label "Sa · this rewaz's" are Claude's | `sa` on routines and takes (DATA.md). |
+| 2026-11-09 | **The rhythm's and the drone's levels the same for every song,** and the rhythm's mute with them: moving one gives a song no sound of its own. Which drone stays the song's; a song's `droneVol` says only whether it has one. No rhythm joins the instrument picker and is kept with the song. The Drone level slider greys on No drone. | Rinat, chat 2026-11-09 ("ok, go ahead with both changes"); the mute going with the levels, No rhythm in the picker and the greyed slider are Claude's | Settings `tablaVol`, `droneLevel`, `beatMute` (DATA.md). A song's saved `tablaVol` is no longer read; a song saved while the rhythm was muted shows No rhythm. |
+| 2026-11-09 | **Small tags say what each control changes:** "this song" in brass (on a built-in exercise "all exercises", its tempo "for now"), "all songs", "for now", each with a longer title. So they read, the Guide panel is regrouped (Sa, reeds and the drone picker under "this song", then the drone's level, the count-in and looping), Octave must match has a row of its own and the Rhythm panel an "Instrument" label. | Rinat, chat 2026-11-09 ("there is no way for the user to know which ones are global and which ones aren't - would be good if there was a way to indicate this"); the tags, their words and the regrouping are Claude's | `scopeWords` in view.ts. |
+| 2026-11-09 | **Rewaz routines dragged into order** by a grip at the start of each heading (or ↑ ↓ on it), as the Music library's sections are: only the headings show while moving, and the page follows the one held so the headings round it stay in view. The order is kept on the device; a routine not yet moved goes after those that were, by name. | Rinat, chat 2026-11-09 ("i also want to be able to sort/reorder the routines themselves"); the grip, the arrow keys and the page following are Claude's | Setting `rewazOrder` (DATA.md). `initSectionDrag` takes the parts to move, and the page following applies to the Music library's and Progress's sections too. |
+| 2026-11-09 | **The time left with its total:** "3:25/4:30 left" beside the title and "… left in all" in the rewaz bar, in full screen too; in an endless loop, that round's. | Rinat, chat 2026-11-09 ("I would also like to see the total it is counting down from. so for example, 3:25/4:30") | Adds to the two 2026-10-31 rows on the time left. ENGINE.md → The time left. |
 | 2026-10-23 | **Built-in exercises stay read-only for now** (Open question 6 answered): they cannot be changed or deleted; copy one to change it. Claude's proposal (changed in place as the user's own, deleted or hidden, a "Bring back the built-in exercises" button) is not built. | Rinat, chat 2026-10-23 ("Keep the built-in exercises read-only for now.") | Invariants → Never lose a song unchanged; Open question 6 removed. |
 | 2026-10-23 | **A break between rounds,** when looping on the Practice view (the Guide panel's "Break between rounds", seconds) and in a rewaz (each routine's "Break between rounds", separate from its break between items): silence with the drone going on, then the count-in again when it is on, and any pickup, then the next round; the line's box counts it down; none after the last round; the note before it fades as at an ending. A pause in a break goes on with the next round. Takes keep it. | Rinat, chat 2026-10-23 ("i'd like the option to add some delay between loops and also between rounds when doing rewaz with multiple rounds"); the count-in again, the drone going on, the countdown, a setting on the Guide panel and per routine are Claude's | transport.ts `gap`; prefs `loopGap`; Routine `roundGap`; Take `gap`; session settings `gap`; docs/ENGINE.md → Transport, DATA.md |
 | 2026-10-23 | **My takes as a table:** grouped by song or by date, each group folding (the first three open), a tick box on each take, on each song's or day's group and Tick all; the takes ticked are deleted together, asked first in the table's bar. | Rinat, chat 2026-10-23 ("needs all the bells and whistles of a table - should be collapsible the song name or the date taken. want to be able to select all the takes in a particular day and delete together. also all the takes of a particular song"; "if multiple takes are deleted together, only then confirmation is fine") | takes.ts `takeGroups`, `allTakesHTML`; prefs `tkGroup`; docs/ENGINE.md → Takes |
@@ -822,6 +832,70 @@ Template:
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
 
+### 2026-11-09 GMT — Claude (Opus 5.5) — PH2-57 which settings are the song's; a Sa for a rewaz; routines dragged; the time with its total
+
+- **Goal:** Rinat, 2026-11-09: "I am at a dilemma with which settings should be song specific and
+  which should be global. I have designed a rewaz which I wanted to sing in a different scale, so
+  I chose C on the top panel, but the later songs played in c# … the beat speed being half, single
+  double etc - keping that song specific helps a lot". Then, after Claude's advice (a Sa on the
+  routine; the rhythm's and drone's levels global): "ok, go ahead with both changes. But there is
+  no way for the user to know which ones are global and which ones aren't - would be good if there
+  was a way to indicate this. also add the option to drag and reorder rewaz items … i also want to
+  be able to sort/reorder the routines themselves. Currently when showing time remaining (both
+  rewaz and sing) it counts down the time. I would also like to see the total it is counting down
+  from. so for example, 3:25/4:30".
+- **Inspected:** app.ts (`sound`, `soundSource`, `songSource`, `itemOverride`, `playItem`,
+  `renderSoundControls`, `showLeft`), rewaz.ts, fold.ts (`initSectionDrag`), store.ts (`Prefs`,
+  `RoutineStore`), core/song/sound.ts, audio/sound.ts, audio/transport.ts (`secondsLeft`),
+  core/practice/routine.ts and take.ts, index.html's deck.
+- **Changed:** `feat(rewaz): a Sa on each routine, routines dragged into order, levels the same
+  for every song, tags saying what each control changes, the time left with its total` —
+  src/core/song/sound.ts (`tablaVol` out of a song's sound, `droneVol` only whether it has a
+  drone); src/audio/sound.ts (`SoundSettings.tablaVol`, `droneLevelOf`); src/audio/transport.ts
+  (`secondsTotal`); src/core/practice/routine.ts (`RoutineSa`, `cleanSa`); take.ts (`sa`);
+  src/app/store.ts (`rewazOrder`, `droneLevel`, `beatMute`; the routine's `sa` saved);
+  src/app/view.ts (`leftText` with a total, `scopeWords`, `SCOPE_ALL`, `SCOPE_NOW`);
+  src/app/fold.ts (`DragParts`; the page follows the section held); src/app/rewaz.ts (the Sa
+  field, the grip, `routinesInOrder`, `run.total`, `host.play` with a Sa, `over`, `openSa`,
+  `order`); src/app/app.ts (the Sa laid over and put back, held pickers, `showPlayedSa`,
+  `renderScope`, levels from the prefs, `soundSource` with the mute and the level); index.html
+  (the tags, the Guide panel regrouped, No rhythm, "Instrument"); src/app/styles.css (`.scope`,
+  `.vscope`, `.dnext`, `.rwgrip`, `.rwsa`, `.sorting .rwbody`, a phone's chevron beside the name);
+  tests/unit/scope.test.ts (new), sound.test.ts, timeleft.test.ts; docs/DATA.md, ENGINE.md,
+  ROADMAP.md (row 57), HISTORY.md (the PH2-55 entry); this file.
+- **Tests / verification:** `npm run typecheck` exit 0; `npm test` → 47 files, 548 passed; `npm
+  run build` → 408.11 kB JS, 93.79 kB CSS; `bash reference/tests/run-all.sh` → parser 31, checker
+  11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge on `npm run dev`
+  (edits checked with `curl` first), scratchpad `run57.mjs` (67 checks, all pass; real mouse and
+  key events by the DevTools protocol, Web Audio's oscillators and gains recorded): a routine with
+  Sa C3, the songs at C♯4: the Sa pickers show C3, held, labelled "Sa · this rewaz's", through the
+  break and the second song; the oscillators heard 65.41, 98, 130.81, 261.63 Hz and none at
+  138.59 or 277.18; after it ended and after stopping in a break, C♯4 and free; no song's Sa
+  changed. Song time "0:03/0:06 left"; bar "0:11/0:14 left in all", "0:08/0:14 left in all" in
+  the break; an endless loop "0:05/0:06 left in this round", its second round with the trainer
+  "0:03/0:04". The rhythm's level and mute carried across songs, no `sound` saved on the song; a
+  song with an old `tablaVol` of 0.2 ignores it and keeps its half speed and dholak; the drone's
+  gain measured 0.225 (the level 0.25 × 0.9), not 0.81. Routines: Zeta dragged from last to first,
+  saved in `rewazOrder`; an arrow key moves it, the focus stays on its grip; kept after a reload;
+  an item dragged within its routine moves only the item. `layout57.mjs` (61 checks, all pass) at
+  360 × 780 day and night, 800 × 1000 day, 1280 × 950 day, 3840 × 2160 night: no sideways scroll on
+  the deck, the Guide and Rhythm panels, Rewaz with a long-named routine open, or a rewaz running;
+  no tag or Sa picker cut off; while moving, each routine is only its heading (height less
+  heading ≤ 2 px), the one above still on the screen; a Music library section still moves; full
+  screen at 3840 × 2160 shows "0:25/0:28 left" and "0:55/0:58 left in all"; screenshots looked at.
+  No console errors but the dev page's missing favicon. Found by these runs and fixed:
+  `RoutineStore.save` dropped `sa`; the routines stretched while moving (the grid filled the
+  height the list is held at); on a phone the other headings jumped off the top when a routine
+  above was open; a long name fell under its chevron on a phone.
+- **Decisions made:** six 2026-11-09 rows; Open question 7 closed.
+- **Risks or disagreements:** nobody on the build side can hear: Sa and the levels are measured,
+  not listened to. A song that had its own rhythm or drone level now plays at the device's, so
+  some may sound louder or softer than before (the old value is ignored, and goes when the song's
+  sound is next saved). Dragging was driven with a mouse at phone width; no real touch screen was
+  used (the grip has `touch-action: none`, as the Music library's has). In headless Edge the
+  browser's own full screen does not engage; the app's full-screen layout was what was checked.
+- **Next handoff:** Rinat tries it and listens (Next single action).
+
 ### 2026-11-05 GMT — Claude (Opus 5.5) — PH2-56 the gauge on the loudest moments, its top the mic limit, a border, one width
 
 - **Goal:** Rinat, 2026-11-05: (1) "now there is a discrepancy between the gauge in app and the
@@ -890,76 +964,3 @@ Template:
   say; the gauge's "Too loud" starts at −6.
 - **Next handoff:** Rinat sings with the gauge on the loudest moments, sets GAIN 01 by it, says
   whether it agrees with the ring, and saves a For AI file with loudness (Next single action).
-
-### 2026-11-05 GMT — Claude (Opus 5.5) — PH2-55 the gauge against −18 dB, its panel tinted, loudness in the files for AI
-
-- **Goal:** Rinat, 2026-11-05: (1) "add loudness data when export"; (2) "I have selected scarlett
-  instead of computer's own in the app and it seems a lot more realistic now … scarlett was the
-  default option anyway … i don't understand why" (answered in chat; Open question 6); (3) "The
-  loudness colour coding could be more eye-catching. Have the panel's background colour change
-  (Leave the scale/meter as it is for now). So if it is to loud, the background colour of the
-  panel will go progressively red to bright red. and blue when its to flat"; (4) "Taking last 10
-  seconds as the reference loudness makes it so that if I am being too loud for ten or more
-  seconds, it becomes the norm. Is there a better way to calculate this? Is there a industry
-  standard for loudness? maybe a fixed range of db? That would also help me understand if I am
-  too far or too close to the mic."
-- **Inspected:** pitch.ts `showLoud`, `hear`, `take`, `runDetail` (the gauge against `LevelRef`;
-  each reading's rms and peak heard but not kept); session.ts `cleanSession`; db.ts `add`;
-  backup.ts `sessionForFile`; aifile.ts (`sessionParts`, `readingsTable`, the briefs). Round
-  fifty-four's measurement of Rinat's 26–27 Oct takes (voiced level's median −12.1 to −13.8 dB of
-  full scale, peaks about 9 dB over): against −18 the needle would sit 4–6 dB up, "A little
-  loud", the mic limit about 9 dB up. On Rinat's PC, Windows' Core Audio through PowerShell
-  (scratchpad `ca55.ps1`, reads only): the default recording device for apps and for calls both
-  "Microphone (2- Scarlett 2i2 USB)" (`{ec025a47-…}`), 54 % = 0.0 dB; live inputs now the Scarlett,
-  Stereo Mix and Voicemeeter's outputs (the BRIO webcam's microphone, live in round fifty-four, no
-  longer). Rinat's own browser not looked at.
-- **Changed:** `feat(practice): the loudness gauge against −18 dB of full scale, its panel tinted
-  red and blue, loudness in the files for AI` — src/core/pitch/loudness.ts (`GAUGE_MIDDLE` −18,
-  `loudTint`; comments against the middle); src/app/pitch.ts (the gauge's zone, needle and mic
-  limit against `GAUGE_MIDDLE`, shown from the first reading with voice; each reading's level and
-  loudest sample logged, kept as `levels`, silence −120); src/app/lines.ts (`tint` on the
-  gauge's column and `#fullLoud`; the label and comments); src/app/styles.css (`.ldwarm`,
-  `.ldcool`, `.ldstrong`, `--tint`, `--ld-hot` #e0322b, `--ld-cold` #2a6be0); src/core/practice/
-  session.ts (`PitchDetail.levels`, `SILENT_DB`, kept when it matches the readings); src/app/db.ts
-  (levels as 32-bit floats); src/app/backup.ts (levels to a tenth); src/app/aifile.ts
-  (`level_db`, `peak_db` in `pitch_readings`, `loudnessPart` in `sessionParts` and the whole
-  practice's detail, the three briefs); tests/unit/loudness.test.ts, session.test.ts,
-  topsection.test.ts; docs/ENGINE.md (the fixed middle and why, the tint, the voice line still
-  relative); docs/DATA.md (`levels`, `loudness`, `level_db`, `peak_db`, the backup);
-  docs/ROADMAP.md (row 55); docs/HISTORY.md (the 2026-11-04 gauge row, the PH2-53 entry); this
-  file.
-- **Tests / verification:** `npx tsc --noEmit -p .` exit 0; `npx vitest run` → 46 files, 527
-  passed; `npm run build` → 405.12 kB JS, 92.96 kB CSS; `bash reference/tests/run-all.sh` →
-  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge
-  on `npm run dev` (scratchpad `cdp55.mjs`; the fake microphone `loud51.wav`: −34 to −10 dB of
-  full scale over 16 s, 5 s at −4.9, back down to −34, then −22). On Practice at 1280 × 800 by
-  day: "Too soft" with the column blue at 54 %, easing to 22 % at "A little soft", clear at "Just
-  right" from about −19.8 dB (the needle 57.5 % down, held a decibel past −21), "A little loud"
-  22–43 % red, "Too loud" 50 % and 85 % at the top, white words from 57 %; the same on the way
-  down, blue to 85 % at −34. In full screen by day the panel from rgb(251, 251, 248) to
-  srgb(0.894, 0.314, 0.289) at its reddest, the words white when strong (else the zone's
-  colour); by night the same from rgb(25, 25, 31); at 3840 × 2160 by night; at 360 × 780 by night
-  on Practice (page 345 px wide) and in full screen (360). The session's For AI file: keys in
-  order with `loudness` after `notes_of_the_scale`; `pitch_readings` columns time_s,
-  cents_above_sa, level_db, peak_db; 1,798 rows, the first with voice [−5.13, 3, −38.7, −29.3],
-  silence [−5.15, null, −120, −120]; `loudness` median −21.9, 10th −31.9, 90th −4.9 dB, loudest
-  peak −0.2, shares just right 0.195, louder 0.278, too loud 0.183, softer 0.527, too soft 0.36,
-  cut off 0. No console errors. The first run's file had no levels: the dev server was serving
-  session.ts as it was midway through the edits (it missed a later write; Environment gotchas);
-  restarted, it served the files on disk, checked with `curl`, and the run was repeated.
-  Pushed as `c745c3a`; CI run `42029695859` green; the site serves `index-B9gRyPYO.js`
-  (`level_db`, the tint's `ldwarm` and the brief's loudness in it).
-- **Decisions made:** three 2026-11-05 rows (the gauge's middle fixed at −18, superseding the
-  2026-11-04 gauge row, moved to HISTORY.md; the panel tinted; each reading's loudness kept and in
-  the files for AI); Open question 6 brought up to date.
-- **Risks or disagreements:** −18 dB of full scale assumes the setup should bring a voice there;
-  a quiet microphone at full gain may never reach it, and Rinat's takes sat about 5 dB over it,
-  so the gauge may read "A little loud" for most of a song until the gain or the distance
-  changes. The mic limit no longer moves with the Gain knob (only the needle does). The tint on
-  Practice is the gauge's own 60 px column, not a larger panel (there is none there). Why
-  picking the Scarlett read "more realistic" is not known for certain: today Windows' default
-  for apps and calls is that same Scarlett at 0 dB. A file's `share_cut_off` counts samples at
-  −0.1 dB of full scale or more; the overload warning's own test (`blockClip`) is finer.
-- **Next handoff:** Rinat sings with the gauge against −18, brings a song to the green with the
-  Gain knob or the distance, says whether the tint catches the eye, and saves a For AI file with
-  loudness (Next single action).

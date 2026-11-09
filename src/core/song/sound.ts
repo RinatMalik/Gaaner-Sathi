@@ -2,7 +2,9 @@
  * A song's own sound (docs/DATA.md → Song → sound): its harmonium, drone and rhythm, saved
  * with the song since 2026-10-10 and set in Edit notation since 2026-10-13. How loud the
  * guide is, the count-in, the guide on repeats and the tempo trainer are practice settings,
- * the same for every song (a guide level saved with a song before 2026-10-13 is ignored).
+ * the same for every song (a guide level saved with a song before 2026-10-13 is ignored); so,
+ * from 2026-11-09, are how loud the rhythm and the drone are (Rinat: they are about the room
+ * and the day, not how the song goes; a rhythm level saved with a song is ignored).
  * Field names match the device settings, the prototype's `swaralipi.prefs.v1`, so a song's
  * sound lies over them.
  */
@@ -19,19 +21,18 @@ export type LayerStyle = 'tabla' | 'dholak' | 'kit';
 export interface SongSound {
   reeds: 1 | 2 | 3;
   droneType: DroneType;
-  /** 0 means no drone. */
+  /** 0: this song has no drone. Any other value: it has one, heard at the device's level for
+   * every song (`droneLevel` in the settings) since 2026-11-09. */
   droneVol: number;
   tanTune: TanTune;
   beat: BeatStyle;
-  /** Rhythm volume, 0–1 (the prototype's name). */
-  tablaVol: number;
   speed: SpeedName;
   fills: boolean;
   /** Extra percussion layers chosen for each rhythm style. */
   layers: Record<LayerStyle, string[]>;
 }
 
-export const SONG_SOUND_KEYS = ['reeds', 'droneType', 'droneVol', 'tanTune', 'beat', 'tablaVol', 'speed', 'fills', 'layers'] as const satisfies readonly (keyof SongSound)[];
+export const SONG_SOUND_KEYS = ['reeds', 'droneType', 'droneVol', 'tanTune', 'beat', 'speed', 'fills', 'layers'] as const satisfies readonly (keyof SongSound)[];
 
 /** What each control can be set to. */
 export const SOUND_CHOICES = {
@@ -74,7 +75,6 @@ export function cleanSound(v: unknown): Partial<SongSound> | undefined {
     droneVol: level(r.droneVol),
     tanTune: oneOf(r.tanTune, SOUND_CHOICES.tanTune),
     beat: oneOf(r.beat, SOUND_CHOICES.beat),
-    tablaVol: level(r.tablaVol),
     speed: oneOf(r.speed, SOUND_CHOICES.speed),
     fills: typeof r.fills === 'boolean' ? r.fills : undefined,
     layers: cleanLayers(r.layers),
@@ -87,7 +87,7 @@ export function cleanSound(v: unknown): Partial<SongSound> | undefined {
 export function soundOf(s: SongSound): SongSound {
   return {
     reeds: s.reeds, droneType: s.droneType, droneVol: s.droneVol, tanTune: s.tanTune,
-    beat: s.beat, tablaVol: s.tablaVol, speed: s.speed, fills: s.fills,
+    beat: s.beat, speed: s.speed, fills: s.fills,
     layers: { tabla: [...(s.layers.tabla || [])], dholak: [...(s.layers.dholak || [])], kit: [...(s.layers.kit || [])] },
   };
 }

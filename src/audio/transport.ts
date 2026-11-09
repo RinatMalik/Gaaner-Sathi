@@ -238,6 +238,17 @@ export class Transport {
     return t;
   }
 
+  /**
+   * Seconds the whole run takes from its first beat, count-in included, as secondsLeft counts
+   * them at the tempo now, so the two can be shown together (Rinat, 2026-11-09: "3:25/4:30"). A
+   * loop with no end: round `pass` alone, as secondsLeft counts only to the end of a round.
+   */
+  secondsTotal(pass: number): number {
+    if (!this.src) return 0;
+    const p = this.loop && !this.rounds ? Math.max(0, pass) : 0;
+    return this.secondsLeft(this.secStart - (p === 0 ? this.brkPre : 0), p);
+  }
+
   /** Guide on repeats: every round, the first round only, or every other round. */
   guideOn(pass: number): boolean {
     if (pass < 0) return false;
