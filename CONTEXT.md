@@ -216,7 +216,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   C♯3) was the microphone; tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `9fa770b` (CI run `42043875168` green: round fifty-six live; the site serves `index-CBZ_Qrn3.js`).
+- **Last known-good commit:** `f2c5233` (CI run `42692971913` green: round fifty-seven live; the site serves `index-3Ns8eRar.js`).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -887,6 +887,9 @@ Template:
   `RoutineStore.save` dropped `sa`; the routines stretched while moving (the grid filled the
   height the list is held at); on a phone the other headings jumped off the top when a routine
   above was open; a long name fell under its chevron on a phone.
+  Pushed as `f2c5233`; CI run `42692971913` green; the site serves `index-3Ns8eRar.js`, and in
+  headless Edge at 360 × 780 it shows the tags and the routines' grips, no sideways scroll, no
+  console errors (scratchpad `live57.mjs`).
 - **Decisions made:** six 2026-11-09 rows; Open question 7 closed.
 - **Risks or disagreements:** nobody on the build side can hear: Sa and the levels are measured,
   not listened to. A song that had its own rhythm or drone level now plays at the device's, so
