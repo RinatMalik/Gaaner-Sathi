@@ -221,7 +221,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   C♯3) was the microphone; tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `94c98aa` (CI run `42814053303` green: round fifty-eight live; the site serves `index-DRlh0cP7.js`).
+- **Last known-good commit:** `3b6c5c2` (CI run `42818936675` green: round fifty-nine live; the site serves `index-CQ-pQBDm.js`).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -884,7 +884,10 @@ Template:
   an older song's saved sound cut to its speed when next saved; a built-in exercise's speed not
   kept and no other song changed; a rewaz using the shared reeds; no page errors. `layout58.mjs`
   (60 checks, all pass) at 360 × 780 day and night, 800 × 1000 day, 1280 × 950 day and night, 3840 ×
-  2160 night; screenshots looked at.
+  2160 night; screenshots looked at. Pushed as `3b6c5c2`; CI run `42818936675` green; the site serves
+  `index-CQ-pQBDm.js`, and in headless Edge at 360 × 780 it shows the Sa list with White and Black,
+  Reeds beside the Sa, Octave must match in Loop's row, Edit notation without the shared settings, no
+  sideways scroll, no page errors (scratchpad `live59.mjs`).
 - **Decisions made:** four 2026-11-10 rows; one earlier row moved to HISTORY.md.
 - **Risks or disagreements:** nobody on the build side can hear. No real touch screen. The first
   time this opens, what the top shows is what the device's settings already held, not what any one
