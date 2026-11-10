@@ -1,14 +1,13 @@
 /**
- * A song's own sound (docs/DATA.md → Song → sound): its harmonium, drone and rhythm, saved
- * with the song since 2026-10-10 and set in Edit notation since 2026-10-13. How loud the
- * guide is, the count-in, the guide on repeats and the tempo trainer are practice settings,
- * the same for every song (a guide level saved with a song before 2026-10-13 is ignored); so,
- * from 2026-11-09, are how loud the rhythm and the drone are (Rinat: they are about the room
- * and the day, not how the song goes; a rhythm level saved with a song is ignored).
- * Field names match the device settings, the prototype's `swaralipi.prefs.v1`, so a song's
- * sound lies over them.
+ * A song's own sound (docs/DATA.md → Song → sound): how fast its rhythm goes, which varies from
+ * song to song (Rinat, 2026-11-10: "Leave the rythm speed as song specific though as I found it
+ * varies between songs"). Everything else about the sound is the device's, the same for every
+ * song: the reeds, the drone, the instrument, its side instruments and the fills since 2026-11-10
+ * ("the day i want tabla, i would probably want tabla for all"); how loud the rhythm and the drone
+ * are since 2026-11-09; the guide since 2026-10-13. Whatever older songs saved of those is ignored.
+ * The field name matches the device setting, so a song's speed lies over it.
  */
-import { LAYERS, type LayerId, type SpeedName } from '../taal/rhythm';
+import type { SpeedName } from '../taal/rhythm';
 
 export type GuideLevel = 'full' | 'soft' | 'off';
 export type BeatStyle = 'tabla' | 'dholak' | 'kit' | 'click' | 'off';
@@ -19,75 +18,23 @@ export type TanTune = 'P' | 'M' | 'N';
 export type LayerStyle = 'tabla' | 'dholak' | 'kit';
 
 export interface SongSound {
-  reeds: 1 | 2 | 3;
-  droneType: DroneType;
-  /** 0: this song has no drone. Any other value: it has one, heard at the device's level for
-   * every song (`droneLevel` in the settings) since 2026-11-09. */
-  droneVol: number;
-  tanTune: TanTune;
-  beat: BeatStyle;
   speed: SpeedName;
-  fills: boolean;
-  /** Extra percussion layers chosen for each rhythm style. */
-  layers: Record<LayerStyle, string[]>;
 }
 
-export const SONG_SOUND_KEYS = ['reeds', 'droneType', 'droneVol', 'tanTune', 'beat', 'speed', 'fills', 'layers'] as const satisfies readonly (keyof SongSound)[];
+export const SONG_SOUND_KEYS = ['speed'] as const satisfies readonly (keyof SongSound)[];
 
-/** What each control can be set to. */
-export const SOUND_CHOICES = {
-  reeds: [1, 2, 3],
-  droneType: ['tanpura', 'harmonium'],
-  tanTune: ['P', 'M', 'N'],
-  beat: ['tabla', 'dholak', 'kit', 'click', 'off'],
-  speed: ['half', 'normal', 'double'],
-} as const;
-const LAYER_STYLES: readonly LayerStyle[] = ['tabla', 'dholak', 'kit'];
-
-const oneOf = <T>(v: unknown, allowed: readonly T[]): T | undefined => (allowed.includes(v as T) ? (v as T) : undefined);
-const level = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : undefined);
-
-/** Each style's layers: known ones that fit the style, each once. */
-function cleanLayers(v: unknown): Record<LayerStyle, string[]> | undefined {
-  if (!v || typeof v !== 'object' || Array.isArray(v)) return undefined;
-  const r = v as Record<string, unknown>;
-  const out = { tabla: [], dholak: [], kit: [] } as Record<LayerStyle, string[]>;
-  for (const st of LAYER_STYLES) {
-    const list = Array.isArray(r[st]) ? (r[st] as unknown[]) : [];
-    for (const id of list) {
-      if (typeof id !== 'string' || !Object.hasOwn(LAYERS, id) || out[st].includes(id)) continue;
-      if ((LAYERS[id as LayerId].styles as readonly string[]).includes(st)) out[st].push(id);
-    }
-  }
-  return out;
-}
+/** What a song's rhythm speed can be. */
+export const SPEED_CHOICES: readonly SpeedName[] = ['half', 'normal', 'double'];
 
 /**
- * A stored or imported song's sound, each field checked: a field that cannot be read is
- * left out, so the device's setting shows through. Undefined when nothing can be read.
+ * A stored or imported song's sound, checked: undefined when there is no speed that can be read,
+ * so the device's setting shows through.
  */
 export function cleanSound(v: unknown): Partial<SongSound> | undefined {
   if (!v || typeof v !== 'object' || Array.isArray(v)) return undefined;
-  const r = v as Record<string, unknown>;
-  const s: Partial<SongSound> = {
-    reeds: oneOf(r.reeds, SOUND_CHOICES.reeds),
-    droneType: oneOf(r.droneType, SOUND_CHOICES.droneType),
-    droneVol: level(r.droneVol),
-    tanTune: oneOf(r.tanTune, SOUND_CHOICES.tanTune),
-    beat: oneOf(r.beat, SOUND_CHOICES.beat),
-    speed: oneOf(r.speed, SOUND_CHOICES.speed),
-    fills: typeof r.fills === 'boolean' ? r.fills : undefined,
-    layers: cleanLayers(r.layers),
-  };
-  for (const k of SONG_SOUND_KEYS) if (s[k] === undefined) delete s[k];
-  return Object.keys(s).length ? s : undefined;
+  const speed = (v as Record<string, unknown>).speed as SpeedName;
+  return SPEED_CHOICES.includes(speed) ? { speed } : undefined;
 }
 
-/** A song's own settings out of a full set, to keep with it (layers copied). */
-export function soundOf(s: SongSound): SongSound {
-  return {
-    reeds: s.reeds, droneType: s.droneType, droneVol: s.droneVol, tanTune: s.tanTune,
-    beat: s.beat, speed: s.speed, fills: s.fills,
-    layers: { tabla: [...(s.layers.tabla || [])], dholak: [...(s.layers.dholak || [])], kit: [...(s.layers.kit || [])] },
-  };
-}
+/** A song's own settings out of a full set, to keep with it. */
+export const soundOf = (s: SongSound): SongSound => ({ speed: s.speed });

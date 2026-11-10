@@ -13,9 +13,9 @@ Clearing a browser's site data ("cookies and site data") deletes it all.
 
 | What | Kept in | Moves to another device or person |
 |---|---|---|
-| Your songs: notation, title, taal, tempo, Sa, start beat, section tempos and taals, tags, star, notes, the song's own sound, whether it is listed under Exercises | `localStorage` | Yes: **Export this song** (one), the Music library's **Export** (the ones ticked), **Back up or export → All my songs**, or **→ Everything** (below), then **Import** there |
+| Your songs: notation, title, taal, tempo, Sa, start beat, section tempos and taals, tags, star, notes, the song's own rhythm speed, whether it is listed under Exercises | `localStorage` | Yes: **Export this song** (one), the Music library's **Export** (the ones ticked), **Back up or export → All my songs**, or **→ Everything** (below), then **Import** there |
 | The built-in exercises and the starter rewaz | The app itself | Everyone has them |
-| Your settings: your usual sound, your Sa, the guide and practice settings, script, theme, the editor view, the MIDI choice | `localStorage` | In **Everything**, restored with "Restore with its settings" (not this device's delay or keyboard) |
+| Your settings: the sound every song shares, your Sa, the guide and practice settings, script, theme, the editor view, the MIDI choice | `localStorage` | In **Everything**, restored with "Restore with its settings" (not this device's delay or keyboard) |
 | Practice log (Progress): each session's summary | `localStorage` | **Download all practice data** (foot of Progress, or the Music library's **Back up or export → All practice data**) saves it, with each session's detail, as one file (below), not importable; **Everything** holds it too and restores it. **Start afresh** in Progress deletes both |
 | Each session's detail: the song as played, every note's result, the pitch heard (since 2026-10-20) | IndexedDB, the newest 1,000 sessions | **Report** opens a page on it, **For AI** saves it as a file (below), a day's **For AI** a day's in one, and the downloads above hold them all; **Everything** restores them |
 | Rewaz routines | `localStorage` | In **Everything** |
@@ -62,7 +62,7 @@ as it was set up (its sound and notes included), without the sender's log, takes
 | `exercise` | `true` for one of your songs listed under Exercises (your own exercise: "List under" in Edit notation, "+ New exercise", or a copy of a built-in one); absent: under My songs. Never on a built-in exercise, which is `example` in the app and never stored. |
 | `notes` | Notes about the song (its meaning, source, a teacher's comments): free text, at most 20 000 characters, shown above the sheet, printed and searched. Absent when empty. |
 | `dismissed` | The checker's warnings dismissed on this song, as short fingerprints (base-36, NOTATION.md → Checker → Dismissing), the newest 200; absent when none. Never on a built-in exercise. |
-| `sound` | The song's own harmonium, drone and rhythm (set in Edit notation → Settings: there since 2026-11-10, in the top section from 2026-10-22, in Edit notation's Sound of this song before), with the same names and values as the device settings below. Absent while the song uses the usual sound. The app writes the whole set; reading checks each field and leaves out any it cannot read, so the device's setting shows through for that one. A `guide` written before 2026-10-13 is left out: the guide's level is a practice setting now; so is a `tablaVol` written before 2026-11-09, the rhythm's level being the device's. `droneVol` here says only whether the song has a drone: 0 none, any other value one, heard at the device's level (`droneLevel`). |
+| `sound` | The song's own rhythm speed, `{ speed }`, set in Edit notation → Settings. Absent while the song uses the device's. Reading keeps only a `speed` it can read; what a song saved before 2026-11-10 of its reeds, drone, instrument, side instruments and fills is ignored and goes when the song is next saved, as do a `guide` from before 2026-10-13 and a `tablaVol` from before 2026-11-09. |
 
 `normalize()` runs on every song read or imported and clamps every field, as the prototype's
 does. `tags`, `fav`, `exercise`, `notes`, `dismissed` and `sound` are left out when unset, so a prototype song reads
@@ -113,7 +113,7 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `script` | `bn` or `lat` |
 | `guide` | `full` (on), `off` (muted), or `soft` (from before 2026-10-22: a third of Full while `guideVol` is unset) |
 | `guideVol` | The guide's volume, 0–1 of Full, from the top section's slider (2026-10-22); absent: as `guide` says. Moving the slider unmutes; muting keeps it |
-| `beat` | `tabla`, `dholak`, `kit`, `click` or `off` (No rhythm, a choice in the instrument picker from 2026-11-09, kept with a song like the others; until then `off` was the mute, which is `beatMute` now) |
+| `beat` | `tabla`, `dholak`, `kit`, `click` or `off` (No rhythm, a choice in the instrument picker from 2026-11-09; until then `off` was the mute, which is `beatMute` now) |
 | `beatMute` | `true` while the rhythm is muted, for every song and exercise (2026-11-09); absent: not muted. Moving the Rhythm fader unmutes |
 | `tablaVol` | The rhythm's level, 0–1, for every song and exercise (a song could keep its own until 2026-11-09) |
 | `speed` | `half`, `normal` or `double` |
@@ -121,7 +121,7 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `layers` | `{ tabla: [...], dholak: [...], kit: [...] }` |
 | `reeds` | 1, 2 or 3 |
 | `droneType` | `tanpura` or `harmonium` |
-| `droneVol` | 0–1. In your usual sound, 0 is no drone and any other value a drone; it gives the drone's level only until `droneLevel` is set |
+| `droneVol` | 0–1. 0 is no drone and any other value a drone; it gives the drone's level only until `droneLevel` is set |
 | `droneLevel` | The drone's level, 0–1, for every song and exercise, from the Guide panel's slider (2026-11-09); absent: `droneVol` if above 0, else 0.5 |
 | `tanTune` | `P`, `M` or `N` |
 | `countIn` | boolean |
@@ -157,25 +157,23 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `plSize` | The font size of the song's notes and words, `small` or `big` (absent: normal): in the header's menu since 2026-10-22 (Practice settings before), for the Practice view's lines and Edit notation's beat boxes, preview and free text, not the rest of the screen |
 | `midi` | A MIDI keyboard: `{ route: 'app' \| 'kb' \| 'both', sound: 'keep' \| 'organ' \| 'accordion', out?: id }`: where the guide plays, in what sound, on which keyboard |
 
-**Each song's own sound.** The harmonium, drone and rhythm settings (`reeds`, `droneType`,
-`droneVol`, `tanTune`, `beat`, `speed`, `fills`, `layers`) kept here are *your
-usual sound*. Exercises use it, and so does every song without a `sound` of its own (new
-songs, and songs from before this existed). They are set in Edit notation's Settings (since
-2026-11-10; in the top section from 2026-10-22, in Edit notation's Sound of this song before).
-Changing one of them while one of your songs is open saves the whole set with that song, and the
-usual sound is left alone; while an exercise is open, it changes the usual sound, and a Sa set
-there becomes your Sa (`mySa`). "Use my usual sound", there while a song has its own, removes it.
-The guide and practice settings (`guide`, `guideVol`, `countIn`, `guideLoop`) are always
+**What every song shares, and what a song keeps (Rinat, 2026-11-10).** The reeds, the drone and the
+rhythm's instrument, side instruments and fills (`reeds`, `droneType`, `droneVol`, `tanTune`, `beat`,
+`fills`, `layers`) are the same for every song and exercise: set in the top section, saved here at
+once, unchanged by a refresh or another song. A song's `sound` holds only its rhythm speed (`speed`),
+set in Edit notation → Settings; a song without one plays at the `speed` here, which nothing changes
+any more. On a built-in exercise a speed set there is not kept; a Sa set there becomes your Sa
+(`mySa`). The guide and practice settings
+(`guide`, `guideVol`, `countIn`, `guideLoop`) are always
 the device's: the guide's level is how much help the singer wants that
 day, not part of how a song is arranged (2026-10-13). So, from 2026-11-09, are the rhythm's and
 the drone's levels and the rhythm's mute (`tablaVol`, `droneLevel`, `beatMute`): moving one
 gives a song no sound of its own. A rewaz item's tempo and guide lie over all of these while it
 plays, and so does the routine's `sa` over the song's Sa.
 
-**What the top of the page changes is kept nowhere (Rinat, 2026-11-10).** The Sa, tempo, taal,
-reeds, drone, instrument, side instruments, rhythm speed and fills changed at the top lie over the
-song's own in memory, each song separately (`forNow` in app.ts, `core/song/fornow.ts`), until the
-page is refreshed or Revert is pressed. None of it is written to the song, the usual sound, a backup
+**What the top of the page changes is kept nowhere (Rinat, 2026-11-10).** The Sa, tempo, taal and
+rhythm speed changed at the top lie over the song's own in memory, each song separately (`forNow` in app.ts, `core/song/fornow.ts`), until the
+page is refreshed or Revert is pressed. None of it is written to the song, the settings, a backup
 or a file; what Edit notation sets replaces a change of that setting. A rewaz item plays the song's
 own, with changes of its own gone when the item ends. A take keeps the Sa and tempo it was sung in
 (`sa`, `flat`).

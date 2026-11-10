@@ -1,5 +1,6 @@
-// Round fifty-eight (Rinat, 2026-11-10): the top panel for now, a song's own settings in Edit
-// notation; one list of Sa from C2 to B5; the virtual keyboard folding; no speed-up setting.
+// Rounds fifty-eight and fifty-nine (Rinat, 2026-11-10): the top panel for now, a song's own
+// settings in Edit notation; what every song shares; one list of Sa from C2 to B5, saying which
+// key; the virtual keyboard folding; no speed-up setting.
 import { describe, expect, it } from 'vitest';
 import page from '../../index.html?raw';
 import { DEFAULT_PREFS, loadPrefs, STORE_KEYS, type KeyValueStore } from '../../src/app/store';
@@ -24,11 +25,9 @@ describe('what the top panel has changed', () => {
     expect(trimForNow({ sa: { saKey: 0, saOct: 4 } }, own)).toEqual({ sa: { saKey: 0, saOct: 4 } });
   });
 
-  it('a control put back is no longer a change, whichever control', () => {
-    expect(trimForNow({ sound: { beat: 'tabla', reeds: 3 } }, own)).toEqual({});
-    expect(trimForNow({ sound: { beat: 'kit', reeds: 3 } }, own)).toEqual({ sound: { beat: 'kit' } });
-    expect(trimForNow({ sound: { layers: { tabla: [], dholak: [], kit: [] } } }, own)).toEqual({});
-    expect(trimForNow({ sound: { layers: { tabla: ['manjira'], dholak: [], kit: [] } } }, own)).toEqual({ sound: { layers: { tabla: ['manjira'], dholak: [], kit: [] } } });
+  it('a rhythm speed put back is no longer a change', () => {
+    expect(trimForNow({ sound: { speed: 'normal' } }, own)).toEqual({});
+    expect(trimForNow({ sound: { speed: 'half' } }, own)).toEqual({ sound: { speed: 'half' } });
   });
 
   it('keeps a taal picked, and takes off what was cleared', () => {
@@ -37,7 +36,7 @@ describe('what the top panel has changed', () => {
   });
 
   it('changes nothing it is given', () => {
-    const now = { tempo: 90, sound: { beat: 'kit' as const } };
+    const now = { tempo: 90, sound: { speed: 'half' as const } };
     const before = structuredClone(now);
     trimForNow(now, own);
     expect(now).toEqual(before);
@@ -49,25 +48,25 @@ describe('one list of Sa', () => {
 
   it('runs from C2 to B5, a note at a time', () => {
     expect(values).toHaveLength(48);
-    expect(values[0]).toEqual(['36', 'C2']);
-    expect(values[1]).toEqual(['37', 'C♯2']);
-    expect(values[2]).toEqual(['38', 'D2']);
-    expect(values[12]).toEqual(['48', 'C3']);
-    expect(values[47]).toEqual(['83', 'B5']);
+    expect(values[0]).toEqual(['36', 'C2 · White 1']);
+    expect(values[1]).toEqual(['37', 'C♯2 · Black 1']);
+    expect(values[2]).toEqual(['38', 'D2 · White 2']);
+    expect(values[12]).toEqual(['48', 'C3 · White 1']);
+    expect(values[47]).toEqual(['83', 'B5 · White 7']);
     expect(values.map((v) => +v[0])).toEqual(Array.from({ length: 48 }, (_, i) => 36 + i));
   });
 
   it('reads back as the Sa it names, and is the MIDI note that Sa plays', () => {
     for (const [v, name] of values) {
       const s = saFromValue(v);
-      expect(saKeyName(s.saKey, s.saOct)).toBe(name);
+      expect(saKeyName(s.saKey, s.saOct)).toBe(name.split(' · ')[0]);
       expect(saValue(s)).toBe(v);
       expect(String(saMidi(s))).toBe(v);
     }
   });
 
   it('marks the Sa picked', () => {
-    expect(saOptionsHTML({ saKey: 1, saOct: 2 })).toContain('<option value="37" selected>C♯2</option>');
+    expect(saOptionsHTML({ saKey: 1, saOct: 2 })).toContain('<option value="37" selected>C♯2 · Black 1</option>');
     expect(saOptionsHTML({ saKey: 1, saOct: 2 }).match(/ selected/g)).toHaveLength(1);
   });
 
@@ -110,15 +109,22 @@ describe('the top panel and Edit notation', () => {
     expect(deck).toContain('To change this <span id="nowWhat">song</span>’s own settings, go to <button type="button" class="dlink" id="nowEdit">Edit notation</button>.');
   });
 
-  it('Edit notation has every setting of how a song plays', () => {
-    for (const id of ['taalSel', 'edSa', 'edTempo', 'edReeds', 'edDrone', 'edBeat', 'edSpeed', 'edLayers', 'edFills', 'soundForget']) expect(edit).toContain('id="' + id + '"');
-    expect(deck).not.toContain('id="soundForget"');
+  it('Edit notation has what a song keeps, and nothing every song shares', () => {
+    for (const id of ['taalSel', 'edSa', 'edTempo', 'edSpeed']) expect(edit).toContain('id="' + id + '"');
+    for (const id of ['edReeds', 'edDrone', 'edBeat', 'edLayers', 'edFills', 'soundForget']) expect(page).not.toContain('id="' + id + '"');
+    expect(page).not.toContain('Use my usual sound');
   });
 
-  it('the two have the same choices', () => {
+  it('has the reeds beside the Sa, and Octave must match beside Loop', () => {
+    const pair = deck.slice(deck.indexOf('class="dsareeds"'), deck.indexOf('id="droneSel"'));
+    expect(pair).toContain('id="saPick"');
+    expect(pair).toContain('id="reedSeg"');
+    const row = deck.slice(deck.indexOf('class="row dchks"'));
+    expect(row.slice(0, row.indexOf('</div>'))).toMatch(/id="loopChk".*id="pOct"/);
+  });
+
+  it('the two have the same rhythm speeds', () => {
     const options = (id: string) => /<select id="[^"]*"[^>]*>(.*?)<\/select>/.exec(page.slice(page.indexOf('<select id="' + id + '"')))![1];
-    expect(options('edDrone')).toBe(options('droneSel'));
-    expect(options('edBeat')).toBe(options('beatSel'));
     expect(options('edSpeed')).toBe(options('speedSel'));
   });
 });

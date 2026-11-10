@@ -1,6 +1,6 @@
 /**
  * What the top panel changes over a song's own settings (Rinat, 2026-11-10: "whatever i change in
- * here doesn't effect any song specific settings"): its Sa, tempo, taal and sound. Never saved:
+ * here doesn't effect any song specific settings"): its Sa, tempo, taal and rhythm speed. Never saved:
  * each song keeps its own changes until the page is refreshed, and its own settings are changed in
  * Edit notation. Pure, so it is tested in Node.
  */

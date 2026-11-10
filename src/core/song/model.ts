@@ -32,8 +32,8 @@ export interface Song {
   /** One of the user's songs listed under Exercises (their own exercise); absent: under My
    * songs. Built-in exercises are `example` instead. */
   exercise?: true;
-  /** Its own Melody and Rhythm settings (src/core/song/sound.ts), over the device's; absent
-   * while it uses the device's. */
+  /** Its own rhythm speed (src/core/song/sound.ts), over the device's; absent while it uses the
+   * device's. */
   sound?: Partial<SongSound>;
   /** Notes about the song: its meaning, where it comes from, a teacher's comments. Absent
    * when there are none. */

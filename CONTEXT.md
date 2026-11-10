@@ -118,7 +118,10 @@ wins, except a later explicit decision by Rinat, which always wins.
   rhythm's mute the same for every song, small tags saying what each control changes, routines
   dragged into order, the time left with its total) and fifty-eight (PH2-58: everything at the top
   of the page for now, a song's own settings in Edit notation, Revert to this song's settings, one
-  list of Sa from C2 to B5, the virtual keyboard folding, no tags, no speed-up setting) are
+  list of Sa from C2 to B5, the virtual keyboard folding, no tags, no speed-up setting) and fifty-nine
+  (PH2-59: the reeds, drone, instrument, side instruments and fills the same for every song and
+  remembered, a song keeping only its rhythm speed; White and Black back in the Sa list; Reeds beside
+  the Sa, Octave must match beside Loop) are
   built and live.
   Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
@@ -136,7 +139,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   61-key keyboard); the songs and exercises are at Sa C♯4, and the default 3-reed guide is heard
   at C♯3 (its bass reed: the app's detector reads it at 138.5 Hz), so Rinat matches the guide.
   "Octave must match" judged against C♯4; from round forty-two the bass reed's octave counts too.
-- **Next single action:** Rinat, with round fifty-eight: changes the Sa, the taal and the instrument at the top, plays, opens another song (it should open with its own), comes back (the changes should still be there), presses Revert to this song's settings, then changes something and refreshes (gone); says whether the sentence and the button at the foot of the top panel are clear and well placed; opens Edit notation, opens Settings, sets a song's Sa, tempo and sound there, and says whether they are where they are expected; listens to a song with Sa in the C2 octave and says whether the guide is usable at that depth (with 3 reeds the bass reed goes down to 32.7 Hz, too low for most speakers), and whether Check my pitch reads a voice there (it reads nothing below 60 Hz, Sa C2 being 65.41 Hz); folds and unfolds the Virtual keyboard; sings a take with a Sa changed at the top and plays it back against the guide. With it, round fifty-seven: opens a rewaz routine, picks "Sa for every item", starts it, and says whether every song is heard in that Sa and the Sa at the top comes back afterwards; moves the Rhythm and Drone faders on one song, opens another and says whether they stayed where they were and whether anything sounds too loud or too soft now that a song's saved levels are not used; drags the routines by the dots, on the computer and on the phone; watches "3:25/4:30 left" beside the title and in the rewaz bar. With it, round fifty-six: sings a song with Check my pitch on and
+- **Next single action:** Rinat, with round fifty-nine: picks the reeds, drone, instrument, side instruments and fills once at the top, opens another song and refreshes (they should stay); plays a song that had its own instrument or drone and says whether it is missed; reads the Sa list ("C♯4 · Black 1") and looks at Reeds beside the Sa and Octave must match beside Loop, on the computer and the phone; sets a song's Rhythm speed in Edit notation. With it, round fifty-eight: changes the Sa, the taal and the rhythm speed at the top, plays, opens another song (it should open with its own), comes back (the changes should still be there), presses Revert to this song's settings, then changes something and refreshes (gone); says whether the sentence and the button at the foot of the top panel are clear and well placed; opens Edit notation, opens Settings, sets a song's Sa and tempo there, and says whether they are where they are expected; listens to a song with Sa in the C2 octave and says whether the guide is usable at that depth (with 3 reeds the bass reed goes down to 32.7 Hz, too low for most speakers), and whether Check my pitch reads a voice there (it reads nothing below 60 Hz, Sa C2 being 65.41 Hz); folds and unfolds the Virtual keyboard; sings a take with a Sa changed at the top and plays it back against the guide. With it, round fifty-seven: opens a rewaz routine, picks "Sa for every item", starts it, and says whether every song is heard in that Sa and the Sa at the top comes back afterwards; moves the Rhythm and Drone faders on one song, opens another and says whether they stayed where they were and whether anything sounds too loud or too soft now that a song's saved levels are not used; drags the routines by the dots, on the computer and on the phone; watches "3:25/4:30 left" beside the title and in the rewaz bar. With it, round fifty-six: sings a song with Check my pitch on and
   the Scarlett picked, and turns GAIN 01 until the needle sits mostly in the green (it now reads
   the voice's loudest moments, as the ring round GAIN 01 does, green from −15 to −9 dB of full
   scale, the top where the microphone cuts off); says whether the gauge and the ring now agree
@@ -454,7 +457,7 @@ decision.
 ### Commands
 
 - `npm install` once.
-- `npm test`: every Vitest suite (561 tests in 48 files, about 15 s). Read the "Test Files" line: a
+- `npm test`: every Vitest suite (559 tests in 48 files, about 15 s). Read the "Test Files" line: a
   file that fails to load is not counted as a failed test.
 - `npm run typecheck`: the whole project, then `src/core` and `src/audio/dsp` with no DOM
   library (a DOM call there fails).
@@ -535,6 +538,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
 | PH2-45 | Claude | Review | The time left, a song's progress where it is practised, the library first, the notes in ink (Rinat, 2026-10-31): while playing, the time left beside the title, to the second, the rounds, breaks and count-ins to come included, "in this round" for a loop with no end, held while paused, gone on Stop (`secondsLeft` in transport.ts; `leftAt`, `showLeft` in app.ts; `leftText` in view.ts; `.songleft`); the whole rewaz's in its bar, "0:14 left in all", the item's own and the items after it with the breaks between them, counted through the break before an item (`rewazLeft`, `showLeft` and `Rewaz.left` in rewaz.ts; `routineSeconds` from an item; `#rwLeft`); My progress under My takes for the open song: tiles, where it stands, going well and to work on, the score each session, the latest five sessions with Report and For AI, and its Report, For AI and See all in Progress (`songProgressHTML`, `showSong` in progress.ts; `songHeadline` from songreport.ts; `renderSongProgress` in app.ts; `#progBox`); the Music library's tab before Practice (index.html, `TABS`); the Practice sheet's notes in `--ink` (styles.css `.pnt`) | Tests: 43 files, 490 passed (10 new in timeleft.test.ts); headless Edge on `npm run dev` at 1280 px day and 360 px night: the title 0:15 → 0:10 a second a second, held at 0:10 paused, hidden on Stop, "0:13 left in this round" looping; a two-item rewaz 0:14 → 0:00 left in all through rounds and a 3 s break, hidden at "Rewaz done"; My progress with 7 seeded sessions; See all in Progress opening Pitch for the song; page 360 px wide; no console errors (Work log 2026-10-31, PH2-45) | Waiting for Rinat to play, run a rewaz and open My progress |
+| PH2-59 | Claude | Review | What every song shares (Rinat, 2026-11-10): the reeds, drone, instrument, side instruments and fills saved on the device and the same for every song (`setShared` in app.ts; `SoundSettings`); a song's `sound` only its rhythm speed (`SongSound`, `cleanSound`, `setSpeed`); gone from Edit notation with "Use my usual sound"; White and Black back in the Sa list (`saOptionsHTML`); Reeds beside the Sa (`.dsareeds`), Octave must match beside Loop | 559 unit tests; headless Edge `run59` (44 checks, the oscillators measured) and `layout58` (60 checks at 360, 800, 1280 px day and night, and 3840 × 2160) (Work log 2026-11-10, PH2-59) | Waiting for Rinat's use and ears; not tried on a real touch screen |
 | PH2-58 | Claude | Review | Everything at the top of the page for now (Rinat, 2026-11-10): the Sa, tempo, taal, reeds, drone, instrument, side instruments, rhythm speed and fills change what plays and are never saved, each song keeping its own until a refresh or Revert (`core/song/fornow.ts`; `forNow`, `nowOf`, `setNow`, `revertNow` in app.ts); Revert to this song's settings and a sentence pointing to Edit notation at the foot of the top panel; every setting of how a song plays in Edit notation's Settings; one list of Sa, C2 to B5 (`saOptionsHTML`, `saFromValue`, `SaOct` with 2), at the top, in Edit notation and on a routine; the virtual keyboard folding, its tick box gone; no tags; the speed-up setting removed | 561 unit tests (17 in the new fornow.test.ts); headless Edge `run58` (94 checks, the oscillators measured) and `layout58` (78 checks at 360, 800, 1280 px day and night, and 3840 × 2160) (Work log 2026-11-10) | Waiting for Rinat's use and ears; not tried on a real touch screen; a take sung with a Sa changed at the top not tried with a microphone |
 | PH2-57 | Claude | Review | Which settings are the song's, and saying so: a Sa on each rewaz routine, the rhythm's and the drone's levels and the rhythm's mute the same for every song, small tags in the top section, routines dragged into order, the time left with its total (Rinat, 2026-11-09) | 548 unit tests (20 in the new scope.test.ts); headless Edge `run57` (67 checks, the oscillators measured) and `layout57` (61 checks at 360, 800, 1280 px, day and night, and full screen at 3840 × 2160) (Work log 2026-11-09) | Waiting for Rinat's use and ears; not tried on a real touch screen |
 | PH2-56 | Claude | Review | The loudness gauge on the voice's loudest moments, its top the mic limit, a border round its scale, the voice line one width (Rinat, 2026-11-05: "if i increase the gain enough to have the app show just right, it is too high for scarlett … I guess i have to tune things to they match"; "the mic limit slightly moves up and down when singing - why is that?"; "Put a thin border around the scale of the loudness gauge"; "Get rid of the voice line thickness"): the needle on each reading's loudest sample, as a peak meter's, against −12 dB of full scale (`GAUGE_MIDDLE`, `GaugeLevel`); the mic limit fixed at the scale's top; the scale bordered; the thickness gone (`widthStep`, `LevelRef`, `micLimit` removed); the files for AI's loudness with the loudest samples' spread, its shares as the gauge moved | Tests: 46 files, 524 passed (loudness.test.ts, session.test.ts); headless Edge on `npm run dev` with a fake voice whose loudest samples go from −28 to −5 dB of full scale, cut off at −0.2, and back: "Too soft" and blue to about −17, "Just right" from about −14, red from about −8, the needle at the top when cut off, the same back down, on Practice and in full screen by day and by night, at 3840 × 2160 and at 360 × 780; the voice line 2.6 px throughout; the For AI file's `loudness` with `median_peak_db`; no console errors (Work log 2026-11-05, PH2-56) | Waiting for Rinat: whether the gauge and the Scarlett's ring now agree, where GAIN 01 ends up, whether the needle's speed suits, whether the border makes the scale stand out, a For AI file with loudness |
@@ -725,11 +729,14 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-11-10 | **The top of the page is for now; a song's own settings are in Edit notation.** The Sa, tempo, taal, reeds, drone, instrument, side instruments, rhythm speed and fills changed at the top change what plays and are saved nowhere. Each song keeps its own changes until the page is refreshed or Revert is pressed: another song opens with its own settings, and coming back the changes are still there. A sentence at the foot of the top panel points to Edit notation, with a link. | Rinat, chat 2026-11-10 ("all settings in the header panel could be the "For now" type - so whatever i change in here doesn't effect any song specific settings. So if I change the taal in header panel, that will affect what is playing now until the page is refreshed"; "to change the song sepcific settings, please go to Edit Notation page"; on another song, "Each song keeps its own (Recommended)"); the overlay in memory and the link are Claude's | Supersedes the 2026-10-22 row "A taal picked at the top lasts until another song opens", moved to HISTORY.md. Narrows the 2026-10-22 row on the sound being set in the top section. `core/song/fornow.ts`; app.ts `forNow`, `nowOf`, `setNow`. DATA.md → Each song's own sound. |
 | 2026-11-10 | **Revert to this song's settings,** at the foot of the top panel: greyed until something has been changed; it puts back the Sa, tempo, taal and sound, leaves the levels, the mutes and the Lines to practise alone, and stops a song playing in a changed Sa (the song is built in its Sa). | Rinat, chat 2026-11-10 ("There will be a revert to default settings for this song button in the header as well"); greying it, what it leaves and the stop are Claude's | app.ts `renderRevert`, `revertNow`. |
 | 2026-11-10 | **What stays remembered from the top:** the guide's, rhythm's and drone's levels and mutes, Octave must match, Count in and When looping play the guide, as before, across songs and refreshes. | Rinat, chat 2026-11-10, asked about the conflict with last round's "the same for every song" ("Keep remembering them (Recommended)") | The exception to "all settings … for now". |
-| 2026-11-10 | **Edit notation's Settings holds every setting of how a song plays:** the Sa, tempo, reeds, drone, instrument, rhythm speed, side instruments and fills join the taal there, and "Use my usual sound" moves there. What is set there replaces a change of that setting made at the top. On a built-in exercise, whose edits are not kept, the Sa and sound set there become your usual ones, as the top section's used to. | Needed by Rinat's request of 2026-11-10 (only the taal was there); which controls, their order and the exercise rule are Claude's | index.html `#edSet`; app.ts `wireSound`, `renderSongSettings`, `setSa`; `#exNote`. |
 | 2026-11-10 | **A rewaz plays each song's own settings,** not what was changed at the top. A change made during an item lasts for that item alone, and the changes made at the top come back after. A tempo changed at the top plays every beat, over a section's own tempo (a section's own tempo is changed in its heading or beat boxes). A take plays back as it was taken. | Claude, building the 2026-11-10 request; told to Rinat | app.ts `itemOverride.now`, `asTaken`. Take `sa`, `flat`. |
 | 2026-11-10 | **One list of Sa, C2 to B5:** 48 notes, a semitone at a time, at the top, in Edit notation and on a routine, in place of a key and an octave. C2 is a new octave (`saOct` 2, "lowest"). | Rinat, chat 2026-11-10 ("can we combine this so the one drop down will list c2, c#2, d2....c#3, d3....up to B5?") | view.ts `saOptionsHTML`, `saFromValue`, `saValue`; model.ts `SaOct`. Caution, told to Rinat: Check my pitch reads nothing below 60 Hz (Sa C2 is 65.41 Hz), and 3 reeds' bass reed goes down to 32.7 Hz. The range finder still suggests C3 to B5. |
 | 2026-11-10 | **The virtual keyboard folds** under its own heading, Show and Hide, as the other sections do; the tick box "Show virtual keyboard" is gone. Whether it is open is remembered. | Rinat, chat 2026-11-10 ("Make the virtual keyboard collapsible and remove the settings checkbox of "Show virtual keyboard"") | Setting `showKeys` (DATA.md). |
 | 2026-11-10 | **No tags at the top, and no speed-up setting.** The tags and the thin lines that went with them are gone. "Speed up each round by N up to X" (the tempo trainer) is deleted: old settings, takes and files are read without it, and a take that used it plays back at its tempo. | Rinat, chat 2026-11-10 ("the for now, this song all of these mark ups made it complicated and difficult - remove all these tags"; "this setting of speed up each round by N up to X - didn't work when i tried just now and I never used it in the past and can be replicated with a rewaz routine - so delete it") | Supersedes the 2026-11-09 row "Small tags say what each control changes", moved to HISTORY.md. `ramp`, `rampStep`, `rampMax` and `speed_up_each_round` gone. |
+| 2026-11-10 | **The reeds, the drone, the instrument, its side instruments and the fills are the same for every song,** saved on the device when changed at the top, so a refresh or another song leaves them as they are. Revert leaves them alone. They are not in Edit notation any more, "Use my usual sound" is gone, and what older songs saved of them is ignored. | Rinat, chat 2026-11-10 ("reeds settings and drone are not song specific settings i thinK? I don't thing these are required in the edit notation page. These two make them global settings - so they won't change on refresh or on song change"; "Instrument and the supporting instruments and the checkbox with fill every 4th cycle also feels like they should be global. They day i want tabla, i would probably want tabla for all and same for another day with drums."); ignoring what songs saved and leaving no carry-over are Claude's | Narrows the first 2026-11-10 row on the top being for now, the 2026-11-09 row "What belongs to a song and what to the day" and the 2026-10-11, 2026-10-13 and 2026-10-22 rows on each song's own sound. Supersedes the 2026-11-10 row "Edit notation's Settings holds every setting of how a song plays", moved to HISTORY.md. app.ts `setShared`; DATA.md → What every song shares. |
+| 2026-11-10 | **A song keeps its rhythm speed and no other sound:** set in Edit notation's Settings, beside its Sa and tempo; at the top it is for now and Revert puts it back. A song without one plays at the device's `speed`. On a built-in exercise a speed set there is not kept, so it cannot change any other song. | Rinat, chat 2026-11-10 ("Leave the rythm speed as song specific though as I found it varies between songs"); the exercise rule is Claude's | core/song/sound.ts `SongSound`, `cleanSound`; app.ts `setSpeed`; `#exNote`. |
+| 2026-11-10 | **The Sa list says which key:** "C♯4 · Black 1", as the key picker used to, at the top, in Edit notation and on a routine. | Rinat, chat 2026-11-10 ("in the your key drop down, you had some sort of indicator like the white key, black key etc - it's not there anymore, put those back in") | Adds to the 2026-11-10 row "One list of Sa". view.ts `saOptionsHTML`. |
+| 2026-11-10 | **Reeds beside the Sa, and Octave must match beside Loop,** to save rows at the top. | Rinat, chat 2026-11-10 ("Reed choice can be side by side with the your key dropdown"; "Loop and OCtave must match checkboxes can be side by side") | index.html `.dsareeds`, `.dchks`. |
 | 2026-10-23 | **Built-in exercises stay read-only for now** (Open question 6 answered): they cannot be changed or deleted; copy one to change it. Claude's proposal (changed in place as the user's own, deleted or hidden, a "Bring back the built-in exercises" button) is not built. | Rinat, chat 2026-10-23 ("Keep the built-in exercises read-only for now.") | Invariants → Never lose a song unchanged; Open question 6 removed. |
 | 2026-10-23 | **A break between rounds,** when looping on the Practice view (the Guide panel's "Break between rounds", seconds) and in a rewaz (each routine's "Break between rounds", separate from its break between items): silence with the drone going on, then the count-in again when it is on, and any pickup, then the next round; the line's box counts it down; none after the last round; the note before it fades as at an ending. A pause in a break goes on with the next round. Takes keep it. | Rinat, chat 2026-10-23 ("i'd like the option to add some delay between loops and also between rounds when doing rewaz with multiple rounds"); the count-in again, the drone going on, the countdown, a setting on the Guide panel and per routine are Claude's | transport.ts `gap`; prefs `loopGap`; Routine `roundGap`; Take `gap`; session settings `gap`; docs/ENGINE.md → Transport, DATA.md |
 | 2026-10-23 | **My takes as a table:** grouped by song or by date, each group folding (the first three open), a tick box on each take, on each song's or day's group and Tick all; the takes ticked are deleted together, asked first in the table's bar. | Rinat, chat 2026-10-23 ("needs all the bells and whistles of a table - should be collapsible the song name or the date taken. want to be able to select all the takes in a particular day and delete together. also all the takes of a particular song"; "if multiple takes are deleted together, only then confirmation is fine") | takes.ts `takeGroups`, `allTakesHTML`; prefs `tkGroup`; docs/ENGINE.md → Takes |
@@ -841,6 +848,50 @@ Template:
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
 
+### 2026-11-10 GMT — Claude (Opus 5.5) — PH2-59 what every song shares; a song's rhythm speed; White and Black in the Sa list; two rows side by side
+
+- **Goal:** Rinat, 2026-11-10: "in the your key drop down, you had some sort of indicator like the
+  white key, black key etc - it's not there anymore, put those back in * Reed choice can be side by
+  side with the your key dropdown * reeds settings and drone are not song specific settings i thinK?
+  I don't thing these are required in the edit notation page. These two make them global settings -
+  so they won't change on refresh or on song change * Instrument and the supporting instruments and
+  the checkbox with fill every 4th cycle also feels like they should be global. They day i want
+  tabla, i would probably want tabla for all and same for another day with drums. So they can be
+  removed from song specific setting. Leave the rythm speed as song specific though as I found it
+  varies between songs * Loop and OCtave must match checkboxes can be side by side".
+- **Inspected:** core/song/sound.ts, fornow.ts, audio/sound.ts, app.ts (`savedSound`, `sound`,
+  `changeSound`, `wireSound`, `changed`), index.html's deck and `#edSet`, store.ts (`loadPrefs`).
+- **Changed:** `feat(top): the reeds, drone, instrument, side instruments and fills the same for
+  every song, a song keeping only its rhythm speed, White and Black back in the Sa list, two rows
+  side by side` — src/core/song/sound.ts (`SongSound` the speed, `SPEED_CHOICES`, `cleanSound`,
+  `soundOf`); audio/sound.ts (the rest in `SoundSettings`); app/app.ts (`setShared`, `setSpeed`,
+  `wireSound` once; `changeSound`, `drawSound`, `forgetSound`, `renderUsualSound`, `DECK_SOUND`,
+  `EDIT_SOUND` gone); app/view.ts (`saOptionsHTML`; `songSoundSummary` gone); index.html
+  (`.dsareeds`, `.dchks`, Edit notation's fields); app/styles.css; tests/unit/sound.test.ts
+  (rewritten), fornow, scope, store and topsection tests; docs/DATA.md, ROADMAP.md (row 59),
+  HISTORY.md (a decision, the PH2-57 entry); README.md; this file.
+- **Tests / verification:** `npx tsc --noEmit` exit 0; `npx vitest run` → 48 files, 559 passed; `npm
+  run build` → 405.10 kB JS, 93.70 kB CSS; `bash reference/tests/run-all.sh` → parser 31, checker
+  11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge on `npm run dev`,
+  scratchpad `run59.mjs` (44 checks, all pass; Web Audio's oscillators recorded): the Sa list "C2 ·
+  White 1" to "B5 · White 7", the same in Edit notation; Reeds beside the Sa and Octave must match
+  beside Loop, by their boxes; Edit notation's old fields gone; reeds, drone, instrument, a side
+  instrument and fills changed at the top: Revert stays off, the song unchanged, saved in the
+  settings, the same on another song, on a song that had saved its own and after a refresh; 1 reed
+  sounded 277.18 Hz and no 138.59 or 554.37 from the notes, 3 reeds all three; a song that saved
+  half speed keeps it; speed at the top for now, Revert puts it back and leaves the shared ones;
+  speed in Edit notation saved as `{ speed }` alone, the top following, the device's not changed;
+  an older song's saved sound cut to its speed when next saved; a built-in exercise's speed not
+  kept and no other song changed; a rewaz using the shared reeds; no page errors. `layout58.mjs`
+  (60 checks, all pass) at 360 × 780 day and night, 800 × 1000 day, 1280 × 950 day and night, 3840 ×
+  2160 night; screenshots looked at.
+- **Decisions made:** four 2026-11-10 rows; one earlier row moved to HISTORY.md.
+- **Risks or disagreements:** nobody on the build side can hear. No real touch screen. The first
+  time this opens, what the top shows is what the device's settings already held, not what any one
+  song had saved: a drone or instrument a song had of its own needs picking once. What songs saved
+  of those goes when each song is next saved; a backup from before keeps it.
+- **Next handoff:** Rinat tries it and listens (Next single action).
+
 ### 2026-11-10 GMT — Claude (Opus 5.5) — PH2-58 the top of the page for now; one list of Sa; the keyboard folding; no tags, no speed-up
 
 - **Goal:** Rinat, 2026-11-10: "the for now, this song all of these mark ups made it complicated
@@ -902,71 +953,4 @@ Template:
   At Sa C2 the pitch check's floor (60 Hz) lies just under Sa, so anything sung below it is not
   read. A section's own tempo is now changed only in its heading or beat boxes, as the slider at
   the top plays every beat over it.
-- **Next handoff:** Rinat tries it and listens (Next single action).
-
-### 2026-11-09 GMT — Claude (Opus 5.5) — PH2-57 which settings are the song's; a Sa for a rewaz; routines dragged; the time with its total
-
-- **Goal:** Rinat, 2026-11-09: "I am at a dilemma with which settings should be song specific and
-  which should be global. I have designed a rewaz which I wanted to sing in a different scale, so
-  I chose C on the top panel, but the later songs played in c# … the beat speed being half, single
-  double etc - keping that song specific helps a lot". Then, after Claude's advice (a Sa on the
-  routine; the rhythm's and drone's levels global): "ok, go ahead with both changes. But there is
-  no way for the user to know which ones are global and which ones aren't - would be good if there
-  was a way to indicate this. also add the option to drag and reorder rewaz items … i also want to
-  be able to sort/reorder the routines themselves. Currently when showing time remaining (both
-  rewaz and sing) it counts down the time. I would also like to see the total it is counting down
-  from. so for example, 3:25/4:30".
-- **Inspected:** app.ts (`sound`, `soundSource`, `songSource`, `itemOverride`, `playItem`,
-  `renderSoundControls`, `showLeft`), rewaz.ts, fold.ts (`initSectionDrag`), store.ts (`Prefs`,
-  `RoutineStore`), core/song/sound.ts, audio/sound.ts, audio/transport.ts (`secondsLeft`),
-  core/practice/routine.ts and take.ts, index.html's deck.
-- **Changed:** `feat(rewaz): a Sa on each routine, routines dragged into order, levels the same
-  for every song, tags saying what each control changes, the time left with its total` —
-  src/core/song/sound.ts (`tablaVol` out of a song's sound, `droneVol` only whether it has a
-  drone); src/audio/sound.ts (`SoundSettings.tablaVol`, `droneLevelOf`); src/audio/transport.ts
-  (`secondsTotal`); src/core/practice/routine.ts (`RoutineSa`, `cleanSa`); take.ts (`sa`);
-  src/app/store.ts (`rewazOrder`, `droneLevel`, `beatMute`; the routine's `sa` saved);
-  src/app/view.ts (`leftText` with a total, `scopeWords`, `SCOPE_ALL`, `SCOPE_NOW`);
-  src/app/fold.ts (`DragParts`; the page follows the section held); src/app/rewaz.ts (the Sa
-  field, the grip, `routinesInOrder`, `run.total`, `host.play` with a Sa, `over`, `openSa`,
-  `order`); src/app/app.ts (the Sa laid over and put back, held pickers, `showPlayedSa`,
-  `renderScope`, levels from the prefs, `soundSource` with the mute and the level); index.html
-  (the tags, the Guide panel regrouped, No rhythm, "Instrument"); src/app/styles.css (`.scope`,
-  `.vscope`, `.dnext`, `.rwgrip`, `.rwsa`, `.sorting .rwbody`, a phone's chevron beside the name);
-  tests/unit/scope.test.ts (new), sound.test.ts, timeleft.test.ts; docs/DATA.md, ENGINE.md,
-  ROADMAP.md (row 57), HISTORY.md (the PH2-55 entry); this file.
-- **Tests / verification:** `npm run typecheck` exit 0; `npm test` → 47 files, 548 passed; `npm
-  run build` → 408.11 kB JS, 93.79 kB CSS; `bash reference/tests/run-all.sh` → parser 31, checker
-  11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge on `npm run dev`
-  (edits checked with `curl` first), scratchpad `run57.mjs` (67 checks, all pass; real mouse and
-  key events by the DevTools protocol, Web Audio's oscillators and gains recorded): a routine with
-  Sa C3, the songs at C♯4: the Sa pickers show C3, held, labelled "Sa · this rewaz's", through the
-  break and the second song; the oscillators heard 65.41, 98, 130.81, 261.63 Hz and none at
-  138.59 or 277.18; after it ended and after stopping in a break, C♯4 and free; no song's Sa
-  changed. Song time "0:03/0:06 left"; bar "0:11/0:14 left in all", "0:08/0:14 left in all" in
-  the break; an endless loop "0:05/0:06 left in this round", its second round with the trainer
-  "0:03/0:04". The rhythm's level and mute carried across songs, no `sound` saved on the song; a
-  song with an old `tablaVol` of 0.2 ignores it and keeps its half speed and dholak; the drone's
-  gain measured 0.225 (the level 0.25 × 0.9), not 0.81. Routines: Zeta dragged from last to first,
-  saved in `rewazOrder`; an arrow key moves it, the focus stays on its grip; kept after a reload;
-  an item dragged within its routine moves only the item. `layout57.mjs` (61 checks, all pass) at
-  360 × 780 day and night, 800 × 1000 day, 1280 × 950 day, 3840 × 2160 night: no sideways scroll on
-  the deck, the Guide and Rhythm panels, Rewaz with a long-named routine open, or a rewaz running;
-  no tag or Sa picker cut off; while moving, each routine is only its heading (height less
-  heading ≤ 2 px), the one above still on the screen; a Music library section still moves; full
-  screen at 3840 × 2160 shows "0:25/0:28 left" and "0:55/0:58 left in all"; screenshots looked at.
-  No console errors but the dev page's missing favicon. Found by these runs and fixed:
-  `RoutineStore.save` dropped `sa`; the routines stretched while moving (the grid filled the
-  height the list is held at); on a phone the other headings jumped off the top when a routine
-  above was open; a long name fell under its chevron on a phone.
-  Pushed as `f2c5233`; CI run `42692971913` green; the site serves `index-3Ns8eRar.js`, and in
-  headless Edge at 360 × 780 it shows the tags and the routines' grips, no sideways scroll, no
-  console errors (scratchpad `live57.mjs`).
-- **Decisions made:** six 2026-11-09 rows; Open question 7 closed.
-- **Risks or disagreements:** nobody on the build side can hear: Sa and the levels are measured,
-  not listened to. A song that had its own rhythm or drone level now plays at the device's, so
-  some may sound louder or softer than before (the old value is ignored, and goes when the song's
-  sound is next saved). Dragging was driven with a mouse at phone width; no real touch screen was
-  used (the grip has `touch-action: none`, as the Music library's has). In headless Edge the
-  browser's own full screen does not engage; the app's full-screen layout was what was checked.
 - **Next handoff:** Rinat tries it and listens (Next single action).

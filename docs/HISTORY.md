@@ -44,6 +44,7 @@ historical interest.
 | 2026-10-10 | The new app is published at `/Gaaner-Sathi/new/` beside the prototype until Rinat has looked at it; then it takes over the main address. | Claude, so Rinat can try it on a phone before deciding (Rinat asked to look first) | The deploy job builds the app and copies it to `_site/new/`. |
 | 2026-10-22 | **A taal picked at the top lasts until another song opens.** The top section's taal picker shows the song's own taal first ("Song's own"); another taal picked there plays the whole song in it, over the song's and its sections' taals, until another song opens. The song's taal is still set in Edit notation, its sections' in their headings; the beat boxes and the checker keep to them. The song's first beat stays the same number of beats before sam. | Rinat, chat 2026-10-22 ("I found myself playing with it by choosing different ones so it is good to have it there always … the top section will override it if something else is selected"; to Claude's question, "Until another song opens"); keeping the beats before sam and leaving the editor on the song's taals are Claude's | src/core/notation/taalmap.ts, src/app/app.ts. |
 | 2026-11-09 | **Small tags say what each control changes:** "this song" in brass (on a built-in exercise "all exercises", its tempo "for now"), "all songs", "for now", each with a longer title. So they read, the Guide panel is regrouped (Sa, reeds and the drone picker under "this song", then the drone's level, the count-in and looping), Octave must match has a row of its own and the Rhythm panel an "Instrument" label. | Rinat, chat 2026-11-09 ("there is no way for the user to know which ones are global and which ones aren't - would be good if there was a way to indicate this"); the tags, their words and the regrouping are Claude's | `scopeWords` in view.ts. |
+| 2026-11-10 | **Edit notation's Settings holds every setting of how a song plays:** the Sa, tempo, reeds, drone, instrument, rhythm speed, side instruments and fills join the taal there, and "Use my usual sound" moves there. What is set there replaces a change of that setting made at the top. On a built-in exercise, whose edits are not kept, the Sa and sound set there become your usual ones, as the top section's used to. | Needed by Rinat's request of 2026-11-10 (only the taal was there); which controls, their order and the exercise rule are Claude's | index.html `#edSet`; app.ts `wireSound`, `renderSongSettings`, `setSa`; `#exNote`. |
 
 ## Files removed
 
@@ -59,6 +60,73 @@ historical interest.
 - 2026-10-09: `handover/`, merged into the framework (the original pack is at `e0ea8d8`).
 
 ## Work log, older entries
+
+### 2026-11-09 GMT — Claude (Opus 5.5) — PH2-57 which settings are the song's; a Sa for a rewaz; routines dragged; the time with its total
+
+- **Goal:** Rinat, 2026-11-09: "I am at a dilemma with which settings should be song specific and
+  which should be global. I have designed a rewaz which I wanted to sing in a different scale, so
+  I chose C on the top panel, but the later songs played in c# … the beat speed being half, single
+  double etc - keping that song specific helps a lot". Then, after Claude's advice (a Sa on the
+  routine; the rhythm's and drone's levels global): "ok, go ahead with both changes. But there is
+  no way for the user to know which ones are global and which ones aren't - would be good if there
+  was a way to indicate this. also add the option to drag and reorder rewaz items … i also want to
+  be able to sort/reorder the routines themselves. Currently when showing time remaining (both
+  rewaz and sing) it counts down the time. I would also like to see the total it is counting down
+  from. so for example, 3:25/4:30".
+- **Inspected:** app.ts (`sound`, `soundSource`, `songSource`, `itemOverride`, `playItem`,
+  `renderSoundControls`, `showLeft`), rewaz.ts, fold.ts (`initSectionDrag`), store.ts (`Prefs`,
+  `RoutineStore`), core/song/sound.ts, audio/sound.ts, audio/transport.ts (`secondsLeft`),
+  core/practice/routine.ts and take.ts, index.html's deck.
+- **Changed:** `feat(rewaz): a Sa on each routine, routines dragged into order, levels the same
+  for every song, tags saying what each control changes, the time left with its total` —
+  src/core/song/sound.ts (`tablaVol` out of a song's sound, `droneVol` only whether it has a
+  drone); src/audio/sound.ts (`SoundSettings.tablaVol`, `droneLevelOf`); src/audio/transport.ts
+  (`secondsTotal`); src/core/practice/routine.ts (`RoutineSa`, `cleanSa`); take.ts (`sa`);
+  src/app/store.ts (`rewazOrder`, `droneLevel`, `beatMute`; the routine's `sa` saved);
+  src/app/view.ts (`leftText` with a total, `scopeWords`, `SCOPE_ALL`, `SCOPE_NOW`);
+  src/app/fold.ts (`DragParts`; the page follows the section held); src/app/rewaz.ts (the Sa
+  field, the grip, `routinesInOrder`, `run.total`, `host.play` with a Sa, `over`, `openSa`,
+  `order`); src/app/app.ts (the Sa laid over and put back, held pickers, `showPlayedSa`,
+  `renderScope`, levels from the prefs, `soundSource` with the mute and the level); index.html
+  (the tags, the Guide panel regrouped, No rhythm, "Instrument"); src/app/styles.css (`.scope`,
+  `.vscope`, `.dnext`, `.rwgrip`, `.rwsa`, `.sorting .rwbody`, a phone's chevron beside the name);
+  tests/unit/scope.test.ts (new), sound.test.ts, timeleft.test.ts; docs/DATA.md, ENGINE.md,
+  ROADMAP.md (row 57), HISTORY.md (the PH2-55 entry); this file.
+- **Tests / verification:** `npm run typecheck` exit 0; `npm test` → 47 files, 548 passed; `npm
+  run build` → 408.11 kB JS, 93.79 kB CSS; `bash reference/tests/run-all.sh` → parser 31, checker
+  11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge on `npm run dev`
+  (edits checked with `curl` first), scratchpad `run57.mjs` (67 checks, all pass; real mouse and
+  key events by the DevTools protocol, Web Audio's oscillators and gains recorded): a routine with
+  Sa C3, the songs at C♯4: the Sa pickers show C3, held, labelled "Sa · this rewaz's", through the
+  break and the second song; the oscillators heard 65.41, 98, 130.81, 261.63 Hz and none at
+  138.59 or 277.18; after it ended and after stopping in a break, C♯4 and free; no song's Sa
+  changed. Song time "0:03/0:06 left"; bar "0:11/0:14 left in all", "0:08/0:14 left in all" in
+  the break; an endless loop "0:05/0:06 left in this round", its second round with the trainer
+  "0:03/0:04". The rhythm's level and mute carried across songs, no `sound` saved on the song; a
+  song with an old `tablaVol` of 0.2 ignores it and keeps its half speed and dholak; the drone's
+  gain measured 0.225 (the level 0.25 × 0.9), not 0.81. Routines: Zeta dragged from last to first,
+  saved in `rewazOrder`; an arrow key moves it, the focus stays on its grip; kept after a reload;
+  an item dragged within its routine moves only the item. `layout57.mjs` (61 checks, all pass) at
+  360 × 780 day and night, 800 × 1000 day, 1280 × 950 day, 3840 × 2160 night: no sideways scroll on
+  the deck, the Guide and Rhythm panels, Rewaz with a long-named routine open, or a rewaz running;
+  no tag or Sa picker cut off; while moving, each routine is only its heading (height less
+  heading ≤ 2 px), the one above still on the screen; a Music library section still moves; full
+  screen at 3840 × 2160 shows "0:25/0:28 left" and "0:55/0:58 left in all"; screenshots looked at.
+  No console errors but the dev page's missing favicon. Found by these runs and fixed:
+  `RoutineStore.save` dropped `sa`; the routines stretched while moving (the grid filled the
+  height the list is held at); on a phone the other headings jumped off the top when a routine
+  above was open; a long name fell under its chevron on a phone.
+  Pushed as `f2c5233`; CI run `42692971913` green; the site serves `index-3Ns8eRar.js`, and in
+  headless Edge at 360 × 780 it shows the tags and the routines' grips, no sideways scroll, no
+  console errors (scratchpad `live57.mjs`).
+- **Decisions made:** six 2026-11-09 rows; Open question 7 closed.
+- **Risks or disagreements:** nobody on the build side can hear: Sa and the levels are measured,
+  not listened to. A song that had its own rhythm or drone level now plays at the device's, so
+  some may sound louder or softer than before (the old value is ignored, and goes when the song's
+  sound is next saved). Dragging was driven with a mouse at phone width; no real touch screen was
+  used (the grip has `touch-action: none`, as the Music library's has). In headless Edge the
+  browser's own full screen does not engage; the app's full-screen layout was what was checked.
+- **Next handoff:** Rinat tries it and listens (Next single action).
 
 ### 2026-11-05 GMT — Claude (Opus 5.5) — PH2-56 the gauge on the loudest moments, its top the mic limit, a border, one width
 

@@ -1,16 +1,25 @@
 /**
- * Sound settings (docs/DATA.md → Settings): the device's settings, which a song's own sound
- * (its harmonium, drone and rhythm, src/core/song/sound.ts) lies over. Field names match the
- * prototype's `swaralipi.prefs.v1`.
+ * Sound settings (docs/DATA.md → Settings): the device's settings, which a song's own rhythm
+ * speed (src/core/song/sound.ts) lies over. Field names match the prototype's
+ * `swaralipi.prefs.v1`.
  */
-import type { GuideLevel, SongSound } from '../core/song/sound';
+import type { BeatStyle, DroneType, GuideLevel, LayerStyle, SongSound, TanTune } from '../core/song/sound';
 
 export type { BeatStyle, DroneType, GuideLevel, TanTune } from '../core/song/sound';
 /** When looping: guide every round, the first round only, or every other round. */
 export type GuideLoop = 'all' | 'first' | 'alt';
 
-/** A song's own sound (SongSound), then the practice settings, which every song shares. */
+/** The rhythm's speed (SongSound), then what every song shares. */
 export interface SoundSettings extends SongSound {
+  reeds: 1 | 2 | 3;
+  droneType: DroneType;
+  /** 0: no drone. Any other value: a drone, heard at the level `droneLevel` in the settings. */
+  droneVol: number;
+  tanTune: TanTune;
+  beat: BeatStyle;
+  fills: boolean;
+  /** Extra percussion layers chosen for each rhythm style. */
+  layers: Record<LayerStyle, string[]>;
   /** How loud the rhythm is, 0–1 (the prototype's name): the same for every song (2026-11-09). */
   tablaVol: number;
   /** On ('full'; 'soft' from before 2026-10-22) or muted ('off'). */

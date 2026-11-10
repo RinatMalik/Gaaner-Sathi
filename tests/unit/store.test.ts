@@ -3,7 +3,6 @@
 // summary lines, which are new.
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_PREFS, loadPrefs, savePrefs, SongStore, STORE_KEYS, type KeyValueStore } from '../../src/app/store';
-import { songSoundSummary } from '../../src/app/view';
 import { normalize, type Song } from '../../src/core/song/model';
 
 /** localStorage in memory; it can be made full or blocked. */
@@ -264,19 +263,5 @@ describe('songs', () => {
   it('notice changes from other tabs to the songs only', () => {
     expect([STORE_KEYS.songs, STORE_KEYS.legacySongs, STORE_KEYS.hidden, null].map(SongStore.isSongKey)).toEqual([true, true, true, true]);
     expect([STORE_KEYS.prefs, STORE_KEYS.legacyPrefs, 'other'].map(SongStore.isSongKey)).toEqual([false, false, false]);
-  });
-});
-
-describe('the settings bars’ summaries', () => {
-
-  it('a song’s sound: the harmonium, the drone, then the rhythm with its speed and added layers', () => {
-    expect(songSoundSummary(DEFAULT_PREFS)).toBe('3 reeds · No drone · Tabla');
-    expect(songSoundSummary({ ...DEFAULT_PREFS, reeds: 1, beat: 'off', droneVol: 0.5, tanTune: 'M' })).toBe('1 reed · Tanpura, 1st string Ma · No rhythm');
-    expect(songSoundSummary({ ...DEFAULT_PREFS, beat: 'click', speed: 'half', droneType: 'harmonium', droneVol: 0.2, layers: { tabla: [], dholak: [], kit: ['claps'] } }))
-      .toBe('3 reeds · Harmonium drone · Click, half speed');
-    expect(songSoundSummary({ ...DEFAULT_PREFS, reeds: 2, beat: 'kit', speed: 'double', layers: { tabla: ['manjira'], dholak: [], kit: ['shaker', 'claps'] } }))
-      .toBe('2 reeds · No drone · Drums, double speed, with shaker, claps');
-    // The guide is not part of it.
-    expect(songSoundSummary({ ...DEFAULT_PREFS, guide: 'off' })).toBe(songSoundSummary(DEFAULT_PREFS));
   });
 });

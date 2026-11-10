@@ -5,7 +5,6 @@
  * output. The prototype read the script, song and taal from globals; here they are
  * passed in.
  */
-import type { SoundSettings } from '../audio/sound';
 import { checkNotation, issueKey, type CheckIssue } from '../core/notation/check';
 import { asTaals, placeIn, type Taals } from '../core/notation/taalmap';
 import { AKAR, BN_LETTER, LAT_LETTER, REPH } from '../core/notation/symbols';
@@ -66,7 +65,7 @@ export function saFromValue(v: string): { saKey: number; saOct: SaOct } {
 /** One list of Sa from C2 to B5 (Rinat, 2026-11-10: "the one drop down will list c2, c#2, d2....
  * up to B5"), lowest first, `picked` selected. */
 export const saOptionsHTML = (picked?: { saKey: number; saOct: number }): string =>
-  OCTS.map(([o]) => KEYS.map((_, k) => '<option value="' + saValue({ saKey: k, saOct: o }) + '"' + (picked?.saKey === k && picked.saOct === o ? ' selected' : '') + '>' + saKeyName(k, o) + '</option>').join('')).join('');
+  OCTS.map(([o]) => KEYS.map((_, k) => '<option value="' + saValue({ saKey: k, saOct: o }) + '"' + (picked?.saKey === k && picked.saOct === o ? ' selected' : '') + '>' + saKeyName(k, o) + ' · ' + KEYS[k]![1] + '</option>').join('')).join('');
 
 // ── Notes ────────────────────────────────────────────────────────────────────
 
@@ -332,19 +331,3 @@ export function issuesHTML(P: ParsedSong, taals: TaalInfo | Taals, off: number, 
 
 // ── Settings bars (new: the prototype's settings, folded away) ─────────────────
 
-const STYLE_NAMES: Record<string, string> = { tabla: 'Tabla', dholak: 'Dholak', kit: 'Drums', click: 'Click' };
-const FIRST_STRING: Record<string, string> = { P: 'Pa', M: 'Ma', N: 'Ni' };
-
-/** A song's own sound in a line, for the top section's "Use my usual sound": "3 reeds · Tanpura,
- * 1st string Pa · Drums, double speed, with shaker, claps". */
-export function songSoundSummary(s: SoundSettings): string {
-  const layers = s.beat === 'off' || s.beat === 'click' ? [] : ((s.layers as Record<string, readonly string[] | undefined>)[s.beat] || []);
-  const names = layers.map((id) => (Object.hasOwn(LAYERS, id) ? LAYERS[id as LayerId].name.toLowerCase() : id));
-  return [
-    s.reeds + (s.reeds === 1 ? ' reed' : ' reeds'),
-    s.droneVol > 0 ? (s.droneType === 'harmonium' ? 'Harmonium drone' : 'Tanpura, 1st string ' + (FIRST_STRING[s.tanTune] ?? 'Pa')) : 'No drone',
-    s.beat === 'off'
-      ? 'No rhythm'
-      : (STYLE_NAMES[s.beat] ?? s.beat) + (s.speed === 'half' ? ', half speed' : s.speed === 'double' ? ', double speed' : '') + (names.length ? ', with ' + names.join(', ') : ''),
-  ].join(' · ');
-}

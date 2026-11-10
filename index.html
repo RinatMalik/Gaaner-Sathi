@@ -67,9 +67,8 @@
       <div class="dfield">
         <label class="lab" for="fromLine">Lines to practise</label>
         <div class="row dpair"><select id="fromLine" class="lines"></select><label class="mini" for="toLine" id="toLab" hidden>to</label><select id="toLine" class="lines" hidden></select></div>
-        <div class="row dchks"><label class="chk"><input type="checkbox" id="loopChk"> Loop</label></div>
+        <div class="row dchks"><label class="chk"><input type="checkbox" id="loopChk"> Loop</label><label class="chk" title="Otherwise the right note in a higher or lower octave counts. With 2 or 3 reeds the guide’s bass reed plays an octave below the notes, so that octave counts too."><input type="checkbox" id="pOct"> Octave must match</label></div>
       </div>
-      <label class="chk" title="Otherwise the right note in a higher or lower octave counts. With 2 or 3 reeds the guide’s bass reed plays an octave below the notes, so that octave counts too."><input type="checkbox" id="pOct"> Octave must match</label>
       <div class="row dkb" id="kbLine"><span class="dstat" id="midiStatus" aria-live="polite"></span><button id="midiBtn" class="dlink" type="button" title="Connect a MIDI keyboard, such as a Casio, by its USB cable">Connect</button></div>
     </div>
 
@@ -86,10 +85,12 @@
         <button type="button" class="mute" id="guideMute" aria-pressed="false" title="Mute the guide"><span class="sr-only">Mute the guide</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path class="ic-on" d="M15.5 9.2a4 4 0 0 1 0 5.6M18 6.8a7.5 7.5 0 0 1 0 10.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="ic-off" d="M15.5 9.5l5 5M20.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
       </div>
       <div class="dctl">
-        <div class="dfield"><label class="lab" id="saLab" for="saPick">Sa · your key</label>
-          <select id="saPick" title="C4 is middle C. C3 is the second C from the left on a 61-key keyboard, the third on an 88-key piano."></select></div>
-        <div class="drow"><span class="lab" id="reedLab">Reeds</span>
-          <div class="seg" id="reedSeg" role="group" aria-labelledby="reedLab"><button type="button" data-v="1" title="Male reed only">1</button><button type="button" data-v="2" title="Bass and male reeds">2</button><button type="button" data-v="3" title="Bass, male and female reeds">3</button></div></div>
+        <div class="dsareeds">
+          <div class="dfield"><label class="lab" id="saLab" for="saPick">Sa · your key</label>
+            <select id="saPick" title="C4 is middle C. C3 is the second C from the left on a 61-key keyboard, the third on an 88-key piano."></select></div>
+          <div class="dfield"><span class="lab" id="reedLab">Reeds</span>
+            <div class="seg" id="reedSeg" role="group" aria-labelledby="reedLab"><button type="button" data-v="1" title="Male reed only">1</button><button type="button" data-v="2" title="Bass and male reeds">2</button><button type="button" data-v="3" title="Bass, male and female reeds">3</button></div></div>
+        </div>
         <div class="row dpair">
           <select id="droneSel" aria-label="Drone" title="The drone: a tanpura with its first string on Pa, Ma or Ni, or the harmonium"><option value="off">No drone</option><option value="tanpura:P">Tanpura · Pa</option><option value="tanpura:M">Tanpura · Ma</option><option value="tanpura:N">Tanpura · Ni</option><option value="harmonium">Harmonium drone</option></select></div>
         <div class="dhead"><label class="lab" for="droneVol">Drone</label><input type="range" id="droneVol" min="0" max="1" step="0.01" aria-label="Drone volume"></div>
@@ -134,7 +135,7 @@
     <!-- The top panel changes things for now (Rinat, 2026-11-10): a song's own settings are changed
          in Edit notation, and this puts back what was changed here. -->
     <div class="dnow">
-      <button type="button" class="dbtn" id="revertBtn" title="Put back this song’s own Sa, tempo, taal and sound" disabled>Revert to this song’s settings</button>
+      <button type="button" class="dbtn" id="revertBtn" title="Put back this song’s own Sa, tempo, taal and rhythm speed" disabled>Revert to this song’s settings</button>
       <span class="dstat">To change this <span id="nowWhat">song</span>’s own settings, go to <button type="button" class="dlink" id="nowEdit">Edit notation</button>.</span>
     </div>
 
@@ -362,13 +363,7 @@
         <div class="meta" role="group" aria-label="How this song plays">
           <div class="f"><label for="edSa">Sa</label><select id="edSa" title="C4 is middle C. C3 is the second C from the left on a 61-key keyboard, the third on an 88-key piano."></select></div>
           <div class="f"><label for="edTempo" title="Matras a minute">Tempo</label><input id="edTempo" class="edtempo" type="number" min="30" max="240" step="1" inputmode="numeric"></div>
-          <div class="f"><span class="flab" id="edReedLab">Reeds</span><div class="seg" id="edReeds" role="group" aria-labelledby="edReedLab"><button type="button" data-v="1" title="Male reed only">1</button><button type="button" data-v="2" title="Bass and male reeds">2</button><button type="button" data-v="3" title="Bass, male and female reeds">3</button></div></div>
-          <div class="f"><label for="edDrone">Drone</label><select id="edDrone" title="The drone: a tanpura with its first string on Pa, Ma or Ni, or the harmonium"><option value="off">No drone</option><option value="tanpura:P">Tanpura · Pa</option><option value="tanpura:M">Tanpura · Ma</option><option value="tanpura:N">Tanpura · Ni</option><option value="harmonium">Harmonium drone</option></select></div>
-          <div class="f"><label for="edBeat">Instrument</label><select id="edBeat"><option value="tabla">Tabla</option><option value="dholak">Dholak</option><option value="kit">Drums</option><option value="click">Click</option><option value="off">No rhythm</option></select></div>
           <div class="f"><label for="edSpeed" title="The rhythm at half or double the matras">Rhythm speed</label><select id="edSpeed"><option value="normal">Normal speed</option><option value="half">Half speed</option><option value="double">Double speed</option></select></div>
-          <div class="f" id="edLayerRow"><span class="flab" id="edLayerLab">Add</span><div class="chips" id="edLayers" role="group" aria-labelledby="edLayerLab"></div></div>
-          <label class="chk edchk"><input type="checkbox" id="edFills"> Fill every 4th cycle</label>
-          <button type="button" class="btn" id="soundForget" hidden>Use my usual sound</button>
         </div>
         <div class="f" id="notesF"><label for="notesIn">About this song: its meaning, where it comes from, a teacher's comments</label><textarea id="notesIn" rows="3" autocomplete="off" placeholder="Shown on the Practice view, above the notation"></textarea></div>
         <div class="toolbar">
@@ -382,7 +377,7 @@
         </div>
         </section>
       </div>
-      <div class="exNote" id="exNote" hidden>This is a built-in exercise, so edits here are not kept, except its Sa and sound, which become your usual ones. Press <b>Make a copy</b> in Settings to save your own version, or <b>+ New</b> at the top to start from your diary.</div>
+      <div class="exNote" id="exNote" hidden>This is a built-in exercise, so edits here are not kept, except its Sa, which becomes your usual one. Press <b>Make a copy</b> in Settings to save your own version, or <b>+ New</b> at the top to start from your diary.</div>
       <div class="edgrid">
         <div class="edcol">
           <!-- Entering notes (Rinat, 2026-10-15): how to write them, and a pad of the twelve notes and

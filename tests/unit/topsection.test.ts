@@ -122,7 +122,7 @@ const detail = (at: number, s: string): SessionDetail => ({
 });
 const BACKUP: Backup = {
   at: Date.UTC(2026, 9, 22, 10),
-  songs: [{ ...song('song-a', 'Amar sonar bangla'), sound: { reeds: 2 }, tags: ['Tagore'] }, { ...song('song-b', 'Ekla cholo'), exercise: true }],
+  songs: [{ ...song('song-a', 'Amar sonar bangla'), sound: { speed: 'half' }, tags: ['Tagore'] }, { ...song('song-b', 'Ekla cholo'), exercise: true }],
   routines: [{ id: 'rw-1', name: 'Morning', items: [{ song: 'song-a', rounds: 2 }], updatedAt: 9, gap: 6 }],
   log: [entry(1000, 'song-a'), entry(2000, 'song-b')],
   sessions: [detail(1000, 'song-a')],
@@ -135,7 +135,7 @@ describe('Back up or export → Everything', () => {
     const b = readBackup(fileOf(BACKUP))!;
     expect(b.at).toBe(BACKUP.at);
     expect(b.songs.map((s) => [s.id, s.title, s.exercise ?? false, s.example])).toEqual([['song-a', 'Amar sonar bangla', false, false], ['song-b', 'Ekla cholo', true, false]]);
-    expect(b.songs[0]!.sound).toEqual({ reeds: 2 });
+    expect(b.songs[0]!.sound).toEqual({ speed: 'half' });
     expect(b.songs[0]!.tags).toEqual(['Tagore']);
     expect(b.routines).toEqual(BACKUP.routines);
     expect(b.log).toEqual(BACKUP.log);

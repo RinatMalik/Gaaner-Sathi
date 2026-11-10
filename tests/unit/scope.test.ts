@@ -5,7 +5,6 @@ import { describe, expect, it } from 'vitest';
 import page from '../../index.html?raw';
 import { metaText, routineHTML, routinesInOrder, saFieldHTML, type ItemSong } from '../../src/app/rewaz';
 import { DEFAULT_PREFS, loadPrefs, RoutineStore, STORE_KEYS, type KeyValueStore } from '../../src/app/store';
-import { songSoundSummary } from '../../src/app/view';
 import { beatLevel, DEFAULT_SOUND, droneLevelOf, droneLevels } from '../../src/audio/sound';
 import { cleanRoutine, STARTER, type Routine } from '../../src/core/practice/routine';
 import { cleanTake } from '../../src/core/practice/take';
@@ -34,15 +33,9 @@ describe('how loud the rhythm and the drone are', () => {
   it('is not kept with a song: a rhythm level saved with one is ignored', () => {
     expect(SONG_SOUND_KEYS).not.toContain('tablaVol');
     expect(cleanSound({ tablaVol: 0.2 })).toBeUndefined();
-    expect(cleanSound({ tablaVol: 0.2, beat: 'kit' })).toEqual({ beat: 'kit' });
+    expect(cleanSound({ tablaVol: 0.2, speed: 'half' })).toEqual({ speed: 'half' });
     expect(normalize({ id: 's', title: 's', sound: { tablaVol: 0.2, speed: 'half' } }).sound).toEqual({ speed: 'half' });
     expect(soundOf({ ...structuredClone(DEFAULT_SOUND) })).not.toHaveProperty('tablaVol');
-  });
-
-  it('keeps which songs have no drone, and which instrument, half-speed and the rest are the song’s', () => {
-    expect(cleanSound({ droneVol: 0 })).toEqual({ droneVol: 0 });
-    expect(cleanSound({ beat: 'off', speed: 'double' })).toEqual({ beat: 'off', speed: 'double' });
-    expect(songSoundSummary({ ...DEFAULT_SOUND, droneVol: 0, beat: 'off' })).toBe('3 reeds · No drone · No rhythm');
   });
 
   it('the drone’s level: as last set; until then the usual sound’s, or a half where that has none', () => {
@@ -100,7 +93,7 @@ describe('a Sa for a whole rewaz', () => {
     expect(own).not.toContain(' selected>C');
     const c = saFieldHTML({ saKey: 0, saOct: 3 });
     expect(c).toContain('<option value="">Each song’s own</option>');
-    expect(c).toContain('<option value="48" selected>C3</option>');
+    expect(c).toContain('<option value="48" selected>C3 · White 1</option>');
     expect(c.match(/data-act=/g)).toHaveLength(1);
   });
 

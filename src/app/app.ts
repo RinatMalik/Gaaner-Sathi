@@ -16,8 +16,7 @@
  * the practice log, written each time a song has been practised for a while, pitch
  * feedback from the microphone (pitch.ts), whose scores go into the log, rewaz routines
  * that play items one after another (rewaz.ts), the Progress view (progress.ts), and each
- * song's own sound: its harmonium, drone and rhythm, over the device's usual ones; day and
- * night colours; notes about each song; sections to jump between, each with its own tempo
+ * song's own rhythm speed, over the device's; day and night colours; notes about each song; sections to jump between, each with its own tempo
  * if its heading gives one; and printing (print.ts).
  */
 import { saFreq, saMidi } from '../audio/dsp/pitch';
@@ -45,7 +44,8 @@ import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefi
 import { titleFixes, uniqueTitle } from '../core/song/library';
 import { cleanDismissed, cleanNotes, newId, normalize, parseTags, saOctOf, type Song } from '../core/song/model';
 import { trimForNow, type ForNow } from '../core/song/fornow';
-import { SONG_SOUND_KEYS, soundOf, type SongSound } from '../core/song/sound';
+import { SONG_SOUND_KEYS, type SongSound } from '../core/song/sound';
+import type { SpeedName } from '../core/taal/rhythm';
 import { isTaalId, taalInfo, TAALS, type TaalInfo } from '../core/taal/taals';
 import { BACKUP_BYTES, BACKUP_FORMAT, backupParts, backupWords, readBackup, restoredPrefs, restorePlan, type Backup } from './backup';
 import { aiFileName, aiFileText, dayFileName, dayFileParts, practiceFileParts, type SessionFileInput } from './aifile';
@@ -248,9 +248,8 @@ const songSource = {
     return nowOf().tempo ?? itemOverride?.tempo ?? current.tempo;
   },
 };
-/** The open song's own sound, as Edit notation shows it: its own harmonium, drone and rhythm,
- * else the device's usual ones; the practice settings (the guide's level among them) are always
- * the device's. */
+/** The open song's own sound, as Edit notation shows it: its own rhythm speed, else the device's;
+ * everything else about the sound is the device's, the same for every song. */
 const savedSound = new Proxy<SoundSettings>(prefs, {
   get(t, k) {
     const own = current?.sound;
@@ -1354,34 +1353,25 @@ function setSeg(id: string, v: string | number): void {
   for (const b of $$('#' + id + ' button')) b.setAttribute('aria-pressed', String(b.dataset.v === String(v)));
 }
 
-// ── Each song's own sound ────────────────────────────────────────────────────
+// ── The sound: what every song shares, and each song's rhythm speed ──────────
 
 /** The drone picker's value: off, the tanpura with its first string, or the harmonium. */
 const droneValue = (s: SoundSettings): string => (s.droneVol <= 0 ? 'off' : s.droneType === 'harmonium' ? 'harmonium' : 'tanpura:' + s.tanTune);
 
-/** A song's sound as controls: at the top (for now), and in Edit notation (its own). */
-const DECK_SOUND = { reeds: 'reedSeg', drone: '#droneSel', beat: '#beatSel', speed: '#speedSel', fills: '#fillsChk', layerRow: '#layerRow', layers: '#layerChips' };
-const EDIT_SOUND: typeof DECK_SOUND = { reeds: 'edReeds', drone: '#edDrone', beat: '#edBeat', speed: '#edSpeed', fills: '#edFills', layerRow: '#edLayerRow', layers: '#edLayers' };
-
-function drawSound(ids: typeof DECK_SOUND, s: SoundSettings): void {
-  setSeg(ids.reeds, s.reeds);
-  select(ids.drone).value = droneValue(s);
-  select(ids.beat).value = s.beat;
-  select(ids.speed).value = s.speed;
-  input(ids.fills).checked = !!s.fills;
-  // The side instruments the rhythm's instrument can have.
-  const r = V.layerChipsHTML(s.beat, (s.layers as Record<string, string[] | undefined>)[s.beat] || []);
-  $(ids.layerRow).hidden = r.hidden;
-  $(ids.layers).innerHTML = r.html;
-}
-
-/** The top section's harmonium, drone and rhythm controls: the sound as it will play, and the
- * levels and the rhythm's mute, which are the same for every song. */
+/** The top section's harmonium, drone and rhythm controls: the sound as it will play. */
 function renderSoundControls(): void {
-  drawSound(DECK_SOUND, sound);
+  setSeg('reedSeg', sound.reeds);
+  select('#droneSel').value = droneValue(sound);
+  select('#beatSel').value = sound.beat;
+  select('#speedSel').value = sound.speed;
+  input('#fillsChk').checked = !!sound.fills;
+  // The side instruments the rhythm's instrument can have.
+  const r = V.layerChipsHTML(sound.beat, (sound.layers as Record<string, string[] | undefined>)[sound.beat] || []);
+  $('#layerRow').hidden = r.hidden;
+  $('#layerChips').innerHTML = r.html;
   const dl = input('#droneVol');
   dl.value = String(droneLevelOf(prefs));
-  // Its level is every song's, so it cannot be what brings a drone to this one.
+  // Greyed with no drone: moving it could not bring one in.
   dl.disabled = sound.droneVol <= 0;
   dl.title = dl.disabled ? 'No drone here: choose one to set how loud it is' : 'How loud the drone is';
   $('#beatMute').setAttribute('aria-pressed', String(!!prefs.beatMute));
@@ -1395,8 +1385,7 @@ function renderSongSettings(): void {
   renderEditSummary();
   select('#edSa').value = V.saValue(current);
   input('#edTempo').value = String(current.tempo);
-  drawSound(EDIT_SOUND, savedSound);
-  renderUsualSound();
+  select('#edSpeed').value = savedSound.speed;
 }
 
 /** Revert at the top: there to press only when something has been changed. */
@@ -1412,14 +1401,6 @@ function renderRevert(): void {
 function renderGuide(): void {
   input('#guideVol').value = String(guideSlider(prefs));
   $('#guideMute').setAttribute('aria-pressed', String(prefs.guide === 'off'));
-}
-
-/** "Use my usual sound", shown while one of the user's songs keeps a sound of its own. */
-function renderUsualSound(): void {
-  if (!current) return;
-  const own = !current.example && !!current.sound;
-  $('#soundForget').hidden = !own;
-  if (own) $('#soundForget').title = 'This ' + what() + ' keeps its own sound (' + V.songSoundSummary(savedSound) + '). Use your usual sound instead.';
 }
 
 /** What the top panel has changed, to change it: a rewaz item's, or the song's. */
@@ -1451,86 +1432,71 @@ function revertNow(): void {
   else forNow.delete(current.id);
   showNow();
   T?.retune();
-  T?.applyReeds();
-  T?.applyBeatLevel();
-  T?.applyDrone();
   T?.resetTanpura();
 }
 
 /**
- * Change the song's harmonium, drone or rhythm (not how loud they are, which is every song's):
- * for now at the top, or in Edit notation (`keep`) for the song. One of the user's songs keeps
- * them: the first change saves its whole sound with it, so it sounds the same however the usual
- * sound changes later. On an exercise they change the usual sound, which every song without its
- * own uses. What Edit notation sets is heard at once, over anything changed at the top.
+ * The reeds, the drone, the instrument, its side instruments and the fills: the same for every
+ * song and remembered on the device (Rinat, 2026-11-10: "so they won't change on refresh or on song
+ * change"; "They day i want tabla, i would probably want tabla for all").
  */
-function changeSound(patch: Partial<SongSound>, keep: boolean): void {
+function setShared(patch: Partial<SoundSettings>): void {
   const tune = sound.tanTune;
-  const rest: Partial<SongSound> = { ...nowToChange().sound };
-  if (keep) {
-    if (current.example) {
-      Object.assign(prefs, patch);
-      savePrefs();
-    } else changed('sound', { ...soundOf(savedSound), ...patch });
-    for (const k of Object.keys(patch)) delete rest[k as keyof SongSound];
-    setNow({ sound: rest });
-  } else setNow({ sound: { ...rest, ...patch } });
+  Object.assign(prefs, patch);
+  savePrefs();
   renderSoundControls();
-  renderSongSettings();
-  if ('beat' in patch || 'speed' in patch) renderTaal();
-  if ('beat' in patch) T?.applyBeatLevel();
+  if ('beat' in patch) {
+    renderTaal();
+    T?.applyBeatLevel();
+  }
   if ('reeds' in patch) T?.applyReeds();
   if ('droneVol' in patch) T?.applyDrone();
   if (sound.tanTune !== tune) T?.resetTanpura();
 }
-/** Wire one set of a song's sound controls. */
-function wireSound(ids: typeof DECK_SOUND, keep: boolean, shown: SoundSettings): void {
-  const set = (patch: Partial<SongSound>) => changeSound(patch, keep);
-  const value = (e: Event) => (e.target as HTMLSelectElement).value;
-  $('#' + ids.reeds).addEventListener('click', (e) => {
-    const b = segButton(e);
-    if (b) set({ reeds: +b.dataset.v! as SongSound['reeds'] });
-  });
-  select(ids.beat).addEventListener('change', (e) => set({ beat: value(e) as BeatStyle }));
-  select(ids.speed).addEventListener('change', (e) => {
-    const v = value(e);
-    set({ speed: v === 'half' || v === 'double' ? v : 'normal' });
-  });
-  input(ids.fills).addEventListener('change', (e) => set({ fills: (e.target as HTMLInputElement).checked }));
-  $(ids.layers).addEventListener('click', (e) => {
-    const b = (e.target as Element).closest<HTMLElement>('button[data-layer]');
-    if (!b) return;
-    const st = shown.beat;
-    if (st !== 'tabla' && st !== 'dholak' && st !== 'kit') return;
-    const layers = soundOf(shown).layers;
-    const list = new Set(layers[st]);
-    if (!list.delete(b.dataset.layer!)) list.add(b.dataset.layer!);
-    layers[st] = Array.from(list);
-    set({ layers });
-  });
-  // The drone: off, the tanpura with its first string, or the harmonium.
-  select(ids.drone).addEventListener('change', (e) => {
-    const v = value(e);
-    const vol = shown.droneVol > 0 ? shown.droneVol : savedSound.droneVol > 0 ? savedSound.droneVol : 0.5;
-    if (v === 'off') set({ droneVol: 0 });
-    else if (v === 'harmonium') set({ droneType: 'harmonium', droneVol: vol });
-    else set({ droneType: 'tanpura', tanTune: v.slice(-1) as TanTune, droneVol: vol });
-  });
-}
-
-/** "Use my usual sound" (in Edit notation): the song forgets its own, and plays with the usual one from now. */
-function forgetSound(): void {
-  if (current.example || !current.sound) return;
-  changed('sound', undefined);
-  setNow({ sound: undefined });
+/**
+ * The rhythm's speed, the one part of the sound a song keeps: for now at the top, or in Edit
+ * notation (`keep`) for the song, heard at once, over anything changed at the top. On a built-in
+ * exercise it goes as its other edits do: not kept.
+ */
+function setSpeed(speed: SpeedName, keep: boolean): void {
+  if (keep) {
+    changed('sound', { speed });
+    setNow({ sound: undefined });
+  } else setNow({ sound: { speed } });
   renderSoundControls();
   renderSongSettings();
   renderTaal();
-  T?.applyReeds();
-  T?.applyBeatLevel();
-  T?.applyDrone();
-  T?.resetTanpura();
 }
+function wireSound(): void {
+  const value = (e: Event) => (e.target as HTMLSelectElement).value;
+  $('#reedSeg').addEventListener('click', (e) => {
+    const b = segButton(e);
+    if (b) setShared({ reeds: +b.dataset.v! as SoundSettings['reeds'] });
+  });
+  select('#beatSel').addEventListener('change', (e) => setShared({ beat: value(e) as BeatStyle }));
+  input('#fillsChk').addEventListener('change', (e) => setShared({ fills: (e.target as HTMLInputElement).checked }));
+  $('#layerChips').addEventListener('click', (e) => {
+    const b = (e.target as Element).closest<HTMLElement>('button[data-layer]');
+    if (!b) return;
+    const st = prefs.beat;
+    if (st !== 'tabla' && st !== 'dholak' && st !== 'kit') return;
+    const list = new Set(prefs.layers[st]);
+    if (!list.delete(b.dataset.layer!)) list.add(b.dataset.layer!);
+    setShared({ layers: { ...prefs.layers, [st]: Array.from(list) } });
+  });
+  // The drone: off, the tanpura with its first string, or the harmonium.
+  select('#droneSel').addEventListener('change', (e) => {
+    const v = value(e);
+    const vol = prefs.droneVol > 0 ? prefs.droneVol : 0.5;
+    if (v === 'off') setShared({ droneVol: 0 });
+    else if (v === 'harmonium') setShared({ droneType: 'harmonium', droneVol: vol });
+    else setShared({ droneType: 'tanpura', tanTune: v.slice(-1) as TanTune, droneVol: vol });
+  });
+  const speedOf = (v: string): SpeedName => (v === 'half' || v === 'double' ? v : 'normal');
+  select('#speedSel').addEventListener('change', (e) => setSpeed(speedOf(value(e)), false));
+  select('#edSpeed').addEventListener('change', (e) => setSpeed(speedOf(value(e)), true));
+}
+
 /** Set the open song's own Sa (Edit notation, or the Voice page); on an exercise it becomes your
  * Sa. A song playing or paused is stopped first: a run is judged against one Sa. */
 function setSa(s: SaChoice): void {
@@ -2479,7 +2445,6 @@ function loadSongLabels(): void {
   $('#delBtn').textContent = 'Delete ' + what();
   $('#expBtn').textContent = 'Export this ' + what();
   $('#delConfirmText').textContent = 'Delete this ' + what() + '?';
-  renderUsualSound();
 }
 
 function newSong(kind: 'song' | 'exercise' = 'song'): void {
@@ -3369,7 +3334,6 @@ export function init(): void {
   });
   // The top section: the guide's and the rhythm's volume (moving a slider unmutes), the harmonium,
   // the drone, the rhythm and the taal to play in.
-  $('#soundForget').addEventListener('click', forgetSound);
   input('#guideVol').addEventListener('input', (e) => {
     prefs.guideVol = +(e.target as HTMLInputElement).value;
     prefs.guide = 'full';
@@ -3386,8 +3350,7 @@ export function init(): void {
     renderGuide();
     T?.applyGuide();
   });
-  wireSound(DECK_SOUND, false, sound);
-  wireSound(EDIT_SOUND, true, savedSound);
+  wireSound();
   // How loud the rhythm is, and its mute, are every song's, as the guide's are (Rinat, 2026-11-09);
   // moving the slider unmutes it.
   $('#beatMute').addEventListener('click', () => {

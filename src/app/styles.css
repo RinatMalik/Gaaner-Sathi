@@ -91,6 +91,8 @@ button{cursor:pointer}
 .dmix{flex-direction:row;gap:10px}
 .dctl{display:flex;flex-direction:column;gap:8px;flex:1 1 auto;min-width:0}
 .dfield{display:flex;flex-direction:column;gap:4px;min-width:0}
+.dsareeds{display:flex;align-items:flex-end;gap:14px;min-width:0}
+.dsareeds .dfield:first-child{flex:1 1 auto}
 .drow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;min-width:0}
 .drow .lab{min-width:42px}
 .dhead{display:flex;align-items:center;justify-content:space-between;gap:4px 8px;min-width:0}
@@ -759,7 +761,6 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 /* Edit notation: the song's settings folded away; the note buttons shown by Add notes. */
 .edsetbody{gap:14px}
 .edtempo{width:84px}
-.edchk{align-self:center}
 /* Entering notes (Rinat, 2026-10-15): a pad of the twelve notes (Sa Re Ga Ma; Pa Dha Ni; komal
    and tivra) and hold, silence, new line, heading, between full-height buttons that slide it
    to the octave below or above. */

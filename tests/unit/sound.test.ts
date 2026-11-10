@@ -1,17 +1,16 @@
-// Each song's own sound (src/core/song/sound.ts): its harmonium, drone and rhythm, kept in
-// storage and song files as an optional field, read back carefully, laid over the device's.
+// A song's own sound (src/core/song/sound.ts): its rhythm's speed, kept in storage and song files
+// as an optional field, read back carefully, laid over the device's. Everything else about the
+// sound is the device's, the same for every song (Rinat, 2026-11-10).
 import { describe, expect, it } from 'vitest';
 import { bodyOf, DEFAULT_PREFS, SongStore, type KeyValueStore } from '../../src/app/store';
-import { songSoundSummary } from '../../src/app/view';
 import { DEFAULT_SOUND } from '../../src/audio/sound';
 import { songFileText, songForFile, songsFromFile } from '../../src/core/song/file';
 import { normalize } from '../../src/core/song/model';
-import { cleanSound, SONG_SOUND_KEYS, SOUND_CHOICES, soundOf, type SongSound } from '../../src/core/song/sound';
+import { cleanSound, SONG_SOUND_KEYS, soundOf, SPEED_CHOICES, type SongSound } from '../../src/core/song/sound';
 
-const OWN: SongSound = {
-  reeds: 2, droneType: 'harmonium', droneVol: 0.4, tanTune: 'M',
-  beat: 'dholak', speed: 'double', fills: false, layers: { tabla: [], dholak: ['manjira', 'tambourine'], kit: [] },
-};
+const OWN: SongSound = { speed: 'double' };
+/** What a song saved before 2026-11-10 holds. */
+const OLD = { reeds: 2, droneType: 'harmonium', droneVol: 0.4, tanTune: 'M', beat: 'dholak', speed: 'double', fills: false, layers: { tabla: [], dholak: ['manjira'], kit: [] } };
 
 class Memory implements KeyValueStore {
   m = new Map<string, string>();
@@ -27,61 +26,44 @@ class Memory implements KeyValueStore {
 }
 
 describe('a song’s own sound', () => {
-  it('keeps every Melody and Rhythm setting the controls can make', () => {
+  it('is the rhythm’s speed, each one the control can make', () => {
+    expect(SONG_SOUND_KEYS).toEqual(['speed']);
+    for (const speed of SPEED_CHOICES) expect(cleanSound({ speed }), speed).toEqual({ speed });
     expect(cleanSound(OWN)).toEqual(OWN);
-    for (const [k, values] of Object.entries(SOUND_CHOICES)) {
-      for (const v of values) expect(cleanSound({ [k]: v }), k + ' ' + v).toEqual({ [k]: v });
-    }
-    expect(SONG_SOUND_KEYS.slice().sort()).toEqual(Object.keys(OWN).sort());
+  });
+
+  it('ignores the reeds, drone, instrument, side instruments and fills an older song saved', () => {
+    expect(cleanSound(OLD)).toEqual(OWN);
+    expect(cleanSound({ ...OLD, speed: undefined })).toBeUndefined();
+    expect(normalize({ id: 'old', title: 'old', sound: OLD }).sound).toEqual(OWN);
   });
 
   it('leaves out what it cannot read, so the device’s setting shows through', () => {
-    expect(cleanSound({ guide: 'loud', reeds: 4, beat: 'Tabla', speed: 1, fills: 'yes', tanTune: 'S', droneType: 'sitar', droneVol: 'half' })).toBeUndefined();
-    expect(cleanSound({ guide: 'loud', beat: 'kit' })).toEqual({ beat: 'kit' });
-    expect(cleanSound({ droneVol: 3, tablaVol: -1 })).toEqual({ droneVol: 1 });
-    expect(cleanSound({ droneVol: NaN, tablaVol: Infinity })).toBeUndefined();
-    for (const junk of [null, undefined, 'tabla', 5, [], [OWN], true]) expect(cleanSound(junk)).toBeUndefined();
-    // The prototype's practice settings are not part of a song's sound.
-    expect(cleanSound({ countIn: false, guideLoop: 'alt' })).toBeUndefined();
+    expect(cleanSound({ speed: 1 })).toBeUndefined();
+    expect(cleanSound({ speed: 'Half' })).toBeUndefined();
+    for (const junk of [null, undefined, 'half', 5, [], [OWN], true]) expect(cleanSound(junk)).toBeUndefined();
+    expect(cleanSound({ guide: 'off', countIn: false, guideLoop: 'alt', tablaVol: 0.2 })).toBeUndefined();
   });
 
-  it('leaves out a guide level saved with it before 2026-10-13: the guide is a practice setting now', () => {
-    expect(cleanSound({ guide: 'off' })).toBeUndefined();
-    expect(cleanSound({ guide: 'soft', beat: 'kit' })).toEqual({ beat: 'kit' });
-    expect(normalize({ id: 'old', title: 'old', sound: { ...OWN, guide: 'off' } }).sound).toEqual(OWN);
+  it('takes the song’s own out of all the settings', () => {
+    const s = soundOf({ ...structuredClone(DEFAULT_SOUND), speed: 'half' });
+    expect(s).toEqual({ speed: 'half' });
   });
 
-  it('keeps only known layers that fit each style, each once', () => {
-    expect(cleanSound({ layers: { tabla: ['manjira', 'manjira', 'claps', 'nonsense', 7], kit: ['claps', 'ride'], dholak: 'shaker', extra: ['x'] } })).toEqual({
-      layers: { tabla: ['manjira'], dholak: [], kit: ['claps', 'ride'] },
-    });
-    expect(cleanSound({ layers: [] })).toBeUndefined();
-    expect(cleanSound({ layers: { tabla: ['constructor', '__proto__', 'toString'] } })).toEqual({ layers: { tabla: [], dholak: [], kit: [] } });
-  });
-
-  it('takes a copy of the song’s own settings out of all of them', () => {
-    const all = { ...structuredClone(DEFAULT_SOUND), ...structuredClone(OWN), guide: 'off' as const, countIn: false };
-    const s = soundOf(all);
-    expect(s).toEqual(OWN);
-    expect(Object.keys(s).sort()).toEqual([...SONG_SOUND_KEYS].sort());
-    s.layers.dholak.push('kartal');
-    expect(all.layers.dholak).toEqual(['manjira', 'tambourine']);
-  });
-
-  it('lies over the device’s settings, field by field', () => {
-    const shown = { ...DEFAULT_PREFS, ...cleanSound({ beat: 'kit', speed: 'half', droneVol: 0.5 }) };
-    expect(songSoundSummary(shown)).toBe('3 reeds · Tanpura, 1st string Pa · Drums, half speed');
+  it('lies over the device’s settings, and only the speed does', () => {
+    const shown = { ...DEFAULT_PREFS, ...cleanSound({ beat: 'kit', speed: 'half', droneVol: 0.5, reeds: 1 }) };
+    expect([shown.speed, shown.beat, shown.droneVol, shown.reeds]).toEqual(['half', DEFAULT_PREFS.beat, DEFAULT_PREFS.droneVol, DEFAULT_PREFS.reeds]);
   });
 });
 
-describe('a song with its own sound', () => {
+describe('a song with its own speed', () => {
   const song = normalize({ id: 's1', title: 'গান', taal: 'jhampak', text: 'সা রা গা', updatedAt: 9, sound: OWN });
 
   it('keeps it through normalize; songs without one stay as they were', () => {
     expect(song.sound).toEqual(OWN);
     expect(normalize({ id: 'x', title: 'x' })).not.toHaveProperty('sound');
-    expect(normalize({ id: 'x', title: 'x', sound: { beat: 'bongo' } })).not.toHaveProperty('sound');
-    expect(normalize({ id: 'x', title: 'x', sound: { beat: 'click', extra: 1 } }).sound).toEqual({ beat: 'click' });
+    expect(normalize({ id: 'x', title: 'x', sound: { speed: 'fast' } })).not.toHaveProperty('sound');
+    expect(normalize({ id: 'x', title: 'x', sound: { beat: 'click' } })).not.toHaveProperty('sound');
   });
 
   it('is stored with it, and read back the same', () => {
