@@ -1,11 +1,11 @@
 // Round fifty-seven (Rinat, 2026-11-09): what is the song's and what is every song's. A Sa for a
 // whole rewaz, never saved to its songs; how loud the rhythm and the drone are, the same for every
-// song; a tag on the deck saying whose each setting is; the routines dragged into an order.
+// song; the routines dragged into an order.
 import { describe, expect, it } from 'vitest';
 import page from '../../index.html?raw';
 import { metaText, routineHTML, routinesInOrder, saFieldHTML, type ItemSong } from '../../src/app/rewaz';
 import { DEFAULT_PREFS, loadPrefs, RoutineStore, STORE_KEYS, type KeyValueStore } from '../../src/app/store';
-import { SCOPE_ALL, SCOPE_NOW, scopeWords, songSoundSummary } from '../../src/app/view';
+import { songSoundSummary } from '../../src/app/view';
 import { beatLevel, DEFAULT_SOUND, droneLevelOf, droneLevels } from '../../src/audio/sound';
 import { cleanRoutine, STARTER, type Routine } from '../../src/core/practice/routine';
 import { cleanTake } from '../../src/core/practice/take';
@@ -81,7 +81,7 @@ describe('a Sa for a whole rewaz', () => {
   it('is kept with the routine, read carefully, and absent means each song’s own', () => {
     expect(clean({ saKey: 0, saOct: 3 })!.sa).toEqual({ saKey: 0, saOct: 3 });
     expect(clean({ saKey: 11, saOct: 5 })!.sa).toEqual({ saKey: 11, saOct: 5 });
-    for (const bad of [undefined, null, 'C', {}, { saKey: 12, saOct: 4 }, { saKey: -1, saOct: 4 }, { saKey: 1.5, saOct: 4 }, { saKey: 1, saOct: 2 }, { saKey: '1', saOct: 4 }]) expect(clean(bad)).not.toHaveProperty('sa');
+    for (const bad of [undefined, null, 'C', {}, { saKey: 12, saOct: 4 }, { saKey: -1, saOct: 4 }, { saKey: 1.5, saOct: 4 }, { saKey: 1, saOct: 1 }, { saKey: '1', saOct: 4 }]) expect(clean(bad)).not.toHaveProperty('sa');
   });
 
   it('is saved with it and read back; taken off, it is gone', () => {
@@ -94,15 +94,14 @@ describe('a Sa for a whole rewaz', () => {
     expect(store.load().get('r')).not.toHaveProperty('sa');
   });
 
-  it('is picked as each song’s own, or a key and then its octave', () => {
+  it('is picked as each song’s own, or one Sa from the list', () => {
     const own = saFieldHTML(undefined);
     expect(own).toContain('<option value="" selected>Each song’s own</option>');
-    expect(own).not.toContain('data-act="saoct"');
+    expect(own).not.toContain(' selected>C');
     const c = saFieldHTML({ saKey: 0, saOct: 3 });
     expect(c).toContain('<option value="">Each song’s own</option>');
-    expect(c).toContain('<option value="0" selected>C · White 1</option>');
-    expect(c).toContain('data-act="saoct"');
-    expect(c).toContain('<option value="3" selected>C3 · low</option>');
+    expect(c).toContain('<option value="48" selected>C3</option>');
+    expect(c.match(/data-act=/g)).toHaveLength(1);
   });
 
   it('is said beside the routine’s name, so it shows when folded', () => {
@@ -160,46 +159,5 @@ describe('the routines, dragged into an order', () => {
     expect(prefsOf({ rewazOrder: 'b' })).not.toHaveProperty('rewazOrder');
     expect(prefsOf({ rewazOrder: [] })).not.toHaveProperty('rewazOrder');
     expect({ ...DEFAULT_PREFS }).not.toHaveProperty('rewazOrder');
-  });
-});
-
-describe('the tags saying whose each setting is', () => {
-  it('say so for a song, an exercise of your own and a built-in exercise', () => {
-    expect(scopeWords({}).song.text).toBe('this song');
-    expect(scopeWords({}).tempo.text).toBe('this song');
-    expect(scopeWords({ exercise: true }).song.text).toBe('this exercise');
-    expect(scopeWords({ example: true }).song.text).toBe('all exercises');
-    // A built-in exercise cannot be changed: a tempo changed on one goes with it.
-    expect(scopeWords({ example: true }).tempo).toEqual({ text: 'for now', title: SCOPE_NOW });
-  });
-
-  /** The tag next after a control's id in the page: its group's. */
-  const tagAfter = (id: string) => page.slice(page.indexOf('id="' + id + '"')).match(/class="scope[^"]*"[^>]*>([^<]*)</)![1];
-  /** The tag next before a control's id in the page. */
-  const tagBefore = (id: string) => Array.from(page.slice(0, page.indexOf('id="' + id + '"')).matchAll(/class="scope[^"]*"[^>]*>([^<]*)</g)).at(-1)![1];
-
-  it('on every group of the deck', () => {
-    expect(tagBefore('fromLine')).toBe('for now');
-    expect(tagBefore('taalPick')).toBe('for now');
-    expect(tagAfter('pOct')).toBe('all songs');
-    expect(tagBefore('keysChk')).toBe('all songs');
-    expect(tagBefore('guideVol')).toBe('all songs');
-    expect(tagBefore('tablaVol')).toBe('all songs');
-    expect(tagBefore('tempoRange')).toBe('this song');
-    expect(tagBefore('saKey')).toBe('this song');
-    expect(tagBefore('reedSeg')).toBe('this song');
-    expect(tagBefore('droneSel')).toBe('this song');
-    expect(tagAfter('droneVol')).toBe('all songs');
-    expect(tagBefore('countIn')).toBe('all songs');
-    expect(tagBefore('guideLoopSel')).toBe('all songs');
-    expect(tagBefore('rampChk')).toBe('all songs');
-    expect(tagBefore('beatSel')).toBe('this song');
-    expect(tagBefore('speedSel')).toBe('this song');
-    expect(tagBefore('fillsChk')).toBe('this song');
-  });
-
-  it('with what they mean when pointed at, the same words as the code', () => {
-    expect(page).toContain('title="' + SCOPE_ALL + '">all songs<');
-    expect(page).toContain('title="' + SCOPE_NOW + '">for now<');
   });
 });

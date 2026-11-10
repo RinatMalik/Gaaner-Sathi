@@ -62,10 +62,7 @@ describe('the time left', () => {
     expect(T.secondsLeft(-8, 0)).toBeCloseTo(28, 6);
   });
 
-  it('follows the tempo trainer and a section’s own tempo', () => {
-    const ramp = run(SONG, { from: 0, to: 0, loop: true, rounds: 4 }, { ramp: true, rampStep: 20, rampMax: 200 });
-    const r = ends(ramp.T, ramp.shown);
-    for (const t of r.at) expect(t).toBeCloseTo(r.end, 6);
+  it('follows a section’s own tempo', () => {
     // Line 2 at half the speed.
     const slow = run(TWO, { from: 0, to: 1, loop: false }, {}, (s) => (s < 8 ? 120 : 60));
     const s = ends(slow.T, slow.shown);
@@ -122,12 +119,6 @@ describe('the time left', () => {
     const { T } = run(SONG, { from: 0, to: 0, loop: true }, {}, undefined, 3);
     expect(T.secondsTotal(0)).toBeCloseTo(8, 6);
     expect(T.secondsTotal(5)).toBeCloseTo(4, 6);
-  });
-
-  it('follows the tempo trainer, as the time left does', () => {
-    const { T } = run(SONG, { from: 0, to: 0, loop: true, rounds: 2 }, { ramp: true, rampStep: 40, rampMax: 240 }, undefined, 1);
-    // The count-in (8 beats) and round 1 at 120, 4 s each; round 2 at 160, 3 s.
-    expect(T.secondsTotal(0)).toBeCloseTo(11, 6);
   });
 
   it('in a rewaz, adds the items after this one and the breaks between them', () => {

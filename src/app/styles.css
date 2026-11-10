@@ -93,16 +93,12 @@ button{cursor:pointer}
 .dfield{display:flex;flex-direction:column;gap:4px;min-width:0}
 .drow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;min-width:0}
 .drow .lab{min-width:42px}
-/* Whose each setting is (Rinat, 2026-11-09: "no way for the user to know which ones are global
-   and which ones aren't"): a tag in words at the head of each group of settings, under the name of
-   each tall slider, brass for the open song's; a thin line between groups. */
 .dhead{display:flex;align-items:center;justify-content:space-between;gap:4px 8px;min-width:0}
 .dhead .lab{flex:none}
 .dhead input[type=range]{flex:1 1 40px}
-.dnext{margin-top:2px;padding-top:8px;border-top:1px solid var(--deck-line)}
-.scope{flex:none;font-size:11px;font-weight:600;line-height:1.1;color:var(--on-wood-2);white-space:nowrap;cursor:help}
-.scope.song{color:var(--brass-hi)}
-.vscope{font-size:10px;text-align:center;white-space:normal}
+/* Under the panels: putting back what was changed for now, and where a song's own are changed. */
+.dnow{grid-column:1 / -1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;min-width:0;padding:0 2px}
+.dnow .dlink{margin:0;font-size:inherit}
 .dtabs{display:none}
 .dsongbar{position:relative;display:flex;align-items:center;gap:6px;min-width:0}
 /* The song picker: a button with the title, opening a list that folds by My songs and Exercises
@@ -554,7 +550,6 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .rwopts{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 14px}
 .rwnamef{flex:1 1 220px;max-width:420px}
 .rwgapf input{width:88px}
-.rwsa{display:flex;flex-wrap:wrap;gap:6px}
 .rwnamef input{font-family:var(--f-note);font-size:16px}
 /* Its items: each a row like a line in the beat boxes: a tick box, the number down the left (the
    handle to drag it by), and the button to remove it the row's full height at its end (Rinat,
@@ -763,6 +758,8 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 @media (max-width:520px){.dispmenu{left:0;right:auto}}
 /* Edit notation: the song's settings folded away; the note buttons shown by Add notes. */
 .edsetbody{gap:14px}
+.edtempo{width:84px}
+.edchk{align-self:center}
 /* Entering notes (Rinat, 2026-10-15): a pad of the twelve notes (Sa Re Ga Ma; Pa Dha Ni; komal
    and tivra) and hold, silence, new line, heading, between full-height buttons that slide it
    to the octave below or above. */
@@ -1057,7 +1054,7 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 :root{--key-w:#fbfbf8;--key-b:#1b1c24;--key-sa:#b3261e}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--key-w:#d9d6cc;--key-b:#0c0c0f;--key-sa:#b3261e}}
 :root[data-theme="dark"]{--key-w:#d9d6cc;--key-b:#0c0c0f;--key-sa:#b3261e}
-.keyscard{display:grid;gap:6px;padding:12px 14px;background:var(--sheet);border:1px solid var(--line);border-radius:16px;min-width:0}
+.keyscard{display:grid;gap:6px;padding:12px 14px;border-top:1px solid var(--rule);min-width:0}
 .kb{position:relative;display:flex;height:140px;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--line)}
 .kw{flex:1 1 0;min-width:0;margin-right:1px;background:var(--key-w);position:relative}
 .kw:last-child{margin-right:0}

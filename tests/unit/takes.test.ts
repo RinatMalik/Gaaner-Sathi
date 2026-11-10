@@ -61,7 +61,7 @@ describe('capturing a take', () => {
 });
 
 describe('take records', () => {
-  const T: Take = { id: 'take-1', song: 's1', title: 'আমার <গান>', at: Date.UTC(2026, 9, 11, 9, 5), secs: 83.4, rate: 24000, from: 0, to: 2, loop: true, rounds: 3, tempo: 96, countIn: true, ramp: false, rampStep: 4, rampMax: 160, lag: 0.18, sig: textSig('সা রা গা') };
+  const T: Take = { id: 'take-1', song: 's1', title: 'আমার <গান>', at: Date.UTC(2026, 9, 11, 9, 5), secs: 83.4, rate: 24000, from: 0, to: 2, loop: true, rounds: 3, tempo: 96, countIn: true, lag: 0.18, sig: textSig('সা রা গা') };
 
   it('are checked when read; damaged ones are dropped', () => {
     expect(cleanTake(T)).toEqual(T);

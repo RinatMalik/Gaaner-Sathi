@@ -2,6 +2,12 @@
 import { isTaalId, type TaalId } from '../taal/taals';
 import { cleanSound, type SongSound } from './sound';
 
+/** The keyboard's octave Sa is in (Rinat, 2026-11-10: from C2 up to B5). */
+export type SaOct = 2 | 3 | 4 | 5;
+export const isSaOct = (v: unknown): v is SaOct => v === 2 || v === 3 || v === 4 || v === 5;
+/** An octave as kept: one that cannot be, middle. */
+export const saOctOf = (v: unknown): SaOct => (isSaOct(v) ? v : 4);
+
 export interface Song {
   id: string;
   /** Built-in exercises are read-only in the app. */
@@ -12,8 +18,8 @@ export interface Song {
   tempo: number;
   /** Semitones above C, 0–11. */
   saKey: number;
-  /** 3, 4 or 5 (Low, Middle, High): Sa = MIDI 12 × (saOct + 1) + saKey. */
-  saOct: 3 | 4 | 5;
+  /** 2 to 5 (Lowest, Low, Middle, High): Sa = MIDI 12 × (saOct + 1) + saKey. */
+  saOct: SaOct;
   /** The taal beat (1-based) the first beat lands on. */
   startOn: number;
   text: string;
@@ -87,7 +93,6 @@ export const parseTags = (input: string): string[] => cleanTags(input.split(',')
  * additions: present only when set.
  */
 export function normalize(s: { id: string } & Partial<Record<keyof Song, unknown>>): Song {
-  const oct = Number(s.saOct);
   const song: Song = {
     id: s.id,
     example: !!s.example,
@@ -95,7 +100,7 @@ export function normalize(s: { id: string } & Partial<Record<keyof Song, unknown
     taal: isTaalId(s.taal) ? s.taal : 'dadra',
     tempo: clamp(Math.round(Number(s.tempo) || 100), 30, 240),
     saKey: clamp(Math.round(Number(s.saKey) || 0), 0, 11),
-    saOct: oct === 3 || oct === 4 || oct === 5 ? oct : 4,
+    saOct: saOctOf(Number(s.saOct)),
     startOn: Math.max(1, Math.round(Number(s.startOn) || 1)),
     text: typeof s.text === 'string' ? s.text : '',
     updatedAt: Number(s.updatedAt) || 0,

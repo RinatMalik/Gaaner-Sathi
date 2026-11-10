@@ -3,6 +3,7 @@
  * with its own lines, rounds, tempo and guide, run one after another without touching the
  * screen. Pure, so it is tested in Node.
  */
+import { isSaOct, type SaOct } from '../song/model';
 
 /** How the guide plays in an item: as set at the top of the app, or one of these. */
 export type ItemGuide = 'all' | 'first' | 'alt' | 'off';
@@ -27,7 +28,7 @@ export interface RoutineItem {
 /** A Sa, as a song keeps it. */
 export interface RoutineSa {
   saKey: number;
-  saOct: 3 | 4 | 5;
+  saOct: SaOct;
 }
 
 export interface Routine {
@@ -85,7 +86,7 @@ export function cleanItem(v: unknown): RoutineItem | null {
 export function cleanSa(v: unknown): RoutineSa | null {
   if (!v || typeof v !== 'object') return null;
   const { saKey, saOct } = v as Record<string, unknown>;
-  return Number.isInteger(saKey) && (saKey as number) >= 0 && (saKey as number) <= 11 && (saOct === 3 || saOct === 4 || saOct === 5) ? { saKey: saKey as number, saOct } : null;
+  return Number.isInteger(saKey) && (saKey as number) >= 0 && (saKey as number) <= 11 && isSaOct(saOct) ? { saKey: saKey as number, saOct } : null;
 }
 
 /** A stored routine, checked: every field clamped, damaged items dropped. */

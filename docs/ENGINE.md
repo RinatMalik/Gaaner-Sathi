@@ -64,8 +64,8 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
   button sits beside it. Paused, the sound stops (the session ends, as on Stop) and the beat
   stays marked; Play goes on from that beat, in the same round (`start(…, { at: { s, pass }
   })`): at once, with no count-in, a note held across that beat sounding again for the rest of
-  its length (`resumeCarry`), the tempo trainer and a set number of rounds carrying on where
-  they were. Paused in the count-in, Play starts again. A rewaz waits while paused; Stop (or
+  its length (`resumeCarry`), a set number of rounds carrying on where
+  it was. Paused in the count-in, Play starts again. A rewaz waits while paused; Stop (or
   changing the Lines to practise) ends a pause. A take ends at the pause; the practice log
   counts the time played, without the pause. The space bar plays and pauses.
 - **Count-in:** when on, one full cycle plus any pickup, always starting at sam. The display
@@ -86,13 +86,10 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
   own short ending, which turns both off.
 - **Guide on repeats** (`guideOn`): every round, first round only, or every other round
   (call and response; the panel says "your turn, sing it alone").
-- **Tempo trainer** (`liveTempo`): when looping, round n plays at
-  `min(rampMax, tempo + rampStep × n)`. The song's saved tempo is not changed.
 - **Section tempos:** the source's `tempoAt(s)` gives each song beat its section's tempo
   (from its heading, NOTATION.md → Sections), else the song's. The count-in takes the first
-  section beat's, and the tempo trainer adds to each section's own
-  (`max(base, min(rampMax, base + rampStep × n))`). A rewaz item's tempo still plays every
-  beat. Without section tempos nothing changes.
+  section beat's. A tempo changed at the top of the page, or a rewaz item's, plays every beat
+  (`liveTempo`). Without section tempos nothing changes.
 - **Section taals (taal pherta):** the source's `taalAt(s)` gives each song beat its taal and
   offset (NOTATION.md → A taal per section): the rhythm table, the taal beat shown, sam's
   closing stroke and the fills follow it, fills counting cycles from where that taal began. A
@@ -120,8 +117,8 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
   plays back with the same breaks.
 - **The time left** (`secondsLeft(s, pass, brk)`; Rinat, 2026-10-31: "the songs remaining time
   next to the title in practice page when a song is playing"): from the start of song beat `s`
-  in round `pass` to the end, summed beat by beat at `liveTempo`, so a section's own tempo and
-  the tempo trainer count; with a set number of rounds, the rounds after it with their breaks and
+  in round `pass` to the end, summed beat by beat at `liveTempo`, so a section's own tempo
+  counts; with a set number of rounds, the rounds after it with their breaks and
   count-ins; a loop with no end, to the end of this round (the screen says "in this round"); the
   ring after the last note not counted. The app works it out at each beat shown (a count-in beat
   after a break with that break's round; a break from its `until`) and takes off the time since,
@@ -131,11 +128,11 @@ drift apart. The microphone (pitch feedback, takes) joins the same clock.
   items after the one playing, as estimated for the routine's length (`rewazLeft` in rewaz.ts).
   The total shown after it, "3:25/4:30" (`secondsTotal(pass)`; Rinat, 2026-11-09), is the same
   sum from the first beat of the lines played, with the break before them: of the whole run, or
-  in a loop with no end, of that round, so it shrinks with the tempo trainer's rounds. The rewaz
+  in a loop with no end, of that round. The rewaz
   bar's total starts at the routine's estimate and only ever grows, so a slower tempo never shows
   more left than the whole.
   `tests/unit/timeleft.test.ts` checks that every beat's and break's time plus its time left is
-  the end entry's time, with breaks, the tempo trainer and a section's slower tempo.
+  the end entry's time, with breaks and a section's slower tempo.
 - **Hooks:** `onBeat` reports every scheduled matra (pitch feedback, takes); `onNote(t, dur,
   midi)` hears each guide note as it is scheduled, and `localGuide = false` leaves the
   harmonium out (MIDI keyboards).
@@ -673,8 +670,8 @@ path as pitch feedback.
   sample: a 440 Hz tone keeps its level within 0.1 dB, 18 kHz drops by more than 40 dB) and
   kept as 16-bit numbers: 24 kHz, 48 kB a second, about 2.9 MB a minute.
 - **Playback against the guide:** the transport plays the take's lines with its rounds, the
-  song's tempo then (or a rewaz item's), its count-in and tempo trainer, and the guide every
-  round. The voice starts at the run's first scheduled beat, skipping `lag` seconds of the
+  song's tempo then (or a rewaz item's, or one changed at the top of the page), its count-in, and
+  the guide every round. The voice starts at the run's first scheduled beat, skipping `lag` seconds of the
   take (the delay pitch feedback last found, else the device's own figure), and both leave
   through the same output, so they line up. It stops when the voice ends. "Just me" plays the
   voice alone. Playing a take back is not practice, so it is not logged.

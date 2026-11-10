@@ -12,7 +12,7 @@ import type { WriteResult } from './store';
 import { foldText } from '../core/song/model';
 import { isTaalId, TAALS } from '../core/taal/taals';
 import { GRIP_ICON, initSectionDrag, inOrder, type DragParts } from './fold';
-import { esc, KEYS, leftText, OCTS, saKeyName, showMixed, tickHTML } from './view';
+import { esc, leftText, saFromValue, saKeyName, saOptionsHTML, showMixed, tickHTML } from './view';
 
 const svg = (body: string) => '<svg viewBox="0 0 24 24" aria-hidden="true">' + body + '</svg>';
 const ICON = {
@@ -153,14 +153,11 @@ export function metaText(r: Routine, saved: boolean, secs: number): string {
   return (count ? count + ' item' + (count === 1 ? '' : 's') + ' · about ' + durationText(Math.max(60, secs)) : 'No items yet') + (r.sa ? ' · Sa ' + saKeyName(r.sa.saKey, r.sa.saOct) : '') + (saved ? '' : ' · ready-made');
 }
 
-/** A routine's Sa (Rinat, 2026-11-09): each song's own, or a key, then its octave, for all its
- * items while it runs. Never saved to the songs. */
+/** A routine's Sa (Rinat, 2026-11-09): each song's own, or one Sa for all its items while it
+ * runs. Never saved to the songs. */
 export function saFieldHTML(sa: RoutineSa | undefined): string {
-  const keys = KEYS.map((k, i) => '<option value="' + i + '"' + (sa?.saKey === i ? ' selected' : '') + '>' + k[0] + ' · ' + k[1] + '</option>').join('');
-  const octs = sa ? OCTS.map((o) => '<option value="' + o[0] + '"' + (sa.saOct === o[0] ? ' selected' : '') + '>' + saKeyName(sa.saKey, o[0]) + ' · ' + o[1].toLowerCase() + '</option>').join('') : '';
-  return '<div class="rwf rwsaf" role="group" aria-label="Sa for every item" title="Sing every item in this Sa while the rewaz runs. The songs keep their own."><span>Sa for every item</span><div class="rwsa">' +
-    '<select data-act="sakey" aria-label="Key of Sa for every item"><option value=""' + (sa ? '' : ' selected') + '>Each song’s own</option>' + keys + '</select>' +
-    (sa ? '<select data-act="saoct" aria-label="Octave of Sa for every item">' + octs + '</select>' : '') + '</div></div>';
+  return '<label class="rwf rwsaf" title="Sing every item in this Sa while the rewaz runs. The songs keep their own."><span>Sa for every item</span>' +
+    '<select data-act="sa"><option value=""' + (sa ? '' : ' selected') + '>Each song’s own</option>' + saOptionsHTML(sa) + '</select></label>';
 }
 
 /** Every routine in the order dragged (by name before any is), the ready-made warm-up first while
@@ -227,8 +224,6 @@ export interface RewazHost {
   play(it: RoutineItem, roundGap: number, sa?: RoutineSa): boolean;
   /** The rewaz is over: what it laid over the open song (its tempo, guide and Sa) goes. */
   over(): void;
-  /** The open song's Sa: a key picked for a routine starts in its octave. */
-  openSa(): RoutineSa;
   /** The routines in the order dragged. */
   order: { get(): readonly string[] | undefined; set(next: string[]): void };
   /** Stop playing (the routine continues: Skip). */
@@ -717,12 +712,10 @@ export function initRewaz(host: RewazHost): Rewaz {
     }
     const id = routineOf(el);
     const act = el.dataset.act;
-    if (act === 'sakey' || act === 'saoct') {
+    if (act === 'sa') {
       change(id, (r) => {
-        const v = Number(el.value);
-        if (act === 'sakey' && el.value === '') delete r.sa;
-        else if (act === 'sakey') r.sa = { saKey: v, saOct: r.sa?.saOct ?? host.openSa().saOct };
-        else if (r.sa) r.sa.saOct = v === 3 || v === 5 ? v : 4;
+        if (el.value === '') delete r.sa;
+        else r.sa = saFromValue(el.value);
       });
       refocus(id, act);
       return;

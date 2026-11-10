@@ -51,7 +51,7 @@ const SCENARIOS: Scenario[] = [
   { name: 'dadra with tanpura (1st string Ma)', text: ex('ex-alankar-bn'), taal: 'dadra', tempo: 110, sound: { droneVol: 0.6, tanTune: 'M' }, secs: 12, seed: 2 },
   { name: 'keherwa, dholak with layers, double speed', text: ex('ex-scale'), taal: 'keherwa', tempo: 96, sound: { beat: 'dholak', speed: 'double', layers: ALL_LAYERS }, secs: 30, seed: 3 },
   { name: 'keherwa, drums with every layer, half speed, loop, call and response, tempo trainer', text: ex('ex-alankar-4'), taal: 'keherwa', tempo: 120,
-    sound: { beat: 'kit', speed: 'half', layers: ALL_LAYERS, guideLoop: 'alt', ramp: true, rampStep: 10, rampMax: 140 }, from: 0, to: 1, loop: true, secs: 30, seed: 4 },
+    sound: { beat: 'kit', speed: 'half', layers: ALL_LAYERS, guideLoop: 'alt' }, from: 0, to: 1, loop: true, secs: 30, seed: 4 },
   { name: 'rupak, click, no count-in, 1 reed, soft guide', text: ex('ex-rupak'), taal: 'rupak', tempo: 120, sound: { beat: 'click', countIn: false, reeds: 1, guide: 'soft' }, secs: 40, seed: 5 },
   { name: 'teentaal, tabla with every layer, harmonium drone, 2 reeds', text: TEENTAAL, taal: 'teentaal', tempo: 140, sound: { layers: ALL_LAYERS, droneType: 'harmonium', droneVol: 0.5, reeds: 2 }, secs: 35, seed: 6 },
   { name: 'jhaptal, dholak, no fills', text: JHAPTAL, taal: 'jhaptal', tempo: 100, sound: { beat: 'dholak', fills: false }, secs: 30, seed: 7 },

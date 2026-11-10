@@ -115,11 +115,11 @@ describe('a tempo per section in the transport', () => {
     for (let i = 1; i < played.length; i++) expect(played[i]!.q.time - played[i - 1]!.q.time).toBeCloseTo(played[i - 1]!.spb, 9);
   });
 
-  it('counts in at the tempo of the section it starts in, and the tempo trainer speeds each section from its own', () => {
-    const b = play(TEXT, { from: 1, to: 1, loop: true, rounds: 3 }, { countIn: true, ramp: true, rampStep: 10, rampMax: 200 });
+  it('counts in at the tempo of the section it starts in, and stays at it each round', () => {
+    const b = play(TEXT, { from: 1, to: 1, loop: true, rounds: 3 }, { countIn: true });
     expect(b.filter((x) => x.q.pass < 0).every((x) => x.q.tempo === 60)).toBe(true);
     const byRound = [0, 1, 2].map((r) => Array.from(new Set(b.filter((x) => x.q.pass === r).map((x) => x.q.tempo))));
-    expect(byRound).toEqual([[60], [70], [80]]);
+    expect(byRound).toEqual([[60], [60], [60]]);
   });
 
   it('takes as long as the song’s length says, from a line to the end or round by round', () => {

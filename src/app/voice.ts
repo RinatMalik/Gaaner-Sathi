@@ -231,7 +231,7 @@ export function initVoice(host: VoiceHost): VoiceUI {
     const user = host.sound();
     const sound: SoundSettings = {
       ...structuredClone(DEFAULT_SOUND),
-      guide: 'full', guideLoop: 'first', reeds: user.reeds, beat: 'off', countIn: false, ramp: false,
+      guide: 'full', guideLoop: 'first', reeds: user.reeds, beat: 'off', countIn: false,
       droneType: 'tanpura', droneVol: user.droneType === 'tanpura' ? Math.max(0.5, user.droneVol) : 0.5, tanTune: user.tanTune,
     };
     const tr = new Transport(a.E);

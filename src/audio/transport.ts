@@ -202,13 +202,10 @@ export class Transport {
     this.endAt = 0;
   }
 
-  /** Tempo trainer: each new round of a loop gets faster by rampStep, never past rampMax.
-   * `beat` is the song beat, for a section's own tempo (the count-in takes the first beat's). */
-  liveTempo(pass: number, beat: number = this.secStart): number {
-    const base = this.src.tempoAt ? this.src.tempoAt(Math.max(beat, this.secStart)) : this.src.song.tempo;
-    const s = this.src.sound;
-    if (!s.ramp || !this.loop || pass < 1) return base;
-    return Math.max(base, Math.min(s.rampMax, base + s.rampStep * pass));
+  /** The tempo at song beat `beat`, for a section's own tempo (the count-in takes the first
+   * beat's). */
+  liveTempo(beat: number = this.secStart): number {
+    return this.src.tempoAt ? this.src.tempoAt(Math.max(beat, this.secStart)) : this.src.song.tempo;
   }
 
   /**
@@ -222,17 +219,17 @@ export class Transport {
   secondsLeft(s: number, pass: number, brk = false): number {
     if (!this.src) return 0;
     const p = Math.max(0, pass);
-    const round = (k: number, from: number) => {
+    const round = (from: number) => {
       let t = 0;
-      for (let b = Math.max(from, this.secStart); b < this.secEnd; b++) t += 60 / this.liveTempo(k, b);
+      for (let b = Math.max(from, this.secStart); b < this.secEnd; b++) t += 60 / this.liveTempo(b);
       return t;
     };
     const pre = brk ? this.brkPre : Math.max(0, this.secStart - s);
-    let t = (pre * 60) / this.liveTempo(p, this.secStart) + round(p, brk ? this.secStart : s);
+    let t = (pre * 60) / this.liveTempo(this.secStart) + round(brk ? this.secStart : s);
     if (this.loop) {
       for (let k = p + 1; k < this.rounds; k++) {
-        if (this.gap) t += this.gap + (this.brkPre * 60) / this.liveTempo(k, this.secStart);
-        t += round(k, this.secStart);
+        if (this.gap) t += this.gap + (this.brkPre * 60) / this.liveTempo(this.secStart);
+        t += round(this.secStart);
       }
     }
     return t;
@@ -272,7 +269,7 @@ export class Transport {
           s = this.secStart + (k % this.secLen);
         } else pass = 0;
       }
-      const spb = 60 / this.liveTempo(pass, s);
+      const spb = 60 / this.liveTempo(s);
       const roundsDone = this.rounds > 0 && raw >= this.secStart + this.rounds * this.secLen;
       if ((!this.loop && raw >= this.secEnd) || roundsDone) {
         const e = roundsDone ? this.secStart : raw;
@@ -295,7 +292,7 @@ export class Transport {
       }
       if (this.brkLeft > 0) {
         const c = this.secStart - this.brkLeft;
-        const spbIn = 60 / this.liveTempo(pass, this.secStart);
+        const spbIn = 60 / this.liveTempo(this.secStart);
         this.scheduleBeat(this.nextTime, c, c, -1, spbIn, this.taalOf(this.secStart));
         this.nextTime += spbIn;
         this.brkLeft--;

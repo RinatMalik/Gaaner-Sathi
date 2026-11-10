@@ -25,10 +25,6 @@ export interface PlayedSettings {
   guide: string;
   guideLoop: string;
   countIn: boolean;
-  /** The tempo trainer: faster by `rampStep` each round, up to `rampMax`. */
-  ramp: boolean;
-  rampStep: number;
-  rampMax: number;
   /** Seconds of break before each round after the first, then the count-in again (absent: none). */
   gap?: number;
 }
@@ -127,7 +123,6 @@ export function cleanSession(v: unknown): SessionDetail | null {
     played: { title: str(p.title), taal: str(p.taal, 40), tempo: num(p.tempo) ? p.tempo : 100, text: str(p.text, 200_000), saHz: num(p.saHz) ? p.saHz : 261.63, sa: str(p.sa, 80) },
     settings: {
       guide: str(s.guide, 10) || 'full', guideLoop: str(s.guideLoop, 10) || 'all', countIn: s.countIn !== false,
-      ramp: s.ramp === true, rampStep: num(s.rampStep) ? s.rampStep : 4, rampMax: num(s.rampMax) ? s.rampMax : 160,
     },
   };
   if (num(s.gap) && s.gap > 0) out.settings.gap = Math.min(s.gap, 120);

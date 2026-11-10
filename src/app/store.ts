@@ -12,7 +12,7 @@ import { DEFAULT_SOUND, type SoundSettings } from '../audio/sound';
 import { cleanLog, type LogEntry } from '../core/practice/log';
 import { cleanRoutine, type Routine } from '../core/practice/routine';
 import type { LibrarySort } from '../core/song/library';
-import { normalize, type Song } from '../core/song/model';
+import { isSaOct, normalize, type SaOct, type Song } from '../core/song/model';
 import type { Script } from './view';
 
 /** The part of `Storage` used here, so tests can pass a stand-in. */
@@ -111,14 +111,15 @@ export interface Prefs extends SoundSettings {
   theme?: 'light' | 'dark';
   /** The editor shows the notation as free text; unset: beat boxes. */
   editMode?: 'text';
-  /** Your Sa, from the range finder or set on an exercise: exercises and new songs use it. */
-  mySa?: { saKey: number; saOct: 3 | 4 | 5 };
+  /** Your Sa, from the range finder or set on an exercise in Edit notation: exercises and new
+   * songs use it. */
+  mySa?: { saKey: number; saOct: SaOct };
   /** The lowest and highest notes the range finder heard, MIDI numbers. */
   voiceRange?: { lo?: number; hi?: number };
   /** The hold trainer's note (cents from Sa), and the longest hold on each note, seconds. */
   holdNote?: number;
   holdBest?: Record<string, number>;
-  /** Show the keys to press on the Practice view. */
+  /** The virtual keyboard unfolded on the Practice view. */
   showKeys?: boolean;
   /** The Practice view's lines: how many show (unset: 7), which of them from the top is the
    * one being sung (unset: the 3rd), and the size of their words and notes (unset: normal). */
@@ -177,9 +178,6 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
     tanTune: oneOf(r.tanTune, ['P', 'M', 'N'] as const, d.tanTune),
     countIn: typeof r.countIn === 'boolean' ? r.countIn : d.countIn,
     guideLoop,
-    ramp: typeof r.ramp === 'boolean' ? r.ramp : d.ramp,
-    rampStep: num(r.rampStep, 1, 240, d.rampStep),
-    rampMax: num(r.rampMax, 30, 240, d.rampMax),
     lastSong: typeof r.lastSong === 'string' ? r.lastSong : d.lastSong,
     tab: oneOf(r.tab, TABS, d.tab),
     libSort: oneOf(r.libSort, ['practised', 'changed', 'title'] as const, d.libSort),
@@ -220,7 +218,7 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
   if (r.theme === 'light' || r.theme === 'dark') p.theme = r.theme;
   if (r.editMode === 'text') p.editMode = 'text';
   const my = r.mySa as Record<string, unknown> | undefined;
-  if (my && typeof my === 'object' && Number.isInteger(my.saKey) && (my.saKey as number) >= 0 && (my.saKey as number) <= 11 && (my.saOct === 3 || my.saOct === 4 || my.saOct === 5)) p.mySa = { saKey: my.saKey as number, saOct: my.saOct };
+  if (my && typeof my === 'object' && Number.isInteger(my.saKey) && (my.saKey as number) >= 0 && (my.saKey as number) <= 11 && isSaOct(my.saOct)) p.mySa = { saKey: my.saKey as number, saOct: my.saOct };
   const vr = r.voiceRange as Record<string, unknown> | undefined;
   if (vr && typeof vr === 'object') {
     const range: { lo?: number; hi?: number } = {};

@@ -42,7 +42,7 @@ describe('a song’s own sound', () => {
     expect(cleanSound({ droneVol: NaN, tablaVol: Infinity })).toBeUndefined();
     for (const junk of [null, undefined, 'tabla', 5, [], [OWN], true]) expect(cleanSound(junk)).toBeUndefined();
     // The prototype's practice settings are not part of a song's sound.
-    expect(cleanSound({ countIn: false, ramp: true, guideLoop: 'alt' })).toBeUndefined();
+    expect(cleanSound({ countIn: false, guideLoop: 'alt' })).toBeUndefined();
   });
 
   it('leaves out a guide level saved with it before 2026-10-13: the guide is a practice setting now', () => {
@@ -60,7 +60,7 @@ describe('a song’s own sound', () => {
   });
 
   it('takes a copy of the song’s own settings out of all of them', () => {
-    const all = { ...structuredClone(DEFAULT_SOUND), ...structuredClone(OWN), guide: 'off' as const, countIn: false, ramp: true };
+    const all = { ...structuredClone(DEFAULT_SOUND), ...structuredClone(OWN), guide: 'off' as const, countIn: false };
     const s = soundOf(all);
     expect(s).toEqual(OWN);
     expect(Object.keys(s).sort()).toEqual([...SONG_SOUND_KEYS].sort());

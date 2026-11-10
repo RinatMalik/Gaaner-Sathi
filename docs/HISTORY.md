@@ -42,6 +42,8 @@ historical interest.
 | 2026-10-10 | Publish the prototype on GitHub Pages now, as an interim, until the new app has a screen. | Rinat, chat 2026-10-10 ("yes") | A CI deploy job publishes `reference/gaaner-sathi.html` as the site after the tests pass; it needs Pages switched on once. |
 | 2026-10-10 | The new app keeps the prototype's screen with one layout change, for Rinat to keep or undo: the Sound settings (Melody, Rhythm, Practice) fold away behind a bar that says what is on. They start folded on narrow screens and open on wide ones, then stay as the user leaves them. | Claude's proposal. Rinat (chat 2026-10-10) is unsure that an extra step is simpler: "only do the UI change that you want and let me decide after looking at it". Measured at 360 × 780: the prototype's settings fill 602 px before the song (sheet at 1,675 px); folded, the sheet starts at 1,131 px | Open question 5. Undoing it means removing the bar: the `.sound` wrapper in `index.html`, its CSS block and two functions in `app.ts`. |
 | 2026-10-10 | The new app is published at `/Gaaner-Sathi/new/` beside the prototype until Rinat has looked at it; then it takes over the main address. | Claude, so Rinat can try it on a phone before deciding (Rinat asked to look first) | The deploy job builds the app and copies it to `_site/new/`. |
+| 2026-10-22 | **A taal picked at the top lasts until another song opens.** The top section's taal picker shows the song's own taal first ("Song's own"); another taal picked there plays the whole song in it, over the song's and its sections' taals, until another song opens. The song's taal is still set in Edit notation, its sections' in their headings; the beat boxes and the checker keep to them. The song's first beat stays the same number of beats before sam. | Rinat, chat 2026-10-22 ("I found myself playing with it by choosing different ones so it is good to have it there always … the top section will override it if something else is selected"; to Claude's question, "Until another song opens"); keeping the beats before sam and leaving the editor on the song's taals are Claude's | src/core/notation/taalmap.ts, src/app/app.ts. |
+| 2026-11-09 | **Small tags say what each control changes:** "this song" in brass (on a built-in exercise "all exercises", its tempo "for now"), "all songs", "for now", each with a longer title. So they read, the Guide panel is regrouped (Sa, reeds and the drone picker under "this song", then the drone's level, the count-in and looping), Octave must match has a row of its own and the Rhythm panel an "Instrument" label. | Rinat, chat 2026-11-09 ("there is no way for the user to know which ones are global and which ones aren't - would be good if there was a way to indicate this"); the tags, their words and the regrouping are Claude's | `scopeWords` in view.ts. |
 
 ## Files removed
 
@@ -57,6 +59,75 @@ historical interest.
 - 2026-10-09: `handover/`, merged into the framework (the original pack is at `e0ea8d8`).
 
 ## Work log, older entries
+
+### 2026-11-05 GMT — Claude (Opus 5.5) — PH2-56 the gauge on the loudest moments, its top the mic limit, a border, one width
+
+- **Goal:** Rinat, 2026-11-05: (1) "now there is a discrepancy between the gauge in app and the
+  gain indicator in scarlett. The app is showing my voice to be too flat most of the time. if i
+  increase the gain enough to have the app show just right, it is too high for scarlett. is that
+  normal? I guess i have to tune things to they match."; (2) "Also the mic limit slightly moves
+  up and down when singing - why is that?"; (3) "Put a thin border around the scale of the
+  loudness gauge - currently the panel colour blends in with the scale colour when too loud or
+  too flat."; (4) "Get rid of the voice line thickness. it's too much information to process and
+  confuses me."
+- **Inspected:** loudness.ts, pitch.ts (`hear`, `showLoud`), lines.ts (`loudHTML`, `loud`,
+  `voice`), styles.css (`.ldg`, `.ldlim`, `.vt`, `.pldot`), aifile.ts (`loudnessPart`); the two
+  files of 2026-11-05 in `feedback/` (saved before round fifty-five: no levels). Rinat's takes of
+  25–27 Oct measured as the app reads (scratchpad `crest56.mjs`: windows of 4096 samples every
+  2048): a window's loudest sample a median 8.1–9.1 dB over its level; the level's 90th
+  percentile 4–5 dB over its median; the takes cut off at full scale (peaks' median −0.2 to
+  −4.4). Turned down 10 dB (`needle56.mjs`, four songs): the needle on the level against −18
+  "Too soft" 30–51 % of the singing, "Just right" 24–43 %; a needle on the loudest samples
+  (rising over 0.05 s, falling 8 dB a second) against −12 "Just right" 66–83 %, "Too soft"
+  6–13 %; moving a median 0.5–0.7 dB a tenth of a second (90th percentile 0.9–1.2), the needle
+  on the level 0.5 (1.5). Focusrite's guides (web search): the ring lights green, then amber
+  as the input nears clipping, then red; Rinat's 2i2 is not a 4th generation (Open question 6).
+- **Changed:** `feat(practice): the loudness gauge on the loudest moments, its top the mic
+  limit, a border round its scale, the voice line one width` — src/core/pitch/loudness.ts
+  (`GAUGE_MIDDLE` −12, `GaugeLevel` as a peak meter's needle; `LevelRef`, `micLimit`,
+  `widthStep` removed); src/app/pitch.ts (the needle fed each reading's loudest sample; the
+  crest, the level of the last 10 s and the thickness gone); src/app/lines.ts (`LoudState`
+  without `limit`, `voice` without `thick`, the label and comments); src/app/styles.css (`.ldg`
+  bordered, `.ldlim` a fixed red bar on the scale's top, "mic limit" on two lines in full
+  screen, `.vt` one width, the `w0`–`w4` rules gone); src/app/aifile.ts (`loudnessPart`: the
+  loudest samples' median and percentiles, the shares as the gauge's needle moved;
+  `LEVELS_ABOUT`); tests/unit/loudness.test.ts, session.test.ts; docs/ENGINE.md (the gauge, why
+  the loudest moments, the voice line one width); docs/DATA.md (`loudness`); docs/ROADMAP.md
+  (row 56); docs/HISTORY.md (the two superseded decision rows, the PH2-54 entry); this file.
+- **Tests / verification:** `npx tsc --noEmit -p .` exit 0; `npx vitest run` → 46 files, 524
+  passed; `npm run build` → 404.49 kB JS, 92.90 kB CSS; `bash reference/tests/run-all.sh` →
+  parser 31, checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge
+  on `npm run dev`, restarted and checked with `curl` first (scratchpad `cdp56.mjs`; the fake
+  microphone `loud51.wav`: its loudest samples −27.9 to −5.3 dB of full scale over 16 s, 5 s
+  at −0.2, back down, then −17.3). On Practice at 1280 × 800 by day: "Too soft" with the column
+  blue at 61 %, "A little soft" from about −17, "Just right" from about −14 (the needle 57.5 %
+  down), "A little loud" from about −8, "Too loud" from about −5 (each zone held a decibel past
+  its edge), the needle at 1 % from the top when cut off, the column 85 % red; the same back
+  down, blue to 85 % at the bottom; the last −17.3 stayed "Too soft", rising from the bottom
+  (held a decibel past −18). The scale's border `rgb(251, 251, 248) 0 0 0 2px, rgb(27, 28, 36) 0 0 0
+  3.5px`; the mic limit 6 px above the scale, 4 px tall, 26 px wide over the scale's 14; the
+  voice line 2.6 px in the line being sung throughout, no `w0`–`w4`. In full screen by day the
+  same zones, the needle 1 % from the top when cut off, the panel at its reddest and the words
+  white; by night the same; at 3840 × 2160 by night; at 360 × 780 by night on Practice (page
+  345 px wide) and in full screen (360). A first run showed "mic limit" in full screen on one
+  line, against the panel's edge and under "louder": now on two lines beside the bar, the scale
+  10 px lower; run again, the same zones, no console errors. The session's
+  For AI file: `loudness` after `notes_of_the_scale`, median level −21.8, loudest samples'
+  median −17.2, 10th −27.2, 90th −0.2, loudest −0.2, shares just right 0.192, louder 0.237, too
+  loud 0.147, softer 0.571, too soft 0.475, cut off 0. No console errors.
+- **Decisions made:** three 2026-11-05 rows (the gauge on the loudest moments against −12, its
+  top the mic limit, superseding the −18 row; the border round the scale; the voice line one
+  width, superseding the 2026-11-04 thickness row; both moved to HISTORY.md); Open question 6
+  brought up to date.
+- **Risks or disagreements:** −12 for the loudest moments is a usual aim, not measured on
+  Rinat's voice at today's gain (no file with levels yet); a voice with loud consonants may read
+  louder on the gauge than it sounds. The needle no longer shows the average loudness a
+  listener hears, only how near the top the voice comes. Shares in files of sessions sung with
+  round fifty-five are worked out against the gauge as it is now, not as it was shown. The
+  Scarlett 2i2's ring (not 4th generation) may light amber or red at a level the guides do not
+  say; the gauge's "Too loud" starts at −6.
+- **Next handoff:** Rinat sings with the gauge on the loudest moments, sets GAIN 01 by it, says
+  whether it agrees with the ring, and saves a For AI file with loudness (Next single action).
 
 ### 2026-11-05 GMT — Claude (Opus 5.5) — PH2-55 the gauge against −18 dB, its panel tinted, loudness in the files for AI
 

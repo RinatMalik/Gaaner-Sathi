@@ -11,6 +11,8 @@ import { protoExamples, protoFile, protoKsPluck, protoNormalize, protoPrefs, pro
 
 /** Settings only this app has, always present (the prototype never saved them). */
 const APP_ONLY_PREFS = ['libSort'];
+/** The prototype's tempo trainer, which this app no longer has (Rinat, 2026-11-10). */
+const DROPPED_PREFS = ['ramp', 'rampStep', 'rampMax'];
 
 describe('data matches the prototype', () => {
   it('the 13 built-in exercises', () => {
@@ -81,6 +83,10 @@ describe('data matches the prototype', () => {
       // The prototype's settings read the same; the app's own settings come on top.
       const mine = loadPrefs(ls) as unknown as Record<string, unknown>;
       const proto = protoPrefs(ls) as Record<string, unknown>;
+      for (const k of DROPPED_PREFS) {
+        expect(mine).not.toHaveProperty(k);
+        delete proto[k];
+      }
       expect(canon(Object.fromEntries(Object.keys(proto).map((k) => [k, mine[k]])))).toBe(canon(proto));
       expect(Object.keys(mine).filter((k) => !(k in proto)).sort()).toEqual(APP_ONLY_PREFS);
     }

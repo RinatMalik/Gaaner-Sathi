@@ -11,6 +11,7 @@ import { asTaals, placeIn, type Taals } from '../core/notation/taalmap';
 import { AKAR, BN_LETTER, LAT_LETTER, REPH } from '../core/notation/symbols';
 import type { NoteUnit, ParsedSong, Unit } from '../core/notation/types';
 import { clockText } from '../core/practice/take';
+import { saOctOf, type SaOct } from '../core/song/model';
 import { LAYERS, type LayerId } from '../core/taal/rhythm';
 import { TAAL_GROUPS, TAALS, type TaalInfo } from '../core/taal/taals';
 
@@ -33,22 +34,6 @@ export function leftText(secs: number, total?: number): string {
   return clockText(left) + (total == null ? '' : '/' + clockText(Math.max(left, Math.ceil(total - 1e-6)))) + ' left';
 }
 
-/** What a setting's tag on the deck says when it is not the open song's: the same everywhere,
- * or only until another song opens (Rinat, 2026-11-09: "no way for the user to know which ones
- * are global and which ones aren't"). */
-export const SCOPE_ALL = 'The same for every song and exercise.';
-export const SCOPE_NOW = 'Only for now: nothing is saved, and it goes when another song opens.';
-/**
- * What the tags on the deck's song settings say, for what is open: a song or an exercise of your
- * own keeps them; on a built-in exercise, which cannot be changed, Sa and the sound are your
- * usual ones, and its tempo lasts until another song opens.
- */
-export function scopeWords(s: { example?: boolean; exercise?: boolean }): { song: { text: string; title: string }; tempo: { text: string; title: string } } {
-  if (s.example) return { song: { text: 'all exercises', title: 'On an exercise these are your usual ones: Sa for every exercise and new song, the sound for those and for any song without its own.' }, tempo: { text: 'for now', title: SCOPE_NOW } };
-  const song = { text: s.exercise ? 'this exercise' : 'this song', title: 'Saved with this ' + (s.exercise ? 'exercise' : 'song') + '. The others keep their own.' };
-  return { song, tempo: song };
-}
-
 /** Tick boxes drawn as some of a group's, under `root`. */
 export function showMixed(root: ParentNode): void {
   for (const b of Array.from(root.querySelectorAll<HTMLInputElement>('input[data-mixed]'))) b.indeterminate = true;
@@ -62,7 +47,7 @@ export const LAT_CODE = LAT_LETTER;
 export const KOMAL: ReadonlySet<number> = new Set([1, 3, 8, 10]);
 /** Each key with its CT-X3000 key, as Rinat finds it on the keyboard. */
 export const KEYS = [['C', 'White 1'], ['C♯', 'Black 1'], ['D', 'White 2'], ['D♯', 'Black 2'], ['E', 'White 3'], ['F', 'White 4'], ['F♯', 'Black 3'], ['G', 'White 5'], ['G♯', 'Black 4'], ['A', 'White 6'], ['A♯', 'Black 5'], ['B', 'White 7']] as const;
-export const OCTS = [[3, 'Low'], [4, 'Middle'], [5, 'High']] as const;
+export const OCTS = [[2, 'Lowest'], [3, 'Low'], [4, 'Middle'], [5, 'High']] as const;
 /** Sa as a keyboard names it, with its octave's number, middle C being C4: "C♯3" (Rinat,
  * 2026-10-21: "make the Sa octave picker say which keyboard octave it is (C3, C4, C5), so I can
  * match it to my Casio"). On a 61-key keyboard such as the CT-X3000, C2 to C7, octave 3 is the
@@ -71,6 +56,17 @@ export const saKeyName = (saKey: number, saOct: number): string => (KEYS[saKey]?
 /** Sa in words, wherever the app names it: "C♯3 (Black 1), low octave". */
 export const saWords = (s: { saKey: number; saOct: number }): string =>
   saKeyName(s.saKey, s.saOct) + ' (' + (KEYS[s.saKey]?.[1] ?? '?') + '), ' + (OCTS.find((o) => o[0] === s.saOct)?.[1] ?? '').toLowerCase() + ' octave';
+/** A Sa as a picker's value: its MIDI note. */
+export const saValue = (s: { saKey: number; saOct: number }): string => String(12 * (s.saOct + 1) + s.saKey);
+/** A picker's value as a Sa. */
+export function saFromValue(v: string): { saKey: number; saOct: SaOct } {
+  const m = Math.round(Number(v)) || 0;
+  return { saKey: ((m % 12) + 12) % 12, saOct: saOctOf(Math.floor(m / 12) - 1) };
+}
+/** One list of Sa from C2 to B5 (Rinat, 2026-11-10: "the one drop down will list c2, c#2, d2....
+ * up to B5"), lowest first, `picked` selected. */
+export const saOptionsHTML = (picked?: { saKey: number; saOct: number }): string =>
+  OCTS.map(([o]) => KEYS.map((_, k) => '<option value="' + saValue({ saKey: k, saOct: o }) + '"' + (picked?.saKey === k && picked.saOct === o ? ' selected' : '') + '>' + saKeyName(k, o) + '</option>').join('')).join('');
 
 // ── Notes ────────────────────────────────────────────────────────────────────
 
@@ -192,9 +188,6 @@ export function linesPicked(from: number | null, to: number, count: number): { f
   return { from: a, to: b, whole: a === 0 && b === last };
 }
 
-export const keyOptionsHTML = (): string => KEYS.map((k, i) => '<option value="' + i + '">' + k[0] + ' · ' + k[1] + '</option>').join('');
-/** The octaves of Sa, named with its key: "C♯3 · low", "C♯4 · middle", "C♯5 · high". */
-export const octOptionsHTML = (saKey = 0): string => OCTS.map((o) => '<option value="' + o[0] + '">' + saKeyName(saKey, o[0]) + ' · ' + o[1].toLowerCase() + '</option>').join('');
 /** The taal picker, in groups: the prototype's six first, then Tagore's own, then more. */
 export const taalOptionsHTML = (): string =>
   TAAL_GROUPS.map((g) => '<optgroup label="' + esc(g.label) + '">' +

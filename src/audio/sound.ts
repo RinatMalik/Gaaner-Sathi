@@ -20,17 +20,13 @@ export interface SoundSettings extends SongSound {
   guideVol?: number;
   countIn: boolean;
   guideLoop: GuideLoop;
-  /** Tempo trainer: faster each round of a loop, up to rampMax. */
-  ramp: boolean;
-  rampStep: number;
-  rampMax: number;
 }
 
 /** The prototype's defaults. */
 export const DEFAULT_SOUND: SoundSettings = {
   guide: 'full', beat: 'tabla', tablaVol: 0.7, speed: 'normal', fills: true,
   layers: { tabla: [], dholak: [], kit: [] }, reeds: 3, droneType: 'tanpura', droneVol: 0, tanTune: 'P',
-  countIn: true, guideLoop: 'all', ramp: false, rampStep: 4, rampMax: 160,
+  countIn: true, guideLoop: 'all',
 };
 
 const GUIDE_LEVELS: Record<GuideLevel, number> = { full: 0.9, soft: 0.3, off: 0 };

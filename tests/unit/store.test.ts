@@ -78,9 +78,9 @@ describe('preferences', () => {
 
   it('fall back to the defaults for values the controls cannot make', () => {
     const S = new Memory();
-    S.setItem(STORE_KEYS.prefs, JSON.stringify({ beat: 'banjo', tablaVol: 7, reeds: '3', speed: null, layers: 'x', rampMax: -5, editSetOpen: 'yes', tab: 'other' }));
+    S.setItem(STORE_KEYS.prefs, JSON.stringify({ beat: 'banjo', tablaVol: 7, reeds: '3', speed: null, layers: 'x', editSetOpen: 'yes', tab: 'other' }));
     const p = loadPrefs(S);
-    expect([p.beat, p.tablaVol, p.reeds, p.speed, p.rampMax, p.editSetOpen, p.tab]).toEqual(['tabla', 1, 3, 'normal', 30, undefined, 'practice']);
+    expect([p.beat, p.tablaVol, p.reeds, p.speed, p.editSetOpen, p.tab]).toEqual(['tabla', 1, 3, 'normal', undefined, 'practice']);
     expect(p.layers).toEqual({ tabla: [], dholak: [], kit: [] });
     S.setItem(STORE_KEYS.prefs, '{ not json');
     expect(loadPrefs(S)).toEqual(DEFAULT_PREFS);

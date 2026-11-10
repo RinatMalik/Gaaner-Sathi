@@ -53,7 +53,7 @@ as it was set up (its sound and notes included), without the sender's log, takes
 | `taal` | One of 19 taal ids (ENGINE.md → Taals): `dadra`, `keherwa`, `rupak`, `jhaptal`, `ektal`, `teentaal`, `jhampak`, `shashthi`, `rupakra`, `nabatal`, `ekadashi`, `nabapanchatal`, `khemta`, `deepchandi`, `dhamar`, `jhumra`, `teora`, `kawali`, `garba`. Anything else reads as `dadra` (the prototype also reads the last thirteen as `dadra`). Sections may have their own, in their headings (NOTATION.md → A taal per section); the prototype plays them in this one. |
 | `tempo` | Matras per minute, 30–240. Sections may have their own, in their headings (NOTATION.md → Sections). |
 | `saKey` | Semitones above C, 0–11. The app shows the CT-X3000 key too ("C · White 1", "C♯ · Black 1", …). |
-| `saOct` | 3, 4 or 5 (Low, Middle, High); Sa = MIDI 12 × (saOct + 1) + saKey. It is the keyboard's octave number, middle C being C4, and the app names Sa so (Rinat, 2026-10-21): the picker says "C♯3 · low", and Sa in words is "C♯3 (Black 1), low octave". C3 is the second C from the left on a 61-key keyboard such as the CT-X3000, the third on an 88-key piano. |
+| `saOct` | 2, 3, 4 or 5 (Lowest, Low, Middle, High; 2 from 2026-11-10); Sa = MIDI 12 × (saOct + 1) + saKey. It is the keyboard's octave number, middle C being C4, and the app names Sa so (Rinat, 2026-10-21): one list, C2 to B5, says "C♯3", and Sa in words is "C♯3 (Black 1), low octave". C3 is the second C from the left on a 61-key keyboard such as the CT-X3000, the third on an 88-key piano. |
 | `startOn` | The taal beat (1-based) the first beat lands on. |
 | `text` | The notation (NOTATION.md). |
 | `updatedAt` | ms epoch; the newer copy wins when two places have the same song. |
@@ -62,7 +62,7 @@ as it was set up (its sound and notes included), without the sender's log, takes
 | `exercise` | `true` for one of your songs listed under Exercises (your own exercise: "List under" in Edit notation, "+ New exercise", or a copy of a built-in one); absent: under My songs. Never on a built-in exercise, which is `example` in the app and never stored. |
 | `notes` | Notes about the song (its meaning, source, a teacher's comments): free text, at most 20 000 characters, shown above the sheet, printed and searched. Absent when empty. |
 | `dismissed` | The checker's warnings dismissed on this song, as short fingerprints (base-36, NOTATION.md → Checker → Dismissing), the newest 200; absent when none. Never on a built-in exercise. |
-| `sound` | The song's own harmonium, drone and rhythm (set in the top section since 2026-10-22; in Edit notation → Sound of this song before), with the same names and values as the device settings below. Absent while the song uses the usual sound. The app writes the whole set; reading checks each field and leaves out any it cannot read, so the device's setting shows through for that one. A `guide` written before 2026-10-13 is left out: the guide's level is a practice setting now; so is a `tablaVol` written before 2026-11-09, the rhythm's level being the device's. `droneVol` here says only whether the song has a drone: 0 none, any other value one, heard at the device's level (`droneLevel`). |
+| `sound` | The song's own harmonium, drone and rhythm (set in Edit notation → Settings: there since 2026-11-10, in the top section from 2026-10-22, in Edit notation's Sound of this song before), with the same names and values as the device settings below. Absent while the song uses the usual sound. The app writes the whole set; reading checks each field and leaves out any it cannot read, so the device's setting shows through for that one. A `guide` written before 2026-10-13 is left out: the guide's level is a practice setting now; so is a `tablaVol` written before 2026-11-09, the rhythm's level being the device's. `droneVol` here says only whether the song has a drone: 0 none, any other value one, heard at the device's level (`droneLevel`). |
 
 `normalize()` runs on every song read or imported and clamps every field, as the prototype's
 does. `tags`, `fav`, `exercise`, `notes`, `dismissed` and `sound` are left out when unset, so a prototype song reads
@@ -126,7 +126,6 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `tanTune` | `P`, `M` or `N` |
 | `countIn` | boolean |
 | `guideLoop` | `all`, `first` or `alt` |
-| `ramp`, `rampStep`, `rampMax` | The tempo trainer: on or off, the step and the top |
 | `loopGap` | No longer read (2026-10-26): the seconds of break between rounds when looping on the Practice view, set on the Guide panel from 2026-10-23; a rewaz routine's `roundGap` stays |
 | `tkGroup` | `date` while the Voice page's takes are grouped by the day taken; absent: by song (2026-10-23) |
 | `lastSong` | The song open last |
@@ -150,10 +149,10 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `rewazOrder` | The rewaz routines' ids in the order dragged (2026-11-09); absent: by name, the starter first. A routine not in it goes after those that are |
 | `theme` | `light` (Day) or `dark` (Night); absent: Auto, as the device says. Read by a line in the page's head before the app runs, so a reload never flashes the other colours |
 | `editMode` | `text` when the editor shows free text; absent: beat boxes |
-| `mySa` | Your Sa, `{ saKey, saOct }`: from the range finder's "Use as my Sa", or a Sa changed on an exercise. Exercises open in it and new songs start in it |
+| `mySa` | Your Sa, `{ saKey, saOct }`: from the range finder's "Use as my Sa", or a Sa set in Edit notation on an exercise. Exercises open in it and new songs start in it |
 | `voiceRange` | The lowest and highest notes the range finder heard, `{ lo, hi }`, MIDI numbers with fractions |
 | `holdNote`, `holdBest` | The hold trainer's note (cents from Sa: −500, −300, −100, 0, 200, 400, 500, 700, 900, 1100 or 1200) and the longest hold on each, `{ "700": 12.4 }` seconds |
-| `showKeys` | `true` to show the keys to press (the virtual keyboard, ticked under the lines to practise) on the Practice view |
+| `showKeys` | `true` while the virtual keyboard's section is unfolded on the Practice view (its own heading, Show and Hide, since 2026-11-10; a tick box under the lines to practise before) |
 | `plRows`, `plAt` | The Practice view's lines (set in the Practice settings): how many show, `5`, `9` or `12` (absent: 7); which of them, from the top, is the one being sung, `1`, `2`, `4` or `5` (absent: the 3rd) |
 | `plSize` | The font size of the song's notes and words, `small` or `big` (absent: normal): in the header's menu since 2026-10-22 (Practice settings before), for the Practice view's lines and Edit notation's beat boxes, preview and free text, not the rest of the screen |
 | `midi` | A MIDI keyboard: `{ route: 'app' \| 'kb' \| 'both', sound: 'keep' \| 'organ' \| 'accordion', out?: id }`: where the guide plays, in what sound, on which keyboard |
@@ -161,19 +160,25 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 **Each song's own sound.** The harmonium, drone and rhythm settings (`reeds`, `droneType`,
 `droneVol`, `tanTune`, `beat`, `speed`, `fills`, `layers`) kept here are *your
 usual sound*. Exercises use it, and so does every song without a `sound` of its own (new
-songs, and songs from before this existed). They are set in the top section's guide and rhythm
-panels (Rinat, 2026-10-22; in Edit notation's Sound of this song before). Changing one of them
-while one of your songs is open saves the whole set with that song, and the usual sound is left
-alone; while an exercise is open, it changes the usual sound. "Use my usual sound", in the
-rhythm panel while a song has its own, removes it. The guide and practice settings
-(`guide`, `guideVol`, `countIn`, `guideLoop`, `ramp`, `rampStep`, `rampMax`) are always
+songs, and songs from before this existed). They are set in Edit notation's Settings (since
+2026-11-10; in the top section from 2026-10-22, in Edit notation's Sound of this song before).
+Changing one of them while one of your songs is open saves the whole set with that song, and the
+usual sound is left alone; while an exercise is open, it changes the usual sound, and a Sa set
+there becomes your Sa (`mySa`). "Use my usual sound", there while a song has its own, removes it.
+The guide and practice settings (`guide`, `guideVol`, `countIn`, `guideLoop`) are always
 the device's: the guide's level is how much help the singer wants that
 day, not part of how a song is arranged (2026-10-13). So, from 2026-11-09, are the rhythm's and
 the drone's levels and the rhythm's mute (`tablaVol`, `droneLevel`, `beatMute`): moving one
-gives a song no sound of its own. The top section says of each control what it changes: "this
-song" (on a built-in exercise, "all exercises"), "all songs", or "for now". A rewaz item's
-tempo and guide lie over all of these while it plays, and so does the routine's `sa` over the
-song's Sa.
+gives a song no sound of its own. A rewaz item's tempo and guide lie over all of these while it
+plays, and so does the routine's `sa` over the song's Sa.
+
+**What the top of the page changes is kept nowhere (Rinat, 2026-11-10).** The Sa, tempo, taal,
+reeds, drone, instrument, side instruments, rhythm speed and fills changed at the top lie over the
+song's own in memory, each song separately (`forNow` in app.ts, `core/song/fornow.ts`), until the
+page is refreshed or Revert is pressed. None of it is written to the song, the usual sound, a backup
+or a file; what Edit notation sets replaces a change of that setting. A rewaz item plays the song's
+own, with changes of its own gone when the item ends. A take keeps the Sa and tempo it was sung in
+(`sa`, `flat`).
 
 ## Backups (everything, and restoring it)
 
@@ -256,7 +261,7 @@ not logged.
 | `song`, `title` | The song or exercise id, and its title at the time (songs get renamed or deleted) |
 | `from`, `to`, `loop` | Lines practised (0-based, inclusive; without a loop, `to` is the last line reached) |
 | `rounds` | Rounds begun; 1 without a loop |
-| `tempo`, `top` | Tempo at the start, and the highest reached (the tempo trainer) |
+| `tempo`, `top` | Tempo at the start, and the highest reached (the tempo moved while playing; the tempo trainer too, until 2026-11-10) |
 | `score`, `lines` | Pitch score 0–100 for the session and per line, when pitch feedback was on (optional) |
 | `notes` | Each note of the scale sung, with pitch feedback (optional, from 2026-10-20): `[semitones from middle Sa, times sung, average score, median cents off]`, lowest first; upper Sa is 12, lower Pa −5. Progress's **Note by note** sums them. Sessions logged earlier that day, before the field, get it from their detail when the app opens |
 | `routine` | The rewaz routine it was part of (optional) |
@@ -331,16 +336,16 @@ in IndexedDB, never in song files; Download writes one as a mono 16-bit WAV file
 ```json
 { "id": "take-mv33v2f4-56twq", "song": "song-…", "title": "…", "at": 1791679736267, "secs": 12.9,
   "rate": 24000, "from": 0, "to": 2, "loop": false, "rounds": 1, "tempo": 110, "countIn": true,
-  "ramp": false, "rampStep": 4, "rampMax": 160, "lag": 0.18, "sig": "1x3k9q:5c" }
+  "lag": 0.18, "sig": "1x3k9q:5c" }
 ```
 
 | Field | Meaning |
 |---|---|
 | `at`, `secs`, `rate` | When its first beat sounded; its length; its sample rate (half the device's) |
 | `from`, `to`, `loop`, `rounds` | Lines played, whether they looped, rounds begun |
-| `tempo`, `flat` | The song's tempo then; a rewaz item's tempo, which every beat took, if one played |
-| `sa` | The routine's Sa, `{ saKey, saOct }`, when the take was sung in a rewaz that set one (2026-11-09), so the guide played with it is in that Sa; absent: the song's |
-| `countIn`, `ramp`, `rampStep`, `rampMax` | The count-in and tempo trainer as they were, so playback is the same run |
+| `tempo`, `flat` | The song's tempo then; a rewaz item's tempo, or one changed at the top of the page, which every beat took, if one played |
+| `sa` | The Sa it was sung in, `{ saKey, saOct }`, when a rewaz set one (2026-11-09) or it was changed at the top of the page (2026-11-10), so the guide played with it is in that Sa; absent: the song's |
+| `countIn` | The count-in as it was, so playback is the same run (an older take's `ramp`, `rampStep` and `rampMax`, the tempo trainer's, are dropped on reading) |
 | `gap` | Seconds of break between rounds, when there were any (0–120; absent: none), so playback has the same breaks |
 | `lag` | Seconds from a beat to the voice reaching the app; playback skips that much of the take. From 2026-10-19 the device's delay only (`deviceLag`, else its own figure), so a take is heard as it was sung; before, the delay fitted to the singing |
 | `sig` | A fingerprint of the notation then, to say when it has changed since |
@@ -368,7 +373,7 @@ itself was kept, and a second save had it all).
 ```json
 { "at": 1791655308398, "song": "song-mv2pb608-a4kmn",
   "played": { "title": "…", "taal": "keherwa", "tempo": 100, "text": "…", "saHz": 261.63, "sa": "C4 (White 1), middle octave" },
-  "settings": { "guide": "full", "guideLoop": "all", "countIn": true, "ramp": false, "rampStep": 4, "rampMax": 160 },
+  "settings": { "guide": "full", "guideLoop": "all", "countIn": true },
   "pitch": { "lag": 0.1, "measured": true, "anyOctave": true, "octave": 0,
     "notes": [{ "t0": 0, "t1": 0.6, "semi": 0, "oct": 0, "g": 0, "line": 0, "pass": 0, "status": "sung",
       "score": 88, "cents": -6.2, "arrive": 0.21, "wobble": 7.5 }],
@@ -380,7 +385,7 @@ itself was kept, and a second save had it all).
 |---|---|
 | `at`, `song` | The log entry's `at` (the key) and the song's id |
 | `played` | The song as it was played (it may change later): title, taal, tempo, notation, Sa |
-| `settings` | The guide, the guide when looping, the count-in, the tempo trainer and `gap`, the break between rounds when there was one (the file for AI's `break_between_rounds_s`, 0 for none) |
+| `settings` | The guide, the guide when looping, the count-in and `gap`, the break between rounds when there was one (the file for AI's `break_between_rounds_s`, 0 for none) |
 | `pitch` | Only with **Check my pitch**: the device's delay and whether it was measured; whether any octave counted, else `below` when the octave below counted too (the guide's bass reed; from 2026-10-28), and the octave sung in; every judged note's result (the scores shown while singing, never worked out again); each line's score per round; every reading as `[t, Hz]` pairs (0: no voice; a glitch is 0); `levels`, from 2026-11-05, how loud each reading was, in pairs as `readings` are: `[level, loudest sample]`, dB of full scale to a tenth (the level the RMS of the 43 ms or so around it; 0 the most the microphone's input can carry; −120 silence), left out when it does not match the readings (Rinat, 2026-11-05: "add loudness data when export"); every beat `[t, song beat, round, seconds a beat]` |
 
 Times are seconds from the first beat after the count-in. A note at `t0` is heard at `t0`; a

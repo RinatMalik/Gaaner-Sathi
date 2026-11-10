@@ -45,7 +45,7 @@ function sing(o: { late?: number; cents?: (n: ExpectedNote) => number; lag?: num
   const d: SessionDetail = {
     at: T0, song: 's1',
     played: { title: 'আমার সোনার বাংলা', taal: 'keherwa', tempo: 60, text: TEXT, saHz: SA, sa: 'C (White 1), middle octave' },
-    settings: { guide: 'full', guideLoop: 'all', countIn: true, ramp: false, rampStep: 4, rampMax: 160 },
+    settings: { guide: 'full', guideLoop: 'all', countIn: true },
   };
   if (o.pitch !== false) {
     d.pitch = {

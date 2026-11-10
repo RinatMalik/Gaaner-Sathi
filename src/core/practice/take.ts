@@ -1,10 +1,10 @@
 /**
  * Takes (docs/DATA.md → Takes): a recording of the singer during one play, kept with what is
- * needed to play it back against the guide in step: the lines, rounds, tempo, count-in and
- * tempo trainer as they were, and the delay from a beat to the voice reaching the app. Pure,
- * so it is tested in Node; the samples themselves are kept beside it (src/app/takes.ts).
+ * needed to play it back against the guide in step: the lines, rounds, tempo and count-in as
+ * they were, and the delay from a beat to the voice reaching the app. Pure, so it is tested in
+ * Node; the samples themselves are kept beside it (src/app/takes.ts).
  */
-import { cleanSa } from './routine';
+import { cleanSa, type RoutineSa } from './routine';
 
 export interface Take {
   id: string;
@@ -20,15 +20,14 @@ export interface Take {
   to: number;
   loop: boolean;
   rounds: number;
-  /** The Sa a rewaz sang it in, where that was not the song's own (Rinat, 2026-11-09). */
-  sa?: { saKey: number; saOct: 3 | 4 | 5 };
-  /** The song's tempo then; and a rewaz item's, which every beat took, if one played. */
+  /** The Sa it was sung in, where that was not the song's own: a rewaz's (Rinat, 2026-11-09) or
+   * one changed at the top. */
+  sa?: RoutineSa;
+  /** The song's tempo then; and the one every beat took, if a rewaz item or the top panel set
+   * one. */
   tempo: number;
   flat?: number;
   countIn: boolean;
-  ramp: boolean;
-  rampStep: number;
-  rampMax: number;
   /** Seconds of break before each round after the first, then the count-in again (absent: none). */
   gap?: number;
   /** Seconds from a beat to the singer's voice reaching the app (sound out, singer, sound in):
@@ -76,8 +75,7 @@ export function cleanTake(v: unknown): Take | null {
   const t: Take = {
     id: o.id, song: o.song, title: typeof o.title === 'string' ? o.title.slice(0, 200) : '', at, secs, rate,
     from, to: Math.max(from, Math.round(num(o.to, 0, 10_000) ?? from)), loop: o.loop === true, rounds: Math.round(num(o.rounds, 1, 10_000) ?? 1),
-    tempo: Math.round(num(o.tempo, 30, 240) ?? 100), countIn: o.countIn !== false, ramp: o.ramp === true,
-    rampStep: Math.round(num(o.rampStep, 1, 240) ?? 4), rampMax: Math.round(num(o.rampMax, 30, 240) ?? 160),
+    tempo: Math.round(num(o.tempo, 30, 240) ?? 100), countIn: o.countIn !== false,
     lag: num(o.lag, 0, 0.6) ?? 0, sig: typeof o.sig === 'string' ? o.sig : '',
   };
   const flat = num(o.flat, 30, 240);

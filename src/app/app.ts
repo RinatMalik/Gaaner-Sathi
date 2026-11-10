@@ -31,7 +31,7 @@ import { EXERCISES } from '../core/exercises';
 import type { Exercise } from '../core/exercises/types';
 import { joinBeats, notesInRange, noteToken, shiftOctaves, splitBeats, type TextEdit } from '../core/notation/edit';
 import { parseSong } from '../core/notation/parse';
-import { playSeconds, sectionOfLine, sectionTempoAt, setHeadingTempo, songSections, type SongSection } from '../core/notation/sections';
+import { playSeconds, sectionOfLine, sectionTempoAt, songSections, type SongSection } from '../core/notation/sections';
 import { inOneTaal, oneTaal, taalMap, type Taals } from '../core/notation/taalmap';
 import type { Beat, ParsedSong, Unit } from '../core/notation/types';
 import { analyse } from '../core/practice/insights';
@@ -43,9 +43,10 @@ import { itemLines, newRoutineId, ROUTINE_LIMITS, STARTER, type Routine, type Ro
 import { clockText, keepsTake, newTakeId, textSig, type Take } from '../core/practice/take';
 import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefix, type ImportedSong } from '../core/song/file';
 import { titleFixes, uniqueTitle } from '../core/song/library';
-import { cleanDismissed, cleanNotes, newId, normalize, parseTags, type Song } from '../core/song/model';
+import { cleanDismissed, cleanNotes, newId, normalize, parseTags, saOctOf, type Song } from '../core/song/model';
+import { trimForNow, type ForNow } from '../core/song/fornow';
 import { SONG_SOUND_KEYS, soundOf, type SongSound } from '../core/song/sound';
-import { isTaalId, taalInfo, TAALS, type TaalId, type TaalInfo } from '../core/taal/taals';
+import { isTaalId, taalInfo, TAALS, type TaalInfo } from '../core/taal/taals';
 import { BACKUP_BYTES, BACKUP_FORMAT, backupParts, backupWords, readBackup, restoredPrefs, restorePlan, type Backup } from './backup';
 import { aiFileName, aiFileText, dayFileName, dayFileParts, practiceFileParts, type SessionFileInput } from './aifile';
 import { openOnce, SessionStore } from './db';
@@ -104,9 +105,10 @@ let taal: TaalInfo = taalInfo('dadra');
 /** Each beat's taal as written: the song's, or a section's own (taal pherta); worked out with each
  * parse. The editor, the checker and the printed sheet show it. */
 let ownTaals: Taals = oneTaal(taal, 0);
-/** A taal picked in the top section to play the song in, until another song opens ('' none). */
-let taalPick: TaalId | '' = '';
-/** Each beat's taal as played: the taal picked, else as written. */
+/** What the top panel has changed on each song (Rinat, 2026-11-10): never saved, each song's its
+ * own until the page is refreshed. */
+const forNow = new Map<string, ForNow>();
+/** Each beat's taal as played: the taal picked at the top, else as written. */
 let taals: Taals = ownTaals;
 /** The taal the deck's strip shows. */
 let stripTaal: TaalInfo | null = null;
@@ -165,15 +167,25 @@ let itemOverride: {
   sa?: RoutineSa;
   guide?: GuideLevel;
   guideLoop?: GuideLoop;
-  /** A take playing back: the song's tempo then, and its count-in and tempo trainer. */
+  /** A take playing back: the song's tempo then, and its count-in. */
   baseTempo?: number;
   countIn?: boolean;
-  ramp?: boolean;
-  rampStep?: number;
-  rampMax?: number;
+  /** A take playing back: as it was sung, whatever the top panel now has. */
+  asTaken?: true;
+  /** A rewaz item: what the top panel has changed while it plays, for that item alone. A rewaz
+   * plays each song's own settings, whatever was changed on it before. */
+  now?: ForNow;
 } | null = null;
 /** Set while the rewaz itself opens a song, which must not stop the rewaz. */
 let runnerLoading = false;
+const NOTHING: ForNow = Object.freeze({});
+/** What the top panel has changed that is in force for what is open. */
+function nowOf(): ForNow {
+  if (runnerLoading || itemOverride?.asTaken || !current) return NOTHING;
+  return itemOverride?.now ?? forNow.get(current.id) ?? NOTHING;
+}
+/** The taal picked at the top to play the song in ('' none). */
+const pickedTaal = () => nowOf().taal ?? '';
 
 // ── Transport: one clock drives the rhythm, the melody and the highlight ─────
 
@@ -220,28 +232,36 @@ let leftShown = -1;
 /** The round full screen's title bar says (0-based): the last one shown. */
 let wherePass = 0;
 
-/** The song as played: a rewaz item's tempo and the rewaz's Sa over the song's own. */
+/** The song as played: what the top panel has changed, then a rewaz's Sa and its item's tempo,
+ * over the song's own. */
 const songSource = {
   get saKey() {
-    return itemOverride?.sa?.saKey ?? current.saKey;
+    return (nowOf().sa ?? itemOverride?.sa ?? current).saKey;
   },
   get saOct() {
-    return itemOverride?.sa?.saOct ?? current.saOct;
+    return (nowOf().sa ?? itemOverride?.sa ?? current).saOct;
   },
   get startOn() {
     return current.startOn;
   },
   get tempo() {
-    return itemOverride?.tempo ?? current.tempo;
+    return nowOf().tempo ?? itemOverride?.tempo ?? current.tempo;
   },
 };
-/** The sound settings for the open song: its own harmonium, drone and rhythm, else the
- * device's usual ones; the practice settings (the guide's level among them) are always the
- * device's. */
-const sound = new Proxy<SoundSettings>(prefs, {
+/** The open song's own sound, as Edit notation shows it: its own harmonium, drone and rhythm,
+ * else the device's usual ones; the practice settings (the guide's level among them) are always
+ * the device's. */
+const savedSound = new Proxy<SoundSettings>(prefs, {
   get(t, k) {
     const own = current?.sound;
     return own && SONG_SOUND_KEYS.includes(k as keyof SongSound) && Object.hasOwn(own, k) ? own[k as keyof SongSound] : Reflect.get(t, k);
+  },
+});
+/** The sound for the open song as the top panel has it: what it has changed over the song's own. */
+const sound = new Proxy<SoundSettings>(prefs, {
+  get(_t, k) {
+    const n = nowOf().sound;
+    return n && Object.hasOwn(n, k) ? n[k as keyof SongSound] : Reflect.get(savedSound, k);
   },
 });
 /** The sound settings as played: a rewaz item's guide over the open song's, and the levels of
@@ -252,7 +272,7 @@ const soundSource = new Proxy<SoundSettings>(prefs, {
     if (k === 'droneVol') return sound.droneVol > 0 ? droneLevelOf(prefs) : 0;
     if (k === 'guide' && itemOverride?.guide) return itemOverride.guide;
     if (k === 'guideLoop' && itemOverride?.guideLoop) return itemOverride.guideLoop;
-    if ((k === 'countIn' || k === 'ramp' || k === 'rampStep' || k === 'rampMax') && itemOverride && itemOverride[k] != null) return itemOverride[k];
+    if (k === 'countIn' && itemOverride?.countIn != null) return itemOverride.countIn;
     return Reflect.get(sound, k);
   },
 });
@@ -275,10 +295,11 @@ const source: PlaySource = {
   taalAt: (s) => taals.beat(s),
 };
 
-/** The tempo a song beat plays at before the tempo trainer: a rewaz item's, else its
- * section's own, else the song's. */
+/** The tempo a song beat plays at: one set at the top or by a rewaz item, for every beat; else
+ * its section's own, else the song's. */
 function baseTempoAt(s: number): number {
-  if (itemOverride?.tempo) return itemOverride.tempo;
+  const flat = nowOf().tempo ?? itemOverride?.tempo;
+  if (flat) return flat;
   return sections[sectionOfLine(sections, parsed.lineOfBeat[s] ?? -1)]?.tempo ?? itemOverride?.baseTempo ?? current.tempo;
 }
 
@@ -530,13 +551,15 @@ function showTempo(t: number): void {
 }
 function clearOverride(): void {
   if (!itemOverride) return;
-  const hadSa = !!itemOverride.sa;
+  const was = itemOverride;
   itemOverride = null;
-  if (current) showTempo(shownTempo());
-  if (current && hadSa) {
-    showPlayedSa();
-    setPlayUI();
-  }
+  if (!current) return;
+  showTempo(shownTempo());
+  // What the top panel had changed on this song comes back after a rewaz or a take.
+  if (was.now || was.asTaken || was.sa) showPlayedSa();
+  if (was.now || was.asTaken) renderSoundControls();
+  if (was.now && was.now.taal !== forNow.get(current.id)?.taal) reparse(true);
+  if (was.sa) setPlayUI();
 }
 /** Sa as it plays (a rewaz's, while one lies over the song), in the deck and on the keys. */
 function showPlayedSa(): void {
@@ -549,9 +572,11 @@ function showPlayedSa(): void {
 function playItem(it: RoutineItem, gap: number, sa?: RoutineSa): boolean {
   const s = songs.get(it.song) || EXERCISES.find((x) => x.id === it.song);
   if (!s) return false;
+  const same = s.id === current.id;
+  const changedHere = Object.keys(nowOf()).length > 0;
   runnerLoading = true;
   try {
-    if (s.id !== current.id) loadSong(s);
+    if (!same) loadSong(s);
   } finally {
     runnerLoading = false;
   }
@@ -559,7 +584,8 @@ function playItem(it: RoutineItem, gap: number, sa?: RoutineSa): boolean {
   if (!parsed.noteLines.length) return false;
   const [a, b] = itemLines(it, parsed.noteLines.length);
   const g = it.guide;
-  itemOverride = { tempo: it.tempo, guide: g === 'off' ? 'off' : g && sound.guide === 'off' ? 'full' : undefined, guideLoop: g && g !== 'off' ? g : undefined, sa };
+  itemOverride = { tempo: it.tempo, guide: g === 'off' ? 'off' : g && sound.guide === 'off' ? 'full' : undefined, guideLoop: g && g !== 'off' ? g : undefined, sa, now: {} };
+  if (same && changedHere) showNow();
   showTempo(shownTempo());
   if (sa) showPlayedSa();
   play({ from: a, to: b, loop: true, rounds: it.rounds, gap });
@@ -750,17 +776,15 @@ function startRun(from: number, to: number, loop: boolean): void {
   const s = soundSource;
   run = {
     song: current.id, title: current.title, from, to, loop, tempo: t, top: t, first: 0, wall: 0, seg: 0, done: 0, pass: 0, line: from, end: 0,
-    played: { title: current.title, taal: taalPick || current.taal, tempo: current.tempo, text: current.text, saHz: saFreq(songSource), sa: V.saWords(songSource) },
-    settings: { guide: s.guide, guideLoop: s.guideLoop, countIn: !!s.countIn, ramp: !!s.ramp, rampStep: s.rampStep, rampMax: s.rampMax, ...(T?.gap ? { gap: T.gap } : {}) },
+    played: { title: current.title, taal: pickedTaal() || current.taal, tempo: songSource.tempo, text: current.text, saHz: saFreq(songSource), sa: V.saWords(songSource) },
+    settings: { guide: s.guide, guideLoop: s.guideLoop, countIn: !!s.countIn, ...(T?.gap ? { gap: T.gap } : {}) },
   };
   $('#pAfter').hidden = true;
 }
 
-/** The deck's Sa pickers set to a Sa, the octaves named with its key ("C♯3 · low"). */
+/** The deck's Sa picker set to a Sa. */
 function showSa(saKey: number, saOct: number): void {
-  select('#saKey').value = String(saKey);
-  select('#saOct').innerHTML = V.octOptionsHTML(saKey);
-  select('#saOct').value = String(saOct);
+  select('#saPick').value = V.saValue({ saKey, saOct });
 }
 
 /** A beat is showing: note how far the practice has got. */
@@ -1320,20 +1344,11 @@ function setPlayUI(): void {
   // run's notes, its report and its file for AI are all against one Sa).
   // A rewaz with a Sa of its own holds it through its breaks too (Rinat, 2026-11-09).
   const held = rewaz.active && !!itemOverride?.sa;
-  for (const id of ['#saKey', '#saOct']) {
-    const s = select(id);
-    s.dataset.title ??= s.title;
-    s.disabled = active() || held;
-    s.title = held ? 'This rewaz sets Sa. Stop it to change Sa.' : active() ? 'Stop to change Sa' : s.dataset.title;
-  }
+  const s = select('#saPick');
+  s.dataset.title ??= s.title;
+  s.disabled = active() || held;
+  s.title = held ? 'This rewaz sets Sa. Stop it to change Sa.' : active() ? 'Stop to change Sa' : s.dataset.title;
   $('#saLab').textContent = held ? 'Sa · this rewaz’s' : 'Sa · your key';
-}
-/** The side instruments the rhythm's instrument can have. */
-function renderLayerChips(): void {
-  const st = sound.beat;
-  const r = V.layerChipsHTML(st, (sound.layers as Record<string, string[] | undefined>)[st] || []);
-  $('#layerRow').hidden = r.hidden;
-  $('#layerChips').innerHTML = r.html;
 }
 function setSeg(id: string, v: string | number): void {
   for (const b of $$('#' + id + ' button')) b.setAttribute('aria-pressed', String(b.dataset.v === String(v)));
@@ -1342,25 +1357,55 @@ function setSeg(id: string, v: string | number): void {
 // ── Each song's own sound ────────────────────────────────────────────────────
 
 /** The drone picker's value: off, the tanpura with its first string, or the harmonium. */
-const droneValue = (): string => (sound.droneVol <= 0 ? 'off' : sound.droneType === 'harmonium' ? 'harmonium' : 'tanpura:' + sound.tanTune);
+const droneValue = (s: SoundSettings): string => (s.droneVol <= 0 ? 'off' : s.droneType === 'harmonium' ? 'harmonium' : 'tanpura:' + s.tanTune);
 
-/** The top section's harmonium, drone and rhythm controls: the open song's sound, and the levels
- * and the rhythm's mute, which are the same for every song. */
+/** A song's sound as controls: at the top (for now), and in Edit notation (its own). */
+const DECK_SOUND = { reeds: 'reedSeg', drone: '#droneSel', beat: '#beatSel', speed: '#speedSel', fills: '#fillsChk', layerRow: '#layerRow', layers: '#layerChips' };
+const EDIT_SOUND: typeof DECK_SOUND = { reeds: 'edReeds', drone: '#edDrone', beat: '#edBeat', speed: '#edSpeed', fills: '#edFills', layerRow: '#edLayerRow', layers: '#edLayers' };
+
+function drawSound(ids: typeof DECK_SOUND, s: SoundSettings): void {
+  setSeg(ids.reeds, s.reeds);
+  select(ids.drone).value = droneValue(s);
+  select(ids.beat).value = s.beat;
+  select(ids.speed).value = s.speed;
+  input(ids.fills).checked = !!s.fills;
+  // The side instruments the rhythm's instrument can have.
+  const r = V.layerChipsHTML(s.beat, (s.layers as Record<string, string[] | undefined>)[s.beat] || []);
+  $(ids.layerRow).hidden = r.hidden;
+  $(ids.layers).innerHTML = r.html;
+}
+
+/** The top section's harmonium, drone and rhythm controls: the sound as it will play, and the
+ * levels and the rhythm's mute, which are the same for every song. */
 function renderSoundControls(): void {
-  setSeg('reedSeg', sound.reeds);
-  select('#droneSel').value = droneValue();
+  drawSound(DECK_SOUND, sound);
   const dl = input('#droneVol');
   dl.value = String(droneLevelOf(prefs));
   // Its level is every song's, so it cannot be what brings a drone to this one.
   dl.disabled = sound.droneVol <= 0;
   dl.title = dl.disabled ? 'No drone here: choose one to set how loud it is' : 'How loud the drone is';
-  select('#beatSel').value = sound.beat;
   $('#beatMute').setAttribute('aria-pressed', String(!!prefs.beatMute));
   input('#tablaVol').value = String(prefs.tablaVol);
-  select('#speedSel').value = sound.speed;
-  input('#fillsChk').checked = !!sound.fills;
-  renderLayerChips();
+  renderRevert();
+}
+
+/** Edit notation's settings for how the song plays: its own, whatever the top panel has. */
+function renderSongSettings(): void {
+  if (!current) return;
+  renderEditSummary();
+  select('#edSa').value = V.saValue(current);
+  input('#edTempo').value = String(current.tempo);
+  drawSound(EDIT_SOUND, savedSound);
   renderUsualSound();
+}
+
+/** Revert at the top: there to press only when something has been changed. */
+function renderRevert(): void {
+  if (!current) return;
+  const b = $<HTMLButtonElement>('#revertBtn');
+  b.textContent = 'Revert to this ' + what() + '’s settings';
+  b.disabled = !Object.keys(nowOf()).length;
+  $('#nowWhat').textContent = what();
 }
 
 /** The guide's slider and mute button (the device's, the same for every song). */
@@ -1369,63 +1414,134 @@ function renderGuide(): void {
   $('#guideMute').setAttribute('aria-pressed', String(prefs.guide === 'off'));
 }
 
-/** The tags on the deck saying whose its settings are: this song's or your usual ones. */
-function renderScope(): void {
-  const w = V.scopeWords(current);
-  for (const el of $$('[data-scope]')) {
-    const t = el.dataset.scope === 'tempo' ? w.tempo : w.song;
-    el.textContent = t.text;
-    el.title = t.title;
-  }
-}
-
 /** "Use my usual sound", shown while one of the user's songs keeps a sound of its own. */
 function renderUsualSound(): void {
   if (!current) return;
   const own = !current.example && !!current.sound;
   $('#soundForget').hidden = !own;
-  if (own) $('#soundForget').title = 'This ' + what() + ' keeps its own sound (' + V.songSoundSummary(sound) + '). Use your usual sound instead.';
+  if (own) $('#soundForget').title = 'This ' + what() + ' keeps its own sound (' + V.songSoundSummary(savedSound) + '). Use your usual sound instead.';
+}
+
+/** What the top panel has changed, to change it: a rewaz item's, or the song's. */
+const nowToChange = (): ForNow => itemOverride?.now ?? forNow.get(current.id) ?? {};
+/**
+ * The top panel changed something, for now: kept for the song (or the rewaz item playing), only
+ * what differs from its own. Nothing here is saved.
+ */
+function setNow(patch: ForNow): void {
+  const own = { sa: itemOverride?.sa ?? current, tempo: itemOverride?.tempo ?? deckSection()?.tempo ?? current.tempo, sound: savedSound };
+  const next = trimForNow({ ...nowToChange(), ...patch }, own);
+  if (itemOverride?.now) itemOverride.now = next;
+  else if (Object.keys(next).length) forNow.set(current.id, next);
+  else forNow.delete(current.id);
+  renderRevert();
+}
+/** Everything the top panel shows or plays from what is in force. */
+function showNow(): void {
+  showPlayedSa();
+  showTempo(shownTempo());
+  renderSoundControls();
+  reparse(true);
+}
+/** Revert at the top: this song's own settings again. A song playing with another Sa is stopped
+ * first: a run is judged against one Sa. */
+function revertNow(): void {
+  if (nowToChange().sa && active()) stop();
+  if (itemOverride?.now) itemOverride.now = {};
+  else forNow.delete(current.id);
+  showNow();
+  T?.retune();
+  T?.applyReeds();
+  T?.applyBeatLevel();
+  T?.applyDrone();
+  T?.resetTanpura();
 }
 
 /**
- * Change the song's harmonium, drone or rhythm (not how loud they are, which is every song's).
- * One of the user's songs keeps them: the
- * first change saves its whole sound with it, so it sounds the same however the usual sound
- * changes later. On an exercise they change the usual sound, which every song without its
- * own uses.
+ * Change the song's harmonium, drone or rhythm (not how loud they are, which is every song's):
+ * for now at the top, or in Edit notation (`keep`) for the song. One of the user's songs keeps
+ * them: the first change saves its whole sound with it, so it sounds the same however the usual
+ * sound changes later. On an exercise they change the usual sound, which every song without its
+ * own uses. What Edit notation sets is heard at once, over anything changed at the top.
  */
-function setSound(patch: Partial<SongSound>): void {
-  if (current.example) {
-    Object.assign(prefs, patch);
-    savePrefs();
-  } else {
-    changed('sound', { ...soundOf(sound), ...patch });
-  }
-  renderUsualSound();
+function changeSound(patch: Partial<SongSound>, keep: boolean): void {
+  const tune = sound.tanTune;
+  const rest: Partial<SongSound> = { ...nowToChange().sound };
+  if (keep) {
+    if (current.example) {
+      Object.assign(prefs, patch);
+      savePrefs();
+    } else changed('sound', { ...soundOf(savedSound), ...patch });
+    for (const k of Object.keys(patch)) delete rest[k as keyof SongSound];
+    setNow({ sound: rest });
+  } else setNow({ sound: { ...rest, ...patch } });
+  renderSoundControls();
+  renderSongSettings();
+  if ('beat' in patch || 'speed' in patch) renderTaal();
+  if ('beat' in patch) T?.applyBeatLevel();
+  if ('reeds' in patch) T?.applyReeds();
+  if ('droneVol' in patch) T?.applyDrone();
+  if (sound.tanTune !== tune) T?.resetTanpura();
+}
+/** Wire one set of a song's sound controls. */
+function wireSound(ids: typeof DECK_SOUND, keep: boolean, shown: SoundSettings): void {
+  const set = (patch: Partial<SongSound>) => changeSound(patch, keep);
+  const value = (e: Event) => (e.target as HTMLSelectElement).value;
+  $('#' + ids.reeds).addEventListener('click', (e) => {
+    const b = segButton(e);
+    if (b) set({ reeds: +b.dataset.v! as SongSound['reeds'] });
+  });
+  select(ids.beat).addEventListener('change', (e) => set({ beat: value(e) as BeatStyle }));
+  select(ids.speed).addEventListener('change', (e) => {
+    const v = value(e);
+    set({ speed: v === 'half' || v === 'double' ? v : 'normal' });
+  });
+  input(ids.fills).addEventListener('change', (e) => set({ fills: (e.target as HTMLInputElement).checked }));
+  $(ids.layers).addEventListener('click', (e) => {
+    const b = (e.target as Element).closest<HTMLElement>('button[data-layer]');
+    if (!b) return;
+    const st = shown.beat;
+    if (st !== 'tabla' && st !== 'dholak' && st !== 'kit') return;
+    const layers = soundOf(shown).layers;
+    const list = new Set(layers[st]);
+    if (!list.delete(b.dataset.layer!)) list.add(b.dataset.layer!);
+    layers[st] = Array.from(list);
+    set({ layers });
+  });
+  // The drone: off, the tanpura with its first string, or the harmonium.
+  select(ids.drone).addEventListener('change', (e) => {
+    const v = value(e);
+    const vol = shown.droneVol > 0 ? shown.droneVol : savedSound.droneVol > 0 ? savedSound.droneVol : 0.5;
+    if (v === 'off') set({ droneVol: 0 });
+    else if (v === 'harmonium') set({ droneType: 'harmonium', droneVol: vol });
+    else set({ droneType: 'tanpura', tanTune: v.slice(-1) as TanTune, droneVol: vol });
+  });
 }
 
-/** "Use my usual sound" (at the top): the song forgets its own, and plays with the usual one from now. */
+/** "Use my usual sound" (in Edit notation): the song forgets its own, and plays with the usual one from now. */
 function forgetSound(): void {
   if (current.example || !current.sound) return;
   changed('sound', undefined);
+  setNow({ sound: undefined });
   renderSoundControls();
+  renderSongSettings();
   renderTaal();
   T?.applyReeds();
   T?.applyBeatLevel();
   T?.applyDrone();
   T?.resetTanpura();
 }
-/** Set the open song's Sa (the deck's pickers too); on an exercise it becomes your Sa. A song
- * playing or paused is stopped first: a run is judged against one Sa. */
+/** Set the open song's own Sa (Edit notation, or the Voice page); on an exercise it becomes your
+ * Sa. A song playing or paused is stopped first: a run is judged against one Sa. */
 function setSa(s: SaChoice): void {
   if (active()) stop();
-  const oct = s.saOct === 3 || s.saOct === 5 ? s.saOct : 4;
-  showSa(s.saKey, oct);
   changed('saKey', s.saKey);
-  changed('saOct', oct);
+  changed('saOct', saOctOf(s.saOct));
+  setNow({ sa: undefined });
   rememberExerciseSa();
+  showPlayedSa();
+  renderSongSettings();
   T?.retune();
-  renderKeys();
   if (!playing()) showIdle();
 }
 /** A Sa changed on an exercise is kept as your Sa, for every exercise and new song. */
@@ -1528,11 +1644,13 @@ function startTakeRun(from: number, loop: boolean, track: number): void {
   const s = soundSource;
   takeRun = {
     song: current.id, title: current.title, at: Date.now() + (runFirst - recorder.ctx.currentTime) * 1000, from, loop,
-    tempo: current.tempo, countIn: !!s.countIn, ramp: !!s.ramp, rampStep: s.rampStep, rampMax: s.rampMax,
+    tempo: current.tempo, countIn: !!s.countIn,
     lag: prefs.deviceLag ?? recorder.latency(), sig: textSig(current.text), track,
   };
-  if (itemOverride?.tempo) takeRun.flat = itemOverride.tempo;
-  if (itemOverride?.sa) takeRun.sa = itemOverride.sa;
+  const flat = nowOf().tempo ?? itemOverride?.tempo;
+  if (flat) takeRun.flat = flat;
+  const sa = nowOf().sa ?? itemOverride?.sa;
+  if (sa) takeRun.sa = sa;
   if (T?.gap) takeRun.gap = T.gap;
   recorder.begin(runFirst);
   setRecUI();
@@ -1618,8 +1736,8 @@ async function takeSamples(t: Take): Promise<AudioBuffer | null> {
   return takeBuffer(ensureAudio().E.ctx, pcm, t.rate);
 }
 
-/** Play a take against the guide: its lines, rounds, tempo, count-in and tempo trainer as
- * they were, with the guide every round, and the voice in step with it. */
+/** Play a take against the guide: its lines, rounds, tempo and count-in as they were, with the
+ * guide every round, and the voice in step with it. */
 async function playTakeWithGuide(t: Take): Promise<void> {
   const buf = await takeSamples(t);
   if (!buf) return;
@@ -1628,14 +1746,12 @@ async function playTakeWithGuide(t: Take): Promise<void> {
   rewaz.cancel();
   clearOverride();
   itemOverride = {
-    baseTempo: t.tempo, countIn: t.countIn, ramp: t.ramp, rampStep: t.rampStep, rampMax: t.rampMax,
+    baseTempo: t.tempo, countIn: t.countIn, asTaken: true,
     guideLoop: 'all', guide: sound.guide === 'off' ? 'full' : undefined,
   };
   if (t.flat) itemOverride.tempo = t.flat;
-  if (t.sa) {
-    itemOverride.sa = t.sa;
-    showPlayedSa();
-  }
+  if (t.sa) itemOverride.sa = t.sa;
+  showPlayedSa();
   takePlay = { take: t, how: 'guide', src: null };
   takeBuf = buf;
   play({ from: t.from, to: t.to, loop: t.loop, rounds: t.loop ? t.rounds : undefined, gap: t.gap });
@@ -1809,15 +1925,15 @@ function onAllTakesTick(e: Event): void {
   void renderAllTakes().then(() => $<HTMLElement>('#allTakes input' + focus)?.focus());
 }
 
-/** The keyboard on the Practice view, in a section of its own while Show the keys is ticked:
+/** The keyboard on the Practice view, folding in a section of its own (Rinat, 2026-11-10):
  * the song's notes' range in whole octaves, with keys added on both sides to fill the width
  * (keys about 26 px wide, 22 on a phone), never stretched. */
 let keysDrawn = '';
 let keysShown: [number, number] = [-1, -1];
 function renderKeys(): void {
-  const row = $('#keysRow');
-  row.hidden = !prefs.showKeys;
-  input('#keysChk').checked = !!prefs.showKeys;
+  $('#keysBody').hidden = !prefs.showKeys;
+  $('#keysBtn').setAttribute('aria-expanded', String(!!prefs.showKeys));
+  $('#keysAct').textContent = prefs.showKeys ? 'Hide' : 'Show';
   if (!prefs.showKeys) return;
   const sa = saMidi(songSource);
   const span = songSpan(parsed) ?? { lo: 0, hi: 12 };
@@ -1932,6 +2048,8 @@ function renderEditSummary(): void {
   $('#edSum').textContent = [
     current.title,
     T.name + (current.startOn > 1 ? ', from beat ' + current.startOn : ''),
+    'Sa ' + V.saKeyName(current.saKey, current.saOct),
+    current.tempo + ' a minute',
     ...(parsed.noteLines.length ? [lengthText(playSeconds(parsed, sectionTempoAt(parsed, sections, current.tempo))) + ' long'] : []),
     ...(current.tags && current.tags.length ? [current.tags.join(', ')] : []),
   ].join(' · ');
@@ -1979,11 +2097,11 @@ function renderTaalPick(): void {
     taalPickOwn = own;
     select('#taalPick').innerHTML = V.taalPickHTML(own);
   }
-  select('#taalPick').value = taalPick;
+  select('#taalPick').value = pickedTaal();
 }
-/** Play the song in another taal (or its own again, ''), until another song opens. */
+/** Play the song in another taal (or its own again, ''), for now. */
 function pickTaal(id: string): void {
-  taalPick = isTaalId(id) ? id : '';
+  setNow({ taal: isTaalId(id) ? id : undefined });
   reparse(true);
   if (!playing()) renderTaal();
 }
@@ -1995,7 +2113,8 @@ function reparse(keepLines: boolean): void {
   sections = songSections(current.text, parsed);
   taal = taalInfo(current.taal);
   ownTaals = taalMap(current.text, parsed, current.taal, current.startOn, sections);
-  taals = taalPick ? inOneTaal(ownTaals, taalInfo(taalPick)) : ownTaals;
+  const picked = pickedTaal();
+  taals = picked ? inOneTaal(ownTaals, taalInfo(picked)) : ownTaals;
   renderTaalPick();
   renderSheets();
   renderLineSelects(keepLines);
@@ -2115,16 +2234,6 @@ function applyEditMode(): void {
   if (boxesShown()) boxes.render();
 }
 
-/** Change the song's text from outside the notation box (the deck, the beat boxes), keeping
- * whatever is playing going. */
-function setText(text: string): void {
-  if (text === current.text) return;
-  changed('text', text);
-  const ta = notationBox();
-  if (ta.value !== text) ta.value = text;
-  reparse(true);
-}
-
 /** Buttons for the song's sections, when it has more than one: each plays from there; and
  * the section of the line playing over the lines. */
 function renderSections(): void {
@@ -2154,8 +2263,6 @@ function loadSong(song: Song | Exercise): void {
     clearOverride();
   }
   current = normalize(song);
-  // A taal picked at the top was for the song that was open.
-  taalPick = '';
   // The last run's voice and scores belong to the song that was open, and so does undo.
   lines.clearRun();
   textUndo.clear();
@@ -2167,6 +2274,7 @@ function loadSong(song: Song | Exercise): void {
   prefs.lastSong = current.id;
   savePrefs();
   renderSoundControls();
+  renderSongSettings();
   loadSongLabels();
   input('#titleIn').value = current.title;
   input('#tagsIn').value = (current.tags || []).join(', ');
@@ -2175,8 +2283,7 @@ function loadSong(song: Song | Exercise): void {
   $('#notesF').hidden = current.example;
   renderAbout();
   notationBox().value = current.text;
-  showSa(current.saKey, current.saOct);
-  renderScope();
+  showSa(songSource.saKey, songSource.saOct);
   select('#taalSel').value = current.taal;
   taal = taalInfo(current.taal);
   renderStartOn();
@@ -2830,27 +2937,20 @@ function openInPractice(id: string): void {
   if (s.id !== current.id) loadSong(s);
   switchTab('practice');
 }
-/** The tempo shown on the deck: a rewaz item's while one plays, else the song's. */
-const shownTempo = () => itemOverride?.tempo ?? deckSection()?.tempo ?? current.tempo;
+/** The tempo shown on the deck: as changed at the top, or a rewaz item's while one plays, else
+ * the section's or the song's. */
+const shownTempo = () => nowOf().tempo ?? itemOverride?.tempo ?? deckSection()?.tempo ?? current.tempo;
 /** The section the deck's tempo is for: the one playing, or the one playing would start in. */
 function deckSection(): SongSection | null {
   const line = playing() && deckBeat >= 0 ? (parsed.lineOfBeat[deckBeat] ?? 0) : +select('#fromLine').value || 0;
   return sections[sectionOfLine(sections, line)] ?? null;
 }
-/** The deck's tempo changed: a rewaz item's, a section's own (written in its heading), or
- * the song's. */
+/** The deck's tempo changed, for now: every beat plays at it, sections with their own too, as in
+ * a rewaz item. */
 function setTempo(v: number | string): void {
   const t = clamp(Math.round(+v || 100), 30, 240);
+  setNow({ tempo: t });
   showTempo(t);
-  if (itemOverride && rewaz.active) {
-    itemOverride.tempo = t;
-  } else {
-    const sec = deckSection();
-    if (sec && sec.tempo != null && sec.tempoLine) {
-      if (t !== sec.tempo) setText(setHeadingTempo(current.text, sec.tempoLine, t));
-    } else if (t !== current.tempo) changed('tempo', t);
-  }
-  renderLength();
 }
 /** The clicked button inside a segmented control. */
 const segButton = (e: Event) => (e.target as Element).closest<HTMLElement>('button');
@@ -2887,8 +2987,8 @@ export function init(): void {
   applyLinesPrefs();
   // The keyboard fills its section's width: drawn again when that changes (and when it shows).
   new ResizeObserver(() => renderKeys()).observe($('#keysRow'));
-  select('#saKey').innerHTML = V.keyOptionsHTML();
-  select('#saOct').innerHTML = V.octOptionsHTML();
+  select('#saPick').innerHTML = V.saOptionsHTML();
+  select('#edSa').innerHTML = V.saOptionsHTML();
   select('#taalSel').innerHTML = V.taalOptionsHTML();
   // The song's sound controls show each song's sound as it opens (loadSong).
   setSeg('scriptSeg', prefs.script);
@@ -2896,9 +2996,6 @@ export function init(): void {
   renderGuide();
   input('#countIn').checked = !!prefs.countIn;
   select('#guideLoopSel').value = prefs.guideLoop;
-  input('#rampChk').checked = !!prefs.ramp;
-  select('#rampStep').value = String(prefs.rampStep);
-  input('#rampMax').value = String(prefs.rampMax);
   renderNoteButtons();
   setEditSetOpen(!!prefs.editSetOpen);
   setPadOpen(!prefs.padFold);
@@ -3023,7 +3120,6 @@ export function init(): void {
     },
     play: playItem,
     over: clearOverride,
-    openSa: () => ({ saKey: current.saKey, saOct: current.saOct === 3 || current.saOct === 5 ? current.saOct : 4 }),
     order: {
       get: () => prefs.rewazOrder,
       set: (next) => {
@@ -3084,7 +3180,7 @@ export function init(): void {
     mySa: {
       get: () => prefs.mySa,
       set: (s) => {
-        prefs.mySa = { saKey: s.saKey, saOct: s.saOct === 3 || s.saOct === 5 ? s.saOct : 4 };
+        prefs.mySa = { saKey: s.saKey, saOct: saOctOf(s.saOct) };
         savePrefs();
         if (current.example) setSa(s);
       },
@@ -3209,21 +3305,27 @@ export function init(): void {
   }
   input('#tempoRange').addEventListener('input', (e) => setTempo((e.target as HTMLInputElement).value));
   input('#tempoNum').addEventListener('change', (e) => setTempo((e.target as HTMLInputElement).value));
-  select('#saKey').addEventListener('change', (e) => {
-    changed('saKey', +(e.target as HTMLSelectElement).value);
-    showSa(current.saKey, current.saOct);
-    rememberExerciseSa();
-    renderKeys();
+  // Sa at the top is for now; in Edit notation it is the song's own.
+  select('#saPick').addEventListener('change', (e) => {
+    setNow({ sa: V.saFromValue((e.target as HTMLSelectElement).value) });
+    showPlayedSa();
     if (!playing()) showIdle();
     T?.retune();
   });
-  select('#saOct').addEventListener('change', (e) => {
-    const v = +(e.target as HTMLSelectElement).value;
-    changed('saOct', v === 3 || v === 5 ? v : 4);
-    rememberExerciseSa();
-    renderKeys();
-    if (!playing()) showIdle();
-    T?.retune();
+  select('#edSa').addEventListener('change', (e) => setSa(V.saFromValue((e.target as HTMLSelectElement).value)));
+  input('#edTempo').addEventListener('change', (e) => {
+    const el = e.target as HTMLInputElement;
+    const t = clamp(Math.round(+el.value || current.tempo), 30, 240);
+    el.value = String(t);
+    changed('tempo', t);
+    setNow({ tempo: undefined });
+    showTempo(shownTempo());
+  });
+  $('#revertBtn').addEventListener('click', revertNow);
+  $('#nowEdit').addEventListener('click', () => {
+    setEditSetOpen(true);
+    savePrefs();
+    switchTab('edit');
   });
   // Changing the Lines to practise while they play plays the new ones; a pause ends.
   const linesChanged = () => {
@@ -3284,13 +3386,8 @@ export function init(): void {
     renderGuide();
     T?.applyGuide();
   });
-  const setBeat = (patch: Partial<SongSound>) => {
-    setSound(patch);
-    renderSoundControls();
-    renderTaal();
-    T?.applyBeatLevel();
-  };
-  select('#beatSel').addEventListener('change', (e) => setBeat({ beat: (e.target as HTMLSelectElement).value as BeatStyle }));
+  wireSound(DECK_SOUND, false, sound);
+  wireSound(EDIT_SOUND, true, savedSound);
   // How loud the rhythm is, and its mute, are every song's, as the guide's are (Rinat, 2026-11-09);
   // moving the slider unmutes it.
   $('#beatMute').addEventListener('click', () => {
@@ -3308,48 +3405,6 @@ export function init(): void {
     if (wasMuted) renderSoundControls();
     T?.applyBeatLevel();
   });
-  $('#reedSeg').addEventListener('click', (e) => {
-    const b = segButton(e);
-    if (!b) return;
-    setSound({ reeds: +b.dataset.v! as SongSound['reeds'] });
-    setSeg('reedSeg', sound.reeds);
-    T?.applyReeds();
-  });
-  select('#speedSel').addEventListener('change', (e) => {
-    const v = (e.target as HTMLSelectElement).value;
-    setSound({ speed: v === 'half' || v === 'double' ? v : 'normal' });
-    renderTaal();
-  });
-  input('#fillsChk').addEventListener('change', (e) => {
-    setSound({ fills: (e.target as HTMLInputElement).checked });
-  });
-  $('#layerChips').addEventListener('click', (e) => {
-    const b = (e.target as Element).closest<HTMLElement>('button[data-layer]');
-    if (!b) return;
-    const id = b.dataset.layer!;
-    const st = sound.beat;
-    if (st !== 'tabla' && st !== 'dholak' && st !== 'kit') return;
-    const layers = soundOf(sound).layers;
-    const list = new Set(layers[st]);
-    if (list.has(id)) list.delete(id);
-    else list.add(id);
-    layers[st] = Array.from(list);
-    setSound({ layers });
-    renderLayerChips();
-  });
-  // The drone: off, the tanpura with its first string, or the harmonium; choosing one while none
-  // plays turns it on at half volume.
-  select('#droneSel').addEventListener('change', (e) => {
-    const v = (e.target as HTMLSelectElement).value;
-    const vol = sound.droneVol > 0 ? sound.droneVol : 0.5;
-    const tune = sound.tanTune;
-    if (v === 'off') setSound({ droneVol: 0 });
-    else if (v === 'harmonium') setSound({ droneType: 'harmonium', droneVol: vol });
-    else setSound({ droneType: 'tanpura', tanTune: v.slice(-1) as TanTune, droneVol: vol });
-    renderSoundControls();
-    T?.applyDrone();
-    if (sound.tanTune !== tune) T?.resetTanpura();
-  });
   input('#droneVol').addEventListener('input', (e) => {
     prefs.droneLevel = +(e.target as HTMLInputElement).value;
     savePrefs();
@@ -3359,21 +3414,6 @@ export function init(): void {
   select('#guideLoopSel').addEventListener('change', (e) => {
     const v = (e.target as HTMLSelectElement).value;
     prefs.guideLoop = v === 'first' || v === 'alt' ? v : 'all';
-    savePrefs();
-  });
-  input('#rampChk').addEventListener('change', (e) => {
-    prefs.ramp = (e.target as HTMLInputElement).checked;
-    savePrefs();
-    if (prefs.ramp && !input('#loopChk').checked) input('#loopChk').checked = true;
-  });
-  select('#rampStep').addEventListener('change', (e) => {
-    prefs.rampStep = +(e.target as HTMLSelectElement).value || 4;
-    savePrefs();
-  });
-  input('#rampMax').addEventListener('change', (e) => {
-    const el = e.target as HTMLInputElement;
-    prefs.rampMax = clamp(Math.round(+el.value || 160), 30, 240);
-    el.value = String(prefs.rampMax);
     savePrefs();
   });
   input('#countIn').addEventListener('change', (e) => {
@@ -3389,9 +3429,9 @@ export function init(): void {
   $('#tabProgress').addEventListener('click', () => switchTab('progress'));
   $('#tabVoice').addEventListener('click', () => switchTab('voice'));
   $('#recBtn').addEventListener('click', () => void toggleRecord());
-  input('#keysChk').addEventListener('change', (e) => {
-    if ((e.target as HTMLInputElement).checked) prefs.showKeys = true;
-    else delete prefs.showKeys;
+  $('#keysBtn').addEventListener('click', () => {
+    if (prefs.showKeys) delete prefs.showKeys;
+    else prefs.showKeys = true;
     savePrefs();
     renderKeys();
     if (!playing()) showIdle();
@@ -3544,6 +3584,7 @@ export function init(): void {
   select('#taalSel').addEventListener('change', (e) => {
     const v = (e.target as HTMLSelectElement).value;
     changed('taal', isTaalId(v) ? v : 'dadra');
+    setNow({ taal: undefined });
     renderEditSummary();
     taal = taalInfo(current.taal);
     renderStartOn();

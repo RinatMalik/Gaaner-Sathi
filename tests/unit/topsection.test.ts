@@ -117,7 +117,7 @@ const entry = (at: number, s: string): LogEntry => ({ at, secs: 60, song: s, tit
 const detail = (at: number, s: string): SessionDetail => ({
   at, song: s,
   played: { title: s, taal: 'keherwa', tempo: 100, text: 'সা রা গা মা', saHz: 138.59, sa: 'C♯3' },
-  settings: { guide: 'full', guideLoop: 'all', countIn: true, ramp: false, rampStep: 4, rampMax: 160 },
+  settings: { guide: 'full', guideLoop: 'all', countIn: true },
   pitch: { lag: 0.1, measured: true, anyOctave: true, octave: 0, notes: [], lines: [[0, 0, 72, 1]], readings: [0.0123456, 138.5912, 0.0234567, 0], beats: [[0, 0, 0, 0.6]] },
 });
 const BACKUP: Backup = {
