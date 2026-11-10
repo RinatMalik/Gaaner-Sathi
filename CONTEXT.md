@@ -218,7 +218,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   C♯3) was the microphone; tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `f2c5233` (CI run `42692971913` green: round fifty-seven live; the site serves `index-3Ns8eRar.js`).
+- **Last known-good commit:** `94c98aa` (CI run `42814053303` green: round fifty-eight live; the site serves `index-DRlh0cP7.js`).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -892,6 +892,9 @@ Template:
   or Edit notation; the strip inside the deck, Edit notation's fields inside Settings, the keyboard
   inside its section; screenshots looked at. The first layout run's day shots came out dark (the
   harness only set dark, and this machine's Windows is dark): it now sets the scheme each way.
+  Pushed as `94c98aa`; CI run `42814053303` green; the site serves `index-DRlh0cP7.js`, and in
+  headless Edge at 360 × 780 it shows Revert greyed, the sentence, one list of 48 from C2 to B5, no
+  tags, no speed-up and no tick box, no sideways scroll, no page errors (scratchpad `live58.mjs`).
 - **Decisions made:** eight 2026-11-10 rows; two earlier rows moved to HISTORY.md.
 - **Risks or disagreements:** nobody on the build side can hear: the Sa and its octaves are
   measured, not listened to. No real touch screen, and no take recorded with a Sa or tempo changed
