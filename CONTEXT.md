@@ -225,7 +225,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   C♯3) was the microphone; tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `3b6c5c2` (CI run `42818936675` green: round fifty-nine live; the site serves `index-CQ-pQBDm.js`).
+- **Last known-good commit:** `0b12202` (CI run `43359541771` green: round sixty live; the site serves `index-DPFCJ2n_.js`).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -909,7 +909,11 @@ Template:
   Found and fixed by them: the Sa chip looked like a plain label until the first Play
   (`setPlayUI` now runs at start); the Edit panel's tag chips and Cancel lost their outline to the
   menu style (`dmenu` taken off it); the taal's and speed's own cut to "Song’s own (Kehe…" on a
-  phone (now named first).
+  phone (now named first). Pushed as `0b12202`; CI run `43359541771` green; the site serves
+  `index-DPFCJ2n_.js`, and in headless Edge at 360 × 780 by night it shows the Sa's own first, no
+  Revert, Default ticked, the taal's and speed's own named first, Default unticked by a tempo moved
+  and ticked again after a refresh, full screen's chips, no sideways scroll, no page errors
+  (scratchpad `live60.mjs`).
 - **Decisions made:** seven 2026-11-13 rows; five earlier rows moved to HISTORY.md.
 - **Risks or disagreements:** nobody on the build side can hear. No real touch screen. A tempo set
   at the top now plays over each rewaz item's own tempo, which an open routine says; Rinat may want
