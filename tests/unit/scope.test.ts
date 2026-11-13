@@ -3,7 +3,7 @@
 // song; the routines dragged into an order.
 import { describe, expect, it } from 'vitest';
 import page from '../../index.html?raw';
-import { metaText, routineHTML, routinesInOrder, saFieldHTML, type ItemSong } from '../../src/app/rewaz';
+import { metaText, routineHTML, routinesInOrder, type ItemSong } from '../../src/app/rewaz';
 import { DEFAULT_PREFS, loadPrefs, RoutineStore, STORE_KEYS, type KeyValueStore } from '../../src/app/store';
 import { beatLevel, DEFAULT_SOUND, droneLevelOf, droneLevels } from '../../src/audio/sound';
 import { cleanRoutine, STARTER, type Routine } from '../../src/core/practice/routine';
@@ -67,40 +67,27 @@ describe('how loud the rhythm and the drone are', () => {
   });
 });
 
-describe('a Sa for a whole rewaz', () => {
+describe('no Sa on a rewaz routine any more (Rinat, 2026-11-13: "that didn\'t help the way I thought it would")', () => {
   const item = [{ song: 'a', rounds: 2 }];
-  const clean = (sa: unknown) => cleanRoutine('r', { name: 'R', items: item, sa });
 
-  it('is kept with the routine, read carefully, and absent means each song’s own', () => {
-    expect(clean({ saKey: 0, saOct: 3 })!.sa).toEqual({ saKey: 0, saOct: 3 });
-    expect(clean({ saKey: 11, saOct: 5 })!.sa).toEqual({ saKey: 11, saOct: 5 });
-    for (const bad of [undefined, null, 'C', {}, { saKey: 12, saOct: 4 }, { saKey: -1, saOct: 4 }, { saKey: 1.5, saOct: 4 }, { saKey: 1, saOct: 1 }, { saKey: '1', saOct: 4 }]) expect(clean(bad)).not.toHaveProperty('sa');
+  it('a routine saved with one is read without it, and saved without it again', () => {
+    const r = cleanRoutine('r', { name: 'R', items: item, updatedAt: 1, sa: { saKey: 0, saOct: 3 } })!;
+    expect(r).not.toHaveProperty('sa');
+    const S = new Memory();
+    S.setItem('gaanersathi.routines.v1', JSON.stringify({ r: { name: 'R', items: item, updatedAt: 1, sa: { saKey: 0, saOct: 3 } } }));
+    const store = new RoutineStore(S);
+    const got = store.load().get('r')!;
+    expect(got).not.toHaveProperty('sa');
+    store.save(got);
+    expect(JSON.parse(S.getItem('gaanersathi.routines.v1')!).r).not.toHaveProperty('sa');
   });
 
-  it('is saved with it and read back; taken off, it is gone', () => {
-    const store = new RoutineStore(new Memory());
-    const r: Routine = { id: 'r', name: 'R', items: item, updatedAt: 1, sa: { saKey: 0, saOct: 3 } };
-    store.save(r);
-    expect(store.load().get('r')!.sa).toEqual({ saKey: 0, saOct: 3 });
-    delete r.sa;
-    store.save(r);
-    expect(store.load().get('r')).not.toHaveProperty('sa');
-  });
-
-  it('is picked as each song’s own, or one Sa from the list', () => {
-    const own = saFieldHTML(undefined);
-    expect(own).toContain('<option value="" selected>Each song’s own</option>');
-    expect(own).not.toContain(' selected>C');
-    const c = saFieldHTML({ saKey: 0, saOct: 3 });
-    expect(c).toContain('<option value="">Each song’s own</option>');
-    expect(c).toContain('<option value="48" selected>C3 · White 1</option>');
-    expect(c.match(/data-act=/g)).toHaveLength(1);
-  });
-
-  it('is said beside the routine’s name, so it shows when folded', () => {
+  it('is not offered in its settings, nor said beside its name', () => {
     const r: Routine = { id: 'r', name: 'R', items: item, updatedAt: 0 };
     expect(metaText(r, true, 300)).toBe('1 item · about 5 min');
-    expect(metaText({ ...r, sa: { saKey: 1, saOct: 3 } }, true, 300)).toBe('1 item · about 5 min · Sa C♯3');
+    const html = routineHTML(r, 0, { saved: true, open: true, secs: 300, confirming: false, picking: null, openId: '', exFirst: false }, () => null, [], []);
+    expect(html).not.toContain('Sa for every item');
+    expect(html).not.toContain('data-act="sa"');
   });
 
   it('a take sung in it remembers it, to play back against the guide in that Sa', () => {

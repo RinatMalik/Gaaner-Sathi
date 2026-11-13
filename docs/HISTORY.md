@@ -45,6 +45,11 @@ historical interest.
 | 2026-10-22 | **A taal picked at the top lasts until another song opens.** The top section's taal picker shows the song's own taal first ("Song's own"); another taal picked there plays the whole song in it, over the song's and its sections' taals, until another song opens. The song's taal is still set in Edit notation, its sections' in their headings; the beat boxes and the checker keep to them. The song's first beat stays the same number of beats before sam. | Rinat, chat 2026-10-22 ("I found myself playing with it by choosing different ones so it is good to have it there always … the top section will override it if something else is selected"; to Claude's question, "Until another song opens"); keeping the beats before sam and leaving the editor on the song's taals are Claude's | src/core/notation/taalmap.ts, src/app/app.ts. |
 | 2026-11-09 | **Small tags say what each control changes:** "this song" in brass (on a built-in exercise "all exercises", its tempo "for now"), "all songs", "for now", each with a longer title. So they read, the Guide panel is regrouped (Sa, reeds and the drone picker under "this song", then the drone's level, the count-in and looping), Octave must match has a row of its own and the Rhythm panel an "Instrument" label. | Rinat, chat 2026-11-09 ("there is no way for the user to know which ones are global and which ones aren't - would be good if there was a way to indicate this"); the tags, their words and the regrouping are Claude's | `scopeWords` in view.ts. |
 | 2026-11-10 | **Edit notation's Settings holds every setting of how a song plays:** the Sa, tempo, reeds, drone, instrument, rhythm speed, side instruments and fills join the taal there, and "Use my usual sound" moves there. What is set there replaces a change of that setting made at the top. On a built-in exercise, whose edits are not kept, the Sa and sound set there become your usual ones, as the top section's used to. | Needed by Rinat's request of 2026-11-10 (only the taal was there); which controls, their order and the exercise rule are Claude's | index.html `#edSet`; app.ts `wireSound`, `renderSongSettings`, `setSa`; `#exNote`. |
+| 2026-11-09 | **A Sa on each rewaz routine:** "Sa for every item" in its settings ("Each song's own" until a key is picked), said beside its name. While the routine runs every item is played in it, the Sa at the top shows it and is held, and the song's own comes back when the routine ends or is stopped; no song is changed; a take sung in it keeps it. | Rinat, chat 2026-11-09 ("I have designed a rewaz which I wanted to sing in a different scale, so I chose C on the top panel, but the later songs played in c#"; "ok, go ahead with both changes"); its place in the routine's settings, the octave starting at the open song's and the label "Sa · this rewaz's" are Claude's | `sa` on routines and takes (DATA.md). |
+| 2026-11-10 | **The top of the page is for now; a song's own settings are in Edit notation.** The Sa, tempo, taal, reeds, drone, instrument, side instruments, rhythm speed and fills changed at the top change what plays and are saved nowhere. Each song keeps its own changes until the page is refreshed or Revert is pressed: another song opens with its own settings, and coming back the changes are still there. A sentence at the foot of the top panel points to Edit notation, with a link. | Rinat, chat 2026-11-10 ("all settings in the header panel could be the "For now" type - so whatever i change in here doesn't effect any song specific settings. So if I change the taal in header panel, that will affect what is playing now until the page is refreshed"; "to change the song sepcific settings, please go to Edit Notation page"; on another song, "Each song keeps its own (Recommended)"); the overlay in memory and the link are Claude's | Supersedes the 2026-10-22 row "A taal picked at the top lasts until another song opens", moved to HISTORY.md. Narrows the 2026-10-22 row on the sound being set in the top section. `core/song/fornow.ts`; app.ts `forNow`, `nowOf`, `setNow`. DATA.md → Each song's own sound. |
+| 2026-11-10 | **Revert to this song's settings,** at the foot of the top panel: greyed until something has been changed; it puts back the Sa, tempo, taal and sound, leaves the levels, the mutes and the Lines to practise alone, and stops a song playing in a changed Sa (the song is built in its Sa). | Rinat, chat 2026-11-10 ("There will be a revert to default settings for this song button in the header as well"); greying it, what it leaves and the stop are Claude's | app.ts `renderRevert`, `revertNow`. |
+| 2026-11-10 | **A rewaz plays each song's own settings,** not what was changed at the top. A change made during an item lasts for that item alone, and the changes made at the top come back after. A tempo changed at the top plays every beat, over a section's own tempo (a section's own tempo is changed in its heading or beat boxes). A take plays back as it was taken. | Claude, building the 2026-11-10 request; told to Rinat | app.ts `itemOverride.now`, `asTaken`. Take `sa`, `flat`. |
+| 2026-11-10 | **A song keeps its rhythm speed and no other sound:** set in Edit notation's Settings, beside its Sa and tempo; at the top it is for now and Revert puts it back. A song without one plays at the device's `speed`. On a built-in exercise a speed set there is not kept, so it cannot change any other song. | Rinat, chat 2026-11-10 ("Leave the rythm speed as song specific though as I found it varies between songs"); the exercise rule is Claude's | core/song/sound.ts `SongSound`, `cleanSound`; app.ts `setSpeed`; `#exNote`. |
 
 ## Files removed
 
@@ -60,6 +65,69 @@ historical interest.
 - 2026-10-09: `handover/`, merged into the framework (the original pack is at `e0ea8d8`).
 
 ## Work log, older entries
+
+### 2026-11-10 GMT — Claude (Opus 5.5) — PH2-58 the top of the page for now; one list of Sa; the keyboard folding; no tags, no speed-up
+
+- **Goal:** Rinat, 2026-11-10: "the for now, this song all of these mark ups made it complicated
+  and difficult - remove all these tags. I am thinking to revamp a bit more the front panel. * this
+  setting of speed up each round by N up to X - didn't work when i tried just now and I never used
+  it in the past and can be replicated with a rewaz routine - so delete it … * Where i select my
+  key and also the c3 low, c4 medium , c5 high etc - can we combine this so the one drop down will
+  list c2, c#2, d2....c#3, d3....up to B5? * Make the virtual keyboard collapsible and remove the
+  settings checkbox of "Show virtual keyboard" * all settings in the header panel could be the "For
+  now" type - so whatever i change in here doesn't effect any song specific settings. So if I
+  change the taal in header panel, that will affect what is playing now until the page is
+  refreshed. There will be a revert to default settings for this song button in the header as well.
+  There can be one sentence somewhere that says something like "to change the song sepcific
+  settings, please go to Edit Notation page". Let me know if you see any conflict or something
+  doesn't make sense". Asked two questions; answered "Keep remembering them (Recommended)" (the
+  levels, mutes, Octave must match, Count in and looping) and "Each song keeps its own
+  (Recommended)".
+- **Inspected:** app.ts (`sound`, `savedSound`, `songSource`, `itemOverride`, `playItem`,
+  `renderSoundControls`, `setTempo`, `taalPick`, `renderScope`, `renderKeys`), index.html's deck
+  and `#edSet`, view.ts, rewaz.ts, store.ts, core/song/model.ts, sound.ts, audio/transport.ts
+  (`liveTempo`), core/practice/take.ts, session.ts, routine.ts.
+- **Changed:** `feat(top): everything at the top for now, a song's own settings in Edit notation,
+  Revert, one list of Sa from C2 to B5, the keyboard folding, no tags, no speed-up` —
+  src/core/song/fornow.ts (new: `ForNow`, `trimForNow`); core/song/model.ts (`SaOct`, `isSaOct`,
+  `saOctOf`); core/practice/routine.ts, take.ts (`sa`), session.ts and audio/sound.ts, app/store.ts,
+  aifile.ts, voice.ts (the trainer gone); audio/transport.ts (`liveTempo` flat); app/view.ts
+  (`saOptionsHTML`, `saValue`, `saFromValue`; `scopeWords`, `keyOptionsHTML`, `octOptionsHTML`
+  gone); app/rewaz.ts (one Sa field); app/app.ts (`forNow`, `nowOf`, `setNow`, `showNow`,
+  `revertNow`, `renderRevert`, `changeSound`, `wireSound`, `renderSongSettings`; takes keeping `sa`
+  and `flat`; `taalPick`, `renderScope`, `setSound`, `setText` gone); index.html (`#saPick`, the
+  `.dnow` strip, `#keysBtn`, Edit notation's new fields; tags, `#keysChk` and the ramp row gone);
+  app/styles.css (`.dnow`, `.keyscard`, `.edtempo`, `.edchk`; `.scope`, `.vscope`, `.dnext`,
+  `.rwsa` gone); tests/unit/fornow.test.ts (new), scope, full, sections, timeleft, sound, store,
+  session, takes and topsection tests, tests/differential/audio, data and view tests; docs/DATA.md,
+  ENGINE.md, ROADMAP.md (row 58), HISTORY.md (two decisions, the PH2-56 entry); this file.
+- **Tests / verification:** `npx tsc --noEmit` exit 0; `npx vitest run` → 48 files, 561 passed; `npm
+  run build` → 407.52 kB JS, 93.62 kB CSS; `bash reference/tests/run-all.sh` → parser 31, checker
+  11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge on `npm run dev`,
+  scratchpad `run58.mjs` (94 checks, all pass; real mouse and key events by the DevTools protocol,
+  Web Audio's oscillators recorded): the tags, the ramp row and the tick box gone; 48 options C2 to
+  B5; Revert greyed, then on; Sa C3 at the top played 65.41, 130.81 and 261.63 Hz and no C♯; nothing
+  saved to the song or the usual sound; song B opens with its own, song A's changes there on coming
+  back; Revert restores every one; a refresh forgets them; the levels stay; Edit notation saves the
+  Sa, tempo and sound and the top follows; Use my usual sound; the link opens Edit notation;
+  exercises; a rewaz uses the songs' own and restores the changes after; a routine's Sa C2 saved
+  and sounding 65.41 Hz with a 32.7 Hz bass reed; the keyboard folds and is remembered; no page
+  errors. `layout58.mjs` (78 checks, all pass) at 360 × 780 day and night, 800 × 1000 day, 1280 ×
+  950 day and night, 3840 × 2160 night: no sideways scroll on the deck, the Guide and Rhythm panels
+  or Edit notation; the strip inside the deck, Edit notation's fields inside Settings, the keyboard
+  inside its section; screenshots looked at. The first layout run's day shots came out dark (the
+  harness only set dark, and this machine's Windows is dark): it now sets the scheme each way.
+  Pushed as `94c98aa`; CI run `42814053303` green; the site serves `index-DRlh0cP7.js`, and in
+  headless Edge at 360 × 780 it shows Revert greyed, the sentence, one list of 48 from C2 to B5, no
+  tags, no speed-up and no tick box, no sideways scroll, no page errors (scratchpad `live58.mjs`).
+- **Decisions made:** eight 2026-11-10 rows; two earlier rows moved to HISTORY.md.
+- **Risks or disagreements:** nobody on the build side can hear: the Sa and its octaves are
+  measured, not listened to. No real touch screen, and no take recorded with a Sa or tempo changed
+  at the top (it needs a microphone; the code path is the same as a rewaz's, which the tests cover).
+  At Sa C2 the pitch check's floor (60 Hz) lies just under Sa, so anything sung below it is not
+  read. A section's own tempo is now changed only in its heading or beat boxes, as the slider at
+  the top plays every beat over it.
+- **Next handoff:** Rinat tries it and listens (Next single action).
 
 ### 2026-11-09 GMT — Claude (Opus 5.5) — PH2-57 which settings are the song's; a Sa for a rewaz; routines dragged; the time with its total
 

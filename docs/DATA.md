@@ -169,14 +169,15 @@ the device's: the guide's level is how much help the singer wants that
 day, not part of how a song is arranged (2026-10-13). So, from 2026-11-09, are the rhythm's and
 the drone's levels and the rhythm's mute (`tablaVol`, `droneLevel`, `beatMute`): moving one
 gives a song no sound of its own. A rewaz item's tempo and guide lie over all of these while it
-plays, and so does the routine's `sa` over the song's Sa.
+plays.
 
-**What the top of the page changes is kept nowhere (Rinat, 2026-11-10).** The Sa, tempo, taal and
-rhythm speed changed at the top lie over the song's own in memory, each song separately (`forNow` in app.ts, `core/song/fornow.ts`), until the
-page is refreshed or Revert is pressed. None of it is written to the song, the settings, a backup
-or a file; what Edit notation sets replaces a change of that setting. A rewaz item plays the song's
-own, with changes of its own gone when the item ends. A take keeps the Sa and tempo it was sung in
-(`sa`, `flat`).
+**What the top of the page sets is kept nowhere (Rinat, 2026-11-10 and 2026-11-13).** A Sa, tempo,
+taal or rhythm speed picked at the top plays every song opened after it, by hand or by a rewaz, until
+the song's own (the tempo's Default) is picked again or the page is refreshed or opened again
+(`topNow` in app.ts, `withNow` in `core/song/fornow.ts`). None of it is written to the song, the
+settings, a backup or a file; what Edit notation sets is the song's own, heard once the top is back
+on the song's own. A tempo set there plays over a rewaz item's own tempo and a section's. A take
+keeps the Sa and tempo it was sung in (`sa`, `flat`).
 
 ## Backups (everything, and restoring it)
 
@@ -297,7 +298,7 @@ routines, takes and settings stay.
 ## Rewaz routines
 
 ```json
-{ "routine-mv2pq1x0-k3a9c": { "name": "Morning", "updatedAt": 1791655308398, "gap": 10, "sa": { "saKey": 0, "saOct": 3 }, "items": [
+{ "routine-mv2pq1x0-k3a9c": { "name": "Morning", "updatedAt": 1791655308398, "gap": 10, "items": [
   { "song": "ex-long-notes", "rounds": 1 },
   { "song": "song-mv2pb608-a4kmn", "from": 0, "to": 1, "rounds": 4, "tempo": 80, "guide": "alt" } ] } }
 ```
@@ -306,9 +307,9 @@ routines, takes and settings stay.
 Until 2026-10-28 a routine's `roundGap` was the break between its items' rounds; it is read as
 the `roundGap` of each item without one, and saved there.
 
-`sa` is the Sa every item is played in, `{ saKey, saOct }` as a song's; absent: each song's own
-(Rinat, 2026-11-09). It lies over the song only while the routine runs: no song is changed, and
-the Sa at the top comes back when the routine ends or is stopped.
+From 2026-11-09 to 2026-11-13 a routine could have `sa`, a Sa every item was played in; it is now
+read and saved without it (Rinat, 2026-11-13), and each item plays in its song's own Sa or the one
+picked at the top.
 
 | Item field | Meaning |
 |---|---|
@@ -342,7 +343,7 @@ in IndexedDB, never in song files; Download writes one as a mono 16-bit WAV file
 | `at`, `secs`, `rate` | When its first beat sounded; its length; its sample rate (half the device's) |
 | `from`, `to`, `loop`, `rounds` | Lines played, whether they looped, rounds begun |
 | `tempo`, `flat` | The song's tempo then; a rewaz item's tempo, or one changed at the top of the page, which every beat took, if one played |
-| `sa` | The Sa it was sung in, `{ saKey, saOct }`, when a rewaz set one (2026-11-09) or it was changed at the top of the page (2026-11-10), so the guide played with it is in that Sa; absent: the song's |
+| `sa` | The Sa it was sung in, `{ saKey, saOct }`, when one was picked at the top of the page (2026-11-10) or, from 2026-11-09 to 2026-11-13, by a rewaz, so the guide played with it is in that Sa; absent: the song's |
 | `countIn` | The count-in as it was, so playback is the same run (an older take's `ramp`, `rampStep` and `rampMax`, the tempo trainer's, are dropped on reading) |
 | `gap` | Seconds of break between rounds, when there were any (0–120; absent: none), so playback has the same breaks |
 | `lag` | Seconds from a beat to the voice reaching the app; playback skips that much of the take. From 2026-10-19 the device's delay only (`deviceLag`, else its own figure), so a take is heard as it was sung; before, the delay fitted to the singing |

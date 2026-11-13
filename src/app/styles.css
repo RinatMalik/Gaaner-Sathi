@@ -154,6 +154,9 @@ button.spfold:hover{color:var(--ink)}
 .mute[aria-pressed="true"] .ic-off{display:inline}
 .mute[aria-pressed="true"]{background:var(--brass);border-color:var(--brass);color:var(--brass-ink)}
 .vtempo input[type=number]{flex:none;width:44px;height:30px;padding:2px 0;text-align:center;font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;appearance:textfield;-moz-appearance:textfield}
+/* Default under the tempo: its box over the word, to fit the column. */
+.tdef{flex:none;flex-direction:column;gap:1px;font-size:10.5px;line-height:1.1;letter-spacing:.02em}
+.tdef input{margin:0}
 .deck input[type=number]::-webkit-inner-spin-button,.deck input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .deck .seg{background:var(--deck-field);border-color:var(--deck-line)}
 .deck .seg button{padding:2px 9px;font-size:12.5px;color:var(--on-wood-2)}
@@ -440,6 +443,13 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .lselbar.on{background:var(--paper);border-bottom-color:var(--rule)}
 .lselhid{font-size:13px;color:var(--ink-2)}
 .lselbar .dmenu{left:0;right:auto}
+/* The Music library's Edit (Rinat, 2026-11-13): a panel under its button, as Add to rewaz's list is. */
+.ledit{position:absolute;left:0;top:100%;z-index:30;display:grid;gap:10px;width:min(380px,calc(100vw - 32px));margin-top:4px;padding:12px;background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px var(--shadow)}
+.lehead{margin:0;font-size:13px;color:var(--ink-2)}
+.lef{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:12px;font-weight:600;color:var(--ink-2)}
+.lef input,.lef select{width:100%;min-width:0;font-size:14px;font-weight:400}
+.legrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lebtns{display:flex;flex-wrap:wrap;gap:8px}
 .lmain{flex:1 1 auto;display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;min-width:0;padding:8px 12px 8px 6px}
 .lfav{flex:none;width:34px;height:34px;border:0;background:none;font-size:20px;line-height:1;color:var(--brass);padding:0}
 .lopen{flex:1 1 240px;min-width:0;display:grid;gap:1px;border:0;background:none;text-align:left;padding:2px 0}
@@ -470,6 +480,7 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
   /* Add to rewaz's list as wide as the bar. */
   .lselbar .dbk{position:static}
   .lselbar .dmenu{right:0;width:auto;max-width:none}
+  .lselbar .ledit{left:0;right:0;width:auto}
   .lacts{border-top:1px solid var(--rule)}
   .lact{flex:1 1 0;width:auto;min-height:42px;padding:8px 6px;gap:6px;font-size:13px}
   .lact:first-child{border-left:0}
@@ -550,6 +561,8 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .rwfold:focus-visible,.rwgo:focus-visible,.rwbtn:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .rwbody{display:grid;gap:12px;padding:12px 14px 14px;border-top:1px solid var(--rule);min-width:0}
 .rwopts{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 14px}
+/* A tempo set at the top, which every item plays at, said in an open routine. */
+.rwflat{margin:0;font-size:13.5px;color:var(--ink-2)}
 .rwnamef{flex:1 1 220px;max-width:420px}
 .rwgapf input{width:88px}
 .rwnamef input{font-family:var(--f-note);font-size:16px}
@@ -638,6 +651,7 @@ button.lfold:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
 .rwf select,.rwf input{padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--sheet);font-size:14px;font-weight:400;color:var(--ink);min-width:0;max-width:100%}
 .rwsong{flex:1 1 100%}
 .rwsong select{width:100%;max-width:22rem;font-family:var(--f-note);font-size:15px}
+.rwdur{font-weight:400;font-variant-numeric:tabular-nums}
 .rwf select[data-k="from"],.rwf select[data-k="to"]{font-family:var(--f-note);width:8.75rem}
 .rwguide select{width:9rem}
 .rwnum input{width:4rem;font-variant-numeric:tabular-nums}
@@ -1268,7 +1282,15 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .fullbtn,.rwfull{display:inline-flex;align-items:center;gap:6px}
 .fullbtn{align-self:center;padding:5px 11px;font-size:13.5px}
 .fullbtn svg,.rwfull svg{width:16px;height:16px;flex:none}
-.fullwhere,.fullbtn .fboff,.fullbtn .ic-fsx,.plax,.fbreak{display:none}
+.fullwhere,.fullbtn .fboff,.fullbtn .ic-fsx,.plax,.fbreak,.fullchips{display:none}
+/* Full screen's chips (Rinat, 2026-11-13): the Sa, taal and tempo playing. The Sa's is a picker
+   too, a list laid over it, while nothing plays (between rewaz items, say). */
+.fchip{position:relative;display:inline-flex;align-items:center;padding:2px 10px;border:1px solid var(--line);border-radius:999px;background:var(--paper);color:var(--ink);font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fsa select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+.fsa select:disabled{cursor:default}
+.fsa.can{padding-right:24px;border-color:var(--brass)}
+.fsa.can::after{content:"";position:absolute;right:10px;top:calc(50% - 5px);width:6px;height:6px;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(45deg);pointer-events:none}
+.fsa:has(select:focus-visible){outline:2px solid var(--brass);outline-offset:2px}
 :root[data-full],:root[data-full] body{overflow:hidden}
 :root[data-full] .wrap{display:block;max-width:none;padding:0 env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px);height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
 :root[data-full] .wrap>:not(#practice){display:none}
@@ -1287,6 +1309,7 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
 :root[data-full] .sheetHead{align-items:center;gap:4px 14px;padding:8px 10px 8px 18px}
 :root[data-full] .sheetHead h2{font-size:22px}
 :root[data-full] .fullwhere{display:block;margin-right:auto;font-size:14px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+:root[data-full] .fullchips{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 :root[data-full] .songlen,:root[data-full] .fullbtn .fbon,:root[data-full] .fullbtn .ic-fs{display:none}
 :root[data-full] .fullbtn .fboff,:root[data-full] .fullbtn .ic-fsx{display:inline}
 :root[data-full] .pl{grid-area:lines;display:flex;flex-direction:column;min-height:0;box-shadow:var(--card)}
@@ -1439,6 +1462,9 @@ button.pgtrend:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
   :root[data-full] .sheetHead h2{font-size:17px}
   :root[data-full] .sheetHead h2 .tag{display:none}
   :root[data-full] .fullwhere{font-size:12.5px}
+  :root[data-full] .fchip{padding:1px 8px;font-size:12.5px}
+  :root[data-full] .fsa.can{padding-right:20px}
+  :root[data-full] .fsa.can::after{right:8px}
   :root[data-full] .fullbtn{padding:5px 8px}
   :root[data-full] .fullbtn .fboff{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   :root[data-full] .pl.checking{--gw:30px}

@@ -41,9 +41,9 @@ import { songSpan } from '../core/pitch/voice';
 import { itemLines, newRoutineId, ROUTINE_LIMITS, STARTER, type Routine, type RoutineItem, type RoutineSa } from '../core/practice/routine';
 import { clockText, keepsTake, newTakeId, textSig, type Take } from '../core/practice/take';
 import { fileName, IMPORT_LIMITS, songFileText, songsFromFile, stripExamplePrefix, type ImportedSong } from '../core/song/file';
-import { titleFixes, uniqueTitle } from '../core/song/library';
+import { applyBulk, titleFixes, uniqueTitle, type BulkPatch } from '../core/song/library';
 import { cleanDismissed, cleanNotes, newId, normalize, parseTags, saOctOf, type Song } from '../core/song/model';
-import { trimForNow, type ForNow } from '../core/song/fornow';
+import { withNow, type ForNow } from '../core/song/fornow';
 import { SONG_SOUND_KEYS, type SongSound } from '../core/song/sound';
 import type { SpeedName } from '../core/taal/rhythm';
 import { isTaalId, taalInfo, TAALS, type TaalInfo } from '../core/taal/taals';
@@ -105,9 +105,11 @@ let taal: TaalInfo = taalInfo('dadra');
 /** Each beat's taal as written: the song's, or a section's own (taal pherta); worked out with each
  * parse. The editor, the checker and the printed sheet show it. */
 let ownTaals: Taals = oneTaal(taal, 0);
-/** What the top panel has changed on each song (Rinat, 2026-11-10): never saved, each song's its
- * own until the page is refreshed. */
-const forNow = new Map<string, ForNow>();
+/** What the top panel sets over every song's own (Rinat, 2026-11-13: "Should persist when song
+ * changes"; "goes back to default when the page is refreshed or closed and opened again"): the Sa,
+ * tempo, taal and rhythm speed, for every song and rewaz item until the page is refreshed. Kept
+ * only here, so a refresh or a new visit starts with each song's own. */
+let topNow: ForNow = {};
 /** Each beat's taal as played: the taal picked at the top, else as written. */
 let taals: Taals = ownTaals;
 /** The taal the deck's strip shows. */
@@ -160,10 +162,11 @@ let parseTimer = 0;
 const boxesMode = () => prefs.editMode !== 'text';
 const boxesShown = () => boxesMode() && !$('#edit').hidden;
 const routineStore = new RoutineStore(storage);
-/** While a rewaz item plays: its own tempo and guide and the rewaz's Sa, over the song's and the
- * settings'. */
+/** While a rewaz item plays: its own tempo and guide, over the song's and the settings'; while a
+ * take plays back, the Sa, tempo and count-in it was sung with. */
 let itemOverride: {
   tempo?: number;
+  /** A take playing back: the Sa it was sung in. */
   sa?: RoutineSa;
   guide?: GuideLevel;
   guideLoop?: GuideLoop;
@@ -172,17 +175,17 @@ let itemOverride: {
   countIn?: boolean;
   /** A take playing back: as it was sung, whatever the top panel now has. */
   asTaken?: true;
-  /** A rewaz item: what the top panel has changed while it plays, for that item alone. A rewaz
-   * plays each song's own settings, whatever was changed on it before. */
-  now?: ForNow;
 } | null = null;
 /** Set while the rewaz itself opens a song, which must not stop the rewaz. */
 let runnerLoading = false;
 const NOTHING: ForNow = Object.freeze({});
-/** What the top panel has changed that is in force for what is open. */
+/** What the top panel sets that is in force: the same for every song and rewaz item (Rinat,
+ * 2026-11-13: "When song changes, whether manually or during rewaz, the key updates to songs own.
+ * but if i have a specific key chosen in the top panel - it remains that key"); nothing while a
+ * take plays back as it was sung. */
 function nowOf(): ForNow {
-  if (runnerLoading || itemOverride?.asTaken || !current) return NOTHING;
-  return itemOverride?.now ?? forNow.get(current.id) ?? NOTHING;
+  if (itemOverride?.asTaken || !current) return NOTHING;
+  return topNow;
 }
 /** The taal picked at the top to play the song in ('' none). */
 const pickedTaal = () => nowOf().taal ?? '';
@@ -232,8 +235,8 @@ let leftShown = -1;
 /** The round full screen's title bar says (0-based): the last one shown. */
 let wherePass = 0;
 
-/** The song as played: what the top panel has changed, then a rewaz's Sa and its item's tempo,
- * over the song's own. */
+/** The song as played: what the top panel sets, then a take's Sa or a rewaz item's tempo, over the
+ * song's own. */
 const songSource = {
   get saKey() {
     return (nowOf().sa ?? itemOverride?.sa ?? current).saKey;
@@ -256,11 +259,12 @@ const savedSound = new Proxy<SoundSettings>(prefs, {
     return own && SONG_SOUND_KEYS.includes(k as keyof SongSound) && Object.hasOwn(own, k) ? own[k as keyof SongSound] : Reflect.get(t, k);
   },
 });
-/** The sound for the open song as the top panel has it: what it has changed over the song's own. */
+/** The sound for the open song as the top panel has it: a rhythm speed set there over the song's
+ * own. */
 const sound = new Proxy<SoundSettings>(prefs, {
   get(_t, k) {
-    const n = nowOf().sound;
-    return n && Object.hasOwn(n, k) ? n[k as keyof SongSound] : Reflect.get(savedSound, k);
+    const n = nowOf().speed;
+    return k === 'speed' && n ? n : Reflect.get(savedSound, k);
   },
 });
 /** The sound settings as played: a rewaz item's guide over the open song's, and the levels of
@@ -543,9 +547,12 @@ function userPlay(n: number): void {
   boxes.linePlaying(n, true);
 }
 
+/** The tempo at the top, Default ticked while it is each song's own, and full screen's chip. */
 function showTempo(t: number): void {
   input('#tempoNum').value = String(t);
   input('#tempoRange').value = String(t);
+  input('#tempoDef').checked = nowOf().tempo == null;
+  $('#fullTempo').textContent = 'Tempo ' + t;
   renderLength();
 }
 function clearOverride(): void {
@@ -554,25 +561,25 @@ function clearOverride(): void {
   itemOverride = null;
   if (!current) return;
   showTempo(shownTempo());
-  // What the top panel had changed on this song comes back after a rewaz or a take.
-  if (was.now || was.asTaken || was.sa) showPlayedSa();
-  if (was.now || was.asTaken) renderSoundControls();
-  if (was.now && was.now.taal !== forNow.get(current.id)?.taal) reparse(true);
-  if (was.sa) setPlayUI();
+  // What the top panel sets comes back after a take played as it was sung.
+  if (was.asTaken || was.sa) showPlayedSa();
+  if (was.asTaken) {
+    renderSoundControls();
+    if (topNow.taal) reparse(true);
+  }
 }
-/** Sa as it plays (a rewaz's, while one lies over the song), in the deck and on the keys. */
+/** Sa as it plays (a take's, while one plays back), in the deck and on the keys. */
 function showPlayedSa(): void {
-  showSa(songSource.saKey, songSource.saOct);
+  showSaPick();
   renderKeys();
 }
 
-/** Play a rewaz item: its song, its lines for its rounds, at its tempo, with its guide, in the
- * rewaz's Sa if it has one. */
-function playItem(it: RoutineItem, gap: number, sa?: RoutineSa): boolean {
+/** Play a rewaz item: its song, its lines for its rounds, at its tempo, with its guide; in the Sa,
+ * tempo, taal and rhythm speed set at the top, where they are. */
+function playItem(it: RoutineItem, gap: number): boolean {
   const s = songs.get(it.song) || EXERCISES.find((x) => x.id === it.song);
   if (!s) return false;
   const same = s.id === current.id;
-  const changedHere = Object.keys(nowOf()).length > 0;
   runnerLoading = true;
   try {
     if (!same) loadSong(s);
@@ -583,10 +590,8 @@ function playItem(it: RoutineItem, gap: number, sa?: RoutineSa): boolean {
   if (!parsed.noteLines.length) return false;
   const [a, b] = itemLines(it, parsed.noteLines.length);
   const g = it.guide;
-  itemOverride = { tempo: it.tempo, guide: g === 'off' ? 'off' : g && sound.guide === 'off' ? 'full' : undefined, guideLoop: g && g !== 'off' ? g : undefined, sa, now: {} };
-  if (same && changedHere) showNow();
+  itemOverride = { tempo: it.tempo, guide: g === 'off' ? 'off' : g && sound.guide === 'off' ? 'full' : undefined, guideLoop: g && g !== 'off' ? g : undefined };
   showTempo(shownTempo());
-  if (sa) showPlayedSa();
   play({ from: a, to: b, loop: true, rounds: it.rounds, gap });
   return playing();
 }
@@ -781,9 +786,27 @@ function startRun(from: number, to: number, loop: boolean): void {
   $('#pAfter').hidden = true;
 }
 
-/** The deck's Sa picker set to a Sa. */
-function showSa(saKey: number, saOct: number): void {
-  select('#saPick').value = V.saValue({ saKey, saOct });
+/** The Sa pickers at the top and in full screen's bar: "Song's own", naming the open song's, or
+ * the Sa picked there (a take's while one plays back); and full screen's chip, saying the Sa that
+ * plays. */
+function showSaPick(): void {
+  if (!current) return;
+  const played = nowOf().sa ?? itemOverride?.sa;
+  const ownName = V.saKeyName(current.saKey, current.saOct);
+  for (const s of [select('#saPick'), select('#fullSa')]) {
+    const first = s.options[0];
+    if (first) first.textContent = 'Song’s own (' + ownName + ' · ' + (V.KEYS[current.saKey]?.[1] ?? '') + ')';
+    s.value = played ? V.saValue(played) : '';
+  }
+  $('#fullSaText').textContent = 'Sa ' + V.saKeyName(songSource.saKey, songSource.saOct);
+}
+/** Sa picked at the top, or in full screen's bar: for every song until the page is refreshed, or
+ * each song's own again (''). */
+function pickSa(v: string): void {
+  setNow({ sa: v === '' ? undefined : V.saFromValue(v) });
+  showPlayedSa();
+  if (!playing()) showIdle();
+  T?.retune();
 }
 
 /** A beat is showing: note how far the practice has got. */
@@ -1149,6 +1172,7 @@ const idleTaal = (): TaalInfo => taals.line(+select('#fromLine').value || 0).T;
 function renderTaal(T: TaalInfo = playing() && stripTaal ? stripTaal : idleTaal()): void {
   stripTaal = T;
   lines.taal(T);
+  $('#fullTaal').textContent = T.name;
 }
 
 function markTaal(p: number): void {
@@ -1340,14 +1364,14 @@ function setPlayUI(): void {
   $<HTMLButtonElement>('#restartBtn').disabled = !active() || rewaz.active;
   // Sa is not changed while a song plays or is paused (Rinat, 2026-11-05: changed while playing,
   // the guide followed it but the voice line was still judged against the Sa it started in; a
-  // run's notes, its report and its file for AI are all against one Sa).
-  // A rewaz with a Sa of its own holds it through its breaks too (Rinat, 2026-11-09).
-  const held = rewaz.active && !!itemOverride?.sa;
-  const s = select('#saPick');
-  s.dataset.title ??= s.title;
-  s.disabled = active() || held;
-  s.title = held ? 'This rewaz sets Sa. Stop it to change Sa.' : active() ? 'Stop to change Sa' : s.dataset.title;
-  $('#saLab').textContent = held ? 'Sa · this rewaz’s' : 'Sa · your key';
+  // run's notes, its report and its file for AI are all against one Sa). In the break between rewaz
+  // items it can be (Rinat, 2026-11-13), for the items to come.
+  for (const s of [select('#saPick'), select('#fullSa')]) {
+    s.dataset.title ??= s.title;
+    s.disabled = active();
+    s.title = active() ? 'Stop to change Sa' : s.dataset.title;
+  }
+  $('#fullSaChip').classList.toggle('can', !active());
 }
 function setSeg(id: string, v: string | number): void {
   for (const b of $$('#' + id + ' button')) b.setAttribute('aria-pressed', String(b.dataset.v === String(v)));
@@ -1363,7 +1387,11 @@ function renderSoundControls(): void {
   setSeg('reedSeg', sound.reeds);
   select('#droneSel').value = droneValue(sound);
   select('#beatSel').value = sound.beat;
-  select('#speedSel').value = sound.speed;
+  // The rhythm speed: the open song's own ("Half speed (song's own)": the speed first, so a phone's
+  // narrow list still shows it), or one picked for every song.
+  const sp = select('#speedSel');
+  if (sp.options[0]) sp.options[0].textContent = V.SPEED_NAMES[savedSound.speed] + ' (song’s own)';
+  sp.value = nowOf().speed ?? '';
   input('#fillsChk').checked = !!sound.fills;
   // The side instruments the rhythm's instrument can have.
   const r = V.layerChipsHTML(sound.beat, (sound.layers as Record<string, string[] | undefined>)[sound.beat] || []);
@@ -1376,7 +1404,7 @@ function renderSoundControls(): void {
   dl.title = dl.disabled ? 'No drone here: choose one to set how loud it is' : 'How loud the drone is';
   $('#beatMute').setAttribute('aria-pressed', String(!!prefs.beatMute));
   input('#tablaVol').value = String(prefs.tablaVol);
-  renderRevert();
+  $('#nowWhat').textContent = what();
 }
 
 /** Edit notation's settings for how the song plays: its own, whatever the top panel has. */
@@ -1388,51 +1416,26 @@ function renderSongSettings(): void {
   select('#edSpeed').value = savedSound.speed;
 }
 
-/** Revert at the top: there to press only when something has been changed. */
-function renderRevert(): void {
-  if (!current) return;
-  const b = $<HTMLButtonElement>('#revertBtn');
-  b.textContent = 'Revert to this ' + what() + '’s settings';
-  b.disabled = !Object.keys(nowOf()).length;
-  $('#nowWhat').textContent = what();
-}
-
 /** The guide's slider and mute button (the device's, the same for every song). */
 function renderGuide(): void {
   input('#guideVol').value = String(guideSlider(prefs));
   $('#guideMute').setAttribute('aria-pressed', String(prefs.guide === 'off'));
 }
 
-/** What the top panel has changed, to change it: a rewaz item's, or the song's. */
-const nowToChange = (): ForNow => itemOverride?.now ?? forNow.get(current.id) ?? {};
 /**
- * The top panel changed something, for now: kept for the song (or the rewaz item playing), only
- * what differs from its own. Nothing here is saved.
+ * The top panel set something, or put it back to each song's own (undefined): for every song and
+ * rewaz item until the page is refreshed. Nothing here is saved. A tempo changes how long each
+ * rewaz item takes.
  */
 function setNow(patch: ForNow): void {
-  const own = { sa: itemOverride?.sa ?? current, tempo: itemOverride?.tempo ?? deckSection()?.tempo ?? current.tempo, sound: savedSound };
-  const next = trimForNow({ ...nowToChange(), ...patch }, own);
-  if (itemOverride?.now) itemOverride.now = next;
-  else if (Object.keys(next).length) forNow.set(current.id, next);
-  else forNow.delete(current.id);
-  renderRevert();
+  topNow = withNow(topNow, patch);
+  if ('tempo' in patch) redrawRewaz();
 }
-/** Everything the top panel shows or plays from what is in force. */
-function showNow(): void {
-  showPlayedSa();
-  showTempo(shownTempo());
-  renderSoundControls();
-  reparse(true);
-}
-/** Revert at the top: this song's own settings again. A song playing with another Sa is stopped
- * first: a run is judged against one Sa. */
-function revertNow(): void {
-  if (nowToChange().sa && active()) stop();
-  if (itemOverride?.now) itemOverride.now = {};
-  else forNow.delete(current.id);
-  showNow();
-  T?.retune();
-  T?.resetTanpura();
+/** The Rewaz view drawn again on the next frame (its items' lengths follow the tempo at the top). */
+let rewazFrame = 0;
+function redrawRewaz(): void {
+  cancelAnimationFrame(rewazFrame);
+  rewazFrame = requestAnimationFrame(() => rewaz.render());
 }
 
 /**
@@ -1454,15 +1457,15 @@ function setShared(patch: Partial<SoundSettings>): void {
   if (sound.tanTune !== tune) T?.resetTanpura();
 }
 /**
- * The rhythm's speed, the one part of the sound a song keeps: for now at the top, or in Edit
- * notation (`keep`) for the song, heard at once, over anything changed at the top. On a built-in
- * exercise it goes as its other edits do: not kept.
+ * The rhythm's speed, the one part of the sound a song keeps: at the top for every song until the
+ * page is refreshed (undefined: each song's own again), or in Edit notation (`keep`) the song's
+ * own, which a speed picked at the top still plays over. On a built-in exercise it goes as its
+ * other edits do: not kept.
  */
-function setSpeed(speed: SpeedName, keep: boolean): void {
+function setSpeed(speed: SpeedName | undefined, keep: boolean): void {
   if (keep) {
-    changed('sound', { speed });
-    setNow({ sound: undefined });
-  } else setNow({ sound: { speed } });
+    if (speed) changed('sound', { speed });
+  } else setNow({ speed });
   renderSoundControls();
   renderSongSettings();
   renderTaal();
@@ -1493,7 +1496,7 @@ function wireSound(): void {
     else setShared({ droneType: 'tanpura', tanTune: v.slice(-1) as TanTune, droneVol: vol });
   });
   const speedOf = (v: string): SpeedName => (v === 'half' || v === 'double' ? v : 'normal');
-  select('#speedSel').addEventListener('change', (e) => setSpeed(speedOf(value(e)), false));
+  select('#speedSel').addEventListener('change', (e) => setSpeed(value(e) === '' ? undefined : speedOf(value(e)), false));
   select('#edSpeed').addEventListener('change', (e) => setSpeed(speedOf(value(e)), true));
 }
 
@@ -1503,7 +1506,6 @@ function setSa(s: SaChoice): void {
   if (active()) stop();
   changed('saKey', s.saKey);
   changed('saOct', saOctOf(s.saOct));
-  setNow({ sa: undefined });
   rememberExerciseSa();
   showPlayedSa();
   renderSongSettings();
@@ -2249,7 +2251,7 @@ function loadSong(song: Song | Exercise): void {
   $('#notesF').hidden = current.example;
   renderAbout();
   notationBox().value = current.text;
-  showSa(songSource.saKey, songSource.saOct);
+  showSaPick();
   select('#taalSel').value = current.taal;
   taal = taalInfo(current.taal);
   renderStartOn();
@@ -2394,6 +2396,53 @@ function setFavs(ids: readonly string[], fav: boolean): void {
   }
   if (list.length) writeSongs(list);
   renderLibrary();
+}
+
+/**
+ * The user's own songs ticked in the Music library, changed together (Rinat, 2026-11-13: "some bulk
+ * edit options when multiple items are selected"): tags added and taken off, the Sa, tempo, rhythm
+ * speed, or where each is listed. The open one through its own fields, so Edit notation and the
+ * top show it at once (a Sa changed on it stops it playing, as Edit notation's does).
+ */
+function editSongs(ids: readonly string[], p: BulkPatch): void {
+  const list: Song[] = [];
+  let n = 0;
+  let ex = 0;
+  for (const id of ids) {
+    const open = current.id === id && !current.example;
+    const was = open ? current : songs.get(id);
+    if (!was || was.example) continue;
+    const next = applyBulk(was, p);
+    if (!next) continue;
+    n++;
+    if (next.exercise) ex++;
+    if (!open) {
+      next.updatedAt = Date.now();
+      songs.set(id, next);
+      list.push(next);
+      continue;
+    }
+    if (JSON.stringify(next.tags ?? []) !== JSON.stringify(current.tags ?? [])) {
+      changed('tags', next.tags);
+      input('#tagsIn').value = (next.tags || []).join(', ');
+    }
+    if (!!next.exercise !== !!current.exercise) {
+      changed('exercise', next.exercise);
+      loadSongLabels();
+    }
+    if (next.tempo !== current.tempo) {
+      changed('tempo', next.tempo);
+      input('#edTempo').value = String(next.tempo);
+      showTempo(shownTempo());
+    }
+    if (next.sound?.speed && next.sound.speed !== current.sound?.speed) setSpeed(next.sound.speed, true);
+    if (next.saKey !== current.saKey || next.saOct !== current.saOct) setSa({ saKey: next.saKey, saOct: next.saOct });
+    renderEditSummary();
+    flushNow();
+  }
+  if (list.length) writeSongs(list);
+  renderLibrary();
+  setLibStatus(n ? 'Changed ' + n + ' ' + (ex === 0 ? (n === 1 ? 'song' : 'songs') : ex === n ? (n === 1 ? 'exercise' : 'exercises') : 'songs and exercises') + '.' : 'Nothing to change: they have that already.');
 }
 
 /** The songs and exercises ticked in the Music library, saved to one song file (one alone is
@@ -2952,7 +3001,10 @@ export function init(): void {
   applyLinesPrefs();
   // The keyboard fills its section's width: drawn again when that changes (and when it shows).
   new ResizeObserver(() => renderKeys()).observe($('#keysRow'));
-  select('#saPick').innerHTML = V.saOptionsHTML();
+  // Sa at the top and in full screen's bar: the song's own first (named as each song opens).
+  select('#saPick').innerHTML = select('#fullSa').innerHTML = '<option value="">Song’s own</option>' + V.saOptionsHTML();
+  // Nothing plays yet: the buttons as stopped, and full screen's Sa chip shown as a picker.
+  setPlayUI();
   select('#edSa').innerHTML = V.saOptionsHTML();
   select('#taalSel').innerHTML = V.taalOptionsHTML();
   // The song's sound controls show each song's sound as it opens (loadSong).
@@ -2961,6 +3013,8 @@ export function init(): void {
   renderGuide();
   input('#countIn').checked = !!prefs.countIn;
   select('#guideLoopSel').value = prefs.guideLoop;
+  // Loop is until the page is refreshed: off on every visit, whatever the browser kept of the page.
+  input('#loopChk').checked = false;
   renderNoteButtons();
   setEditSetOpen(!!prefs.editSetOpen);
   setPadOpen(!prefs.padFold);
@@ -3008,6 +3062,7 @@ export function init(): void {
       renderLibrary();
     },
     removeAll: deleteSongs,
+    editAll: editSongs,
     setFavs,
     exportAll: exportSongs,
     routines: routineChoices,
@@ -3069,6 +3124,7 @@ export function init(): void {
     choices: pickerGroups,
     song: itemSong,
     countIn: () => !!prefs.countIn,
+    tempo: () => topNow.tempo,
     currentSongId: () => current.id,
     routines: () => routineStore.load(),
     save: (r) => routineStore.save(r),
@@ -3270,12 +3326,14 @@ export function init(): void {
   }
   input('#tempoRange').addEventListener('input', (e) => setTempo((e.target as HTMLInputElement).value));
   input('#tempoNum').addEventListener('change', (e) => setTempo((e.target as HTMLInputElement).value));
-  // Sa at the top is for now; in Edit notation it is the song's own.
-  select('#saPick').addEventListener('change', (e) => {
-    setNow({ sa: V.saFromValue((e.target as HTMLSelectElement).value) });
-    showPlayedSa();
-    if (!playing()) showIdle();
-    T?.retune();
+  // Sa at the top (and in full screen's bar) is for every song until a refresh; in Edit notation it
+  // is the song's own.
+  for (const id of ['#saPick', '#fullSa']) select(id).addEventListener('change', (e) => pickSa((e.target as HTMLSelectElement).value));
+  // Default under the tempo: each song's own (and each section's) again; unticked, the tempo shown
+  // for every song.
+  input('#tempoDef').addEventListener('change', (e) => {
+    setNow({ tempo: (e.target as HTMLInputElement).checked ? undefined : clamp(Math.round(+input('#tempoNum').value || 100), 30, 240) });
+    showTempo(shownTempo());
   });
   select('#edSa').addEventListener('change', (e) => setSa(V.saFromValue((e.target as HTMLSelectElement).value)));
   input('#edTempo').addEventListener('change', (e) => {
@@ -3283,10 +3341,8 @@ export function init(): void {
     const t = clamp(Math.round(+el.value || current.tempo), 30, 240);
     el.value = String(t);
     changed('tempo', t);
-    setNow({ tempo: undefined });
     showTempo(shownTempo());
   });
-  $('#revertBtn').addEventListener('click', revertNow);
   $('#nowEdit').addEventListener('click', () => {
     setEditSetOpen(true);
     savePrefs();
@@ -3383,6 +3439,7 @@ export function init(): void {
     prefs.countIn = (e.target as HTMLInputElement).checked;
     savePrefs();
     if (!playing()) showIdle();
+    redrawRewaz();
   });
 
   $('#tabPractice').addEventListener('click', () => switchTab('practice'));
@@ -3547,7 +3604,6 @@ export function init(): void {
   select('#taalSel').addEventListener('change', (e) => {
     const v = (e.target as HTMLSelectElement).value;
     changed('taal', isTaalId(v) ? v : 'dadra');
-    setNow({ taal: undefined });
     renderEditSummary();
     taal = taalInfo(current.taal);
     renderStartOn();

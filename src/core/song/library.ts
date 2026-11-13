@@ -2,8 +2,9 @@
  * The song library (docs/ROADMAP.md → Song library): search, filters and sorting over the
  * user's songs and the built-in exercises. Pure, so it is tested in Node.
  */
+import type { SpeedName } from '../taal/rhythm';
 import { TAALS, type TaalId } from '../taal/taals';
-import { foldText, type Song } from './model';
+import { cleanTags, foldText, type SaOct, type Song } from './model';
 
 /** What the library needs from a song or an exercise. */
 export type LibrarySong = Pick<Song, 'id' | 'title' | 'text' | 'tempo' | 'saKey'> & {
@@ -199,4 +200,39 @@ export function titleFixes(songs: readonly { id: string; title: string; updatedA
     out.set(s.id, t);
   }
   return out;
+}
+
+/** What a bulk edit in the Music library changes on each of the user's own songs ticked (Rinat,
+ * 2026-11-13: "some bulk edit options when multiple items are selected"): tags added and taken off,
+ * the Sa, tempo and rhythm speed, and whether it is listed under My songs or Exercises. Absent:
+ * left as each one has it. */
+export interface BulkPatch {
+  addTags?: readonly string[];
+  dropTags?: readonly string[];
+  sa?: { saKey: number; saOct: SaOct };
+  tempo?: number;
+  speed?: SpeedName;
+  exercise?: boolean;
+}
+
+/** A song with a bulk edit made: a new song, or null when nothing about it would change. Tags
+ * taken off are matched without regard to case; tags added keep the limits a song's tags have. */
+export function applyBulk(s: Song, p: BulkPatch): Song | null {
+  const n: Song = { ...s };
+  if (p.addTags?.length || p.dropTags?.length) {
+    const drop = new Set((p.dropTags ?? []).map(foldText));
+    const tags = cleanTags([...(s.tags ?? []).filter((t) => !drop.has(foldText(t))), ...(p.addTags ?? [])]);
+    if (tags.length) n.tags = tags;
+    else delete n.tags;
+  }
+  if (p.sa) {
+    n.saKey = p.sa.saKey;
+    n.saOct = p.sa.saOct;
+  }
+  if (p.tempo != null) n.tempo = Math.max(30, Math.min(240, Math.round(p.tempo)));
+  if (p.speed) n.sound = { ...s.sound, speed: p.speed };
+  if (p.exercise === true) n.exercise = true;
+  else if (p.exercise === false) delete n.exercise;
+  const same = (a: Song) => JSON.stringify([a.tags ?? [], a.saKey, a.saOct, a.tempo, a.sound?.speed ?? null, !!a.exercise]);
+  return same(n) === same(s) ? null : n;
 }

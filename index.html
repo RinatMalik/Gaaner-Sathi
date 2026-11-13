@@ -87,7 +87,7 @@
       <div class="dctl">
         <div class="dsareeds">
           <div class="dfield"><label class="lab" id="saLab" for="saPick">Sa · your key</label>
-            <select id="saPick" title="C4 is middle C. C3 is the second C from the left on a 61-key keyboard, the third on an 88-key piano."></select></div>
+            <select id="saPick" title="Each song’s own Sa, or one Sa for every song until the page is refreshed. C4 is middle C. C3 is the second C from the left on a 61-key keyboard, the third on an 88-key piano."></select></div>
           <div class="dfield"><span class="lab" id="reedLab">Reeds</span>
             <div class="seg" id="reedSeg" role="group" aria-labelledby="reedLab"><button type="button" data-v="1" title="Male reed only">1</button><button type="button" data-v="2" title="Bass and male reeds">2</button><button type="button" data-v="3" title="Bass, male and female reeds">3</button></div></div>
         </div>
@@ -110,13 +110,15 @@
         <label class="vlab" for="tempoRange" title="Matras a minute">Tempo</label>
         <input id="tempoRange" type="range" class="vrange" min="30" max="240" step="1" orient="vertical">
         <input id="tempoNum" type="number" min="30" max="240" step="1" inputmode="numeric" title="Matras a minute" aria-label="Tempo in matras a minute">
+        <!-- Each song's own tempo, and its sections', until the tempo is moved (Rinat, 2026-11-13). -->
+        <label class="chk tdef" title="Each song’s own tempo, and each section’s. Move the tempo to play every song at it until the page is refreshed."><input type="checkbox" id="tempoDef" checked> Default</label>
       </div>
       <div class="dctl">
-        <div class="dfield"><label class="lab" for="taalPick">Taal</label><select id="taalPick" title="Play this song in another taal for now. Its own taal is set in Edit notation."></select></div>
+        <div class="dfield"><label class="lab" for="taalPick">Taal</label><select id="taalPick" title="Each song’s own taal, or one taal to play every song in until the page is refreshed. A song’s own taal is set in Edit notation."></select></div>
         <div class="dfield"><label class="lab" for="beatSel">Instrument</label>
         <select id="beatSel" aria-label="The rhythm’s instrument"><option value="tabla">Tabla</option><option value="dholak">Dholak</option><option value="kit">Drums</option><option value="click">Click</option><option value="off">No rhythm</option></select></div>
         <div class="dfield" id="layerRow"><span class="lab" id="layerLab">Add</span><div class="chips" id="layerChips" role="group" aria-labelledby="layerLab"></div></div>
-        <select id="speedSel" aria-label="The rhythm’s speed" title="The rhythm at half or double the matras"><option value="normal">Normal speed</option><option value="half">Half speed</option><option value="double">Double speed</option></select>
+        <select id="speedSel" aria-label="The rhythm’s speed" title="The rhythm at half or double the matras, for every song until the page is refreshed, or each song’s own"><option value="">Song’s own</option><option value="normal">Normal speed</option><option value="half">Half speed</option><option value="double">Double speed</option></select>
         <label class="chk"><input type="checkbox" id="fillsChk"> Fill every 4th cycle</label>
       </div>
     </div>
@@ -132,10 +134,9 @@
       <select id="midiOut" aria-label="Which keyboard plays the guide" hidden></select>
     </div>
 
-    <!-- The top panel changes things for now (Rinat, 2026-11-10): a song's own settings are changed
-         in Edit notation, and this puts back what was changed here. -->
+    <!-- The Sa, tempo, taal and rhythm speed at the top are for every song until the page is
+         refreshed (Rinat, 2026-11-13); a song's own are changed in Edit notation. -->
     <div class="dnow">
-      <button type="button" class="dbtn" id="revertBtn" title="Put back this song’s own Sa, tempo, taal and rhythm speed" disabled>Revert to this song’s settings</button>
       <span class="dstat">To change this <span id="nowWhat">song</span>’s own settings, go to <button type="button" class="dlink" id="nowEdit">Edit notation</button>.</span>
     </div>
 
@@ -192,7 +193,7 @@
       <div class="rbar" id="rwBar" hidden><span class="rbtext" id="rwBarText" aria-live="polite"></span><span class="spacer"></span><span class="rbleft" id="rwLeft" title="Roughly how long the rest of this rewaz takes, of how long all of it takes, breaks included" hidden></span><button id="rwFull" class="btn rwfull" type="button" title="Full screen: only the lines and the controls (F)"><svg class="ic-fs" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Full screen</button><button id="rwSkip" class="btn" type="button">Skip</button><button id="rwStop" class="btn" type="button">Stop rewaz</button></div>
 
       <!-- While it plays, the time left beside the title (Rinat, 2026-10-31). -->
-      <div class="sheetHead"><h2 id="songTitle"></h2><span class="fullwhere" id="fullWhere"></span><span class="songleft" id="songLeft" title="Time left to play, of how long it all takes, the rounds still to come included" hidden></span><span class="songlen" id="songLen" title="How long it plays at this tempo, without the count-in"></span><button id="fullBtn" class="btn fullbtn" type="button" title="Full screen: only the lines and the controls (F)"><svg class="ic-fs" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><svg class="ic-fsx" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="fbon">Full screen</span><span class="fboff">Exit full screen</span></button></div>
+      <div class="sheetHead"><h2 id="songTitle"></h2><span class="fullwhere" id="fullWhere"></span><span class="fullchips" id="fullChips"><label class="fchip fsa" id="fullSaChip" title="Sa"><span id="fullSaText"></span><select id="fullSa" aria-label="Sa · your key" title="Each song’s own Sa, or one Sa for every song until the page is refreshed"></select></label><span class="fchip" id="fullTaal" title="The taal playing"></span><span class="fchip" id="fullTempo" title="Matras a minute"></span></span><span class="songleft" id="songLeft" title="Time left to play, of how long it all takes, the rounds still to come included" hidden></span><span class="songlen" id="songLen" title="How long it plays at this tempo, without the count-in"></span><button id="fullBtn" class="btn fullbtn" type="button" title="Full screen: only the lines and the controls (F)"><svg class="ic-fs" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><svg class="ic-fsx" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="fbon">Full screen</span><span class="fboff">Exit full screen</span></button></div>
       </div>
       <div class="chips secs" id="secChips" role="group" aria-label="Sections: tap one to play from there" hidden></div>
       <details class="about" id="aboutBox" hidden><summary>About this song</summary><div class="abouttext" id="aboutText"></div></details>

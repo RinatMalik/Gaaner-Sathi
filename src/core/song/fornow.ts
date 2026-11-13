@@ -1,43 +1,34 @@
 /**
- * What the top panel changes over a song's own settings (Rinat, 2026-11-10: "whatever i change in
- * here doesn't effect any song specific settings"): its Sa, tempo, taal and rhythm speed. Never saved:
- * each song keeps its own changes until the page is refreshed, and its own settings are changed in
+ * What the top panel sets over every song's own (Rinat, 2026-11-13: "the four settings - your key,
+ * tempo, taal, rhythm speed. In the top panel make them 'Until Refresh'"): the Sa, tempo, taal and
+ * rhythm speed, the same for every song and every rewaz item opened, until the page is refreshed or
+ * closed. Each goes back to the song's own by its own choice: "Song's own" in the Sa, taal and
+ * rhythm speed lists, Default under the tempo. Never saved; a song's own settings are changed in
  * Edit notation. Pure, so it is tested in Node.
  */
+import type { SpeedName } from '../taal/rhythm';
 import type { TaalId } from '../taal/taals';
 import type { SaOct } from './model';
-import { SONG_SOUND_KEYS, type SongSound } from './sound';
 
 export interface ForNow {
   sa?: { saKey: number; saOct: SaOct };
   tempo?: number;
-  /** Another taal to play the whole song in. */
+  /** Another taal to play every song in, sections and all. */
   taal?: TaalId;
-  sound?: Partial<SongSound>;
-}
-
-/** What a song plays with when nothing is changed. */
-export interface OwnSettings {
-  sa: { saKey: number; saOct: number };
-  tempo: number;
-  sound: SongSound;
+  speed?: SpeedName;
 }
 
 /**
- * Only what differs from the song's own: a control moved back to where the song has it is no
- * longer a change, so there is nothing to revert. A taal picked is kept even when it is the song's
- * own, as that still plays a song whose sections have taals of their own in that one taal.
+ * The top panel's settings with `patch` laid over them: a field given `undefined` goes back to
+ * each song's own. A key, taal or speed picked is kept even when it is the open song's own, as the
+ * next song opened plays in it too (Rinat, 2026-11-13: "if i have a specific key chosen in the top
+ * panel - it remains that key until i refreshed or changed back to songs own").
  */
-export function trimForNow(now: ForNow, own: OwnSettings): ForNow {
-  const out: ForNow = {};
-  if (now.sa && (now.sa.saKey !== own.sa.saKey || now.sa.saOct !== own.sa.saOct)) out.sa = now.sa;
-  if (now.tempo != null && now.tempo !== own.tempo) out.tempo = now.tempo;
-  if (now.taal) out.taal = now.taal;
-  const sound: Record<string, unknown> = {};
-  for (const k of SONG_SOUND_KEYS) {
-    const v = now.sound?.[k];
-    if (v !== undefined && JSON.stringify(v) !== JSON.stringify(own.sound[k])) sound[k] = v;
+export function withNow(now: ForNow, patch: ForNow): ForNow {
+  const out: Record<string, unknown> = { ...now };
+  for (const [k, v] of Object.entries(patch)) {
+    if (v === undefined) delete out[k];
+    else out[k] = v;
   }
-  if (Object.keys(sound).length) out.sound = sound as Partial<SongSound>;
-  return out;
+  return out as ForNow;
 }

@@ -11,7 +11,7 @@ import { AKAR, BN_LETTER, LAT_LETTER, REPH } from '../core/notation/symbols';
 import type { NoteUnit, ParsedSong, Unit } from '../core/notation/types';
 import { clockText } from '../core/practice/take';
 import { saOctOf, type SaOct } from '../core/song/model';
-import { LAYERS, type LayerId } from '../core/taal/rhythm';
+import { LAYERS, type LayerId, type SpeedName } from '../core/taal/rhythm';
 import { TAAL_GROUPS, TAALS, type TaalInfo } from '../core/taal/taals';
 
 /** Show notes as বাংলা or Sa Re Ga. */
@@ -192,9 +192,13 @@ export const taalOptionsHTML = (): string =>
   TAAL_GROUPS.map((g) => '<optgroup label="' + esc(g.label) + '">' +
     g.ids.map((id) => '<option value="' + id + '">' + TAALS[id].name + ' · ' + TAALS[id].bn + ' (' + TAALS[id].bols.length + ')</option>').join('') + '</optgroup>').join('');
 
-/** The top section's taal picker (Rinat, 2026-10-22): the song's own taal first ("Keherwa", or
- * "Keherwa, Dadra" when a section has its own), then every taal to play it in instead. */
+/** The top section's taal picker (Rinat, 2026-10-22): the song's own taal first ("Keherwa (song's
+ * own)", or "Dadra, Keherwa (song's own)" when a section has its own; the taal first, so a phone's
+ * narrow list still shows it), then every taal to play every song in until the page is refreshed. */
 export const taalPickHTML = (own: string): string => '<option value="">' + esc(own) + ' (song’s own)</option>' + taalOptionsHTML();
+
+/** The rhythm's speeds as the pickers name them. */
+export const SPEED_NAMES: Record<SpeedName, string> = { normal: 'Normal speed', half: 'Half speed', double: 'Double speed' };
 
 /** "Song starts on taal beat", marking sam (X) and khali (0). */
 export function startOnOptionsHTML(T: TaalInfo): string {

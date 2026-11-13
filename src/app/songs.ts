@@ -2,16 +2,17 @@
  * The Music library: the user's songs and the exercises, with search, filters and sorting
  * (docs/ROADMAP.md → Song library), as a table (Rinat, 2026-10-30: "add all the bells and
  * whistles of tables"): rows ticked by a tap anywhere along them, Shift for a run of them, a
- * section's or every row shown at once, and the ticked ones added to a rewaz, starred, exported
- * or deleted together. The HTML builders are pure and tested in Node; `initSongs` wires them to
+ * section's or every row shown at once, and the ticked ones added to a rewaz, edited, starred,
+ * exported or deleted together. The HTML builders are pure and tested in Node; `initSongs` wires them to
  * the page.
  */
-import { entryFor, isExercise, matchesFilter, matchesQuery, sortEntries, tagCounts, whenText, type LibraryEntry, type LibraryFilter, type LibrarySong, type LibrarySort } from '../core/song/library';
-import { foldText } from '../core/song/model';
+import { entryFor, isExercise, matchesFilter, matchesQuery, sortEntries, tagCounts, whenText, type BulkPatch, type LibraryEntry, type LibraryFilter, type LibrarySong, type LibrarySort } from '../core/song/library';
+import { foldText, parseTags } from '../core/song/model';
+import { SPEED_CHOICES } from '../core/song/sound';
 import { lengthText } from '../core/practice/log';
 import { TAALS } from '../core/taal/taals';
 import { foldSectionHTML, initSectionDrag } from './fold';
-import { esc, KEYS, saKeyName, showMixed, tickHTML } from './view';
+import { esc, KEYS, saFromValue, saKeyName, saOptionsHTML, showMixed, SPEED_NAMES, tickHTML } from './view';
 
 /** The library's two sections. */
 export type LibSection = 'mine' | 'ex';
@@ -156,6 +157,67 @@ export interface LibSel {
   asking: boolean;
   /** Add to rewaz's list of routines, while it is open. */
   menu: readonly { id: string; name: string; n: number }[] | null;
+  /** Edit's choices, while it is open, and the tags the user's own ticked have, to take off. */
+  editing?: BulkForm | null;
+  tags?: readonly string[];
+}
+
+/** Edit's choices so far, as typed and picked: '' (none) leaves each one as it is. */
+export interface BulkForm {
+  add: string;
+  drop: readonly string[];
+  sa: string;
+  tempo: string;
+  speed: string;
+  list: '' | 'song' | 'exercise';
+}
+export const NO_EDIT: BulkForm = { add: '', drop: [], sa: '', tempo: '', speed: '', list: '' };
+
+/** What Edit's choices change, or null while they change nothing. */
+export function bulkPatch(f: BulkForm): BulkPatch | null {
+  const p: BulkPatch = {};
+  const add = parseTags(f.add);
+  if (add.length) p.addTags = add;
+  if (f.drop.length) p.dropTags = f.drop;
+  if (f.sa) p.sa = saFromValue(f.sa);
+  const tempo = Math.round(Number(f.tempo));
+  if (f.tempo.trim() && Number.isFinite(tempo) && tempo > 0) p.tempo = Math.max(30, Math.min(240, tempo));
+  const speed = SPEED_CHOICES.find((s) => s === f.speed);
+  if (speed) p.speed = speed;
+  if (f.list) p.exercise = f.list === 'exercise';
+  return Object.keys(p).length ? p : null;
+}
+
+/** The tags on the songs given, each once (the first spelling), in alphabetical order. */
+export function tagsOf(list: readonly LibrarySong[]): string[] {
+  const seen = new Map<string, string>();
+  for (const s of list) for (const t of s.tags ?? []) if (!seen.has(foldText(t))) seen.set(foldText(t), t);
+  return Array.from(seen.values()).sort((a, b) => a.localeCompare(b));
+}
+
+/**
+ * Edit, for the user's own ticked (Rinat, 2026-11-13: "some bulk edit options when multiple items
+ * are selected"): tags to add (separated by commas) and the tags they have to take off, then a Sa,
+ * a tempo, a rhythm speed and where they are listed, each "Leave each as it is" until picked; Apply
+ * once something is chosen. The built-in exercises ticked stay as they are, and it says so.
+ */
+export function bulkEditHTML(f: BulkForm, own: number, ticked: number, kinds: LibSel['kinds'], tags: readonly string[]): string {
+  const what = own + ' ' + (kinds === 'song' ? (own === 1 ? 'song' : 'songs') : kinds === 'exercise' ? (own === 1 ? 'exercise' : 'exercises') : 'songs and exercises');
+  const leave = (on: boolean) => '<option value=""' + (on ? ' selected' : '') + '>Leave each as it is</option>';
+  const opt = (v: string, label: string, on: boolean) => '<option value="' + v + '"' + (on ? ' selected' : '') + '>' + label + '</option>';
+  return '<div class="ledit" id="libEdit" role="group" aria-label="Edit the ticked">' +
+    '<p class="lehead">Change ' + what + (own < ticked ? '. The built-in exercises ticked stay as they are.' : '') + '</p>' +
+    '<label class="lef"><span>Add tags, separated by commas</span><input type="text" data-le="add" value="' + esc(f.add) + '" placeholder="Rabindrasangeet, Learning" autocomplete="off"></label>' +
+    (tags.length
+      ? '<div class="lef"><span id="leDropLab">Take off tags</span><div class="chips" role="group" aria-labelledby="leDropLab">' +
+        tags.map((t) => '<button type="button" class="chip" data-ledrop="' + esc(t) + '" aria-pressed="' + f.drop.includes(t) + '">' + esc(t) + '</button>').join('') + '</div></div>'
+      : '') +
+    '<div class="legrid">' +
+    '<label class="lef"><span>Sa</span><select data-le="sa">' + leave(!f.sa) + saOptionsHTML(f.sa ? saFromValue(f.sa) : undefined) + '</select></label>' +
+    '<label class="lef"><span>Tempo</span><input type="number" min="30" max="240" step="1" inputmode="numeric" data-le="tempo" value="' + esc(f.tempo) + '" placeholder="As each has it"></label>' +
+    '<label class="lef"><span>Rhythm speed</span><select data-le="speed">' + leave(!f.speed) + SPEED_CHOICES.map((s) => opt(s, SPEED_NAMES[s], f.speed === s)).join('') + '</select></label>' +
+    '<label class="lef"><span>List under</span><select data-le="list">' + leave(!f.list) + opt('song', 'My songs', f.list === 'song') + opt('exercise', 'Exercises', f.list === 'exercise') + '</select></label>' +
+    '</div><div class="lebtns"><button type="button" class="btn primary" data-lsel="apply"' + (bulkPatch(f) ? '' : ' disabled') + '>Apply to ' + what + '</button><button type="button" class="btn" data-lsel="editclose">Cancel</button></div></div>';
 }
 
 const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -163,8 +225,8 @@ const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6
 /**
  * The bar over the list: Tick all (every row shown), and once some are ticked how many (and how
  * many of them are out of sight), then what to do with them: add them to a rewaz routine (a list
- * of routines, or a new one), star them, export them to a song file, delete the user's own
- * (asked first, in the bar; the built-in exercises stay) or untick them.
+ * of routines, or a new one), edit the user's own (bulkEditHTML), star them, export them to a song
+ * file, delete the user's own (asked first, in the bar; the built-in exercises stay) or untick them.
  */
 export function libSelHTML(o: LibSel): string {
   const all = '<label class="tkall"><input type="checkbox" data-selall="1"' + (o.shown && o.shownTicked === o.shown ? ' checked' : o.shownTicked ? ' data-mixed="1"' : '') + (o.shown ? '' : ' disabled') + '> Tick all</label>';
@@ -184,6 +246,7 @@ export function libSelHTML(o: LibSel): string {
     : '';
   return '<div class="lselbar on">' + all + '<span class="spacer"></span>' + count +
     '<span class="dbk"><button type="button" class="btn bkbtn" data-lsel="rewaz" aria-expanded="' + !!o.menu + '" aria-controls="libRwMenu">Add to rewaz' + CHEVRON + '</button>' + menu + '</span>' +
+    (o.own ? '<span class="dbk"><button type="button" class="btn bkbtn" data-lsel="edit" aria-expanded="' + !!o.editing + '" aria-controls="libEdit">Edit' + CHEVRON + '</button>' + (o.editing ? bulkEditHTML(o.editing, o.own, o.ticked, o.kinds, o.tags ?? []) : '') + '</span>' : '') +
     (o.own ? b(o.allFav ? 'unfav' : 'fav', o.allFav ? '☆ Unfavourite' : '★ Favourite') : '') +
     b('export', 'Export') +
     (o.own ? b('del', o.own === o.ticked ? (o.own === 1 ? 'Delete it' : 'Delete all ' + o.own) : 'Delete your ' + o.own, ' danger') : '') +
@@ -230,6 +293,8 @@ export interface SongsHost {
    * new routine). */
   routines(): { id: string; name: string; n: number }[];
   addTo(routine: string, ids: readonly string[]): void;
+  /** The user's own ticked changed together (Edit). */
+  editAll(ids: readonly string[], p: BulkPatch): void;
 }
 
 export function initSongs(host: SongsHost): { render(): void } {
@@ -247,6 +312,8 @@ export function initSongs(host: SongsHost): { render(): void } {
   let anchor = '';
   let asking = false;
   let menu = false;
+  /** Edit open, with its choices so far. */
+  let editing: BulkForm | null = null;
 
   /** The rows shown (in sections not folded away), and every row drawn, in the order listed. */
   const shownIds = () => Array.from(list.querySelectorAll<HTMLElement>('.lsecbody:not([hidden]) .lrow[data-id]'), (r) => r.dataset.id!);
@@ -277,12 +344,16 @@ export function initSongs(host: SongsHost): { render(): void } {
     const shown = shownIds();
     const mine = own.filter((s) => selected.has(s.id));
     const ex = mine.filter(isExercise).length;
-    if (!mine.length) asking = false;
+    if (!mine.length) {
+      asking = false;
+      editing = null;
+    }
     if (!selected.size) menu = false;
     bar.innerHTML = libSelHTML({
       ticked: selected.size, hidden: Array.from(selected).filter((id) => !shown.includes(id)).length, own: mine.length,
       kinds: ex === 0 ? 'song' : ex === mine.length ? 'exercise' : 'both', allFav: mine.length > 0 && mine.every((s) => s.fav),
       shown: shown.length, shownTicked: shown.filter((id) => selected.has(id)).length, asking, menu: menu ? host.routines() : null,
+      editing, tags: editing ? tagsOf(mine) : [],
     });
     showMixed(bar);
     bar.classList.toggle('lselon', selected.size > 0);
@@ -404,11 +475,33 @@ export function initSongs(host: SongsHost): { render(): void } {
       refocusBar('[data-lsel="rewaz"]');
       return;
     }
+    // A tag to take off, pressed or not: changed in place, so the keyboard stays on it.
+    if (b.dataset.ledrop != null && editing) {
+      const tag = b.dataset.ledrop;
+      const on = !editing.drop.includes(tag);
+      editing = { ...editing, drop: on ? [...editing.drop, tag] : editing.drop.filter((x) => x !== tag) };
+      b.setAttribute('aria-pressed', String(on));
+      editReady();
+      return;
+    }
     const act = b.dataset.lsel;
     if (act === 'rewaz') {
       menu = !menu;
+      editing = null;
       render();
       refocusBar(menu ? '#libRwMenu button' : '[data-lsel="rewaz"]');
+    } else if (act === 'edit' || act === 'editclose') {
+      editing = act === 'edit' && !editing ? { ...NO_EDIT } : null;
+      menu = false;
+      render();
+      refocusBar(editing ? '#libEdit [data-le="add"]' : '[data-lsel="edit"]');
+    } else if (act === 'apply' && editing) {
+      const p = bulkPatch(editing);
+      if (!p) return;
+      editing = null;
+      host.editAll(mine, p);
+      render();
+      refocusBar('[data-lsel="edit"]');
     } else if (act === 'fav' || act === 'unfav') {
       host.setFavs(mine, act === 'fav');
       refocusBar('[data-lsel="' + (act === 'fav' ? 'unfav' : 'fav') + '"]');
@@ -430,15 +523,39 @@ export function initSongs(host: SongsHost): { render(): void } {
       refocusBar('input[data-selall]');
     }
   });
-  // Escape closes Add to rewaz, then stops asking, then unticks everything.
+  /** Edit's Apply, there to press once something is chosen. */
+  function editReady(): void {
+    const apply = bar.querySelector<HTMLButtonElement>('[data-lsel="apply"]');
+    if (apply && editing) apply.disabled = !bulkPatch(editing);
+  }
+  // Edit's choices kept as they are typed and picked, without drawing the bar again.
+  const editField = (e: Event) => {
+    const el = e.target as HTMLInputElement | HTMLSelectElement;
+    const k = el.dataset.le;
+    if (!editing || !k) return;
+    if (k === 'add' || k === 'sa' || k === 'tempo' || k === 'speed') editing = { ...editing, [k]: el.value };
+    else if (k === 'list') editing = { ...editing, list: el.value === 'song' || el.value === 'exercise' ? el.value : '' };
+    editReady();
+  };
+  bar.addEventListener('input', editField);
+  bar.addEventListener('change', editField);
+  // Enter in a box of Edit applies it.
+  bar.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' || !editing || !(e.target as Element).closest('#libEdit input')) return;
+    e.preventDefault();
+    bar.querySelector<HTMLButtonElement>('[data-lsel="apply"]:not(:disabled)')?.click();
+  });
+  // Escape closes Add to rewaz or Edit, then stops asking, then unticks everything.
   for (const el of [list, bar]) {
     el.addEventListener('keydown', (e) => {
-      if (e.key !== 'Escape' || (!menu && !asking && !selected.size)) return;
+      if (e.key !== 'Escape' || (!menu && !editing && !asking && !selected.size)) return;
       e.preventDefault();
-      if (menu) {
+      if (menu || editing) {
+        const was = editing ? 'edit' : 'rewaz';
         menu = false;
+        editing = null;
         render();
-        refocusBar('[data-lsel="rewaz"]');
+        refocusBar('[data-lsel="' + was + '"]');
         return;
       }
       const was = asking;

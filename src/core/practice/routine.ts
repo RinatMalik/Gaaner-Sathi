@@ -25,7 +25,7 @@ export interface RoutineItem {
   roundGap?: number;
 }
 
-/** A Sa, as a song keeps it. */
+/** A Sa, as a song keeps it (a take keeps the one it was sung in). */
 export interface RoutineSa {
   saKey: number;
   saOct: SaOct;
@@ -35,9 +35,6 @@ export interface Routine {
   id: string;
   name: string;
   items: RoutineItem[];
-  /** One Sa for all its items while it runs, never saved to a song (Rinat, 2026-11-09: a rewaz
-   * meant for C played its later songs in C♯); absent: each song's own. */
-  sa?: RoutineSa;
   /** Seconds of break between items, 0–120 (Rinat, 2026-10-15); absent: ITEM_GAP. */
   gap?: number;
   /** ms since epoch. */
@@ -98,8 +95,8 @@ export function cleanRoutine(id: string, v: unknown): Routine | null {
   const r: Routine = { id, name, items, updatedAt: typeof o.updatedAt === 'number' && Number.isFinite(o.updatedAt) ? o.updatedAt : 0 };
   const gap = int(o.gap, 0, ROUTINE_LIMITS.gap);
   if (gap != null) r.gap = gap;
-  const sa = cleanSa(o.sa);
-  if (sa) r.sa = sa;
+  // A routine's own Sa (2026-11-09 to 2026-11-13) is no longer read: the Sa picked at the top
+  // plays every item now (Rinat, 2026-11-13: "Get rid of the option to add 'Sa for every item'").
   // Until 2026-10-28 the break between rounds was the routine's, for all its items: now each
   // item's own, starting from it.
   const roundGap = int(o.roundGap, 0, ROUTINE_LIMITS.gap);
@@ -164,24 +161,37 @@ export function stepAt(count: number, moving: readonly number[], dir: -1 | 1): n
   return dir < 0 ? Math.max(0, left(set[0]!) - 1) : Math.min(count - set.length, left(set.at(-1)!) + 1);
 }
 
+/** The tempo an item plays at: one set at the top for every song (`flat`), else its own, else its
+ * song's. */
+export const itemTempo = (it: RoutineItem, s: SongShape, flat?: number): number => flat ?? it.tempo ?? s.tempo;
+
 /**
- * Roughly how long a routine takes, seconds: each item's beats × rounds at its tempo, a
- * count-in cycle, the breaks between its rounds (each with a count-in cycle again), and the gap
- * after it. Items whose song is gone count nothing. `from`: the items from that one on, for the
- * time left in a rewaz (Rinat, 2026-10-31).
+ * Roughly how long one item takes, seconds (Rinat, 2026-11-13: "mention the duration of the
+ * song"): its lines × rounds at its tempo, a count-in cycle, and the breaks between its rounds (each
+ * with a count-in cycle again). 0 when its song is gone or has no notes.
  */
-export function routineSeconds(r: Routine, shapeOf: (id: string) => SongShape | null, countIn: boolean, from = 0): number {
+export function itemSeconds(it: RoutineItem, s: SongShape | null, countIn: boolean, flat?: number): number {
+  if (!s || !s.lineBeats.length) return 0;
+  const [a, b] = itemLines(it, s.lineBeats.length);
+  let beats = 0;
+  for (let k = a; k <= b; k++) beats += s.lineBeats[k]!;
+  const spb = 60 / itemTempo(it, s, flat);
+  const breaks = roundGapOf(it) ? it.rounds - 1 : 0;
+  return (beats * it.rounds + (countIn ? s.cycle * (1 + breaks) : 0)) * spb + breaks * roundGapOf(it);
+}
+
+/**
+ * Roughly how long a routine takes, seconds: each item's time (itemSeconds) and the gap after it.
+ * Items whose song is gone count nothing. `from`: the items from that one on, for the time left in
+ * a rewaz (Rinat, 2026-10-31). `flat`: a tempo set at the top, which every item plays at.
+ */
+export function routineSeconds(r: Routine, shapeOf: (id: string) => SongShape | null, countIn: boolean, from = 0, flat?: number): number {
   let t = 0;
   r.items.forEach((it, i) => {
     if (i < from) return;
     const s = shapeOf(it.song);
     if (!s || !s.lineBeats.length) return;
-    const [a, b] = itemLines(it, s.lineBeats.length);
-    let beats = 0;
-    for (let k = a; k <= b; k++) beats += s.lineBeats[k]!;
-    const spb = 60 / (it.tempo ?? s.tempo);
-    const breaks = roundGapOf(it) ? it.rounds - 1 : 0;
-    t += (beats * it.rounds + (countIn ? s.cycle * (1 + breaks) : 0)) * spb + breaks * roundGapOf(it) + (i < r.items.length - 1 ? gapOf(r) : 0);
+    t += itemSeconds(it, s, countIn, flat) + (i < r.items.length - 1 ? gapOf(r) : 0);
   });
   return t;
 }

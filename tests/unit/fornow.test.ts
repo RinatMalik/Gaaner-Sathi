@@ -1,6 +1,7 @@
-// Rounds fifty-eight and fifty-nine (Rinat, 2026-11-10): the top panel for now, a song's own
-// settings in Edit notation; what every song shares; one list of Sa from C2 to B5, saying which
-// key; the virtual keyboard folding; no speed-up setting.
+// Rounds fifty-eight to sixty (Rinat, 2026-11-10 and 2026-11-13): the top panel's Sa, tempo, taal
+// and rhythm speed for every song until a refresh, a song's own settings in Edit notation; what
+// every song shares; one list of Sa from C2 to B5, saying which key; the virtual keyboard folding;
+// no speed-up setting.
 import { describe, expect, it } from 'vitest';
 import page from '../../index.html?raw';
 import { DEFAULT_PREFS, loadPrefs, STORE_KEYS, type KeyValueStore } from '../../src/app/store';
@@ -9,36 +10,32 @@ import { DEFAULT_SOUND } from '../../src/audio/sound';
 import { saMidi } from '../../src/audio/dsp/pitch';
 import { cleanSa } from '../../src/core/practice/routine';
 import { cleanTake } from '../../src/core/practice/take';
-import { trimForNow } from '../../src/core/song/fornow';
+import { withNow } from '../../src/core/song/fornow';
 import { normalize } from '../../src/core/song/model';
-import { soundOf } from '../../src/core/song/sound';
 
-const own = { sa: { saKey: 1, saOct: 4 }, tempo: 100, sound: soundOf(structuredClone(DEFAULT_SOUND)) };
-
-describe('what the top panel has changed', () => {
-  it('keeps only what differs from the song’s own', () => {
-    expect(trimForNow({}, own)).toEqual({});
-    expect(trimForNow({ tempo: 100 }, own)).toEqual({});
-    expect(trimForNow({ tempo: 90 }, own)).toEqual({ tempo: 90 });
-    expect(trimForNow({ sa: { saKey: 1, saOct: 4 } }, own)).toEqual({});
-    expect(trimForNow({ sa: { saKey: 1, saOct: 3 } }, own)).toEqual({ sa: { saKey: 1, saOct: 3 } });
-    expect(trimForNow({ sa: { saKey: 0, saOct: 4 } }, own)).toEqual({ sa: { saKey: 0, saOct: 4 } });
+describe('what the top panel sets for every song', () => {
+  it('lays a change over what it had', () => {
+    expect(withNow({}, { tempo: 90 })).toEqual({ tempo: 90 });
+    expect(withNow({ tempo: 90 }, { sa: { saKey: 0, saOct: 4 } })).toEqual({ tempo: 90, sa: { saKey: 0, saOct: 4 } });
+    expect(withNow({ tempo: 90, speed: 'half' }, { speed: 'double' })).toEqual({ tempo: 90, speed: 'double' });
   });
 
-  it('a rhythm speed put back is no longer a change', () => {
-    expect(trimForNow({ sound: { speed: 'normal' } }, own)).toEqual({});
-    expect(trimForNow({ sound: { speed: 'half' } }, own)).toEqual({ sound: { speed: 'half' } });
+  it('keeps a key, taal or speed picked even when it is the open song’s own: the next song plays in it too', () => {
+    expect(withNow({}, { sa: { saKey: 1, saOct: 4 } })).toEqual({ sa: { saKey: 1, saOct: 4 } });
+    expect(withNow({}, { taal: 'keherwa' })).toEqual({ taal: 'keherwa' });
+    expect(withNow({}, { speed: 'normal' })).toEqual({ speed: 'normal' });
   });
 
-  it('keeps a taal picked, and takes off what was cleared', () => {
-    expect(trimForNow({ taal: 'dadra' }, own)).toEqual({ taal: 'dadra' });
-    expect(trimForNow({ taal: undefined, tempo: undefined, sa: undefined, sound: undefined }, own)).toEqual({});
+  it('“Song’s own” (undefined) takes that one off, and leaves the others', () => {
+    const now = { sa: { saKey: 0, saOct: 4 as const }, tempo: 90, taal: 'dadra' as const, speed: 'half' as const };
+    expect(withNow(now, { sa: undefined })).toEqual({ tempo: 90, taal: 'dadra', speed: 'half' });
+    expect(withNow(now, { tempo: undefined, taal: undefined, speed: undefined, sa: undefined })).toEqual({});
   });
 
   it('changes nothing it is given', () => {
-    const now = { tempo: 90, sound: { speed: 'half' as const } };
+    const now = { tempo: 90, speed: 'half' as const };
     const before = structuredClone(now);
-    trimForNow(now, own);
+    withNow(now, { tempo: undefined });
     expect(now).toEqual(before);
   });
 });
@@ -104,8 +101,9 @@ describe('the top panel and Edit notation', () => {
     expect(page).not.toContain('>this song<');
   });
 
-  it('has Revert, off until something is changed, and says where a song’s own are changed', () => {
-    expect(deck).toMatch(/<button[^>]*id="revertBtn"[^>]* disabled>Revert to this song’s settings<\/button>/);
+  it('has no Revert any more, and says where a song’s own are changed', () => {
+    expect(page).not.toContain('revertBtn');
+    expect(page).not.toContain('Revert to this');
     expect(deck).toContain('To change this <span id="nowWhat">song</span>’s own settings, go to <button type="button" class="dlink" id="nowEdit">Edit notation</button>.');
   });
 
@@ -123,9 +121,9 @@ describe('the top panel and Edit notation', () => {
     expect(row.slice(0, row.indexOf('</div>'))).toMatch(/id="loopChk".*id="pOct"/);
   });
 
-  it('the two have the same rhythm speeds', () => {
+  it('the two have the same rhythm speeds, the top’s “Song’s own” first', () => {
     const options = (id: string) => /<select id="[^"]*"[^>]*>(.*?)<\/select>/.exec(page.slice(page.indexOf('<select id="' + id + '"')))![1];
-    expect(options('edSpeed')).toBe(options('speedSel'));
+    expect(options('speedSel')).toBe('<option value="">Song’s own</option>' + options('edSpeed'));
   });
 });
 
