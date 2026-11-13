@@ -1,0 +1,472 @@
+<title>Torongini Wave Logos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&family=Hind+Siliguri:wght@400;500;600&family=Noto+Serif+Bengali:wdth,wght@62.5..100,100..900&family=Anek+Bangla:wdth,wght@75..125,100..800&display=swap">
+<style>
+/* Layout: a short brief, a preview of the pick in the app's header, a sticky bar to switch the name's
+   typeface for every logo at once, the ten logos two-up (each by day and by night), then the taglines.
+   Colours are the app's own: paper, ink, brass, rosewood, and a river blue for the water. */
+:root{
+  --bg:#eceeea; --card:#fbfbf8; --fg:#1b1c24; --fg2:#5c5f6c; --accent:#8a6514; --rule:#d9dcdf; --focus:#2560c7;
+  --wood:#3e1f15; --on-wood:#f5e9d7;
+  --tiro:"Tiro Bangla","Noto Serif Bengali",Georgia,serif;
+  --hind:"Hind Siliguri","Noto Sans Bengali",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111115; --card:#19191f; --fg:#ecebe5; --fg2:#a2a3ae; --accent:#d3a843; --rule:#2c2c35; --focus:#86aaff;
+  --wood:#3a1c12; --on-wood:#f1e3cf; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111115; --card:#19191f; --fg:#ecebe5; --fg2:#a2a3ae; --accent:#d3a843; --rule:#2c2c35; --focus:#86aaff;
+  --wood:#3a1c12; --on-wood:#f1e3cf; color-scheme:dark}
+
+/* The app's two colour schemes, fixed, so every logo shows both whatever the viewer's theme. */
+.pl{--paper:#eceeea;--sheet:#fbfbf8;--ink:#1b1c24;--ink2:#5c5f6c;--line:#d9dcdf;--brass:#b8892a;--brass-hi:#efcd6a;--brass-dk:#94701c;--brass-ink:#2a1608;
+  --river:#2569ad;--tile:#3e1f15;--on-wood:#f5e9d7;--shade:rgba(20,30,60,.45)}
+.pd{--paper:#111115;--sheet:#19191f;--ink:#ecebe5;--ink2:#a2a3ae;--line:#2c2c35;--brass:#d3a843;--brass-hi:#f2d176;--brass-dk:#a07a26;--brass-ink:#22120a;
+  --river:#6fa8e8;--tile:#3a1c12;--on-wood:#f1e3cf;--shade:rgba(0,0,0,.7)}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.55 var(--hind);margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 96px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:1180px;margin:0 auto}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.hero{padding-block:40px 14px;max-width:72ch}
+.eyebrow{font:600 12px/1 var(--hind);letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+.eyebrow b{font:400 16px/1 var(--tiro);letter-spacing:0;text-transform:none}
+h1{font:400 clamp(30px,5vw,46px)/1.08 var(--tiro);margin:0 0 14px;text-wrap:balance}
+h2{font:400 clamp(24px,3.4vw,32px)/1.15 var(--tiro);margin:0 0 6px;text-wrap:balance}
+.hero p,.lede{color:var(--fg2);margin:0 0 10px;max-width:68ch}
+
+/* The typeface bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--bg);padding-block:10px;margin-block:8px 6px;border-bottom:1px solid var(--rule);display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.bar .lab{font:600 12px/1 var(--hind);letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{display:inline-flex;align-items:baseline;gap:8px;font:500 13px/1 var(--hind);padding:7px 12px;border-radius:999px;border:1px solid var(--rule);background:var(--card);color:var(--fg);cursor:pointer}
+.seg button .smp{font-size:20px;line-height:1}
+.seg button[aria-pressed="true"]{background:var(--wood);color:var(--on-wood);border-color:var(--wood)}
+.latbox{display:inline-flex;align-items:center;gap:7px;font-size:14px;color:var(--fg2);cursor:pointer}
+.latbox input{accent-color:var(--accent);margin:0}
+
+/* Preview of the pick */
+#preview{grid-template-columns:minmax(0,1fr);scroll-margin-top:72px;background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:18px;margin-block:12px 30px;display:grid;gap:14px}
+.pvhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 16px}
+.pvsum{color:var(--fg2);font-size:14px}
+.pvgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.mock{background:var(--paper);color:var(--ink);border-radius:12px;border:1px solid var(--line);overflow:hidden;min-width:0}
+.mtop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:12px 16px 0}
+.mtop .slot{flex:1 1 0;min-width:0}
+.mright{flex:none;font:500 12px/1 var(--hind);color:var(--ink2);border:1px solid var(--line);background:var(--sheet);border-radius:999px;padding:7px 10px;margin-top:6px}
+.mtag{padding:2px 16px 0;font:400 16px/1.35 var(--tiro);color:var(--ink2)}
+.mtabs{display:flex;gap:6px;padding:12px 16px;flex-wrap:wrap}
+.mtabs span{font:500 13px/1 var(--hind);padding:7px 11px;border-radius:999px;background:var(--sheet);border:1px solid var(--line);color:var(--ink2)}
+.mtabs .on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.mdeck{background:var(--tile);height:52px;display:flex;align-items:center;gap:12px;padding:0 16px}
+.mdeck i{width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--brass-hi),var(--brass) 60%,var(--brass-dk));display:grid;place-items:center}
+.mdeck i::after{content:"";border-left:10px solid var(--brass-ink);border-top:6.5px solid transparent;border-bottom:6.5px solid transparent;margin-left:3px}
+.mdeck span{height:6px;border-radius:3px;background:var(--on-wood);opacity:.25;flex:1}
+.phonewrap{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.phone{width:360px;max-width:100%}
+.phone .mtabs span{padding:6px 8px;font-size:12px}
+.phone .logo svg{max-width:250px}
+.pvnote{font-size:13px;color:var(--fg2);margin:0;max-width:52ch}
+.copyrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:600 14px/1 var(--hind);padding:11px 16px;border-radius:999px;border:1px solid var(--wood);background:var(--wood);color:var(--on-wood);cursor:pointer}
+.btn:hover{filter:brightness(1.15)}
+#copyOut{font-size:14px;color:var(--fg2)}
+#copyTxt{width:100%;font:14px var(--hind);padding:8px;border:1px solid var(--rule);border-radius:8px;background:var(--bg);color:var(--fg)}
+
+/* The cards */
+.sect{margin-block:34px 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:18px;margin-top:14px}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.chead{display:flex;align-items:baseline;gap:10px}
+.num{font:400 26px/1 var(--tiro);color:var(--accent);min-width:1.4em;font-variant-numeric:tabular-nums}
+.chead h3{font:600 17px/1.2 var(--hind);margin:0}
+.idea{margin:0;color:var(--fg2);font-size:14.5px;line-height:1.5}
+.panes{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}
+.pane{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:20px 10px 12px;min-height:118px;display:flex;align-items:center;overflow:hidden;min-width:0}
+.pane small{position:absolute;top:6px;right:10px;font:600 10px/1 var(--hind);letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+.cfoot{display:flex;justify-content:flex-end}
+.pick{display:inline-flex;align-items:center;gap:8px;font:600 14px/1 var(--hind);padding:10px 14px;border-radius:999px;border:1px solid var(--rule);cursor:pointer;background:var(--bg)}
+.pick input{accent-color:var(--accent);margin:0}
+.card.sel .pick{border-color:var(--accent);color:var(--accent)}
+
+/* A logo */
+.logo{display:flex;flex-direction:column;align-items:flex-start;min-width:0;max-width:100%}
+.logo svg{display:block;max-width:100%;height:auto;overflow:visible}
+.logo .lat{font:600 10px/1 var(--hind);letter-spacing:.34em;text-transform:uppercase;color:var(--ink2);margin-top:-2px;white-space:nowrap}
+.nolat .logo .lat{display:none}
+.fI{fill:var(--ink)} .fV{fill:var(--river)} .fB{fill:var(--brass)}
+.sI{stroke:var(--ink)} .sV{stroke:var(--river)} .sB{stroke:var(--brass)} .sP{stroke:var(--paper)}
+.stV{stop-color:var(--river)} .stB{stop-color:var(--brass)} .stI{stop-color:var(--ink)}
+.halo{stroke:var(--paper);stroke-linejoin:round;paint-order:stroke fill}
+
+/* Taglines */
+.tags{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:8px 18px;margin-top:8px}
+.tagcol h3{font:600 13px/1 var(--hind);letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:14px 0 8px}
+.tag{display:grid;grid-template-columns:auto 1.7em minmax(0,1fr);align-items:baseline;gap:4px 8px;padding:10px 12px;border-radius:10px;border:1px solid transparent;cursor:pointer}
+.tag:hover{background:var(--card)}
+.tag.sel{background:var(--card);border-color:var(--accent)}
+.tag input{accent-color:var(--accent);margin:0;align-self:center}
+.tag .tn{font:400 15px/1 var(--tiro);color:var(--accent);font-variant-numeric:tabular-nums}
+.tag .tt{font:400 19px/1.35 var(--tiro)}
+.tag .tm{grid-column:3;font-size:13px;color:var(--fg2)}
+.notes{margin-block:40px 0;max-width:72ch;color:var(--fg2);font-size:15px}
+.notes h2{color:var(--fg)}
+.notes li{margin-bottom:6px}
+
+.pickbar{position:fixed;left:0;right:0;bottom:0;z-index:7;background:var(--wood);color:var(--on-wood);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 14px;
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));font-size:14px}
+.pickbar a{color:var(--on-wood);font-weight:600}
+.measure{position:absolute;left:-9999px;top:0;visibility:hidden}
+
+@media (max-width:760px){.pvgrid{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:no-preference){.card,.tag{transition:border-color .15s,box-shadow .15s,background .15s}}
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <p class="eyebrow">Torongini · <b>তরঙ্গিণী</b> · round two</p>
+    <h1>Ten logos where the waves meet the name</h1>
+    <p>From your notes: the waves run through the name or behind it, some at an angle, and the name is tall and fine-lined. They are numbered on from the first twenty, 21 to 30, so no number means two things.</p>
+    <p>Use the bar below to see every logo in each typeface: “Like logo 11” is that one’s; the other three are taller and thinner still.</p>
+  </header>
+
+  <div class="bar" role="group" aria-label="The name's typeface, for every logo">
+    <span class="lab">The name in</span>
+    <div class="seg" id="fontSeg"></div>
+    <label class="latbox"><input type="checkbox" id="latChk" checked> “Torongini” underneath</label>
+  </div>
+
+  <section id="preview" aria-labelledby="pvTitle">
+    <div class="pvhead"><h2 id="pvTitle">Your pick, in the app</h2><span class="pvsum" id="pvSum"></span></div>
+    <div class="pvgrid">
+      <div class="mock pl" aria-label="By day"><div class="mtop"><div class="slot"></div><span class="mright">বাংলা ▾</span></div><div class="mtag"></div><div class="mtabs"><span class="on">Practice</span><span>Music library</span><span>Rewaz</span><span>Progress</span></div><div class="mdeck"><i></i><span></span></div></div>
+      <div class="mock pd" aria-label="By night"><div class="mtop"><div class="slot"></div><span class="mright">বাংলা ▾</span></div><div class="mtag"></div><div class="mtabs"><span class="on">Practice</span><span>Music library</span><span>Rewaz</span><span>Progress</span></div><div class="mdeck"><i></i><span></span></div></div>
+    </div>
+    <div class="phonewrap">
+      <div class="mock pl phone" aria-label="On a phone, 360 pixels wide"><div class="mtop"><div class="slot"></div></div><div class="mtag"></div><div class="mtabs"><span class="on">Practice</span><span>Library</span><span>Rewaz</span><span>Progress</span></div><div class="mdeck"><i></i><span></span></div></div>
+      <div style="display:grid;gap:10px;min-width:0;flex:1 1 260px">
+        <p class="pvnote">On the left, a phone held upright, 360 pixels wide. When you have chosen a logo, a typeface and a tagline, copy your picks and paste them into our chat.</p>
+        <div class="copyrow"><button type="button" class="btn" id="copyBtn">Copy my picks</button><span id="copyOut" role="status"></span></div>
+        <input id="copyTxt" type="text" readonly hidden aria-label="Your picks, to copy">
+      </div>
+    </div>
+  </section>
+
+  <section class="sect" aria-labelledby="logosTitle">
+    <h2 id="logosTitle">The logos</h2>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section class="sect" aria-labelledby="tagsTitle">
+    <h2 id="tagsTitle">Ten more taglines, all in Bengali</h2>
+    <p class="lede">With your two favourites from the first list beside them, to compare. Each has its meaning underneath; please change any word that does not sound like you.</p>
+    <div class="tags" id="tags"></div>
+  </section>
+
+  <section class="notes" aria-labelledby="notesTitle">
+    <h2 id="notesTitle">Once you have picked</h2>
+    <ul>
+      <li>The chosen logo replaces the name at the top left of every view, in both colour schemes, drawn as a picture so the app loads no new typeface.</li>
+      <li>Anything can be adjusted: the angle and number of the waves, their colours, the typeface, the English line kept or dropped.</li>
+      <li>Its app icon (the browser tab and a phone’s home screen) is made from it afterwards.</li>
+    </ul>
+  </section>
+</div>
+
+<svg class="measure" aria-hidden="true" width="10" height="10"><text id="measureText" x="0" y="100" font-size="100">তরঙ্গিণী</text></svg>
+<div class="pickbar" role="region" aria-label="Your picks"><span id="pickSum"></span><a href="#preview">See them together</a></div>
+
+<script>
+(function () {
+  var BN = 'তরঙ্গিণী';
+  var FONTS = [
+    { id: 'tiro', label: 'Like logo 11', family: 'Tiro Bangla', style: 'italic', weight: 400, stretch: '100%', size: 42 },
+    { id: 'serif', label: 'Slender serif', family: 'Noto Serif Bengali', style: 'normal', weight: 300, stretch: '75%', size: 48 },
+    { id: 'hair', label: 'Hairline serif', family: 'Noto Serif Bengali', style: 'normal', weight: 200, stretch: '62.5%', size: 54 },
+    { id: 'sans', label: 'Slender sans', family: 'Anek Bangla', style: 'normal', weight: 300, stretch: '75%', size: 48 },
+  ];
+  var FALLBACK = { w: 2.9, asc: 0.92, desc: 0.08, mt: 0.62, mb: 0.57 };
+  var PI = Math.PI;
+  function r(v) { return Math.round(v * 100) / 100; }
+  // A smooth path through y = f(x), as cubic pieces whose handles follow the slope.
+  function seg(f, xa, xb, n) {
+    var h = (xb - xa) / n, e = Math.abs(h) / 40 || 0.01, s = '';
+    var x = xa, y = f(x), d = (f(x + e) - f(x - e)) / (2 * e);
+    for (var i = 1; i <= n; i++) {
+      var xn = xa + i * h, yn = f(xn), dn = (f(xn + e) - f(xn - e)) / (2 * e);
+      s += ' C' + r(x + h / 3) + ' ' + r(y + d * h / 3) + ' ' + r(xn - h / 3) + ' ' + r(yn - dn * h / 3) + ' ' + r(xn) + ' ' + r(yn);
+      x = xn; y = yn; d = dn;
+    }
+    return s;
+  }
+  function path(f, xa, xb, n) { return 'M' + r(xa) + ' ' + r(f(xa)) + seg(f, xa, xb, n); }
+  function steps(xa, xb, lam) { return Math.max(4, Math.ceil(Math.abs(xb - xa) / (lam / 8))); }
+  function fade(id, x0, x1, cls, edge) {
+    return '<linearGradient id="' + id + '" gradientUnits="userSpaceOnUse" x1="' + r(x0) + '" y1="0" x2="' + r(x1) + '" y2="0">' +
+      '<stop offset="0" class="' + cls + '" stop-opacity="0"/><stop offset="' + edge + '" class="' + cls + '"/><stop offset="' + (1 - edge) + '" class="' + cls + '"/><stop offset="1" class="' + cls + '" stop-opacity="0"/></linearGradient>';
+  }
+  function ripple(id, fx, fy, scale) {
+    return '<filter id="' + id + '" x="-5%" y="-30%" width="110%" height="160%"><feTurbulence type="turbulence" baseFrequency="' + fx + ' ' + fy + '" numOctaves="1" seed="4" result="t"/><feDisplacementMap in="SourceGraphic" in2="t" scale="' + scale + '" xChannelSelector="R" yChannelSelector="G"/></filter>';
+  }
+
+  // Each logo, drawn from the typeface's own measurements: c.W the name's width, c.a its height above the
+  // baseline, c.mc the middle of its headline (the মাত্রা) above the baseline, c.mth that line's thickness.
+  var LOGOS = [
+    { n: 21, name: 'Diagonal current', idea: 'Four fine waves rise across the name at an angle and pass behind its letters: logo 9 as you described it.',
+      draw: function (c) {
+        var S = c.S, W = c.W, L = 0.9 * S, w = W + 1.8 * S, h = 1.85 * S, B = 0.64 * h, cx = L + W / 2, cy = B - 0.3 * S;
+        var lam = 0.95 * S, k = 2 * PI / lam, x0 = -0.3 * S, x1 = w + 0.3 * S, n = steps(x0, x1, lam);
+        var offs = [-0.27, -0.09, 0.09, 0.27], amps = [0.06, 0.09, 0.08, 0.05], col = ['V', 'B', 'V', 'B'], wid = [1.1, 1.5, 1.3, 1];
+        var lines = '';
+        offs.forEach(function (o, i) {
+          var y0 = cy + o * S, A = amps[i] * S, ph = i * 0.9;
+          lines += '<path d="' + path(function (x) { return y0 + A * Math.sin(k * x + ph); }, x0, x1, n) + '" fill="none" stroke="url(#' + c.u + 'g' + col[i] + ')" stroke-width="' + wid[i] + '" stroke-linecap="round"/>';
+        });
+        return { w: w, h: h, L: L, svg: '<defs>' + fade(c.u + 'gV', x0, x1, 'stV', 0.22) + fade(c.u + 'gB', x0, x1, 'stB', 0.22) + '</defs>' +
+          '<g transform="rotate(-13 ' + r(cx) + ' ' + r(cy) + ')">' + lines + '</g>' + c.text(L, B, 'fI halo', 'stroke-width="' + r(0.1 * S) + '"') };
+      } },
+    { n: 22, name: 'Silk ribbons', idea: 'Two sheer ribbons, river blue and brass, cross behind the name: wide in the middle, fine at the ends.',
+      draw: function (c) {
+        var S = c.S, W = c.W, L = 0.75 * S, w = W + 1.5 * S, h = 1.8 * S, B = 0.64 * h, cx = L + W / 2, cy = B - 0.3 * S;
+        function ribbon(yc, half, A, lam, ph, x0, x1) {
+          var k = 2 * PI / lam, n = steps(x0, x1, lam), span = x1 - x0;
+          function env(x) { var t = Math.min(1, Math.max(0, (x - x0) / span)); return Math.pow(Math.sin(PI * t), 0.8); }
+          var top = function (x) { return yc - half * env(x) + A * Math.sin(k * x + ph); };
+          var bot = function (x) { return yc + half * env(x) + A * Math.sin(k * x + ph + 0.9); };
+          return path(top, x0, x1, n) + ' L' + r(x1) + ' ' + r(bot(x1)) + seg(bot, x1, x0, n) + 'Z';
+        }
+        var r1 = ribbon(cy, 0.17 * S, 0.12 * S, 1.3 * S, 0, 0.05 * S, w - 0.05 * S);
+        var r2 = ribbon(cy + 0.05 * S, 0.13 * S, 0.1 * S, 1.05 * S, 2, 0.2 * S, w - 0.2 * S);
+        return { w: w, h: h, L: L, svg: '<g transform="rotate(-10 ' + r(cx) + ' ' + r(cy) + ')"><path d="' + r1 + '" class="fV" opacity=".3"/></g>' +
+          '<g transform="rotate(7 ' + r(cx) + ' ' + r(cy) + ')"><path d="' + r2 + '" class="fB" opacity=".4"/></g>' + c.text(L, B, 'fI') };
+      } },
+    { n: 23, name: 'Woven thread', idea: 'One gold thread weaves through the name, over one letter and under the next.',
+      draw: function (c) {
+        var S = c.S, W = c.W, L = 0.6 * S, w = W + 1.2 * S, h = 1.6 * S, B = 0.68 * h, cy = B - 0.3 * S, A = 0.2 * S, lam = W / 2.4, k = 2 * PI / lam;
+        var x0 = 0.1 * S, x1 = w - 0.1 * S, f = function (x) { return cy + A * Math.sin(k * (x - L)); }, d = path(f, x0, x1, steps(x0, x1, lam / 1.3));
+        var rects = '';
+        for (var x = L - lam * 0.25; x < x1; x += lam) rects += '<rect x="' + r(x) + '" y="0" width="' + r(lam / 2) + '" height="' + r(h) + '"/>';
+        var line = '<path d="' + d + '" fill="none" stroke="url(#' + c.u + 'g)" stroke-width="1.8" stroke-linecap="round"/>';
+        return { w: w, h: h, L: L, svg: '<defs>' + fade(c.u + 'g', x0, x1, 'stB', 0.14) + '<clipPath id="' + c.u + 'c">' + rects + '</clipPath></defs>' + line +
+          c.text(L, B, 'fI halo', 'stroke-width="' + r(0.1 * S) + '"') +
+          '<g clip-path="url(#' + c.u + 'c)"><path d="' + d + '" fill="none" class="sP" stroke-width="' + r(1.8 + 0.12 * S) + '" stroke-linecap="round"/>' + line + '</g>' };
+      } },
+    { n: 24, name: 'Half in the river', idea: 'The name wades into the river: below the water line its letters turn blue and ripple.',
+      draw: function (c) {
+        var S = c.S, W = c.W, L = 0.5 * S, w = W + S, h = 1.62 * S, B = 0.64 * h, lam = 0.8 * S, k = 2 * PI / lam, yw = B - 0.24 * S, Aw = 0.045 * S;
+        var fw = function (x) { return yw + Aw * Math.sin(k * x); }, n = steps(0, w, lam);
+        var above = 'M0 0 H' + r(w) + ' V' + r(fw(w)) + seg(fw, w, 0, n) + 'Z';
+        var below = 'M0 ' + r(fw(0)) + seg(fw, 0, w, n) + ' V' + r(h) + ' H0Z';
+        var rip = function (y, xa, xb, A, op) { return '<path d="' + path(function (x) { return y + A * Math.sin(k * 1.3 * x); }, xa, xb, steps(xa, xb, lam)) + '" fill="none" stroke="url(#' + c.u + 'g)" stroke-width="1" opacity="' + op + '"/>'; };
+        return { w: w, h: h, L: L, svg: '<defs><clipPath id="' + c.u + 'a"><path d="' + above + '"/></clipPath><clipPath id="' + c.u + 'b"><path d="' + below + '"/></clipPath>' +
+          ripple(c.u + 'f', 0.015, 0.22, 3.2) + fade(c.u + 'g', 0, w, 'stV', 0.12) + '</defs>' +
+          '<g clip-path="url(#' + c.u + 'a)">' + c.text(L, B, 'fI') + '</g>' +
+          '<g clip-path="url(#' + c.u + 'b)"><g filter="url(#' + c.u + 'f)">' + c.text(L, B, 'fV') + '</g></g>' +
+          '<path d="M0 ' + r(fw(0)) + seg(fw, 0, w, n) + '" fill="none" stroke="url(#' + c.u + 'g)" stroke-width="1.3"/>' +
+          rip(B + 0.17 * S, L + 0.15 * W, L + 0.85 * W, 0.03 * S, 0.6) + rip(B + 0.32 * S, L + 0.32 * W, L + 0.68 * W, 0.025 * S, 0.4) };
+      } },
+    { n: 25, name: 'Reflection', idea: 'The name on the river bank, its reflection trembling in the water below.',
+      draw: function (c) {
+        var S = c.S, W = c.W, L = 0.4 * S, w = W + 0.8 * S, B = c.a + 0.16 * S, g = 0.07 * S, sy = 0.62, top = B + g, h = top + c.a * sy + 0.1 * S;
+        var lam = 0.7 * S, k = 2 * PI / lam, fl = function (x) { return top + 0.02 * S * Math.sin(k * x); };
+        return { w: w, h: h, L: L, svg: '<defs>' + ripple(c.u + 'f', 0.012, 0.28, 4.5) + fade(c.u + 'g', 0, w, 'stV', 0.12) +
+          '<linearGradient id="' + c.u + 'm" gradientUnits="userSpaceOnUse" x1="0" y1="' + r(top) + '" x2="0" y2="' + r(h) + '"><stop offset="0" stop-color="#fff" stop-opacity=".8"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>' +
+          '<mask id="' + c.u + 'k" maskUnits="userSpaceOnUse" x="0" y="0" width="' + r(w) + '" height="' + r(h) + '"><rect x="0" y="' + r(top) + '" width="' + r(w) + '" height="' + r(h - top) + '" fill="url(#' + c.u + 'm)"/></mask></defs>' +
+          c.text(L, B, 'fI') +
+          '<g mask="url(#' + c.u + 'k)"><g filter="url(#' + c.u + 'f)"><g transform="matrix(1 0 0 ' + (-sy) + ' 0 ' + r((1 + sy) * top) + ')">' + c.text(L, B, 'fV') + '</g></g></g>' +
+          '<path d="' + path(fl, 0.05 * S, w - 0.05 * S, steps(0, w, lam)) + '" fill="none" stroke="url(#' + c.u + 'g)" stroke-width="1.1"/>' };
+      } },
+    { n: 26, name: 'Cut by waves', idea: 'Three waves cut clean through the letters and carry on in brass between them.',
+      draw: function (c) {
+        var S = c.S, W = c.W, L = 0.65 * S, w = W + 1.3 * S, h = 1.6 * S, B = 0.68 * h, cx = L + W / 2, cy = B - 0.3 * S, lam = 0.8 * S, k = 2 * PI / lam, A = 0.06 * S;
+        var x0 = 0, x1 = w, n = steps(x0, x1, lam), ds = [-0.17, 0, 0.17].map(function (o, i) { var y0 = cy + o * S; return path(function (x) { return y0 + A * Math.sin(k * x + i * 0.5); }, x0, x1, n); });
+        var rot = 'rotate(-7 ' + r(cx) + ' ' + r(cy) + ')';
+        var brass = ds.map(function (d) { return '<path d="' + d + '" fill="none" stroke="url(#' + c.u + 'g)" stroke-width="1.3"/>'; }).join('');
+        var cuts = ds.map(function (d) { return '<path d="' + d + '" fill="none" class="sP" stroke-width="' + r(Math.max(2, 0.05 * S)) + '"/>'; }).join('');
+        return { w: w, h: h, L: L, svg: '<defs>' + fade(c.u + 'g', x0, x1, 'stB', 0.12) + '<clipPath id="' + c.u + 't">' + c.text(L, B, '') + '</clipPath></defs>' +
+          '<g transform="' + rot + '">' + brass + '</g>' + c.text(L, B, 'fI') + '<g clip-path="url(#' + c.u + 't)"><g transform="' + rot + '">' + cuts + '</g></g>' };
+      } },
+    { n: 27, name: 'Plucked headline', idea: 'The line along the top of the letters becomes a tanpura string, plucked, and vibrating through the name.',
+      draw: function (c) {
+        var S = c.S, W = c.W, L = 0.85 * S, A = 0.24 * S, B = Math.max(c.a, c.mc + A) + 0.14 * S, h = B + c.d + 0.24 * S, w = W + 1.7 * S, m = B - c.mc;
+        var x0 = L - 0.7 * S, x1 = L + W + 0.7 * S, span = x1 - x0;
+        var v = function (sgn, harm, amp) { return path(function (x) { return m + sgn * amp * Math.sin(harm * PI * (x - x0) / span); }, x0, x1, 28); };
+        return { w: w, h: h, L: L, svg:
+          '<path d="' + v(1, 1, A) + '" fill="none" class="sV" stroke-width="1.5"/>' +
+          '<path d="' + v(-1, 1, A) + '" fill="none" class="sV" stroke-width="1.3" opacity=".6"/>' +
+          '<path d="' + v(1, 2, A * 0.55) + '" fill="none" class="sB" stroke-width="1.4"/>' +
+          '<path d="' + v(-1, 2, A * 0.55) + '" fill="none" class="sB" stroke-width="1.1" opacity=".55"/>' +
+          c.text(L, B, 'fI halo', 'stroke-width="' + r(0.08 * S) + '"') +
+          '<path d="M' + r(x0) + ' ' + r(m) + ' H' + r(x1) + '" class="sI" stroke-width="' + r(c.mth) + '"/>' +
+          '<circle cx="' + r(x0) + '" cy="' + r(m) + '" r="' + r(0.065 * S) + '" class="fB"/><circle cx="' + r(x1) + '" cy="' + r(m) + '" r="' + r(0.065 * S) + '" class="fB"/>' };
+      } },
+    { n: 28, name: 'Engraved river', idea: 'A band of fine engraved lines, like those on a banknote, flows behind the name and narrows at both ends.',
+      draw: function (c) {
+        var S = c.S, W = c.W, L = 0.6 * S, w = W + 1.2 * S, h = 1.75 * S, B = 0.66 * h, cy = B - 0.3 * S, N = 13, x0 = 0.05 * S, x1 = w - 0.05 * S, span = x1 - x0, lam = 1.1 * S, k = 2 * PI / lam;
+        function env(x) { var t = Math.min(1, Math.max(0, (x - x0) / span)); return Math.pow(Math.sin(PI * t), 0.7); }
+        var s = '';
+        for (var i = 0; i < N; i++) {
+          (function (i) {
+            var o = (i / (N - 1) - 0.5) * 0.66 * S;
+            s += '<path d="' + path(function (x) { return cy + env(x) * (o + 0.11 * S * Math.sin(k * x + i * 0.42)); }, x0, x1, steps(x0, x1, lam)) + '" fill="none" class="' + (i % 2 ? 'sB' : 'sV') + '" stroke-width=".6" opacity=".85"/>';
+          })(i);
+        }
+        return { w: w, h: h, L: L, svg: s + c.text(L, B, 'fI halo', 'stroke-width="' + r(0.1 * S) + '"') };
+      } },
+    { n: 29, name: 'Swash', idea: 'A pen stroke sweeps out of the last letter, under the name and back up through the first.',
+      draw: function (c) {
+        var S = c.S, W = c.W, L = 0.6 * S, w = W + 1.3 * S, B = Math.max(c.a + 0.2 * S, 0.9 * S), h = B + 0.62 * S, R = L + W;
+        var P = 'M' + r(R + 0.1 * S) + ' ' + r(B - 0.6 * S) +
+          ' C' + r(R + 0.62 * S) + ' ' + r(B - 0.05 * S) + ' ' + r(R + 0.18 * S) + ' ' + r(B + 0.44 * S) + ' ' + r(L + 0.62 * W) + ' ' + r(B + 0.44 * S) +
+          ' C' + r(L + 0.15 * W) + ' ' + r(B + 0.44 * S) + ' ' + r(L - 0.38 * S) + ' ' + r(B + 0.26 * S) + ' ' + r(L + 0.02 * S) + ' ' + r(B - 0.16 * S) +
+          ' C' + r(L + 0.22 * S) + ' ' + r(B - 0.4 * S) + ' ' + r(L + 0.1 * S) + ' ' + r(B - 0.74 * S) + ' ' + r(L - 0.22 * S) + ' ' + r(B - 0.86 * S);
+        var mx0 = L - 0.1 * S, mx1 = R + 0.3 * S;
+        return { w: w, h: h, L: L, svg: '<defs><linearGradient id="' + c.u + 'm" gradientUnits="userSpaceOnUse" x1="' + r(mx0) + '" y1="0" x2="' + r(mx1) + '" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".35" stop-color="#fff"/><stop offset=".75" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>' +
+          '<mask id="' + c.u + 'k" maskUnits="userSpaceOnUse" x="0" y="0" width="' + r(w) + '" height="' + r(h) + '"><rect x="0" y="' + r(B + 0.12 * S) + '" width="' + r(w) + '" height="' + r(h) + '" fill="url(#' + c.u + 'm)"/></mask></defs>' +
+          '<path d="' + P + '" fill="none" class="sB" stroke-width="1.1" stroke-linecap="round"/>' +
+          '<path d="' + P + '" fill="none" class="sB" stroke-width="2.8" stroke-linecap="round" mask="url(#' + c.u + 'k)"/>' +
+          c.text(L, B, 'fI halo', 'stroke-width="' + r(0.09 * S) + '"') };
+      } },
+    { n: 30, name: 'Paper-cut waves', idea: 'Layers of cut-paper waves rise behind the name, and the front one laps at its feet.',
+      draw: function (c) {
+        var S = c.S, W = c.W, L = 0.5 * S, w = W + S, B = c.a + 0.12 * S, h = B + 0.5 * S, lam = 0.9 * S, k = 2 * PI / lam, n = steps(0, w, lam);
+        var layer = function (yb, A, ph, op) {
+          var f = function (x) { return yb + A * Math.sin(k * x + ph); };
+          return '<path d="M0 ' + r(h) + ' V' + r(f(0)) + seg(f, 0, w, n) + ' V' + r(h) + 'Z" class="fV" opacity="' + op + '" filter="url(#' + c.u + 's)"/>';
+        };
+        // the water fades out below as well as at the sides, so it is not a block
+        var vfade = '<linearGradient id="' + c.u + 'v" gradientUnits="userSpaceOnUse" x1="0" y1="' + r(B - 0.1 * S) + '" x2="0" y2="' + r(h) + '"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>' +
+          '<mask id="' + c.u + 'q" maskUnits="userSpaceOnUse" x="0" y="0" width="' + r(w) + '" height="' + r(h) + '"><rect width="' + r(w) + '" height="' + r(h) + '" fill="url(#' + c.u + 'v)"/></mask>';
+        return { w: w, h: h, L: L, svg: '<defs><filter id="' + c.u + 's" x="-5%" y="-40%" width="110%" height="160%"><feDropShadow dx="0" dy="-0.8" stdDeviation="0.9" style="flood-color:var(--shade)" flood-opacity=".5"/></filter>' +
+          '<linearGradient id="' + c.u + 'm" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="' + r(w) + '" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".14" stop-color="#fff"/><stop offset=".86" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>' +
+          '<mask id="' + c.u + 'k" maskUnits="userSpaceOnUse" x="0" y="0" width="' + r(w) + '" height="' + r(h) + '"><rect width="' + r(w) + '" height="' + r(h) + '" fill="url(#' + c.u + 'm)"/></mask>' + vfade + '</defs>' +
+          '<g mask="url(#' + c.u + 'q)"><g mask="url(#' + c.u + 'k)">' + layer(B - 0.36 * S, 0.06 * S, 0, 0.18) + layer(B - 0.13 * S, 0.055 * S, 1.9, 0.32) + '</g></g>' +
+          c.text(L, B, 'fI') + '<g mask="url(#' + c.u + 'q)"><g mask="url(#' + c.u + 'k)">' + layer(B - 0.02 * S, 0.06 * S, 3.6, 0.6) + '</g></g>' };
+      } },
+  ];
+
+  var TAGS = [
+    { n: 21, t: 'গলা সাধার সাথী', m: 'A companion for your voice practice (গলা সাধা, the everyday words for it)' },
+    { n: 22, t: 'স্বরলিপি থেকে কণ্ঠে', m: 'From the swaralipi to your voice' },
+    { n: 23, t: 'খাতার গান, কণ্ঠে প্রাণ', m: 'The song in your notebook, alive in your voice' },
+    { n: 24, t: 'স্বরলিপি বাজে, তুমি গাও', m: 'The swaralipi plays; you sing' },
+    { n: 25, t: 'তালে তালে, সুরে সুরে', m: 'In rhythm, in tune' },
+    { n: 26, t: 'রেওয়াজের নদী বয়ে চলুক', m: 'Let the river of rewaz keep flowing (তরঙ্গিণী is a river)' },
+    { n: 27, t: 'শেখো, সাধো, গাও', m: 'Learn, practise, sing' },
+    { n: 28, t: 'রোজকার রেওয়াজে সুরের সঙ্গী', m: 'The melody beside you in your daily rewaz' },
+    { n: 29, t: 'নিজের স্বরলিপি, নিজের সুর', m: 'Your own swaralipi, your own melody' },
+    { n: 30, t: 'হারমোনিয়াম, তবলা আর তুমি', m: 'The harmonium, the tabla and you' },
+    { n: 15, t: 'স্বরলিপি থেকে সুরে', m: 'From swaralipi to melody', fav: true },
+    { n: 16, t: 'প্রতিদিনের রেওয়াজের সাথী', m: 'A companion for your daily rewaz', fav: true },
+  ];
+
+  var state = { logo: 21, tag: 21, font: 'tiro', lat: true };
+  try { var sv = JSON.parse(localStorage.getItem('torongini-picks-2') || 'null'); if (sv && sv.logo) state = Object.assign(state, sv); } catch (e) {}
+  var metrics = {}, uid = 0;
+
+  function fontCss(F, size) { return 'font-family:&quot;' + F.family + '&quot;;font-style:' + F.style + ';font-weight:' + F.weight + ';font-stretch:' + F.stretch + ';font-size:' + size + 'px'; }
+
+  function measure(F) {
+    if (metrics[F.id]) return Promise.resolve(metrics[F.id]);
+    var spec = F.style + ' ' + F.weight + ' 100px "' + F.family + '"';
+    return document.fonts.load(spec, BN).then(function () {
+      var m = Object.assign({}, FALLBACK);
+      try {
+        var t = document.getElementById('measureText');
+        t.style.fontFamily = '"' + F.family + '"'; t.style.fontStyle = F.style; t.style.fontWeight = F.weight; t.style.fontStretch = F.stretch;
+        var tw = t.getComputedTextLength() / 100; if (tw > 0.5) m.w = tw;
+        var cv = document.createElement('canvas'); cv.width = 900; cv.height = 260;
+        var g = cv.getContext('2d'); g.font = spec; g.fillStyle = '#000'; g.fillText(BN, 20, 170);
+        var mt = g.measureText(BN); m.asc = mt.actualBoundingBoxAscent / 100; m.desc = Math.max(0, mt.actualBoundingBoxDescent / 100);
+        var d = g.getImageData(0, 0, cv.width, cv.height).data, best = 0, bestY = 0, counts = [];
+        for (var y = 0; y < cv.height; y++) { var nn = 0; for (var x = 0; x < cv.width; x++) if (d[(y * cv.width + x) * 4 + 3] > 60) nn++; counts.push(nn); if (nn > best) { best = nn; bestY = y; } }
+        var top = bestY, bot = bestY;
+        while (top > 0 && counts[top - 1] > best * 0.6) top--;
+        while (bot < cv.height - 1 && counts[bot + 1] > best * 0.6) bot++;
+        if (best > 50) { m.mt = (170 - top) / 100; m.mb = (170 - bot + 1) / 100; }
+      } catch (e) {}
+      metrics[F.id] = m; return m;
+    }, function () { metrics[F.id] = FALLBACK; return FALLBACK; });
+  }
+
+  function drawLogo(L, F, m) {
+    var S = F.size, u = 'u' + (uid++);
+    var css = fontCss(F, S);
+    var c = { S: S, W: m.w * S, a: m.asc * S, d: m.desc * S, mc: (m.mt + m.mb) / 2 * S, mth: Math.max(1, (m.mt - m.mb) * S), u: u,
+      text: function (x, y, cls, extra) { return '<text x="' + r(x) + '" y="' + r(y) + '"' + (cls ? ' class="' + cls + '"' : '') + ' style="' + css + '"' + (extra ? ' ' + extra : '') + '>' + BN + '</text>'; } };
+    var o = L.draw(c);
+    return '<div class="logo"><svg viewBox="0 0 ' + r(o.w) + ' ' + r(o.h) + '" width="' + Math.ceil(o.w) + '" height="' + Math.ceil(o.h) + '" role="img" aria-label="তরঙ্গিণী">' + o.svg + '</svg>' +
+      '<span class="lat" style="margin-left:' + r(o.L) + 'px">Torongini</span></div>';
+  }
+  function font() { return FONTS.filter(function (f) { return f.id === state.font; })[0] || FONTS[0]; }
+  function logoBy(n) { return LOGOS.filter(function (l) { return l.n === n; })[0] || LOGOS[0]; }
+  function tagBy(n) { return TAGS.filter(function (t) { return t.n === n; })[0] || TAGS[0]; }
+
+  // The typeface bar, the cards and the taglines
+  var segEl = document.getElementById('fontSeg');
+  segEl.innerHTML = FONTS.map(function (F) { return '<button type="button" data-f="' + F.id + '" aria-pressed="false"><span class="smp" style="' + fontCss(F, 20).replace(/&quot;/g, '\'') + '">' + BN + '</span>' + F.label + '</button>'; }).join('');
+  document.getElementById('grid').innerHTML = LOGOS.map(function (L) {
+    return '<article class="card" id="logo-' + L.n + '" data-n="' + L.n + '"><div class="chead"><span class="num">' + L.n + '</span><h3>' + L.name + '</h3></div>' +
+      '<p class="idea">' + L.idea + '</p><div class="panes"><div class="pane pl"><small>Day</small><div class="slot"></div></div><div class="pane pd"><small>Night</small><div class="slot"></div></div></div>' +
+      '<div class="cfoot"><label class="pick"><input type="radio" name="logo" value="' + L.n + '"> Pick logo ' + L.n + '</label></div></article>';
+  }).join('');
+  function tagRow(T) { return '<label class="tag" data-n="' + T.n + '"><input type="radio" name="tag" value="' + T.n + '"><span class="tn">' + T.n + '</span><span class="tt">' + T.t + '</span><span class="tm">' + T.m + '</span></label>'; }
+  document.getElementById('tags').innerHTML =
+    '<div class="tagcol"><h3>New</h3>' + TAGS.filter(function (t) { return !t.fav && t.n <= 25; }).map(tagRow).join('') + '</div>' +
+    '<div class="tagcol"><h3>New</h3>' + TAGS.filter(function (t) { return !t.fav && t.n > 25; }).map(tagRow).join('') + '</div>' +
+    '<div class="tagcol"><h3>Your earlier favourites</h3>' + TAGS.filter(function (t) { return t.fav; }).map(tagRow).join('') + '</div>';
+
+  function renderLogos() {
+    var F = font();
+    return measure(F).then(function (m) {
+      document.querySelectorAll('.card').forEach(function (card) {
+        var L = logoBy(+card.dataset.n);
+        card.querySelectorAll('.slot').forEach(function (s) { s.innerHTML = drawLogo(L, F, m); });
+      });
+      renderPick(m);
+    });
+  }
+  function renderPick(m) {
+    var F = font(), L = logoBy(state.logo), T = tagBy(state.tag);
+    m = m || metrics[F.id] || FALLBACK;
+    document.querySelectorAll('#preview .mock').forEach(function (mk) { mk.querySelector('.slot').innerHTML = drawLogo(L, F, m); mk.querySelector('.mtag').textContent = T.t; });
+    var sum = 'Logo ' + L.n + ' · ' + L.name + ', in ' + F.label.toLowerCase() + ', with tagline ' + T.n;
+    document.getElementById('pvSum').textContent = sum; document.getElementById('pickSum').textContent = sum;
+    document.querySelectorAll('.card').forEach(function (c) { c.classList.toggle('sel', +c.dataset.n === L.n); });
+    document.querySelectorAll('.tag').forEach(function (c) { c.classList.toggle('sel', +c.dataset.n === T.n); });
+    segEl.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.f === F.id)); });
+    var a = document.querySelector('input[name="logo"][value="' + L.n + '"]'); if (a) a.checked = true;
+    var b = document.querySelector('input[name="tag"][value="' + T.n + '"]'); if (b) b.checked = true;
+    document.getElementById('latChk').checked = state.lat;
+    document.body.classList.toggle('nolat', !state.lat);
+    try { localStorage.setItem('torongini-picks-2', JSON.stringify(state)); } catch (e) {}
+  }
+  segEl.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b || b.dataset.f === state.font) return;
+    state.font = b.dataset.f; document.getElementById('copyOut').textContent = ''; renderLogos();
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.name === 'logo') state.logo = +t.value;
+    else if (t.name === 'tag') state.tag = +t.value;
+    else if (t.id === 'latChk') state.lat = t.checked;
+    else return;
+    document.getElementById('copyOut').textContent = '';
+    renderPick();
+  });
+  document.getElementById('copyBtn').addEventListener('click', function () {
+    var F = font(), L = logoBy(state.logo), T = tagBy(state.tag);
+    var txt = 'Logo ' + L.n + ' (' + L.name + '), the name in ' + F.label + (state.lat ? ', with Torongini underneath' : ', without Torongini underneath') + ', tagline ' + T.n + ': ' + T.t;
+    var out = document.getElementById('copyOut'), box = document.getElementById('copyTxt');
+    function fallback() { box.hidden = false; box.value = txt; box.focus(); box.select(); out.textContent = 'Select and copy the line below.'; }
+    try { navigator.clipboard.writeText(txt).then(function () { out.textContent = 'Copied: ' + txt; box.hidden = true; }, fallback); } catch (e) { fallback(); }
+  });
+  renderPick(FALLBACK);
+  renderLogos();
+})();
+</script>

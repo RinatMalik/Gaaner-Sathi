@@ -66,6 +66,40 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-61 Expand all on the Practice lines
+
+- **Goal:** Rinat, 2026-11-13: "In practice page, currently when a line is clicked it expands.
+  would like to have a way, maybe a button, to expand all."
+- **Inspected:** lines.ts (`opened`, `setOpen`, `build`, `layout`, `fit`, `clearRun`, the click that
+  opens a line), app.ts (`applyLinesPrefs`, the lines' settings, `loadSong`), index.html's `.psets`,
+  store.ts (`plRows`, `plAt`).
+- **Changed:** `feat(practice): Expand all, every line opened at once` — src/app/lines.ts
+  (`allOpen` in the host; `applyAll`, `allShown`; a line's usual height an opened one's when all are
+  open; a new song keeps them open); app/app.ts (`#plAllBtn`, Expand all or Collapse all in
+  `applyLinesPrefs`); app/store.ts (`plOpen`); index.html (the button first in `.psets`);
+  tests/unit/expandall.test.ts (new); docs/DATA.md, ROADMAP.md (row 61), HISTORY.md (the PH2-59
+  entry); this file.
+- **Tests / verification:** `npx tsc --noEmit` exit 0; `npx vitest run` → 50 files, 574 passed; `npm
+  run build` → 410.88 kB JS, 95.52 kB CSS; `bash reference/tests/run-all.sh` → parser 31, checker
+  11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge on `npm run dev`,
+  scratchpad `run61.mjs` (42 checks at 1280 × 950 day and 360 × 780 night, all pass): a song of six
+  lines in two sections, none open; Expand all opens all six with their pitch grids, says Collapse
+  all and is remembered; the view as tall as the screen allows; while playing all stay open and the
+  line being sung stays in view; Play again keeps them; a tap closes one; another song and a refresh
+  open all again; full screen shows none open and all open again on leaving; Collapse all closes
+  them and forgets; a tap opens one, Play leaves it, another song closes it, as before; no sideways
+  scroll, no page errors. `layout61.mjs` (25 checks, all pass) at 360 × 780 day and night, 800 ×
+  1000 day, 1280 × 950 night and 3840 × 2160 day: the button inside the settings row; screenshots
+  looked at. Pushed as `cfcef42`; CI run `43360362267` green; the site serves `index-apGxzuzp.js`,
+  and in headless Edge at 360 × 780 it shows Expand all, opens all 8 lines of the first exercise,
+  keeps them open after a refresh as Collapse all, closes them, with no sideways scroll and no page
+  errors (scratchpad `live61.mjs`).
+- **Decisions made:** one 2026-11-13 row.
+- **Risks or disagreements:** no real touch screen. With every line open, the room left after the
+  last line (so it can be sung in its place) is counted at an opened line's height, so there is
+  more blank space below the song's end when scrolled there.
+- **Next handoff:** Rinat tries it (Next single action).
+
 ### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-60 the top's four settings until a refresh; no Sa on a routine; each rewaz item's time; Edit in the Music library; full screen's chips
 
 - **Goal:** Rinat, 2026-11-13: "the four settings - your key, tempo, taal, rhythm speed. In the top
