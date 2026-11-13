@@ -210,6 +210,10 @@ keeps the Sa and tempo it was sung in (`sa`, `flat`).
 
 ## Storage
 
+The keys and names here, and the files' `format` ids, keep the app's first name, Gaaner Sathi,
+for good: the app became Torongini on 2026-11-13, and renaming them would leave everything saved
+behind and stop old backups restoring (CONTEXT.md → Decisions, 2026-11-13).
+
 | Key | Holds |
 |---|---|
 | `gaanersathi.songs.v1` | This app's songs, `{ [id]: song }`; each save changes only its own song |
@@ -410,7 +414,7 @@ kept; an older one's goes, and its summary stays in the log. Details are checked
 | Field | What |
 |---|---|
 | `about_this_file` | The brief (`AI_BRIEF`): what to do, the app, the notation, time, scoring, being behind the music, the parts of the file, how to analyse, caveats |
-| `file` | `{ kind: "Gaaner Sathi practice session, for AI analysis", version: 1, made }` |
+| `file` | `{ kind: "Torongini practice session, for AI analysis", version: 1, made }` |
 | `session` | When (ISO with the offset), seconds, title, lines, looped, rounds, tempo, tempo reached, routine, whether the pitch check was on, score, share sung, whether detail was kept |
 | `song` | Title, taal in words, tempo, Sa and its Hz, whether as played, the notation, and each line's notes and words as text |
 | `settings`, `equipment` | As played; the device's delay, measured or not, any octave; when not, `octave_below_counts` (the guide's bass reed; from 2026-10-28); octave sung |
@@ -444,7 +448,7 @@ well inside Windows' 260 characters even in a deep folder. `<kind>` is `Data.jso
 export a day's data in one go"): **For AI** on each day's row in Progress's History saves
 `<yyyy.mm.dd> - Whole day (<n> sessions) - Data.json`
 (`dayFileParts`): `about_this_file` (`DAY_BRIEF`, the session brief's parts with the day's own
-first words, parts and ways to analyse), `file` (`{ kind: "Gaaner Sathi practice of one day,
+first words, parts and ways to analyse), `file` (`{ kind: "Torongini practice of one day,
 for AI analysis", version: 1, made, day, sessions, sessions_with_detail }`), `day` (date,
 sessions, seconds, songs, average score), `sessions` (each numbered in order, `session_number`,
 with `song_as_played` and the session file's parts before its long tables), `songs_as_played`

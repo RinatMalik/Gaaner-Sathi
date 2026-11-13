@@ -1,0 +1,385 @@
+<title>Torongini Logo Choices</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&family=Hind+Siliguri:wght@400;500;600;700&family=Galada&family=Atma:wght@600&family=Mina:wght@700&family=Baloo+Da+2:wght@700&family=Anek+Bangla:wght@600;700&family=Noto+Serif+Bengali:wght@600&display=swap">
+<style>
+/* Layout: one column of reading, a preview of the pick at the top, the logos in a two-up grid of cards,
+   each card showing its logo in the app's header by day and by night. Colours are the app's own. */
+:root{
+  --bg:#eceeea; --card:#fbfbf8; --fg:#1b1c24; --fg2:#5c5f6c; --accent:#8a6514; --rule:#d9dcdf; --focus:#2560c7;
+  --wood:#3e1f15; --on-wood:#f5e9d7; --brass:#c4952b;
+  --tiro:"Tiro Bangla","Noto Serif Bengali",Georgia,serif;
+  --hind:"Hind Siliguri","Noto Sans Bengali",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111115; --card:#19191f; --fg:#ecebe5; --fg2:#a2a3ae; --accent:#d3a843; --rule:#2c2c35; --focus:#86aaff;
+  --wood:#22100a; --on-wood:#f1e3cf; --brass:#d3a843; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111115; --card:#19191f; --fg:#ecebe5; --fg2:#a2a3ae; --accent:#d3a843; --rule:#2c2c35; --focus:#86aaff;
+  --wood:#22100a; --on-wood:#f1e3cf; --brass:#d3a843; color-scheme:dark}
+
+/* The app's two colour schemes, fixed, so every logo shows both whatever the viewer's theme. */
+.pl{--paper:#eceeea;--sheet:#fbfbf8;--ink:#1b1c24;--ink2:#5c5f6c;--rule:#d3dbe5;--margin:#e7b8b2;--red:#b3261e;
+  --tile:#3e1f15;--on-wood:#f5e9d7;--bamboo:#5d3021;--brass:#c4952b;--brass-hi:#efcd6a;--brass-dk:#94701c;--brass-ink:#2a1608;
+  --line:#d9dcdf;--river:#2d78c0;--dusk:#f4dfb0;--vsam:#f6dc97;--vsam-line:#b8892a;--alp:#b3261e;--alp-fg:#fbf3e6;
+  --o1:#6a58c8;--o2:#2d78c0;--o3:#2f9466;--o4:#c98516;--o5:#c8486b;--shadow:rgba(20,10,5,.18)}
+.pd{--paper:#111115;--sheet:#19191f;--ink:#ecebe5;--ink2:#a2a3ae;--rule:#2a313c;--margin:#5a2c29;--red:#ff8d7e;
+  --tile:#3a1c12;--on-wood:#f1e3cf;--bamboo:#c08a64;--brass:#d3a843;--brass-hi:#f2d176;--brass-dk:#a07a26;--brass-ink:#22120a;
+  --line:#2c2c35;--river:#6fa8e8;--dusk:#4a3418;--vsam:#4d3d10;--vsam-line:#c9a142;--alp:#9a2c22;--alp-fg:#f6ead6;
+  --o1:#8e7fe0;--o2:#5a9be0;--o3:#4fb486;--o4:#e0a23a;--o5:#e06a8a;--shadow:rgba(0,0,0,.5)}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.55 var(--hind);margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 96px}
+.wrap{max-width:1180px;margin:0 auto}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+.hero{padding-block:40px 18px;max-width:72ch}
+.eyebrow{font:600 12px/1 var(--hind);letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+.eyebrow b{font:400 16px/1 var(--tiro);letter-spacing:0;text-transform:none}
+h1{font:400 clamp(30px,5vw,46px)/1.08 var(--tiro);margin:0 0 14px;text-wrap:balance}
+h2{font:400 clamp(24px,3.4vw,32px)/1.15 var(--tiro);margin:0 0 6px;text-wrap:balance}
+.hero p,.lede{color:var(--fg2);margin:0 0 10px;max-width:68ch}
+
+/* Preview of the pick */
+#preview{scroll-margin-top:16px;background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:18px;margin-block:12px 36px;display:grid;gap:14px}
+.pvhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 16px}
+.pvsum{color:var(--fg2);font-size:14px}
+.pvgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.mock{background:var(--paper);color:var(--ink);border-radius:12px;border:1px solid var(--line);overflow:hidden;min-width:0}
+.mtop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:16px 16px 0}
+.mright{flex:none;font:500 12px/1 var(--hind);color:var(--ink2);border:1px solid var(--line);background:var(--sheet);border-radius:999px;padding:7px 10px}
+.mtag{padding:6px 16px 0;color:var(--ink2);font:400 14px/1.35 var(--hind)}
+.mtag.bn{font:400 16px/1.35 var(--tiro)}
+.mtabs{display:flex;gap:6px;padding:12px 16px;flex-wrap:wrap}
+.mtabs span{font:500 13px/1 var(--hind);padding:7px 11px;border-radius:999px;background:var(--sheet);border:1px solid var(--line);color:var(--ink2)}
+.mtabs .on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.mdeck{background:var(--tile);height:52px;display:flex;align-items:center;gap:12px;padding:0 16px}
+.mdeck i{width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--brass-hi),var(--brass) 60%,var(--brass-dk));display:grid;place-items:center}
+.mdeck i::after{content:"";border-left:10px solid var(--brass-ink);border-top:6.5px solid transparent;border-bottom:6.5px solid transparent;margin-left:3px}
+.mdeck span{height:6px;border-radius:3px;background:var(--on-wood);opacity:.25;flex:1}
+.phonewrap{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.phone{width:360px;max-width:100%}
+.phone .mtabs span{padding:6px 8px;font-size:12px}
+.pvnote{font-size:13px;color:var(--fg2);margin:0;max-width:52ch}
+.copyrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:600 14px/1 var(--hind);padding:11px 16px;border-radius:999px;border:1px solid var(--wood);background:var(--wood);color:var(--on-wood);cursor:pointer}
+.btn:hover{filter:brightness(1.15)}
+#copyOut{font-size:14px;color:var(--fg2)}
+#copyTxt{width:100%;font:14px var(--hind);padding:8px;border:1px solid var(--rule);border-radius:8px;background:var(--bg);color:var(--fg)}
+
+/* The cards */
+.sect{margin-block:40px 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:18px}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.chead{display:flex;align-items:baseline;gap:10px}
+.num{font:400 26px/1 var(--tiro);color:var(--accent);min-width:1.4em;font-variant-numeric:tabular-nums}
+.chead h3{font:600 17px/1.2 var(--hind);margin:0}
+.idea{margin:0;color:var(--fg2);font-size:14.5px;line-height:1.5}
+.panes{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}
+.pane{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:22px 16px 16px;min-height:96px;display:flex;align-items:center;overflow:hidden;min-width:0}
+.pane small{position:absolute;top:6px;right:10px;font:600 10px/1 var(--hind);letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+.cfoot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.icons{display:flex;align-items:center;gap:10px}
+.icons .lab{font-size:12px;color:var(--fg2);margin-right:2px}
+.ic{display:grid;place-items:center;border-radius:23%;overflow:hidden;flex:none}
+.ic.tile{background:var(--sheet);border:1px solid var(--line)}
+.ic.tile svg{width:78%;height:78%}
+.ic.edge{outline:1px solid var(--line);outline-offset:-1px}
+.ic svg{width:100%;height:100%;display:block}
+.ic.big{width:48px;height:48px}.ic.sm{width:20px;height:20px}
+.pick{display:inline-flex;align-items:center;gap:8px;font:600 14px/1 var(--hind);padding:10px 14px;border-radius:999px;border:1px solid var(--rule);cursor:pointer;background:var(--bg)}
+.pick input{accent-color:var(--accent);margin:0}
+.card.sel .pick{border-color:var(--accent);color:var(--accent)}
+.fontnote{font-size:12px;color:var(--fg2)}
+
+/* Taglines */
+.tags{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:8px 18px;margin-top:8px}
+.tagcol h3{font:600 13px/1 var(--hind);letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:14px 0 8px}
+.tag{display:grid;grid-template-columns:auto 1.7em minmax(0,1fr);align-items:baseline;gap:4px 8px;padding:10px 12px;border-radius:10px;border:1px solid transparent;cursor:pointer}
+.tag:hover{background:var(--card)}
+.tag.sel{background:var(--card);border-color:var(--accent)}
+.tag input{accent-color:var(--accent);margin:0;align-self:center}
+.tag .tn{font:400 15px/1 var(--tiro);color:var(--accent);font-variant-numeric:tabular-nums}
+.tag .tt{font-size:16px}
+.tag .tt.bn{font:400 18px/1.35 var(--tiro)}
+.tag .tm{grid-column:3;font-size:13px;color:var(--fg2)}
+.notes{margin-block:44px 0;max-width:72ch;color:var(--fg2);font-size:15px}
+.notes h2{color:var(--fg)}
+.notes li{margin-bottom:6px}
+
+.pickbar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--wood);color:var(--on-wood);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 14px;
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));font-size:14px}
+.pickbar a{color:var(--on-wood);font-weight:600}
+.pickbar #pickSum{min-width:0}
+
+/* Logo parts */
+.lk{display:flex;align-items:center;gap:12px;min-width:0}
+.mk{width:46px;height:46px;flex:none;display:block}
+.mk.wide{width:54px}
+.mk.seal{width:58px;height:58px}
+.wm{display:flex;flex-direction:column;gap:5px;line-height:1;min-width:0}
+.wm .b{color:var(--ink);white-space:nowrap;line-height:1.05}
+.wm .l{font:600 10px/1 var(--hind);letter-spacing:.32em;text-transform:uppercase;color:var(--ink2);white-space:nowrap}
+.f-tiro{font-family:var(--tiro)} .f-hind{font-family:var(--hind)}
+.f-galada{font-family:"Galada",var(--tiro)} .f-atma{font-family:"Atma",var(--hind);font-weight:600}
+.f-mina{font-family:"Mina",var(--hind);font-weight:700} .f-baloo{font-family:"Baloo Da 2",var(--hind);font-weight:700}
+.f-anek{font-family:"Anek Bangla",var(--hind)} .f-noto{font-family:"Noto Serif Bengali",var(--tiro);font-weight:600}
+.fI{fill:var(--ink)} .fI2{fill:var(--ink2)} .fB{fill:var(--brass)} .fBh{fill:var(--brass-hi)} .fBi{fill:var(--brass-ink)}
+.fT{fill:var(--tile)} .fS{fill:var(--sheet)} .fR{fill:var(--red)} .fV{fill:var(--river)} .fOW{fill:var(--on-wood)}
+.fDusk{fill:var(--dusk)} .fSam{fill:var(--vsam)} .fAlp{fill:var(--alp)} .fAlpFg{fill:var(--alp-fg)}
+.sI{stroke:var(--ink)} .sB{stroke:var(--brass)} .sBh{stroke:var(--brass-hi)} .sBi{stroke:var(--brass-ink)} .sR{stroke:var(--red)}
+.sV{stroke:var(--river)} .sRule{stroke:var(--rule)} .sMargin{stroke:var(--margin)} .sLine{stroke:var(--line)} .sBam{stroke:var(--bamboo)}
+.sSam{stroke:var(--vsam-line)} .sAlpFg{stroke:var(--alp-fg)} .sOW{stroke:var(--on-wood)}
+.stI{stop-color:var(--ink)} .stB{stop-color:var(--brass)} .stBh{stop-color:var(--brass-hi)} .stBd{stop-color:var(--brass-dk)}
+
+/* 5: the diary line */
+.diary{position:relative;background:var(--sheet);padding:2px 18px 0 24px;box-shadow:0 1px 2px var(--shadow);border-radius:2px;display:grid}
+.diary::before{content:"";position:absolute;left:13px;top:0;bottom:0;width:1.5px;background:var(--margin)}
+.diary span{display:block;border-bottom:1px solid var(--rule);white-space:nowrap}
+.diary .b{font:400 30px/1.25 var(--tiro);color:var(--ink);padding-top:2px}
+.diary .r{font:italic 400 15px/1.5 var(--tiro);color:var(--red);padding-bottom:1px}
+/* 7: the maker's plate */
+.plt{display:inline-flex;align-items:center;gap:10px;padding:7px 11px;border-radius:7px;white-space:nowrap;color:var(--brass-ink);
+  background:linear-gradient(180deg,var(--brass-hi),var(--brass) 52%,var(--brass-dk));
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--brass-hi) 70%,var(--sheet)),inset 0 -1px 0 var(--brass-dk),0 1px 3px var(--shadow)}
+.plt .b{font:400 27px/1.1 var(--tiro);text-shadow:0 1px 0 color-mix(in srgb,var(--brass-hi) 75%,transparent)}
+.plt .l{font:700 9.5px/1 var(--hind);letter-spacing:.3em;text-transform:uppercase;opacity:.85}
+.plt .sep{width:1px;align-self:stretch;margin-block:3px;background:var(--brass-ink);opacity:.3}
+.plt i{width:7px;height:7px;border-radius:50%;flex:none;background:radial-gradient(circle at 35% 35%,var(--brass-hi),var(--brass-dk));box-shadow:inset 0 0 0 .5px var(--brass-ink);position:relative}
+.plt i::after{content:"";position:absolute;left:1px;right:1px;top:3px;height:1px;background:var(--brass-ink);transform:rotate(-35deg);opacity:.7}
+/* 9: the brush river */
+.brush{display:grid;justify-items:start;line-height:1}
+.brush .b{font:400 36px/1.15 "Galada",var(--tiro);color:var(--ink);position:relative;z-index:1;white-space:nowrap}
+.brush svg{width:0;min-width:100%;height:11px;margin-top:-9px;display:block}
+.brush .l{margin-top:5px}
+/* 19: the kantha stitch */
+.stitch{display:grid;justify-items:start;line-height:1}
+.stitch .b{font:400 32px/1.1 var(--tiro);color:var(--ink);white-space:nowrap}
+.stitch svg{width:0;min-width:100%;height:9px;display:block;margin-top:3px}
+.stitch .l{color:var(--red);margin-top:6px}
+
+@media (max-width:760px){.pvgrid{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:no-preference){.card,.tag{transition:border-color .15s,box-shadow .15s,background .15s}}
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <p class="eyebrow">Torongini · <b>তরঙ্গিণী</b></p>
+    <h1>Twenty logos for the top-left corner</h1>
+    <p>তরঙ্গিণী is a river: word for word, one full of waves. These logos play on that, and on what the app already is: the harmonium, the tanpura, the river and its boats, the brass play button and the diary sheet with its red margin.</p>
+    <p>Each is drawn the way the app's header would show it, by day and by night, with its app icon at full size and at the size of a browser tab. Pick one logo and one tagline; the preview below shows them together.</p>
+  </header>
+
+  <section id="preview" aria-labelledby="pvTitle">
+    <div class="pvhead">
+      <h2 id="pvTitle">Your pick, in the app</h2>
+      <span class="pvsum" id="pvSum"></span>
+    </div>
+    <div class="pvgrid">
+      <div class="mock pl" aria-label="By day"><div class="mtop"><div class="slot"></div><span class="mright">বাংলা ▾</span></div><div class="mtag"></div><div class="mtabs"><span class="on">Practice</span><span>Music library</span><span>Rewaz</span><span>Progress</span></div><div class="mdeck"><i></i><span></span></div></div>
+      <div class="mock pd" aria-label="By night"><div class="mtop"><div class="slot"></div><span class="mright">বাংলা ▾</span></div><div class="mtag"></div><div class="mtabs"><span class="on">Practice</span><span>Music library</span><span>Rewaz</span><span>Progress</span></div><div class="mdeck"><i></i><span></span></div></div>
+    </div>
+    <div class="phonewrap">
+      <div class="mock pl phone" aria-label="On a phone, 360 pixels wide"><div class="mtop"><div class="slot"></div></div><div class="mtag"></div><div class="mtabs"><span class="on">Practice</span><span>Library</span><span>Rewaz</span><span>Progress</span></div><div class="mdeck"><i></i><span></span></div></div>
+      <div style="display:grid;gap:10px;min-width:0;flex:1 1 260px">
+        <p class="pvnote">On the left, a phone held upright (360 pixels wide, the narrowest the app is made for). When you have chosen, copy your picks and paste them into our chat.</p>
+        <div class="copyrow"><button type="button" class="btn" id="copyBtn">Copy my picks</button><span id="copyOut" role="status"></span></div>
+        <input id="copyTxt" type="text" readonly hidden aria-label="Your picks, to copy">
+      </div>
+    </div>
+  </section>
+
+  <section class="sect" aria-labelledby="logosTitle">
+    <h2 id="logosTitle">The logos</h2>
+    <p class="lede">Nine of them (2, 8, 9, 10, 12, 14, 17, 18 and 20) use a Bengali typeface the app does not load today. Whichever you choose, its lettering goes into the app as a drawing, so the app loads nothing new and stays as light as it is.</p>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section class="sect" aria-labelledby="tagsTitle">
+    <h2 id="tagsTitle">Twenty taglines</h2>
+    <p class="lede">The short line under the name, where the header now says “harmonium and rhythm from your own notation”. Twelve in English and eight in Bengali; please check the Bengali reads naturally to you.</p>
+    <div class="tags" id="tags"></div>
+  </section>
+
+  <section class="notes" aria-labelledby="notesTitle">
+    <h2 id="notesTitle">Once you have picked</h2>
+    <ul>
+      <li>The logo replaces the name at the top left of every view, drawn sharp at any size and in both colour schemes.</li>
+      <li>Its icon becomes the browser tab's icon, and the icon a phone shows when the app is added to the home screen.</li>
+      <li>Any of them can be adjusted: colours, the typeface, the Latin “Torongini” line kept or dropped.</li>
+    </ul>
+  </section>
+</div>
+
+<div class="pickbar" role="region" aria-label="Your picks"><span id="pickSum"></span><a href="#preview">See them together</a></div>
+
+<script>
+(function () {
+  var BN = 'তরঙ্গিণী';
+  function wm(font, size, extra) {
+    return '<div class="wm"><span class="b ' + font + '" style="font-size:' + size + 'px' + (extra || '') + '">' + BN + '</span><span class="l">Torongini</span></div>';
+  }
+  function lk(mark, word) { return '<div class="lk">' + mark + word + '</div>'; }
+  function wave(x, y, half, amp, n, cls, w, extra) {
+    var d = 'M' + x + ' ' + y + ' q' + half / 2 + ' ' + (-amp) + ' ' + half + ' 0';
+    for (var i = 1; i < n; i++) d += ' t' + half + ' 0';
+    return '<path d="' + d + '" fill="none" class="' + cls + '" stroke-width="' + w + '" stroke-linecap="round"' + (extra || '') + '/>';
+  }
+  function petals() {
+    var s = '';
+    for (var k = 0; k < 8; k++) s += '<path transform="rotate(' + k * 45 + ' 24 24)" d="M24 21 C21.6 16 22 10.5 24 6.5 C26 10.5 26.4 16 24 21Z" class="fAlpFg"/>';
+    for (k = 0; k < 8; k++) s += '<circle transform="rotate(' + (22.5 + k * 45) + ' 24 24)" cx="24" cy="9.5" r="1.4" class="fAlpFg"/>';
+    return s;
+  }
+
+  // Marks, 48 units square unless said. Tiro Bangla's headline (matra) sits 0.57–0.62 em above the baseline
+  // and ends 2.81 em along তরঙ্গিণী (0.67 em along ত); measured in Chromium, so the waves meet it.
+  var M = {
+    ripples: '<svg class="mk" viewBox="0 0 48 48" aria-hidden="true"><g fill="none" class="sB" stroke-linecap="round"><ellipse cx="24" cy="32" rx="21" ry="8" stroke-width="1.4" opacity=".45"/><ellipse cx="24" cy="32" rx="14" ry="5.3" stroke-width="2" opacity=".75"/><ellipse cx="24" cy="32" rx="7" ry="2.7" stroke-width="2.4"/></g><path d="M24 5 C24 5 19.5 11.5 19.5 15 a4.5 4.5 0 0 0 9 0 C28.5 11.5 24 5 24 5Z" class="fB"/></svg>',
+    voice: '<svg class="mk" viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="5" width="42" height="38" rx="5" class="fS sLine"/><path d="M3 15.5h42M3 24.5h42M3 33.5h42" class="sRule" stroke-width="1"/><path d="M11 5v38" class="sMargin" stroke-width="1.6"/><path d="M14 33 C18 33 18 24 22 24 S26 15 30 15 S34 28 38 24 S41 20 43 21" fill="none" class="sI" stroke-width="2.4" stroke-linecap="round"/><circle cx="22" cy="24" r="2.4" class="fR"/><circle cx="30" cy="15" r="2.4" class="fR"/></svg>',
+    keys: '<svg class="mk" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="11" class="fT"/><clipPath id="{u}k"><path d="M6 19 C12 13 18 13 24 19 S36 25 42 19 V41 H6Z"/></clipPath><g clip-path="url(#{u}k)"><rect x="7" y="6" width="10" height="35" rx="1.5" class="fOW"/><rect x="19" y="6" width="10" height="35" rx="1.5" class="fOW"/><rect x="31" y="6" width="10" height="35" rx="1.5" class="fOW"/><rect x="14.6" y="6" width="6.8" height="24" rx="1.2" class="fBi"/><rect x="26.6" y="6" width="6.8" height="24" rx="1.2" class="fBi"/></g><path d="M6 19 C12 13 18 13 24 19 S36 25 42 19" fill="none" class="sB" stroke-width="2.2" stroke-linecap="round"/></svg>',
+    mono: '<svg class="mk" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="11" class="fT"/><text x="12.75" y="29" class="f-tiro fBh" font-size="30">ত</text>' + wave(11, 36.5, 6.5, 3.2, 4, 'sB', 2) + '</svg>',
+    tanpura: '<svg class="mk" viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke-linecap="round"><path d="M10 7.5H38" class="sB" stroke-width="3"/><path d="M8 40.5H40" class="sB" stroke-width="3"/><path d="M15 8V40" class="sI" stroke-width="1.6"/><path d="M21 8 Q25.5 24 21 40" class="sV" stroke-width="1.8"/><path d="M21 8 Q16.5 24 21 40" class="sV" stroke-width="1.4" opacity=".45"/><path d="M27 8 Q30.5 24 27 40" class="sV" stroke-width="1.8"/><path d="M27 8 Q23.5 24 27 40" class="sV" stroke-width="1.4" opacity=".45"/><path d="M33 8V40" class="sI" stroke-width="1.6"/></g></svg>',
+    dusk: '<svg class="mk" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" class="fDusk"/><circle cx="24" cy="25" r="9" class="fB"/><path d="M2.02 25 H45.98 A22 22 0 0 1 2.02 25Z" class="fT"/>' + wave(10, 30.5, 7, 2, 4, 'sBh', 1.6) + wave(15, 35.5, 4.5, 1.6, 4, 'sBh', 1.4, ' opacity=".8"') + wave(19.5, 40.5, 4.5, 1.4, 2, 'sBh', 1.2, ' opacity=".6"') + '</svg>',
+    boat: '<svg class="mk" viewBox="0 0 48 48" aria-hidden="true"><path d="M23 6.5V30" class="sI" stroke-width="1.6" stroke-linecap="round"/><path d="M24.6 8.5 C31 11.5 35 18.5 35 27 H24.6Z" class="fB"/><path d="M5 28 C12 31.5 36 31.5 43 28 C40 35 33 37 24 37 C15 37 8 35 5 28Z" class="fI"/>' + wave(3, 42.5, 7, 2.6, 6, 'sV', 1.8) + '</svg>',
+    ektara: '<svg class="mk" viewBox="0 0 48 48" aria-hidden="true"><path d="M17 31 C15 20 19 11 24 5 C29 11 33 20 31 31" fill="none" class="sBam" stroke-width="2.6" stroke-linecap="round"/><path d="M19.5 8.5H28.5" class="sBam" stroke-width="2.2" stroke-linecap="round"/><ellipse cx="24" cy="35.5" rx="10.5" ry="8.5" class="fB"/><path d="M24 5 V27.5" class="sI" stroke-width="1"/><path d="M24 27.5 V43" class="sBi" stroke-width="1.1"/><g fill="none" class="sV" stroke-width="1.6" stroke-linecap="round"><path d="M35 9 q2.6 3.5 0 7"/><path d="M39.5 6 q4 6.5 0 13" opacity=".6"/></g></svg>',
+    alpana: '<svg class="mk" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23" class="fAlp"/><circle cx="24" cy="24" r="20.5" fill="none" class="sAlpFg" stroke-width=".9" stroke-dasharray="1.6 2.2"/>' + petals() + '<circle cx="24" cy="24" r="3.6" class="fAlpFg"/><circle cx="24" cy="24" r="1.5" class="fAlp"/></svg>',
+    bars: '<svg class="mk" viewBox="0 0 48 48" aria-hidden="true"><rect x="5" y="17" width="6.2" height="14" rx="3.1" style="fill:var(--o1)"/><rect x="13.5" y="10" width="6.2" height="28" rx="3.1" style="fill:var(--o2)"/><rect x="22" y="5" width="6.2" height="38" rx="3.1" style="fill:var(--o3)"/><rect x="30.5" y="12" width="6.2" height="24" rx="3.1" style="fill:var(--o4)"/><rect x="39" y="8" width="6.2" height="32" rx="3.1" style="fill:var(--o5)"/></svg>',
+    sa: '<svg class="mk" viewBox="0 0 48 48" aria-hidden="true"><rect x="2.5" y="2.5" width="43" height="43" rx="8" class="fSam sSam" stroke-width="1.6"/><text x="14.7" y="28" class="f-tiro fI" font-size="22">সা</text>' + wave(11, 36.5, 6.5, 2.8, 4, 'sR', 1.8) + '</svg>',
+    play: '<svg class="mk wide" viewBox="0 0 56 48" aria-hidden="true"><circle cx="19" cy="24" r="16" class="fB"/><path d="M15 16 L27.5 24 L15 32Z" class="fBi" stroke-linejoin="round"/><g fill="none" class="sB" stroke-linecap="round"><path d="M41 13 q3.5 5.5 0 11 t0 11" stroke-width="2.4"/><path d="M49 9 q4 7.5 0 15 t0 15" stroke-width="2" opacity=".55"/></g></svg>',
+    seal: '<svg class="mk seal" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23.2" fill="none" class="sR" stroke-width="1.2"/><circle cx="24" cy="24" r="13.6" fill="none" class="sR" stroke-width=".9"/><path id="{u}p" d="M7.5 24 a16.5 16.5 0 1 1 33 0 a16.5 16.5 0 1 1 -33 0" fill="none"/><text class="f-hind fR" font-size="6.1" font-weight="600"><textPath href="#{u}p" textLength="101" lengthAdjust="spacing">তরঙ্গিণী • TORONGINI •</textPath></text>' + wave(14.5, 25.2, 4.75, 2.6, 4, 'sR', 1.6) + '</svg>',
+    drop: '<svg class="mk" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 3 C24 3 9 19.5 9 30 a15 15 0 0 0 30 0 C39 19.5 24 3 24 3Z" class="fV"/>' + wave(13, 30, 5.5, 3, 4, 'sOW', 2.2) + wave(15, 36.5, 4.5, 2.5, 4, 'sOW', 2, ' opacity=".7"') + '</svg>',
+    bellows: '<svg class="mk" viewBox="0 0 48 48" aria-hidden="true"><rect x="1.5" y="12" width="3.5" height="24" rx="1.2" class="fT"/><path d="M5 24 L8.5 15 L12.5 33 L16.5 15 L20.5 33" fill="none" class="sI" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><path d="M20.5 33 C23.5 33 25.5 15 29 15 S34.5 33 37.5 33 S42.5 18 46 20.5" fill="none" class="sB" stroke-width="2.6" stroke-linecap="round"/></svg>',
+  };
+
+  var LOGOS = [
+    { name: 'Flowing headline', idea: 'The line along the top of the Bengali letters, the মাত্রা, runs on past the word as a wave, the way a river runs on.',
+      lock: '<svg viewBox="0 0 142 52" width="142" height="52" aria-hidden="true" style="display:block"><defs><linearGradient id="{u}g" gradientUnits="userSpaceOnUse" x1="95" y1="0" x2="138" y2="0"><stop offset="0" class="stI"/><stop offset=".5" class="stB"/></linearGradient></defs><text x="1" y="34" class="f-tiro fI" font-size="34">' + BN + '</text><path d="M95.5 13.77 h3.5 c4 0 6 6 11 6 s7 -6 12 -6 s6 4 9.5 4 s5 -2.5 7.5 -2.5" fill="none" stroke="url(#{u}g)" stroke-width="1.7" stroke-linecap="round"/><text x="2" y="49.5" class="f-hind fI2" font-size="10" font-weight="600" letter-spacing="3.2">TORONGINI</text></svg>',
+      icon: '<svg viewBox="0 0 48 48"><defs><linearGradient id="{u}i" gradientUnits="userSpaceOnUse" x1="27" y1="0" x2="42" y2="0"><stop offset="0" class="stI"/><stop offset=".6" class="stB"/></linearGradient></defs><rect width="48" height="48" rx="11" class="fS"/><text x="6.5" y="34.5" class="f-tiro fI" font-size="32">ত</text><path d="M27.4 15.46 h1.6 c2.6 0 3.6 5 6.6 5 s4 -5 6.6 -5" fill="none" stroke="url(#{u}i)" stroke-width="1.6" stroke-linecap="round"/></svg>' },
+    { name: 'Ripples', idea: 'One drop of sound, and the ripples it sends across still water.', mark: 'ripples', font: 'f-noto', size: 28 },
+    { name: 'Voice line', idea: 'The app’s diary sheet with its red margin, and the pitch line it draws as you sing, the notes you held marked in red.', mark: 'voice', font: 'f-hind', size: 30, extra: ';font-weight:600' },
+    { name: 'Harmonium keys', idea: 'Three harmonium keys with their tops cut along a wave, on the rosewood of the app’s deck.', mark: 'keys', font: 'f-tiro', size: 32, iconFull: true },
+    { name: 'Diary line', idea: 'The name written the way the app writes a song: the word in ink, the lyric under it in red ink, on a ruled page with a red margin.',
+      lock: '<div class="diary"><span class="b">' + BN + '</span><span class="r">Torongini</span></div>',
+      icon: '<svg viewBox="0 0 48 48"><rect width="48" height="48" rx="11" class="fS"/><path d="M0 24.5H48M0 39H48" class="sRule"/><path d="M11 0V48" class="sMargin" stroke-width="1.6"/><text x="15.5" y="23.5" class="f-tiro fI" font-size="24">ত</text>' + wave(16, 34.5, 5, 2.6, 4, 'sR', 1.8) + '</svg>' },
+    { name: 'Monogram', idea: 'ত, the first letter, in brass on rosewood, with a wave under it. The strongest of these as an app icon.', mark: 'mono', font: 'f-tiro', size: 32, iconFull: true },
+    { name: 'Maker’s plate', idea: 'Harmoniums carry a small brass plate with the maker’s name on it. This is Torongini’s.',
+      lock: '<div class="plt"><i></i><span class="b">' + BN + '</span><span class="sep"></span><span class="l">Torongini</span><i></i></div>',
+      icon: '<svg viewBox="0 0 48 48"><defs><linearGradient id="{u}i" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="stBh"/><stop offset=".55" class="stB"/><stop offset="1" class="stBd"/></linearGradient></defs><rect width="48" height="48" rx="11" fill="url(#{u}i)"/><g class="fBi" opacity=".5"><circle cx="8" cy="8" r="2"/><circle cx="40" cy="8" r="2"/><circle cx="8" cy="40" r="2"/><circle cx="40" cy="40" r="2"/></g><text x="12.75" y="33.9" class="f-tiro fBi" font-size="30">ত</text></svg>' },
+    { name: 'Tanpura strings', idea: 'Four tanpura strings, the middle two caught vibrating.', mark: 'tanpura', font: 'f-anek', size: 30, extra: ';font-weight:600' },
+    { name: 'Brush river', idea: 'The word in a hand-lettered brush style, with a river of colour flowing under it.',
+      lock: '<div class="brush"><span class="b">' + BN + '</span><svg viewBox="0 0 120 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 7 C22 0 36 13 60 6 S98 1 118 6 C100 4 84 10.5 60 9.5 S24 6 2 7Z" class="fV" opacity=".85"/></svg><span class="wm"><span class="l">Torongini</span></span></div>',
+      icon: '<svg viewBox="0 0 48 48"><rect width="48" height="48" rx="11" class="fS"/><path d="M7 37 C14 32.5 19 40 27 36 S37 33 42 36 C36 35 31 40 25 39.5 S12 36.5 7 37Z" class="fV" opacity=".85"/><text x="24" y="32" text-anchor="middle" class="f-galada fI" font-size="30">ত</text></svg>' },
+    { name: 'River at dusk', idea: 'The sun going down over a Bengal river: the hour of the evening rewaz.', mark: 'dusk', font: 'f-noto', size: 28 },
+    { name: 'Boat song', idea: 'A country boat on the water, for the bhatiyali songs sung on the rivers.', mark: 'boat', font: 'f-tiro', size: 31, extra: ';font-style:italic' },
+    { name: 'Ektara', idea: 'The Baul’s one-stringed ektara, its string singing.', mark: 'ektara', font: 'f-atma', size: 31 },
+    { name: 'Alpana', idea: 'A rosette of petals in white rice paste on red, the way an alpana is drawn on the floor for a festival.', mark: 'alpana', font: 'f-tiro', size: 32, iconFull: true },
+    { name: 'Note colours', idea: 'Five bars rising and falling like a voice, in the app’s own octave colours: low notes cool, high notes warm.', mark: 'bars', font: 'f-anek', size: 30, extra: ';font-weight:700' },
+    { name: 'Beat box', idea: 'Sa in one of the app’s beat boxes, gold as sam is, with a wave in red ink.', mark: 'sa', font: 'f-hind', size: 30, extra: ';font-weight:600', iconFull: true },
+    { name: 'Brass play', idea: 'The app’s brass play button, with the sound leaving it in waves.', mark: 'play', font: 'f-hind', size: 30, extra: ';font-weight:700' },
+    { name: 'Seal', idea: 'A round seal with the name around its rim, like a music school’s stamp. Its rim is too small to read in a phone’s header: best on reports and print.', mark: 'seal', font: 'f-noto', size: 28 },
+    { name: 'Water drop', idea: 'A drop of river water with waves inside it. Friendly and rounded.', mark: 'drop', font: 'f-baloo', size: 31 },
+    { name: 'Kantha stitch', idea: 'A running stitch in red thread under the word, like the waves sewn on a nakshi kantha.',
+      lock: '<div class="stitch"><span class="b">' + BN + '</span><svg viewBox="0 0 130 9" preserveAspectRatio="none" aria-hidden="true"><path d="M2 5 q8 -6 16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0" fill="none" class="sR" stroke-width="1.7" stroke-dasharray="4.5 3" stroke-linecap="round"/></svg><span class="wm"><span class="l" style="color:var(--red)">Torongini</span></span></div>',
+      icon: '<svg viewBox="0 0 48 48"><rect width="48" height="48" rx="11" class="fS"/><text x="14.25" y="29.6" class="f-tiro fI" font-size="26">ত</text>' + wave(9, 37.5, 7.5, 3.5, 4, 'sR', 1.8, ' stroke-dasharray="3 2.2"') + '</svg>' },
+    { name: 'Bellows', idea: 'The harmonium’s bellows fold in and out, and the sound flows on as a wave.', mark: 'bellows', font: 'f-mina', size: 30 },
+  ];
+
+  var TAGS = [
+    { t: 'Sing with the river.', g: 'en' },
+    { t: 'Your swaralipi, set flowing.', g: 'en' },
+    { t: 'From diary to melody.', g: 'en' },
+    { t: 'Where swaralipi comes alive.', g: 'en' },
+    { t: 'Type it once. Sing it every day.', g: 'en' },
+    { t: 'Find your Sa. Follow the song.', g: 'en' },
+    { t: 'Hear the tune. Sing it true.', g: 'en' },
+    { t: 'Rewaz, made simple.', g: 'en' },
+    { t: 'Every note, a wave to ride.', g: 'en' },
+    { t: 'Practise Bengali songs, beat by beat.', g: 'en' },
+    { t: 'Harmonium, tabla and tanpura from your own notation.', g: 'en' },
+    { t: 'The singing companion for Bengali songs.', g: 'en', m: 'Keeps the old name’s meaning' },
+    { t: 'তোমার গানের সাথী', g: 'bn', m: 'Your singing companion (the old name, kept as a line)' },
+    { t: 'সুরের স্রোতে ভাসুক গান', g: 'bn', m: 'Let the song float on the stream of melody' },
+    { t: 'স্বরলিপি থেকে সুরে', g: 'bn', m: 'From swaralipi to melody' },
+    { t: 'প্রতিদিনের রেওয়াজের সাথী', g: 'bn', m: 'A companion for your daily rewaz' },
+    { t: 'স্বরলিপি পড়ো, প্রাণ খুলে গাও', g: 'bn', m: 'Read the swaralipi, sing your heart out' },
+    { t: 'গানের সাথী, সুরের নদী', g: 'bn', m: 'A companion for songs, a river of melody' },
+    { t: 'গলায় সুর, প্রাণে গান', g: 'bn', m: 'Tune in your voice, song in your heart' },
+    { t: 'ঢেউয়ে ঢেউয়ে সুর', g: 'bn', m: 'Melody, wave upon wave' },
+  ];
+
+  var uid = 0;
+  function fresh(s) { var u = 'u' + (uid++); return s.split('{u}').join(u); }
+  function lockOf(L) { return fresh(L.lock || lk(M[L.mark], wm(L.font, L.size, L.extra))); }
+  function iconOf(L) {
+    if (L.icon) return { svg: fresh(L.icon), tile: false, edge: /class="fS"/.test(L.icon) };
+    return { svg: fresh(M[L.mark].replace(/class="mk[^"]*"/, '')), tile: !L.iconFull };
+  }
+  function iconHtml(L, cls, size) { var ic = iconOf(L); return '<span class="ic ' + size + (ic.tile ? ' tile' : '') + (ic.edge ? ' edge' : '') + ' ' + cls + '">' + ic.svg + '</span>'; }
+
+  var grid = document.getElementById('grid');
+  var html = '';
+  LOGOS.forEach(function (L, i) {
+    var n = i + 1;
+    html += '<article class="card" id="logo-' + n + '" data-n="' + n + '">' +
+      '<div class="chead"><span class="num">' + n + '</span><h3>' + L.name + '</h3></div>' +
+      '<p class="idea">' + L.idea + '</p>' +
+      '<div class="panes"><div class="pane pl"><small>Day</small>' + lockOf(L) + '</div><div class="pane pd"><small>Night</small>' + lockOf(L) + '</div></div>' +
+      '<div class="cfoot"><div class="icons"><span class="lab">Icon</span>' + iconHtml(L, 'pl', 'big') + iconHtml(L, 'pd', 'big') + iconHtml(L, 'pl', 'sm') + iconHtml(L, 'pd', 'sm') + '</div>' +
+      '<label class="pick"><input type="radio" name="logo" value="' + n + '"> Pick logo ' + n + '</label></div></article>';
+  });
+  grid.innerHTML = html;
+
+  var tagsEl = document.getElementById('tags');
+  function tagCol(g, title) {
+    var s = '<div class="tagcol"><h3>' + title + '</h3>';
+    TAGS.forEach(function (T, i) {
+      if (T.g !== g) return;
+      s += '<label class="tag" data-n="' + (i + 1) + '"><input type="radio" name="tag" value="' + (i + 1) + '"><span class="tn">' + (i + 1) + '</span><span class="tt' + (g === 'bn' ? ' bn' : '') + '">' + T.t + '</span>' + (T.m ? '<span class="tm">' + T.m + '</span>' : '') + '</label>';
+    });
+    return s + '</div>';
+  }
+  tagsEl.innerHTML = tagCol('en', 'In English') + tagCol('bn', 'In Bengali');
+
+  var state = { logo: 1, tag: 1 };
+  try { var saved = JSON.parse(localStorage.getItem('torongini-picks') || 'null'); if (saved && saved.logo && saved.tag) state = saved; } catch (e) {}
+
+  function render() {
+    var L = LOGOS[state.logo - 1], T = TAGS[state.tag - 1];
+    document.querySelectorAll('#preview .mock').forEach(function (m) {
+      m.querySelector('.slot').innerHTML = lockOf(L);
+      var t = m.querySelector('.mtag'); t.textContent = T.t; t.className = 'mtag' + (T.g === 'bn' ? ' bn' : '');
+    });
+    var sum = 'Logo ' + state.logo + ' · ' + L.name + ', with tagline ' + state.tag;
+    document.getElementById('pvSum').textContent = sum;
+    document.getElementById('pickSum').textContent = sum;
+    document.querySelectorAll('.card').forEach(function (c) { c.classList.toggle('sel', +c.dataset.n === state.logo); });
+    document.querySelectorAll('.tag').forEach(function (c) { c.classList.toggle('sel', +c.dataset.n === state.tag); });
+    var a = document.querySelector('input[name="logo"][value="' + state.logo + '"]'); if (a) a.checked = true;
+    var b = document.querySelector('input[name="tag"][value="' + state.tag + '"]'); if (b) b.checked = true;
+    try { localStorage.setItem('torongini-picks', JSON.stringify(state)); } catch (e) {}
+  }
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.name === 'logo') state.logo = +t.value;
+    else if (t.name === 'tag') state.tag = +t.value;
+    else return;
+    document.getElementById('copyOut').textContent = '';
+    render();
+  });
+  document.getElementById('copyBtn').addEventListener('click', function () {
+    var L = LOGOS[state.logo - 1], T = TAGS[state.tag - 1];
+    var txt = 'Logo ' + state.logo + ' (' + L.name + ') with tagline ' + state.tag + ': ' + T.t;
+    var out = document.getElementById('copyOut'), box = document.getElementById('copyTxt');
+    function fallback() { box.hidden = false; box.value = txt; box.focus(); box.select(); out.textContent = 'Select and copy the line below.'; }
+    try {
+      navigator.clipboard.writeText(txt).then(function () { out.textContent = 'Copied: ' + txt; box.hidden = true; }, fallback);
+    } catch (e) { fallback(); }
+  });
+  render();
+})();
+</script>

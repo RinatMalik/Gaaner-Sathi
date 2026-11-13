@@ -16,7 +16,7 @@ import { AKAR, BN_LETTER, REPH } from '../core/notation/symbols';
 import { dayTitle, exportName, stamp } from './filenames';
 import { plainBeat } from './view';
 
-export const AI_FILE_KIND = 'Gaaner Sathi practice session, for AI analysis';
+export const AI_FILE_KIND = 'Torongini practice session, for AI analysis';
 export const AI_FILE_VERSION = 1;
 
 /** The long tables, and what reading them as text gets (Rinat, 2026-10-21: "will a local llm fall
@@ -29,7 +29,7 @@ const LONG_PARTS =
 /** What an AI reading the file needs to know first: it may know nothing of the app. */
 export const AI_BRIEF = {
   read_this_first:
-    'This file is one practice session exported from Gaaner Sathi (গানের সাথী, "singing companion"), a web app for practising Bengali songs ' +
+    'This file is one practice session exported from Torongini (তরঙ্গিণী), a web app for practising Bengali songs ' +
     '(Rabindrasangeet and others) from swaralipi, the Bengali akarmatrik notation. The singer sang along with the app while it listened ' +
     'through the microphone. Read this brief first: it explains the app, the notation, how the app judged the singing, and every field. ' +
     'Then help the singer: what went well, what needs work (pitch, timing, particular notes, lines, jumps), and how to practise. ' +
@@ -339,7 +339,7 @@ export const PRACTICE_FILE_VERSION = 2;
 /** What an AI reading the whole practice history needs to know first. */
 export const PRACTICE_BRIEF = {
   read_this_first:
-    'This file is a singer\'s practice history (all of it, or one song\'s: file.kind says which) from Gaaner Sathi (গানের সাথী, "singing companion"), a web app for practising ' +
+    'This file is a singer\'s practice history (all of it, or one song\'s: file.kind says which) from Torongini (তরঙ্গিণী), a web app for practising ' +
     'Bengali songs from swaralipi, the Bengali akarmatrik notation, exported from the browser that kept it. Read this brief first: it ' +
     'explains the app, the notation, how the app judged the singing, and every part of the file. Then help the singer see how they are ' +
     'getting on: which songs and which notes are improving, what keeps going wrong, how their practice is spread, and what to practise ' +
@@ -402,7 +402,7 @@ export function practiceFileParts(log: readonly LogEntry[], sessions: readonly S
     version: PRACTICE_FILE_VERSION,
     exported,
     about_this_file: PRACTICE_BRIEF,
-    file: { kind: oneSong ? 'Gaaner Sathi practice history of one song, “' + oneSong + '”, for AI analysis' : 'Gaaner Sathi practice history, to keep and for AI analysis', made: iso(made), sessions: log.length, sessions_with_detail: versionOf.size },
+    file: { kind: oneSong ? 'Torongini practice history of one song, “' + oneSong + '”, for AI analysis' : 'Torongini practice history, to keep and for AI analysis', made: iso(made), sessions: log.length, sessions_with_detail: versionOf.size },
     songs_as_played: Array.from(versions.values()),
   });
   const parts = [head.slice(0, head.lastIndexOf('}')).trimEnd() + ',\n  "sessions": ['];
@@ -443,13 +443,13 @@ export function practiceFileParts(log: readonly LogEntry[], sessions: readonly S
 
 // ── A day's sessions, as one file (Progress → History → a day's For AI) ───────
 
-export const DAY_FILE_KIND = 'Gaaner Sathi practice of one day, for AI analysis';
+export const DAY_FILE_KIND = 'Torongini practice of one day, for AI analysis';
 export const DAY_FILE_VERSION = 1;
 
 /** What an AI reading a day's practice needs to know first. */
 export const DAY_BRIEF = {
   read_this_first:
-    'This file is one day of a singer\'s practice: every session that day, from Gaaner Sathi (গানের সাথী, "singing companion"), a web ' +
+    'This file is one day of a singer\'s practice: every session that day, from Torongini (তরঙ্গিণী), a web ' +
     'app for practising Bengali songs (Rabindrasangeet and others) from swaralipi, the Bengali akarmatrik notation. The singer sang ' +
     'along with the app while it listened through the microphone. Read this brief first: it explains the app, the notation, how the ' +
     'app judged the singing, and every part of the file. Then help the singer: how the day went, what went well, what needs work ' +

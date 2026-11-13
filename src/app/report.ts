@@ -303,7 +303,7 @@ export function reportHTML(o: SessionFileInput & { script: Script }): string {
   const fileName = exportName(stamp(e.at), e.title || 'Session', 'Report');
 
   let html = reportHead(e.title + ' · practice report · ' + shortDay(e.at));
-  html += '<header class="hero"><div class="wrap"><div class="brand">Gaaner Sathi · <b>গানের সাথী</b> · practice report</div><h1>' + esc(e.title || song?.title || 'Practice') + '</h1>' +
+  html += '<header class="hero"><div class="wrap"><div class="brand">Torongini · <b>তরঙ্গিণী</b> · practice report</div><h1>' + esc(e.title || song?.title || 'Practice') + '</h1>' +
     '<div class="when">' + when.map(esc).join(' · ') + '</div>' +
     '<div class="acts"><button type="button" id="print">Print or save as PDF</button><button type="button" id="save">Save this report</button></div></div></header>';
   html += '<div class="wrap"><main>';
@@ -419,6 +419,6 @@ export function reportHTML(o: SessionFileInput & { script: Script }): string {
   // What to bear in mind, and how it is worked out.
   html += '<section class="card"><h2>Bear in mind</h2>' + list(ins.notes, 'note', 'i', 'Nothing to add.') +
     '<p class="sub" style="margin-top:10px">How it is worked out: while each note plays, the app compares your voice with it many times a second. Right on the note gets full marks; the further off, the fewer, and over half a semitone off gets none. Breaths, pauses and sliding into a note are left out, and so are notes you did not sing. The app never moves your singing in time to make it fit, so singing late lowers the score.</p></section>';
-  html += '</main><footer><p>Made by Gaaner Sathi (গানের সাথী) in this browser on ' + esc(dayText(o.made)) + '. Nothing was uploaded.</p></footer></div>';
+  html += '</main><footer><p>Made by Torongini (তরঙ্গিণী) in this browser on ' + esc(dayText(o.made)) + '. Nothing was uploaded.</p></footer></div>';
   return html + reportScript(fileName);
 }

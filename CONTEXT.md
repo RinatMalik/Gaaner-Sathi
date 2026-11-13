@@ -1,9 +1,9 @@
-# Gaaner Sathi (গানের সাথী) — CONTEXT
+# Torongini (তরঙ্গিণী) — CONTEXT
 
 > The project's shared state, for Rinat, Claude, Codex and any other LLM: what the app is
 > for, how we work, where things stand, the decisions in force and the newest work log.
 >
-> **Last updated:** 2026-11-10 (GMT) by Claude (Opus 5.5)
+> **Last updated:** 2026-11-13 (GMT) by Claude (Opus 5.5)
 
 ## How to use this file
 
@@ -127,7 +127,8 @@ wins, except a later explicit decision by Rinat, which always wins.
   how long each rewaz item takes; Edit for the songs ticked in the Music library; the Sa, taal and
   tempo in full screen's bar) and sixty-one (PH2-61: Expand all, every line of the Practice view
   opened at once) are
-  built and live.
+  built and live. On 2026-11-13 the app was renamed **Torongini (তরঙ্গিণী)** (PH2-62); its logo
+  and tagline wait for Rinat's pick.
   Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
 - **Review of 25–27 Oct (Claude, 2026-10-28, in chat):** the three day files and 52 takes in
@@ -144,7 +145,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   61-key keyboard); the songs and exercises are at Sa C♯4, and the default 3-reed guide is heard
   at C♯3 (its bass reed: the app's detector reads it at 138.5 Hz), so Rinat matches the guide.
   "Octave must match" judged against C♯4; from round forty-two the bass reed's octave counts too.
-- **Next single action:** Rinat, with round sixty-one: presses Expand all under the Practice lines (every line opens to full size with its pitch strip), plays, opens another song and refreshes (they stay open), goes into full screen (the lines are as usual there) and back, then presses Collapse all; says whether the button is where it is looked for, on the computer and the phone. With it, round sixty: picks a Sa at the top, plays, opens another song and starts a rewaz (every song should play in that Sa), picks "Song’s own (…)" (each song in its own again) and refreshes (each song's own); moves the tempo, opens another song (it stays) and ticks Default under it (each song's own tempo); does the same with the taal and the rhythm speed; starts a rewaz and changes the Sa in the break between two items, at the top or with the Sa chip in full screen's bar (it is greyed while an item plays); reads how long each rewaz item takes beside "Song"; ticks some of their own songs in the Music library, presses Edit and changes their tags, Sa or tempo together; reads the Sa, taal and tempo chips in full screen's bar on the TV and the phone; says whether a tempo set at the top playing over each rewaz item's own is right. With it, round fifty-nine: picks the reeds, drone, instrument, side instruments and fills once at the top, opens another song and refreshes (they should stay); plays a song that had its own instrument or drone and says whether it is missed; reads the Sa list ("C♯4 · Black 1") and looks at Reeds beside the Sa and Octave must match beside Loop, on the computer and the phone; sets a song's Rhythm speed in Edit notation. With it, round fifty-eight: says whether the sentence at the foot of the top panel is clear and well placed; opens Edit notation, opens Settings, sets a song's Sa and tempo there, and says whether they are where they are expected; listens to a song with Sa in the C2 octave and says whether the guide is usable at that depth (with 3 reeds the bass reed goes down to 32.7 Hz, too low for most speakers), and whether Check my pitch reads a voice there (it reads nothing below 60 Hz, Sa C2 being 65.41 Hz); folds and unfolds the Virtual keyboard; sings a take with a Sa changed at the top and plays it back against the guide. With it, round fifty-seven: moves the Rhythm and Drone faders on one song, opens another and says whether they stayed where they were and whether anything sounds too loud or too soft now that a song's saved levels are not used; drags the routines by the dots, on the computer and on the phone; watches "3:25/4:30 left" beside the title and in the rewaz bar. With it, round fifty-six: sings a song with Check my pitch on and
+- **Next single action:** Rinat picks a logo and a tagline (PH2-62: twenty of each at https://claude.ai/artifact/W87BrvNwBPxLVpb8PPFdZS, also `docs/brand/logo-choices.html`; Copy my picks gives the line to paste), checks the Bengali of the taglines, and decides on moving to torongini.com and renaming the repository and the folder (Open question 3). With it, round sixty-one: presses Expand all under the Practice lines (every line opens to full size with its pitch strip), plays, opens another song and refreshes (they stay open), goes into full screen (the lines are as usual there) and back, then presses Collapse all; says whether the button is where it is looked for, on the computer and the phone. With it, round sixty: picks a Sa at the top, plays, opens another song and starts a rewaz (every song should play in that Sa), picks "Song’s own (…)" (each song in its own again) and refreshes (each song's own); moves the tempo, opens another song (it stays) and ticks Default under it (each song's own tempo); does the same with the taal and the rhythm speed; starts a rewaz and changes the Sa in the break between two items, at the top or with the Sa chip in full screen's bar (it is greyed while an item plays); reads how long each rewaz item takes beside "Song"; ticks some of their own songs in the Music library, presses Edit and changes their tags, Sa or tempo together; reads the Sa, taal and tempo chips in full screen's bar on the TV and the phone; says whether a tempo set at the top playing over each rewaz item's own is right. With it, round fifty-nine: picks the reeds, drone, instrument, side instruments and fills once at the top, opens another song and refreshes (they should stay); plays a song that had its own instrument or drone and says whether it is missed; reads the Sa list ("C♯4 · Black 1") and looks at Reeds beside the Sa and Octave must match beside Loop, on the computer and the phone; sets a song's Rhythm speed in Edit notation. With it, round fifty-eight: says whether the sentence at the foot of the top panel is clear and well placed; opens Edit notation, opens Settings, sets a song's Sa and tempo there, and says whether they are where they are expected; listens to a song with Sa in the C2 octave and says whether the guide is usable at that depth (with 3 reeds the bass reed goes down to 32.7 Hz, too low for most speakers), and whether Check my pitch reads a voice there (it reads nothing below 60 Hz, Sa C2 being 65.41 Hz); folds and unfolds the Virtual keyboard; sings a take with a Sa changed at the top and plays it back against the guide. With it, round fifty-seven: moves the Rhythm and Drone faders on one song, opens another and says whether they stayed where they were and whether anything sounds too loud or too soft now that a song's saved levels are not used; drags the routines by the dots, on the computer and on the phone; watches "3:25/4:30 left" beside the title and in the rewaz bar. With it, round fifty-six: sings a song with Check my pitch on and
   the Scarlett picked, and turns GAIN 01 until the needle sits mostly in the green (it now reads
   the voice's loudest moments, as the ring round GAIN 01 does, green from −15 to −9 dB of full
   scale, the top where the microphone cuts off); says whether the gauge and the ring now agree
@@ -255,7 +256,8 @@ wins, except a later explicit decision by Rinat, which always wins.
 
 ## Product direction
 
-Gaaner Sathi (গানের সাথী, "singing companion") is a **very light, user-friendly web app**
+Torongini (তরঙ্গিণী, "river"; word for word, "one full of waves"; Gaaner Sathi, গানের সাথী, until
+2026-11-13) is a **very light, user-friendly web app**
 for singers who learn Bengali songs from swaralipi (akarmatrik notation). You type a song's
 notation once; it plays the melody on harmonium as a pitch guide, with tabla, dholak or drums
 and a tanpura or harmonium drone, all on one clock so the rhythm never drifts from the
@@ -429,8 +431,9 @@ oracle the comparison tests check against.
 ## Conventions
 
 - **Copy:** UK English, sentence case ("practise" the verb, "practice" the noun, "colour",
-  "analyse"). Bengali must be correct; ask Rinat when unsure. The name is always **Gaaner
-  Sathi** in Latin letters, with **গানের সাথী** alongside in the app.
+  "analyse"). Bengali must be correct; ask Rinat when unsure. The name is always **Torongini**
+  in Latin letters, with **তরঙ্গিণী** alongside in the app (Gaaner Sathi until 2026-11-13; the
+  storage keys and the files' `format` ids keep that name for good: DATA.md → Storage).
 - **Theme:** theme-aware tokens on `:root`, redefined for dark; never hardcoded light or dark
   colours (no raw white or black rgba for borders or fills). Accent: brass `#c4952b` (light) /
   `#d3a843` (dark) on rosewood `#3e1f15`.
@@ -543,6 +546,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
 | PH2-45 | Claude | Review | The time left, a song's progress where it is practised, the library first, the notes in ink (Rinat, 2026-10-31): while playing, the time left beside the title, to the second, the rounds, breaks and count-ins to come included, "in this round" for a loop with no end, held while paused, gone on Stop (`secondsLeft` in transport.ts; `leftAt`, `showLeft` in app.ts; `leftText` in view.ts; `.songleft`); the whole rewaz's in its bar, "0:14 left in all", the item's own and the items after it with the breaks between them, counted through the break before an item (`rewazLeft`, `showLeft` and `Rewaz.left` in rewaz.ts; `routineSeconds` from an item; `#rwLeft`); My progress under My takes for the open song: tiles, where it stands, going well and to work on, the score each session, the latest five sessions with Report and For AI, and its Report, For AI and See all in Progress (`songProgressHTML`, `showSong` in progress.ts; `songHeadline` from songreport.ts; `renderSongProgress` in app.ts; `#progBox`); the Music library's tab before Practice (index.html, `TABS`); the Practice sheet's notes in `--ink` (styles.css `.pnt`) | Tests: 43 files, 490 passed (10 new in timeleft.test.ts); headless Edge on `npm run dev` at 1280 px day and 360 px night: the title 0:15 → 0:10 a second a second, held at 0:10 paused, hidden on Stop, "0:13 left in this round" looping; a two-item rewaz 0:14 → 0:00 left in all through rounds and a 3 s break, hidden at "Rewaz done"; My progress with 7 seeded sessions; See all in Progress opening Pitch for the song; page 360 px wide; no console errors (Work log 2026-10-31, PH2-45) | Waiting for Rinat to play, run a rewaz and open My progress |
+| PH2-62 | Claude | Review | The name Torongini (তরঙ্গিণী) (Rinat, 2026-11-13): the visible name everywhere (title, header, reports, print, backups, the files for AI, README, the package), the identifiers kept; twenty logos and twenty taglines to choose from (`docs/brand/logo-choices.html`, https://claude.ai/artifact/W87BrvNwBPxLVpb8PPFdZS); moving the address, repository and folder assessed (Open question 3) | Type-check clean, 574 tests, build; the tab and header in the browser pane at 360 px (Work log 2026-11-13, PH2-62) | Waiting for Rinat's picks, the Bengali checked, and a go-ahead on the move |
 | PH2-61 | Claude | Review | Expand all (Rinat, 2026-11-13): a button first in the Practice lines' settings opens every line to full size with its pitch strip, or Collapse all closes them; kept for every song, through runs and refreshes (setting `plOpen`), not in full screen; the lines shown counted at the opened size (lines.ts `applyAll`, `allShown`, `layout`; app.ts `#plAllBtn`, `applyLinesPrefs`) | 574 unit tests (2 in the new expandall.test.ts); headless Edge `run61` (42 checks at 1280 px day and 360 px night) and `layout61` (25 checks at 360, 800, 1280 px and 3840 × 2160) (Work log 2026-11-13, PH2-61) | Waiting for Rinat's use; not tried on a real touch screen |
 | PH2-60 | Claude | Review | The top's Sa, tempo, taal and rhythm speed for every song until a refresh (Rinat, 2026-11-13): one overlay in memory (`topNow`, `withNow` in core/song/fornow.ts; `nowOf`, `setNow`, `pickSa` in app.ts), each list's first choice the song's own, Default under the tempo (`#tempoDef`), Revert gone; no Sa on a rewaz routine (`Routine.sa` read and saved without); the Sa enabled in the break between rewaz items (`setPlayUI`); each rewaz item's time beside "Song" (`itemSeconds`, `itemTempo`, `durText`), at the top's tempo where set, said in an open routine (`.rwflat`); Edit for the songs ticked in the Music library (`applyBulk`, `bulkEditHTML`, `editSongs`); the Sa, taal and tempo chips in full screen's bar, the Sa's a picker while nothing plays (`#fullChips`) | 572 unit tests (15 in the new untilrefresh.test.ts); headless Edge `run60` (75 checks, the oscillators measured) and `layout60` (123 checks at 360, 800, 1280 px day and night, and 3840 × 2160) (Work log 2026-11-13, PH2-60) | Waiting for Rinat's use and ears; not tried on a real touch screen |
 | PH2-59 | Claude | Review | What every song shares (Rinat, 2026-11-10): the reeds, drone, instrument, side instruments and fills saved on the device and the same for every song (`setShared` in app.ts; `SoundSettings`); a song's `sound` only its rhythm speed (`SongSound`, `cleanSound`, `setSpeed`); gone from Edit notation with "Use my usual sound"; White and Black back in the Sa list (`saOptionsHTML`); Reeds beside the Sa (`.dsareeds`), Octave must match beside Loop | 559 unit tests; headless Edge `run59` (44 checks, the oscillators measured) and `layout58` (60 checks at 360, 800, 1280 px day and night, and 3840 × 2160) (Work log 2026-11-10, PH2-59) | Waiting for Rinat's use and ears; not tried on a real touch screen |
@@ -790,6 +794,8 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-10-15 | **The lines, round two:** each line's number box is wider and is itself the button that plays from the line; once sung it is tinted by the line's score, red (50 or less) through amber (75) to green (95 or more), the notes keeping their own marks and traces; the lines above the one being sung fade their beats, not their boxes. The run's average shows under the lines as each line ends. The taal figure fills the box's width; each beat draws its edge on, so a shape closes as its last beat ends and then fills; the beat's corner pops and sam pulses; two beats are a lens. The line over the lines is removed: the box of the line being sung says Now, Round 2, Your turn (the guide's silent round), In 3 (the count-in), Paused or Done, and a message shows only when nothing can play. Lines shown (5, 7, 9, 12), which line is the one being sung (1st to 5th from the top) and the size of the words move into the Practice settings (a Lines group), with the keys to press (Keyboard) and the octave rule (Pitch); nine or twelve lines draw the others smaller. The keys to press are taller. | Rinat, chat 2026-10-15 ("make the left line number box wider", "Have the whole box be clickable", "Make the taal graphic a little bigger … add a bit more movement/animation/oomph … have the connecting lines slowly light up as each of the beat progresses?", "Provide a total average of the song … updating as the song progresses", "a RAG colour of the line … I don't want to lose the current colours of the individual notes", "Move the settings of the carousel into the practice settings … which line should be the highlighted/current line … option for 12", "make it a little longer vertically", "remove the line"); tinting the box rather than the line, the lens, the pulse and pop, and the wording in the box are Claude's | Replaces round six's settings button over the lines and the line above them. The now-singing builders are removed. |
 | 2026-10-15 | **Print or save as PDF** leaves the Practice view for an icon button at the end of each Music library row, which prints that song or exercise without opening it; Edit notation keeps its button. | Rinat, chat 2026-10-15 ("Remove the save as pdf option from here and put it in the Music Library"); the icon button and keeping Edit notation's are Claude's | print.ts prints any song. |
 | 2026-10-14 | **Adding to a routine:** "+ Add songs and exercises" (replacing "+ Add the open song") opens a checklist of every song and exercise, grouped as in the library, numbered in the order ticked, the open one marked, with a find box; Add puts them in that order (2 rounds each). | Rinat, chat 2026-10-14 ("There should be a way to choose all the items I want to add in a routine") | rewaz.ts. |
+| 2026-11-13 | **The app is Torongini (তরঙ্গিণী),** no longer Gaaner Sathi (গানের সাথী): the page's title and header, the three reports, print, the backup's description, the files for AI, README, CI's forward page and the package's name. The Latin spelling is Rinat's; the Bengali is তরঙ্গিণী ("river"; word for word, "one full of waves"). | Rinat, chat 2026-11-13 ("I have purchased torongini.com for this app. I would like the name to be changed to Torongini") | The logo and tagline follow Rinat's pick; the address, repository and folder stay as they are until Rinat decides (Open question 3). |
+| 2026-11-13 | **The old name stays in the identifiers, for good:** the storage keys (`gaanersathi.*`), the IndexedDB name (`gaanersathi`) and the files' `format` ids (`gaaner-sathi`, `gaaner-sathi-backup`, `gaaner-sathi-log`). Nobody sees them; changing them would leave every saved song, routine, log entry and take behind, and old backups would not restore (`readBackup` checks `format`). | Claude, 2026-11-13 (Invariants → Never lose a song) | DATA.md → Storage says so. |
 
 ## Open questions
 
@@ -813,6 +819,13 @@ records were folded into on 2026-10-11 (the last rows say where).*
    (four A records for the bare domain to GitHub Pages, `www` a CNAME to
    `rinatmalik.github.io`); the domain verified in Rinat's GitHub settings and set in the
    repository's Pages settings, Enforce HTTPS ticked; README.md and DATA.md's address changed.
+   Rinat, 2026-11-13: bought **torongini.com**, renamed the app Torongini, and asked about renaming
+   the folder and the repository too. Claude's assessment (reply of 2026-11-13): the domain first,
+   with Back up everything at the old address before the switch (the songs stay at
+   rinatmalik.github.io, a different site to the browser); then the repository (git and GitHub's
+   pages forward, the old Pages address does not, which the domain makes irrelevant); the folder
+   last, by Rinat with no session open (an ASCII name also clears the Android build's refusal of
+   non-ASCII paths, ROADMAP.md → Phase 3). Waiting for Rinat's go-ahead.
 4. **Free, paid or donations?** Matters once the native app heads for an app store (Phase 3).
 5. **Two taal forms.** Khemta is the 12-matra form of the Bengali tabla books, not Tagore's
    6-matra Kashmiri Khemta; Dhamar is divided as in Rabindrasangeet (3+2+2+3+4), not the
@@ -858,6 +871,45 @@ Template:
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
 
+### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-62 the name Torongini (তরঙ্গিণী); twenty logos and twenty taglines; what moving would take
+
+- **Goal:** Rinat: "I have purchased torongini.com for this app. I would like the name to be
+  changed to Torongini", with 15–20 logo choices (তরঙ্গিণী "somewhere on the top left corner"),
+  20 taglines, and "the impact of changing the name": the project folder and the git repository
+  renamed too, "how much of a risk/work is this? will all the connections, dependencies be lost?"
+- **Inspected:** every mention of the old name (`git grep -n -i -I -E "gaaner|sathi|গানের|সাথী"`):
+  the visible ones (the page's title and header, the reports, print, the backup's `about`, the AI
+  files' `kind` and briefs, README, CI's `/new/` page, the package's name) and the identifiers
+  (storage keys `gaanersathi.*`, IndexedDB `gaanersathi`, the files' `format` ids; `readBackup`
+  refuses any other `format`). No absolute path of the folder in the repository; Claude Code
+  keeps its per-folder state in `~/.claude/projects/<the folder's path as a key>` (292 MB of
+  session transcripts, an empty `memory/`); Codex's config names no project path. GitHub's docs
+  on renaming a repository: git and web addresses forward, a project's Pages address does not,
+  and a custom domain takes the repository's name out of the address.
+- **Changed:** the visible name only, by a one-off script: `index.html` (title, description,
+  header: "Torongini", তরঙ্গিণী in the line under it), the three reports' brand line and
+  footer, print's footer and title, the backup's `about`, the AI files' `kind` and briefs,
+  README, CI's `/new/` forward page, `package.json` and `package-lock.json` (`torongini`).
+  Kept on purpose: the storage keys, the IndexedDB name and the `format` ids (Decisions).
+  New `docs/brand/logo-choices.html`: twenty logos, each in the header by day and by night with
+  its icon at 48 and 20 px, and twenty taglines, with a preview of the pair and Copy my picks;
+  published as https://claude.ai/artifact/W87BrvNwBPxLVpb8PPFdZS. Tiro Bangla's headline
+  measured in Chromium (0.57–0.62 em above the baseline, ending 2.81 em along তরঙ্গিণী, 0.67 em
+  along ত) so logo 1's wave meets it.
+- **Tests / verification:** `npm run typecheck` clean; `npm test` 574 passed; `npm run build`
+  built. Dev server in the browser pane: the tab reads "Torongini", the header "Torongini /
+  তরঙ্গিণী · harmonium and rhythm from your own notation", no sideways scroll at 360 px (dark).
+  The logo page checked card by card at 438 px, day and night; then logo 4's keys redrawn, the
+  underlines of 9 and 19 fitted to the word (93 and 102 px, as the word), icon edges added.
+- **Decisions made:** two rows (the name; the identifiers kept).
+- **Risks or disagreements:** the spelling তরঙ্গিণী (with ণ, as the dictionaries have it) and the
+  Bengali taglines are Claude's: Rinat to confirm. The AI files' `kind` now reads "Torongini
+  practice session, for AI analysis"; nothing reads it back. Nothing outside the repository is
+  renamed; the live address is unchanged.
+- **Next handoff:** Rinat picks a logo and a tagline and decides on the domain, the repository
+  and the folder (Next single action); then Claude builds the logo into the header, the tab's
+  icon and the home-screen icon.
+
 ### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-61 Expand all on the Practice lines
 
 - **Goal:** Rinat, 2026-11-13: "In practice page, currently when a line is clicked it expands.
@@ -891,69 +943,3 @@ Template:
   last line (so it can be sung in its place) is counted at an opened line's height, so there is
   more blank space below the song's end when scrolled there.
 - **Next handoff:** Rinat tries it (Next single action).
-
-### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-60 the top's four settings until a refresh; no Sa on a routine; each rewaz item's time; Edit in the Music library; full screen's chips
-
-- **Goal:** Rinat, 2026-11-13: "the four settings - your key, tempo, taal, rhythm speed. In the top
-  panel make them "Until Refresh". For your key, add "Song's own" option in the dropdown. * In the
-  tempo, below text box, add a checkbox "Default" which will make it go back to songs own. * Have
-  the "until refresh" behaviour updated so it goes back to default when the page is refreshed or
-  closed and opened again. Should persist when song changes. * Get rid of the revert button … *
-  Get rid of the option to add "Sa for every item" from the rewaz section … * During break between
-  items, it would be good if I could change the "Your Key" - but remains disabled when any song is
-  playing … * In rewaz section, above the title of each song (or somewhere appropriate) mentione
-  the duration of the song. * in the music library, would be good if there were some bulk edit
-  options when multiple items are selected. * In full screen mode, at the top bar, would be good to
-  see some of the settings like maybe a chip showing which key the song is playing at, taal and
-  tempo". Before it, the same day, Rinat asked for every setting and how it behaves; answered in
-  chat from the live site (scratchpad `settings60.mjs`), no code changed.
-- **Inspected:** app.ts (`forNow`, `nowOf`, `itemOverride`, `setPlayUI`, `showSa`, `renderRevert`,
-  the rewaz host), core/song/fornow.ts, core/practice/routine.ts (`routineSeconds`), rewaz.ts,
-  songs.ts (the ticked bar), full.ts, index.html's deck and `.sheetHead`.
-- **Changed:** `feat(top): the Sa, tempo, taal and rhythm speed at the top for every song until a
-  refresh, no Revert, no Sa on a routine, the Sa between rewaz items, each item's time, Edit in the
-  Music library, full screen's chips` — src/core/song/fornow.ts (`withNow` in place of
-  `trimForNow`); core/practice/routine.ts (`sa` gone; `itemTempo`, `itemSeconds`; `routineSeconds`
-  with the top's tempo); core/song/library.ts (`BulkPatch`, `applyBulk`); app/app.ts (`topNow`,
-  `setNow`, `pickSa`, `showSaPick`, `redrawRewaz`, `editSongs`, `#tempoDef`, full screen's chips,
-  `setPlayUI` at start; `renderRevert`, `revertNow`, `showNow`, `nowToChange` gone); app/rewaz.ts
-  (`durText`, `.rwdur`, `.rwflat`; `saFieldHTML` gone); app/songs.ts (`bulkEditHTML`, `bulkPatch`,
-  `tagsOf`, Edit in the bar); app/view.ts (`SPEED_NAMES`, the taal's own first); app/store.ts;
-  index.html (Default, the speed's own, `#fullChips`, Revert gone); app/styles.css;
-  tests/unit/untilrefresh.test.ts (new), fornow, scope and topsection tests; docs/DATA.md,
-  ROADMAP.md (row 60), HISTORY.md (five decisions, the PH2-58 entry); this file.
-- **Tests / verification:** `npx tsc --noEmit` exit 0; `npx vitest run` → 49 files, 572 passed; `npm
-  run build` → 410.32 kB JS, 95.52 kB CSS; `bash reference/tests/run-all.sh` → parser 31, checker
-  11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge on `npm run dev`,
-  scratchpad `run60.mjs` (75 checks, all pass; Web Audio's oscillators recorded): at the start
-  each list on the song's own ("Song’s own (C♯4 · Black 1)", "Keherwa (song’s own)", "Normal speed
-  (song’s own)"), Default ticked, no Revert, Loop off; Sa D4 picked: 293.66 Hz on that song and on
-  another (not 196), nothing saved, the song's own G3 again after "Song's own"; a tempo moved holds
-  on another song, Default puts each song's own back, unticked keeps the tempo showing; taal and
-  speed held across songs over a song's own half speed; all four and Loop gone after a refresh; a
-  routine saved with a Sa plays its first item in the song's own C♯4 (277.18 Hz, no 130.81); each
-  item's time beside "Song" (2 s, 8 s at tempo 60 set at the top, 2 s again with Default); the Sa
-  greyed while an item plays ("Stop to change Sa"), on in the break; E4 picked in the break and the
-  next item heard at 329.63 Hz (not its song's 196 or 392), kept after the rewaz; full screen's chips
-  "Sa C♯4", "Keherwa", "Tempo 200", the Sa chip a picker when stopped and greyed while playing, the
-  tempo chip following; Edit on two songs and a built-in exercise ticked: tags, tempo 100, double
-  speed, Sa D3 and Exercises applied ("Changed 2 exercises."), the third song and the built-in
-  unchanged, the open song's fields following, a tag taken off and back under My songs, "Nothing to
-  change" when they have it; no page errors. `layout60.mjs` (123 checks, all pass) at 360 × 780 day
-  and night, 800 × 1000 day, 1280 × 950 day and night, 3840 × 2160 night: Default inside the tempo
-  column under its box, full screen's chips in the bar clear of its button, the rewaz times and the
-  top's tempo said, the Edit panel inside the screen, no sideways scroll; screenshots looked at.
-  Found and fixed by them: the Sa chip looked like a plain label until the first Play
-  (`setPlayUI` now runs at start); the Edit panel's tag chips and Cancel lost their outline to the
-  menu style (`dmenu` taken off it); the taal's and speed's own cut to "Song’s own (Kehe…" on a
-  phone (now named first). Pushed as `0b12202`; CI run `43359541771` green; the site serves
-  `index-DPFCJ2n_.js`, and in headless Edge at 360 × 780 by night it shows the Sa's own first, no
-  Revert, Default ticked, the taal's and speed's own named first, Default unticked by a tempo moved
-  and ticked again after a refresh, full screen's chips, no sideways scroll, no page errors
-  (scratchpad `live60.mjs`).
-- **Decisions made:** seven 2026-11-13 rows; five earlier rows moved to HISTORY.md.
-- **Risks or disagreements:** nobody on the build side can hear. No real touch screen. A tempo set
-  at the top now plays over each rewaz item's own tempo, which an open routine says; Rinat may want
-  the items' own to win. A song's Sa, tempo, taal or speed changed in Edit notation is not heard
-  while the top has one picked. Edit in the Music library does not change the taal.
-- **Next handoff:** Rinat tries it and listens (Next single action).

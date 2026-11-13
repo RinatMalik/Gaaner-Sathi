@@ -66,6 +66,72 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-60 the top's four settings until a refresh; no Sa on a routine; each rewaz item's time; Edit in the Music library; full screen's chips
+
+- **Goal:** Rinat, 2026-11-13: "the four settings - your key, tempo, taal, rhythm speed. In the top
+  panel make them "Until Refresh". For your key, add "Song's own" option in the dropdown. * In the
+  tempo, below text box, add a checkbox "Default" which will make it go back to songs own. * Have
+  the "until refresh" behaviour updated so it goes back to default when the page is refreshed or
+  closed and opened again. Should persist when song changes. * Get rid of the revert button … *
+  Get rid of the option to add "Sa for every item" from the rewaz section … * During break between
+  items, it would be good if I could change the "Your Key" - but remains disabled when any song is
+  playing … * In rewaz section, above the title of each song (or somewhere appropriate) mentione
+  the duration of the song. * in the music library, would be good if there were some bulk edit
+  options when multiple items are selected. * In full screen mode, at the top bar, would be good to
+  see some of the settings like maybe a chip showing which key the song is playing at, taal and
+  tempo". Before it, the same day, Rinat asked for every setting and how it behaves; answered in
+  chat from the live site (scratchpad `settings60.mjs`), no code changed.
+- **Inspected:** app.ts (`forNow`, `nowOf`, `itemOverride`, `setPlayUI`, `showSa`, `renderRevert`,
+  the rewaz host), core/song/fornow.ts, core/practice/routine.ts (`routineSeconds`), rewaz.ts,
+  songs.ts (the ticked bar), full.ts, index.html's deck and `.sheetHead`.
+- **Changed:** `feat(top): the Sa, tempo, taal and rhythm speed at the top for every song until a
+  refresh, no Revert, no Sa on a routine, the Sa between rewaz items, each item's time, Edit in the
+  Music library, full screen's chips` — src/core/song/fornow.ts (`withNow` in place of
+  `trimForNow`); core/practice/routine.ts (`sa` gone; `itemTempo`, `itemSeconds`; `routineSeconds`
+  with the top's tempo); core/song/library.ts (`BulkPatch`, `applyBulk`); app/app.ts (`topNow`,
+  `setNow`, `pickSa`, `showSaPick`, `redrawRewaz`, `editSongs`, `#tempoDef`, full screen's chips,
+  `setPlayUI` at start; `renderRevert`, `revertNow`, `showNow`, `nowToChange` gone); app/rewaz.ts
+  (`durText`, `.rwdur`, `.rwflat`; `saFieldHTML` gone); app/songs.ts (`bulkEditHTML`, `bulkPatch`,
+  `tagsOf`, Edit in the bar); app/view.ts (`SPEED_NAMES`, the taal's own first); app/store.ts;
+  index.html (Default, the speed's own, `#fullChips`, Revert gone); app/styles.css;
+  tests/unit/untilrefresh.test.ts (new), fornow, scope and topsection tests; docs/DATA.md,
+  ROADMAP.md (row 60), HISTORY.md (five decisions, the PH2-58 entry); this file.
+- **Tests / verification:** `npx tsc --noEmit` exit 0; `npx vitest run` → 49 files, 572 passed; `npm
+  run build` → 410.32 kB JS, 95.52 kB CSS; `bash reference/tests/run-all.sh` → parser 31, checker
+  11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge on `npm run dev`,
+  scratchpad `run60.mjs` (75 checks, all pass; Web Audio's oscillators recorded): at the start
+  each list on the song's own ("Song’s own (C♯4 · Black 1)", "Keherwa (song’s own)", "Normal speed
+  (song’s own)"), Default ticked, no Revert, Loop off; Sa D4 picked: 293.66 Hz on that song and on
+  another (not 196), nothing saved, the song's own G3 again after "Song's own"; a tempo moved holds
+  on another song, Default puts each song's own back, unticked keeps the tempo showing; taal and
+  speed held across songs over a song's own half speed; all four and Loop gone after a refresh; a
+  routine saved with a Sa plays its first item in the song's own C♯4 (277.18 Hz, no 130.81); each
+  item's time beside "Song" (2 s, 8 s at tempo 60 set at the top, 2 s again with Default); the Sa
+  greyed while an item plays ("Stop to change Sa"), on in the break; E4 picked in the break and the
+  next item heard at 329.63 Hz (not its song's 196 or 392), kept after the rewaz; full screen's chips
+  "Sa C♯4", "Keherwa", "Tempo 200", the Sa chip a picker when stopped and greyed while playing, the
+  tempo chip following; Edit on two songs and a built-in exercise ticked: tags, tempo 100, double
+  speed, Sa D3 and Exercises applied ("Changed 2 exercises."), the third song and the built-in
+  unchanged, the open song's fields following, a tag taken off and back under My songs, "Nothing to
+  change" when they have it; no page errors. `layout60.mjs` (123 checks, all pass) at 360 × 780 day
+  and night, 800 × 1000 day, 1280 × 950 day and night, 3840 × 2160 night: Default inside the tempo
+  column under its box, full screen's chips in the bar clear of its button, the rewaz times and the
+  top's tempo said, the Edit panel inside the screen, no sideways scroll; screenshots looked at.
+  Found and fixed by them: the Sa chip looked like a plain label until the first Play
+  (`setPlayUI` now runs at start); the Edit panel's tag chips and Cancel lost their outline to the
+  menu style (`dmenu` taken off it); the taal's and speed's own cut to "Song’s own (Kehe…" on a
+  phone (now named first). Pushed as `0b12202`; CI run `43359541771` green; the site serves
+  `index-DPFCJ2n_.js`, and in headless Edge at 360 × 780 by night it shows the Sa's own first, no
+  Revert, Default ticked, the taal's and speed's own named first, Default unticked by a tempo moved
+  and ticked again after a refresh, full screen's chips, no sideways scroll, no page errors
+  (scratchpad `live60.mjs`).
+- **Decisions made:** seven 2026-11-13 rows; five earlier rows moved to HISTORY.md.
+- **Risks or disagreements:** nobody on the build side can hear. No real touch screen. A tempo set
+  at the top now plays over each rewaz item's own tempo, which an open routine says; Rinat may want
+  the items' own to win. A song's Sa, tempo, taal or speed changed in Edit notation is not heard
+  while the top has one picked. Edit in the Music library does not change the taal.
+- **Next handoff:** Rinat tries it and listens (Next single action).
+
 ### 2026-11-10 GMT — Claude (Opus 5.5) — PH2-59 what every song shares; a song's rhythm speed; White and Black in the Sa list; two rows side by side
 
 - **Goal:** Rinat, 2026-11-10: "in the your key drop down, you had some sort of indicator like the

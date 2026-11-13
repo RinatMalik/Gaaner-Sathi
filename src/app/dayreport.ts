@@ -101,7 +101,7 @@ export function dayReportHTML(o: DayReportInput): string {
   const top = [plural(E.length, 'session'), lengthText(secs) + ' practised', clock(first.at) + ' to ' + clock(E[E.length - 1]!.at)];
 
   let html = reportHead('Practice on ' + longDay(first.at) + ' · day report', DAY_CSS);
-  html += '<header class="hero"><div class="wrap"><div class="brand">Gaaner Sathi · <b>গানের সাথী</b> · day report</div><h1>' + esc(longDay(first.at)) + '</h1>' +
+  html += '<header class="hero"><div class="wrap"><div class="brand">Torongini · <b>তরঙ্গিণী</b> · day report</div><h1>' + esc(longDay(first.at)) + '</h1>' +
     '<div class="when">' + top.map(esc).join(' · ') + '</div>' +
     '<div class="acts"><button type="button" id="print">Print or save as PDF</button><button type="button" id="save">Save this report</button></div></div></header>';
   html += '<div class="wrap"><main>';
@@ -175,7 +175,7 @@ export function dayReportHTML(o: DayReportInput): string {
   if (without && ns.length) notes.push('Note by note counts ' + (s.scored.length - without) + ' of the ' + s.scored.length + ' sessions with a score.');
   if (ns.some((x) => x.n < FEW)) notes.push('A note sung under ' + FEW + ' times says little: its key is hatched.');
   html += '<section class="card"><h2>Bear in mind</h2>' + list(notes, 'note', 'i', '') + '</section>';
-  html += '</main><footer><p>Made by Gaaner Sathi (গানের সাথী) in this browser on ' + esc(dayText(o.now)) + '. Nothing was uploaded.</p></footer></div>';
+  html += '</main><footer><p>Made by Torongini (তরঙ্গিণী) in this browser on ' + esc(dayText(o.now)) + '. Nothing was uploaded.</p></footer></div>';
   return html + reportScript(dayReportName(o.inputs));
 }
 

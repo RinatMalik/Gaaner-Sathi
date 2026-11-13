@@ -144,7 +144,7 @@ export function songReportHTML(o: SongReportInput): string {
   const fileName = songFileName(o.now, o.title, 'Report');
 
   let html = reportHead(o.title + ' · song report', SONG_CSS);
-  html += '<header class="hero"><div class="wrap"><div class="brand">Gaaner Sathi · <b>গানের সাথী</b> · ' + (o.exercise ? 'exercise' : 'song') + ' report</div><h1>' + esc(o.title) + '</h1>' +
+  html += '<header class="hero"><div class="wrap"><div class="brand">Torongini · <b>তরঙ্গিণী</b> · ' + (o.exercise ? 'exercise' : 'song') + ' report</div><h1>' + esc(o.title) + '</h1>' +
     '<div class="when">' + top.map(esc).join(' · ') + '</div>' +
     '<div class="acts"><button type="button" id="print">Print or save as PDF</button><button type="button" id="save">Save this report</button></div></div></header>';
   html += '<div class="wrap"><main>';
@@ -232,7 +232,7 @@ export function songReportHTML(o: SongReportInput): string {
   if (ns.some((x) => x.n < FEW)) notes.push('A note sung under ' + FEW + ' times says little: its key is hatched.');
   if (!o.songNow) notes.push('This one has been deleted since; its practice is kept.');
   html += '<section class="card"><h2>Bear in mind</h2>' + list(notes, 'note', 'i', '') + '</section>';
-  html += '</main><footer><p>Made by Gaaner Sathi (গানের সাথী) in this browser on ' + esc(dayText(o.now)) + '. Nothing was uploaded.</p></footer></div>';
+  html += '</main><footer><p>Made by Torongini (তরঙ্গিণী) in this browser on ' + esc(dayText(o.now)) + '. Nothing was uploaded.</p></footer></div>';
   return html + reportScript(fileName);
 }
 

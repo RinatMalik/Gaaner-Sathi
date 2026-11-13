@@ -194,7 +194,7 @@ Big additions, to consider once the app is public and popular.
 
 - **Permanent web address** (`CONTEXT.md` → Open question 3): the app's address, not one per
   song. Each person's songs live in their own browser under the site's address, so if the app
-  moves (say to gaanersathi.rinatmalik.com), everyone's songs stay at the old address until
+  moves (to torongini.com, bought 2026-11-13), everyone's songs stay at the old address until
   they back them up there and import them at the new one. Settle it before anyone besides
   Rinat relies on the web app.
 - **Offline and installable web app** (service worker, web manifest): the native app will be

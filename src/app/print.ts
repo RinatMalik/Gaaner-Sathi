@@ -27,7 +27,7 @@ export function printSheetHTML(song: Song, P: ParsedSong, taals: TaalInfo | Taal
     (song.tags && song.tags.length ? '<p class="prtags">' + song.tags.map(esc).join(' · ') + '</p>' : '') + '</header>' +
     '<div class="sheet prsheet">' + sheetHTML(P, M, 0, song.example, script) + '</div>' +
     (song.notes ? '<section class="prnotes"><h2>About this song</h2><p>' + esc(song.notes) + '</p></section>' : '') +
-    '<footer class="prfoot">Gaaner Sathi · গানের সাথী</footer>';
+    '<footer class="prfoot">Torongini · তরঙ্গিণী</footer>';
 }
 
 export interface PrintHost {
@@ -53,7 +53,7 @@ export function initPrint(host: PrintHost): (song?: Song) => void {
     } else box.innerHTML = printSheetHTML(song, host.parsed(), host.taals(), host.script());
     // The PDF is named after the page's title.
     if (!title) title = document.title;
-    document.title = song.title + ' · Gaaner Sathi';
+    document.title = song.title + ' · Torongini';
   };
   window.addEventListener('beforeprint', fill);
   window.addEventListener('afterprint', () => {
