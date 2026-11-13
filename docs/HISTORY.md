@@ -66,6 +66,29 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-62 logo 36 picked, in Tiro Bangla italic; its river lowered
+
+- **Goal:** Rinat: "Logo 36 (River through the name), seen in Like logo 11 … font is like logo 11.
+  Make the waves just slightly lower than they are currently. still the same angle and width,
+  just very slightly lower".
+- **Inspected:** logo 36's drawing in `docs/brand/river-logos.html`: the river's middle line at
+  0.38 of the type size above the baseline at the name's centre, sloping by half the type size
+  across the name, the river 0.34 of the type size wide.
+- **Changed:** `docs/brand/river-logos.html`: logo 36 drawn by `riverThrough(mid)`, now 0.32
+  (lower by 0.06 of the type size, about 2.5 px at the page's 42 px), the slope and width as they
+  were; 36 as it was (0.38) added under "To compare"; the page opens on 36 in the typeface like
+  logo 11 and says it is the pick. Republished at the same address,
+  https://claude.ai/artifact/22qGdQwqaH1fPeyy22RRaA (version 2).
+- **Tests / verification:** headless Edge through the DevTools protocol on the dev server (the
+  browser pane hidden): 36 and 36-as-it-was side by side, day and night, in Tiro Bangla italic,
+  and the preview in the app's header with tagline 16. The screenshot script had left 35 headless
+  Edge processes on its port (it stopped only the launcher), so one run read an old profile's
+  saved pick; stopped them all and re-shot from a fresh profile.
+- **Decisions made:** one row (logo 36 in Tiro Bangla italic, lowered).
+- **Risks or disagreements:** "very slightly" is a judgement; the step is easy to change.
+- **Next handoff:** Rinat looks at it and says whether to build it into the header with tagline
+  16 (Next single action); the storage rename still waits for Rinat's export.
+
 ### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-62 round three: 21 and 24 combined six ways; tagline 16
 
 - **Goal:** Rinat: "combine 21 and 24 and create 5 or 6 more examples to choose from. Tagline

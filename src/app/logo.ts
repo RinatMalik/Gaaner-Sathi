@@ -21,6 +21,9 @@ export const LOGO_SIZE = 42;
 /** How high the river's middle crosses the middle of the name, in ems above the baseline: 0.38 as
  *  first drawn, lowered by 0.06 twice (Rinat, 2026-11-13). */
 export const RIVER_MID = 0.26;
+/** How much wider than drawn the whole logo is shown, letters and river alike (Rinat, 2026-11-13:
+ *  "Make the logo 25% wider"); its height is unchanged. */
+export const LOGO_WIDEN = 1.25;
 
 type Curve = (x: number) => number;
 const r = (v: number): number => Math.round(v * 100) / 100;
@@ -66,7 +69,8 @@ export function logoParts(): { width: number; height: number; svg: string } {
     '<path d="M0 ' + r(f(0)) + seg(f, 0, w, n) + '" fill="none" stroke="url(#' + stroke + ')" stroke-width="' + width + '" stroke-linecap="round"' + extra + '/>';
   const body = 'M0 ' + r(ft(0)) + seg(ft, 0, w, n) + ' L' + r(w) + ' ' + r(fb(w)) + seg(fb, w, 0, n) + 'Z';
   const text = (cls: string): string => '<text x="' + r(L) + '" y="' + r(B) + '" textLength="' + r(W) + '" lengthAdjust="spacingAndGlyphs" class="' + cls + '" stroke-width="' + r(0.1 * S) + '">' + LOGO_NAME + '</text>';
-  const svg = '<svg class="logosvg" viewBox="0 0 ' + r(w) + ' ' + r(h) + '" width="' + Math.ceil(w) + '" height="' + Math.ceil(h) + '" aria-hidden="true" focusable="false" lang="bn">' +
+  const ww = w * LOGO_WIDEN;
+  const svg = '<svg class="logosvg" viewBox="0 0 ' + r(ww) + ' ' + r(h) + '" width="' + Math.ceil(ww) + '" height="' + Math.ceil(h) + '" aria-hidden="true" focusable="false" lang="bn">' +
     '<defs>' +
     '<clipPath id="lg-dry1"><path d="' + region(null, ft) + '"/></clipPath>' +
     '<clipPath id="lg-wet"><path d="' + region(ft, fb) + '"/></clipPath>' +
@@ -74,13 +78,14 @@ export function logoParts(): { width: number; height: number; svg: string } {
     '<filter id="lg-ripple" x="-5%" y="-30%" width="110%" height="160%"><feTurbulence type="turbulence" baseFrequency="0.012 0.1" numOctaves="1" seed="4" result="t"/><feDisplacementMap in="SourceGraphic" in2="t" scale="3" xChannelSelector="R" yChannelSelector="G"/></filter>' +
     fade('lg-river', 0, w, 'lg-stR', 0.2) + fade('lg-brass', 0, w, 'lg-stB', 0.25) +
     '</defs>' +
+    '<g transform="scale(' + LOGO_WIDEN + ' 1)">' +
     '<path d="' + body + '" fill="url(#lg-river)" opacity=".08"/>' +
     line(ft, 'lg-river', 1.2) + line(fb, 'lg-river', 1.2) + line(fm, 'lg-brass', 0.9, ' opacity=".8"') +
     '<g clip-path="url(#lg-dry1)">' + text('lg-ink lg-halo') + '</g>' +
     '<g clip-path="url(#lg-dry2)">' + text('lg-ink lg-halo') + '</g>' +
     '<g clip-path="url(#lg-wet)"><g filter="url(#lg-ripple)">' + text('lg-river lg-halo') + '</g></g>' +
-    '</svg>';
-  return { width: Math.ceil(w), height: Math.ceil(h), svg };
+    '</g></svg>';
+  return { width: Math.ceil(ww), height: Math.ceil(h), svg };
 }
 
 /** The logo's SVG markup. */

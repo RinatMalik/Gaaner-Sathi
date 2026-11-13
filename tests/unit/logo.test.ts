@@ -1,7 +1,7 @@
 // The logo at the top left (src/app/logo.ts) and its place in the header (index.html, vite.config.ts).
 import { describe, expect, it } from 'vitest';
 import page from '../../index.html?raw';
-import { LOGO_NAME, RIVER_MID, logoParts, logoSvg } from '../../src/app/logo';
+import { LOGO_NAME, LOGO_WIDEN, RIVER_MID, logoParts, logoSvg } from '../../src/app/logo';
 
 describe('the logo', () => {
   const svg = logoSvg();
@@ -24,13 +24,16 @@ describe('the logo', () => {
     expect(page).toMatch(/<h1 class="logo"><span class="sr-only">Torongini \(তরঙ্গিণী\)<\/span><!-- logo --><\/h1>/);
   });
 
-  it('is about the size of the previews Rinat chose from, and fits a phone', () => {
+  it('is the previews’ size made a quarter wider, as Rinat asked, and still fits a phone', () => {
     const { width, height } = logoParts();
-    expect(width).toBeGreaterThan(180);
-    expect(width).toBeLessThan(200);
+    expect(LOGO_WIDEN).toBe(1.25);
+    expect(width).toBeGreaterThan(1.25 * 180);
+    expect(width).toBeLessThan(1.25 * 200);
+    expect(width).toBeLessThan(328); // a 360 px phone less the page's margins
     expect(height).toBeGreaterThan(55);
     expect(height).toBeLessThan(75);
     expect(svg).toContain('width="' + width + '" height="' + height + '"');
+    expect(svg).toContain('<g transform="scale(1.25 1)">');
   });
 
   it('has the river where Rinat asked: lowered twice from 0.38 by 0.06', () => {

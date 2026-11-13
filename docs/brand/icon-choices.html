@@ -1,0 +1,256 @@
+<meta charset="utf-8">
+<title>Torongini Icon Choices</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&family=Hind+Siliguri:wght@400;500;600&display=swap">
+<style>
+/* Icon choices for Torongini: the browser tab's icon and the phone's home-screen icon. Each icon is shown
+   big, on a phone's home screen, and in a browser tab at its real size, in light and dark tab bars.
+   An icon has fixed colours (a tab or a home screen does not follow the app's colour scheme). */
+:root{
+  --bg:#eceeea; --card:#fbfbf8; --fg:#1b1c24; --fg2:#5c5f6c; --accent:#8a6514; --rule:#d9dcdf; --focus:#2560c7;
+  --wood:#3e1f15; --on-wood:#f5e9d7;
+  --tiro:"Tiro Bangla","Noto Serif Bengali",Georgia,serif;
+  --hind:"Hind Siliguri","Noto Sans Bengali",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111115; --card:#19191f; --fg:#ecebe5; --fg2:#a2a3ae; --accent:#d3a843; --rule:#2c2c35; --focus:#86aaff;
+  --wood:#3a1c12; --on-wood:#f1e3cf; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111115; --card:#19191f; --fg:#ecebe5; --fg2:#a2a3ae; --accent:#d3a843; --rule:#2c2c35; --focus:#86aaff;
+  --wood:#3a1c12; --on-wood:#f1e3cf; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.55 var(--hind);margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 96px}
+.wrap{max-width:1180px;margin:0 auto}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.hero{padding-block:40px 14px;max-width:72ch}
+.eyebrow{font:600 12px/1 var(--hind);letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+.eyebrow b{font:400 16px/1 var(--tiro);letter-spacing:0;text-transform:none}
+h1{font:400 clamp(30px,5vw,46px)/1.08 var(--tiro);margin:0 0 14px;text-wrap:balance}
+h2{font:400 clamp(22px,3vw,28px)/1.15 var(--tiro);margin:0 0 6px;text-wrap:balance}
+.hero p,.lede{color:var(--fg2);margin:0 0 10px;max-width:68ch}
+
+.sect{margin-block:30px 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:18px;margin-top:14px}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.chead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.num{font:400 26px/1 var(--tiro);color:var(--accent);min-width:1.2em}
+.chead h3{font:600 17px/1.2 var(--hind);margin:0}
+.from{font:600 11px/1 var(--hind);letter-spacing:.12em;text-transform:uppercase;color:var(--fg2);border:1px solid var(--rule);border-radius:999px;padding:4px 8px}
+.idea{margin:0;color:var(--fg2);font-size:14.5px;line-height:1.5}
+.show{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
+.big{width:112px;height:112px;border-radius:23%;overflow:hidden;flex:none;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.big svg,.hs .ic svg,.tab .ic svg{display:block;width:100%;height:100%}
+/* a phone's home screen */
+.hs{flex:none;width:118px;height:132px;border-radius:14px;padding:14px 0 0;display:flex;flex-direction:column;align-items:center;gap:6px;
+  background:linear-gradient(160deg,#4b6a8a,#22334d 70%)}
+.hs .ic{width:60px;height:60px;border-radius:23%;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.hs span{font:500 11.5px/1 system-ui,-apple-system,"Segoe UI",sans-serif;color:#fff}
+/* browser tabs, at the real size */
+.tabs{display:grid;gap:6px;flex:1 1 200px;min-width:0}
+.strip{border-radius:9px 9px 0 0;padding:6px 6px 0;display:flex}
+.strip.l{background:#dee1e6}.strip.d{background:#202124}
+.tab{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:8px 8px 0 0;font:400 12.5px/1 system-ui,-apple-system,"Segoe UI",sans-serif;min-width:0;max-width:200px}
+.strip.l .tab{background:#fff;color:#202124}.strip.d .tab{background:#35363a;color:#e8eaed}
+.tab .ic{width:16px;height:16px;flex:none;border-radius:3px;overflow:hidden}
+.tab .x{margin-left:auto;opacity:.6}
+.tiny{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--fg2)}
+.tiny .ic{width:32px;height:32px;border-radius:7px;overflow:hidden;flex:none}
+.cfoot{display:flex;justify-content:flex-end}
+.pick{display:inline-flex;align-items:center;gap:8px;font:600 14px/1 var(--hind);padding:10px 14px;border-radius:999px;border:1px solid var(--rule);cursor:pointer;background:var(--bg)}
+.pick input{accent-color:var(--accent);margin:0}
+.card.sel .pick{border-color:var(--accent);color:var(--accent)}
+
+.notes{margin-block:40px 0;max-width:72ch;color:var(--fg2);font-size:15px}
+.notes h2{color:var(--fg)}
+.notes li{margin-bottom:6px}
+.pickbar{position:fixed;left:0;right:0;bottom:0;z-index:7;background:var(--wood);color:var(--on-wood);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 14px;
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));font-size:14px}
+.btn{font:600 14px/1 var(--hind);padding:10px 14px;border-radius:999px;border:1px solid var(--on-wood);background:transparent;color:var(--on-wood);cursor:pointer}
+#copyTxt{width:100%;font:14px var(--hind);padding:8px;border:1px solid var(--rule);border-radius:8px;background:var(--bg);color:var(--fg)}
+@media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s,box-shadow .15s}}
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <p class="eyebrow"><b>তরঙ্গিণী</b> · icons</p>
+    <h1>Icons for the browser tab and the home screen</h1>
+    <p>Three from the logo, and your two favourites from the first round, 11’s boat and 20’s bellows, each as it was and simplified. Every one is built around a single thing you can spot at 16 pixels: a letter crossed by the river, a gold sail, a gold wave.</p>
+    <p>Each is shown big, on a phone’s home screen, and in a browser tab at its real size, light and dark. An icon keeps its colours whatever the app’s colour scheme.</p>
+  </header>
+
+  <section class="sect" aria-labelledby="fromLogo">
+    <h2 id="fromLogo">From the logo</h2>
+    <div class="grid" id="gLogo"></div>
+  </section>
+  <section class="sect" aria-labelledby="fromBoat">
+    <h2 id="fromBoat">From 11, the boat</h2>
+    <div class="grid" id="gBoat"></div>
+  </section>
+  <section class="sect" aria-labelledby="fromBellows">
+    <h2 id="fromBellows">From 20, the bellows</h2>
+    <div class="grid" id="gBellows"></div>
+  </section>
+
+  <section class="notes" aria-labelledby="notesTitle">
+    <h2 id="notesTitle">Once you have picked</h2>
+    <ul>
+      <li>It becomes the browser tab’s icon, the icon a phone shows when the app is added to its home screen, and the one a computer shows for the installed app.</li>
+      <li>It is saved as pictures at each size, so it needs no typeface, and the smallest are checked pixel by pixel.</li>
+      <li>Colours, the river’s angle and the letter can all still be changed.</li>
+    </ul>
+    <input id="copyTxt" type="text" readonly hidden aria-label="Your pick, to copy">
+  </section>
+</div>
+
+<div class="pickbar" role="region" aria-label="Your pick"><span id="pickSum">Pick an icon</span><button type="button" class="btn" id="copyBtn">Copy my pick</button></div>
+
+<script>
+(function () {
+  // Fixed colours: the app's own (styles.css), by day.
+  var C = { sheet: '#fbfbf8', ink: '#1b1c24', river: '#2569ad', riverLt: '#6fa8e8', brass: '#c4952b', brassHi: '#efcd6a', brassDk: '#94701c', wood: '#3e1f15', wood2: '#5d3021', onWood: '#f5e9d7', line: '#d9dcdf' };
+  var PI = Math.PI;
+  function r(v) { return Math.round(v * 100) / 100; }
+  function seg(f, xa, xb, n) {
+    var h = (xb - xa) / n, e = Math.abs(h) / 40, s = '';
+    var x = xa, y = f(x), d = (f(x + e) - f(x - e)) / (2 * e);
+    for (var i = 1; i <= n; i++) {
+      var xn = xa + i * h, yn = f(xn), dn = (f(xn + e) - f(xn - e)) / (2 * e);
+      s += ' C' + r(x + h / 3) + ' ' + r(y + d * h / 3) + ' ' + r(xn - h / 3) + ' ' + r(yn - dn * h / 3) + ' ' + r(xn) + ' ' + r(yn);
+      x = xn; y = yn; d = dn;
+    }
+    return s;
+  }
+  function path(f, xa, xb, n) { return 'M' + r(xa) + ' ' + r(f(xa)) + seg(f, xa, xb, n); }
+  function wave(x, y, half, amp, n, color, w, extra) {
+    var d = 'M' + x + ' ' + y + ' q' + half / 2 + ' ' + (-amp) + ' ' + half + ' 0';
+    for (var i = 1; i < n; i++) d += ' t' + half + ' 0';
+    return '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="' + w + '" stroke-linecap="round"' + (extra || '') + '/>';
+  }
+  var TIRO = 'font-family:&quot;Tiro Bangla&quot;,serif;font-style:italic;font-weight:400';
+
+  // The logo's river, across a 48-unit square: rising to the right, as in the logo, with gentle waves.
+  function river(c0, half, amp) {
+    var k = 2 * PI / 16, c = function (x) { return c0 - 20 * x / 48; };
+    return {
+      top: function (x) { return c(x) - half + amp * Math.sin(k * x); },
+      bot: function (x) { return c(x) + half + amp * Math.sin(k * x + 1.2); },
+      mid: function (x) { return c(x) + amp * 0.8 * Math.sin(k * x + 2.4); },
+    };
+  }
+  function region(f, g) { return 'M-4 ' + r(f(-4)) + seg(f, -4, 52, 14) + ' L52 ' + r(g(52)) + seg(g, 52, -4, 14) + 'Z'; }
+  var TOPF = function () { return -10; }, BOTF = function () { return 60; };
+
+  // A letter crossed by the river: the letter's colour outside it, the river's inside.
+  function letterInRiver(u, o) {
+    var R = river(o.c0, o.half, o.amp);
+    var t = function (fill, extra) { return '<text x="' + o.x + '" y="' + o.y + '" font-size="' + o.size + '" style="' + TIRO + '" fill="' + fill + '"' + (extra || '') + '>ত</text>'; };
+    var halo = ' stroke="' + o.bg + '" stroke-width="' + o.halo + '" stroke-linejoin="round" paint-order="stroke fill"';
+    return '<defs><clipPath id="' + u + 'a"><path d="' + region(TOPF, R.top) + '"/></clipPath><clipPath id="' + u + 'b"><path d="' + region(R.top, R.bot) + '"/></clipPath><clipPath id="' + u + 'c"><path d="' + region(R.bot, BOTF) + '"/></clipPath>' + (o.defs || '') + '</defs>' +
+      '<rect width="48" height="48" fill="' + o.bg + '"/>' +
+      '<path d="' + region(R.top, R.bot) + '" fill="' + o.water + '" opacity="' + o.waterOp + '"/>' +
+      '<path d="' + path(R.top, -4, 52, 14) + '" fill="none" stroke="' + o.water + '" stroke-width="' + o.edge + '"/>' +
+      '<path d="' + path(R.bot, -4, 52, 14) + '" fill="none" stroke="' + o.water + '" stroke-width="' + o.edge + '"/>' +
+      (o.thread ? '<path d="' + path(R.mid, -4, 52, 14) + '" fill="none" stroke="' + C.brass + '" stroke-width="' + o.thread + '"/>' : '') +
+      '<g clip-path="url(#' + u + 'a)">' + t(o.ink, halo) + '</g><g clip-path="url(#' + u + 'c)">' + t(o.ink, halo) + '</g><g clip-path="url(#' + u + 'b)">' + t(o.wet, halo) + '</g>';
+  }
+  function boat(hull, sail, mast) {
+    return '<path d="M23 6.5V30" stroke="' + mast + '" stroke-width="1.6" stroke-linecap="round"/><path d="M24.6 8.5 C31 11.5 35 18.5 35 27 H24.6Z" fill="' + sail + '"/><path d="M5 28 C12 31.5 36 31.5 43 28 C40 35 33 37 24 37 C15 37 8 35 5 28Z" fill="' + hull + '"/>';
+  }
+
+  var ICONS = [
+    { n: 1, g: 'gLogo', name: 'The letter in the river', idea: 'ত, the first letter, in the logo’s ink and typeface, crossed by its river at its angle: inside the river the letter turns blue.',
+      svg: function (u) { return letterInRiver(u, { bg: C.sheet, ink: C.ink, wet: C.river, water: C.river, waterOp: 0.14, edge: 1.4, x: 8.5, y: 38, size: 44, c0: 39.5, half: 5.2, amp: 1, halo: 2.2 }); } },
+    { n: 2, g: 'gLogo', name: 'Gold letter, blue river', idea: 'The same on the rosewood of the app’s deck: the letter in the gold of its buttons, the river light blue with a gold thread of current.',
+      svg: function (u) { return letterInRiver(u, { bg: C.wood, ink: 'url(#' + u + 'g)', wet: C.riverLt, water: C.riverLt, waterOp: 0.2, edge: 1.4, thread: 0, x: 8.5, y: 38, size: 44, c0: 39.5, half: 5.2, amp: 1, halo: 2.2,
+        defs: '<linearGradient id="' + u + 'g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + C.brassHi + '"/><stop offset="1" stop-color="' + C.brass + '"/></linearGradient>' }); } },
+    { n: 3, g: 'gLogo', name: 'The river alone', idea: 'Just the logo’s river, broad and simple, rising across the rosewood: two blue banks and a gold current between them.',
+      svg: function () {
+        var R = river(38, 7, 1.6);
+        return '<rect width="48" height="48" fill="' + C.wood + '"/>' +
+          '<path d="' + region(R.top, R.bot) + '" fill="' + C.riverLt + '" opacity=".22"/>' +
+          '<path d="' + path(R.top, -4, 52, 14) + '" fill="none" stroke="' + C.riverLt + '" stroke-width="3.4" stroke-linecap="round"/>' +
+          '<path d="' + path(R.bot, -4, 52, 14) + '" fill="none" stroke="' + C.riverLt + '" stroke-width="3.4" stroke-linecap="round"/>' +
+          '<path d="' + path(R.mid, -4, 52, 14) + '" fill="none" stroke="' + C.brassHi + '" stroke-width="2.6" stroke-linecap="round"/>';
+      } },
+    { n: 4, g: 'gBoat', from: 'As in 11', name: 'Boat song', idea: 'Round one’s icon as it was: a country boat with a gold sail, for the bhatiyali songs of the rivers.',
+      svg: function () {
+        return '<rect width="48" height="48" fill="' + C.sheet + '"/><g transform="translate(5.3 5.3) scale(.78)">' + boat(C.ink, C.brass, C.ink) + wave(3, 42.5, 7, 2.6, 6, C.river, 1.8) + '</g>';
+      } },
+    { n: 5, g: 'gBoat', from: 'Simplified', name: 'Gold sail', idea: 'The boat made bold for small sizes: a big gold sail and a cream hull on rosewood, one blue wave under it. At 16 pixels it is a gold triangle.',
+      svg: function () {
+        return '<rect width="48" height="48" fill="' + C.wood + '"/>' +
+          '<path d="M22.5 5.5V31" stroke="' + C.onWood + '" stroke-width="2.2" stroke-linecap="round"/>' +
+          '<path d="M24.5 6 C33 10 38.5 19 38.5 29 H24.5Z" fill="' + C.brassHi + '"/>' +
+          '<path d="M6 30 C13 33.5 35 33.5 42 30 C39.5 37 32.5 39.5 24 39.5 C15.5 39.5 8.5 37 6 30Z" fill="' + C.onWood + '"/>' +
+          wave(4, 44, 8, 3, 5, C.riverLt, 2.6);
+      } },
+    { n: 6, g: 'gBoat', from: 'With the logo’s river', name: 'Sailing up the river', idea: 'The boat on the logo’s river, riding it at its angle: one bold blue band, a dark hull and a gold sail. The logo and the boat song in one.',
+      svg: function () {
+        var R = river(46, 7, 0.8);
+        return '<rect width="48" height="48" fill="' + C.sheet + '"/>' +
+          '<path d="' + region(R.top, R.bot) + '" fill="' + C.river + '"/>' +
+          '<g transform="translate(24 29.5) rotate(-22.6) scale(.9) translate(-24 -33)">' +
+          '<path d="M23 6.5V30" stroke="' + C.ink + '" stroke-width="2.2" stroke-linecap="round"/>' +
+          '<path d="M24.6 8.5 C31 11.5 35 18.5 35 27 H24.6Z" fill="' + C.brass + '"/>' +
+          '<path d="M5 28 C12 31.5 36 31.5 43 28 C40 35 33 37 24 37 C15 37 8 35 5 28Z" fill="' + C.ink + '" stroke="' + C.sheet + '" stroke-width="1.6" stroke-linejoin="round" paint-order="stroke"/></g>';
+      } },
+    { n: 7, g: 'gBellows', from: 'As in 20', name: 'Bellows', idea: 'Round one’s icon as it was: the harmonium’s bellows fold in and out, and the sound flows on as a gold wave.',
+      svg: function () {
+        return '<rect width="48" height="48" fill="' + C.sheet + '"/><g transform="translate(5.3 5.3) scale(.78)">' +
+          '<rect x="1.5" y="12" width="3.5" height="24" rx="1.2" fill="' + C.wood + '"/><path d="M5 24 L8.5 15 L12.5 33 L16.5 15 L20.5 33" fill="none" stroke="' + C.ink + '" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>' +
+          '<path d="M20.5 33 C23.5 33 25.5 15 29 15 S34.5 33 37.5 33 S42.5 18 46 20.5" fill="none" stroke="' + C.brass + '" stroke-width="2.6" stroke-linecap="round"/></g>';
+      } },
+    { n: 8, g: 'gBellows', from: 'Simplified', name: 'Fold into a wave', idea: 'The bellows made bold: two cream folds that become one gold wave, on rosewood. At 16 pixels, a zigzag turning smooth.',
+      svg: function () {
+        return '<rect width="48" height="48" fill="' + C.wood + '"/>' +
+          '<path d="M6 30 L11 14 L16.5 34 L22 14" fill="none" stroke="' + C.onWood + '" stroke-width="3.6" stroke-linejoin="round" stroke-linecap="round"/>' +
+          '<path d="M22 14 C25.5 14 27 34 31.5 34 S38.5 17 42.5 18.5" fill="none" stroke="' + C.brassHi + '" stroke-width="4" stroke-linecap="round"/>';
+      } },
+    { n: 9, g: 'gBellows', from: 'With the logo’s river', name: 'Bellows into the river', idea: 'The folds become the logo’s river: a gold zigzag on paper that flows out as a blue wave rising at the logo’s angle.',
+      svg: function () {
+        return '<rect width="48" height="48" fill="' + C.sheet + '"/>' +
+          '<path d="M5 34 L9.5 20 L14 37 L18.5 22" fill="none" stroke="' + C.brass + '" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round"/>' +
+          '<path d="M18.5 22 C22 21 23.5 31 28 29.5 S35 15 39 15.5 S42.5 10 44 9" fill="none" stroke="' + C.river + '" stroke-width="3.4" stroke-linecap="round"/>';
+      } },
+  ];
+
+  var uid = 0;
+  function svgOf(I) { var u = 'i' + (uid++); return '<svg viewBox="0 0 48 48" aria-hidden="true">' + I.svg(u) + '</svg>'; }
+  function tab(I, cls) { return '<div class="strip ' + cls + '"><div class="tab"><span class="ic">' + svgOf(I) + '</span>Torongini<span class="x">×</span></div></div>'; }
+  function card(I) {
+    return '<article class="card" data-n="' + I.n + '"><div class="chead"><span class="num">' + I.n + '</span><h3>' + I.name + '</h3>' + (I.from ? '<span class="from">' + I.from + '</span>' : '') + '</div>' +
+      '<p class="idea">' + I.idea + '</p>' +
+      '<div class="show"><div class="big" role="img" aria-label="Icon ' + I.n + ', big">' + svgOf(I) + '</div>' +
+      '<div class="hs" aria-label="On a phone’s home screen"><span class="ic">' + svgOf(I) + '</span><span>Torongini</span></div>' +
+      '<div class="tabs" aria-label="In a browser tab, at its real size">' + tab(I, 'l') + tab(I, 'd') +
+      '<div class="tiny"><span class="ic">' + svgOf(I) + '</span>32 px, a tab on a sharp screen</div></div></div>' +
+      '<div class="cfoot"><label class="pick"><input type="radio" name="icon" value="' + I.n + '"> Pick icon ' + I.n + '</label></div></article>';
+  }
+  ['gLogo', 'gBoat', 'gBellows'].forEach(function (g) { document.getElementById(g).innerHTML = ICONS.filter(function (I) { return I.g === g; }).map(card).join(''); });
+
+  var pick = 0;
+  try { pick = +(localStorage.getItem('torongini-icon') || 0); } catch (e) {}
+  function show() {
+    var I = ICONS.filter(function (x) { return x.n === pick; })[0];
+    document.querySelectorAll('.card').forEach(function (c) { c.classList.toggle('sel', +c.dataset.n === pick); });
+    var a = document.querySelector('input[name="icon"][value="' + pick + '"]'); if (a) a.checked = true;
+    document.getElementById('pickSum').textContent = I ? 'Icon ' + I.n + ' · ' + I.name : 'Pick an icon';
+  }
+  document.addEventListener('change', function (e) {
+    if (e.target.name !== 'icon') return;
+    pick = +e.target.value; try { localStorage.setItem('torongini-icon', String(pick)); } catch (x) {} show();
+  });
+  document.getElementById('copyBtn').addEventListener('click', function () {
+    var I = ICONS.filter(function (x) { return x.n === pick; })[0];
+    var txt = I ? 'Icon ' + I.n + ' (' + I.name + ')' : 'No icon picked yet';
+    var box = document.getElementById('copyTxt'), sum = document.getElementById('pickSum');
+    function fallback() { box.hidden = false; box.value = txt; box.focus(); box.select(); sum.textContent = 'Select and copy the line at the bottom of the page.'; }
+    try { navigator.clipboard.writeText(txt).then(function () { sum.textContent = 'Copied: ' + txt; }, fallback); } catch (x) { fallback(); }
+  });
+  show();
+})();
+</script>
