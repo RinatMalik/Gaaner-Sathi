@@ -66,6 +66,53 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-11-10 GMT — Claude (Opus 5.5) — PH2-59 what every song shares; a song's rhythm speed; White and Black in the Sa list; two rows side by side
+
+- **Goal:** Rinat, 2026-11-10: "in the your key drop down, you had some sort of indicator like the
+  white key, black key etc - it's not there anymore, put those back in * Reed choice can be side by
+  side with the your key dropdown * reeds settings and drone are not song specific settings i thinK?
+  I don't thing these are required in the edit notation page. These two make them global settings -
+  so they won't change on refresh or on song change * Instrument and the supporting instruments and
+  the checkbox with fill every 4th cycle also feels like they should be global. They day i want
+  tabla, i would probably want tabla for all and same for another day with drums. So they can be
+  removed from song specific setting. Leave the rythm speed as song specific though as I found it
+  varies between songs * Loop and OCtave must match checkboxes can be side by side".
+- **Inspected:** core/song/sound.ts, fornow.ts, audio/sound.ts, app.ts (`savedSound`, `sound`,
+  `changeSound`, `wireSound`, `changed`), index.html's deck and `#edSet`, store.ts (`loadPrefs`).
+- **Changed:** `feat(top): the reeds, drone, instrument, side instruments and fills the same for
+  every song, a song keeping only its rhythm speed, White and Black back in the Sa list, two rows
+  side by side` — src/core/song/sound.ts (`SongSound` the speed, `SPEED_CHOICES`, `cleanSound`,
+  `soundOf`); audio/sound.ts (the rest in `SoundSettings`); app/app.ts (`setShared`, `setSpeed`,
+  `wireSound` once; `changeSound`, `drawSound`, `forgetSound`, `renderUsualSound`, `DECK_SOUND`,
+  `EDIT_SOUND` gone); app/view.ts (`saOptionsHTML`; `songSoundSummary` gone); index.html
+  (`.dsareeds`, `.dchks`, Edit notation's fields); app/styles.css; tests/unit/sound.test.ts
+  (rewritten), fornow, scope, store and topsection tests; docs/DATA.md, ROADMAP.md (row 59),
+  HISTORY.md (a decision, the PH2-57 entry); README.md; this file.
+- **Tests / verification:** `npx tsc --noEmit` exit 0; `npx vitest run` → 48 files, 559 passed; `npm
+  run build` → 405.10 kB JS, 93.70 kB CSS; `bash reference/tests/run-all.sh` → parser 31, checker
+  11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Headless Edge on `npm run dev`,
+  scratchpad `run59.mjs` (44 checks, all pass; Web Audio's oscillators recorded): the Sa list "C2 ·
+  White 1" to "B5 · White 7", the same in Edit notation; Reeds beside the Sa and Octave must match
+  beside Loop, by their boxes; Edit notation's old fields gone; reeds, drone, instrument, a side
+  instrument and fills changed at the top: Revert stays off, the song unchanged, saved in the
+  settings, the same on another song, on a song that had saved its own and after a refresh; 1 reed
+  sounded 277.18 Hz and no 138.59 or 554.37 from the notes, 3 reeds all three; a song that saved
+  half speed keeps it; speed at the top for now, Revert puts it back and leaves the shared ones;
+  speed in Edit notation saved as `{ speed }` alone, the top following, the device's not changed;
+  an older song's saved sound cut to its speed when next saved; a built-in exercise's speed not
+  kept and no other song changed; a rewaz using the shared reeds; no page errors. `layout58.mjs`
+  (60 checks, all pass) at 360 × 780 day and night, 800 × 1000 day, 1280 × 950 day and night, 3840 ×
+  2160 night; screenshots looked at. Pushed as `3b6c5c2`; CI run `42818936675` green; the site serves
+  `index-CQ-pQBDm.js`, and in headless Edge at 360 × 780 it shows the Sa list with White and Black,
+  Reeds beside the Sa, Octave must match in Loop's row, Edit notation without the shared settings, no
+  sideways scroll, no page errors (scratchpad `live59.mjs`).
+- **Decisions made:** four 2026-11-10 rows; one earlier row moved to HISTORY.md.
+- **Risks or disagreements:** nobody on the build side can hear. No real touch screen. The first
+  time this opens, what the top shows is what the device's settings already held, not what any one
+  song had saved: a drone or instrument a song had of its own needs picking once. What songs saved
+  of those goes when each song is next saved; a backup from before keeps it.
+- **Next handoff:** Rinat tries it and listens (Next single action).
+
 ### 2026-11-10 GMT — Claude (Opus 5.5) — PH2-58 the top of the page for now; one list of Sa; the keyboard folding; no tags, no speed-up
 
 - **Goal:** Rinat, 2026-11-10: "the for now, this song all of these mark ups made it complicated

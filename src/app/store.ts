@@ -126,6 +126,8 @@ export interface Prefs extends SoundSettings {
   plRows?: 5 | 9 | 12;
   plAt?: 1 | 2 | 4 | 5;
   plSize?: 'small' | 'big';
+  /** Expand all: every line of the Practice view opened (unset: each opened by a tap). */
+  plOpen?: true;
   /** The Voice page's takes grouped by the day taken (unset: by song). */
   tkGroup?: 'date';
   /** A MIDI keyboard: where the guide plays, in what sound, and on which keyboard. */
@@ -229,6 +231,7 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
   if (r.showKeys === true) p.showKeys = true;
   if (r.plRows === 5 || r.plRows === 9 || r.plRows === 12) p.plRows = r.plRows;
   if (r.plAt === 1 || r.plAt === 2 || r.plAt === 4 || r.plAt === 5) p.plAt = r.plAt;
+  if (r.plOpen === true) p.plOpen = true;
 
   if (r.plSize === 'small' || r.plSize === 'big') p.plSize = r.plSize;
   if (r.tkGroup === 'date') p.tkGroup = 'date';

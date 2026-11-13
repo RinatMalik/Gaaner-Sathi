@@ -154,6 +154,7 @@ prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` →
 | `holdNote`, `holdBest` | The hold trainer's note (cents from Sa: −500, −300, −100, 0, 200, 400, 500, 700, 900, 1100 or 1200) and the longest hold on each, `{ "700": 12.4 }` seconds |
 | `showKeys` | `true` while the virtual keyboard's section is unfolded on the Practice view (its own heading, Show and Hide, since 2026-11-10; a tick box under the lines to practise before) |
 | `plRows`, `plAt` | The Practice view's lines (set in the Practice settings): how many show, `5`, `9` or `12` (absent: 7); which of them, from the top, is the one being sung, `1`, `2`, `4` or `5` (absent: the 3rd) |
+| `plOpen` | `true`: Expand all is on, every line of the Practice view opened, for every song (absent: each opened by a tap) (Rinat, 2026-11-13) |
 | `plSize` | The font size of the song's notes and words, `small` or `big` (absent: normal): in the header's menu since 2026-10-22 (Practice settings before), for the Practice view's lines and Edit notation's beat boxes, preview and free text, not the rest of the screen |
 | `midi` | A MIDI keyboard: `{ route: 'app' \| 'kb' \| 'both', sound: 'keep' \| 'organ' \| 'accordion', out?: id }`: where the guide plays, in what sound, on which keyboard |
 

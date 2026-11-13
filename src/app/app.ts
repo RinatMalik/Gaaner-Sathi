@@ -2975,6 +2975,9 @@ let printSong: (song?: Song) => void = () => {};
 function applyLinesPrefs(): void {
   setSeg('plRowsSeg', prefs.plRows ?? 7);
   setSeg('plAtSeg', prefs.plAt ?? 3);
+  const all = $('#plAllBtn');
+  all.textContent = prefs.plOpen ? 'Collapse all' : 'Expand all';
+  all.title = prefs.plOpen ? 'Every line back to small; a tap on one opens it' : 'Every line at full size, with its pitch strip, for every song until collapsed again';
   setSeg('plSizeSeg', prefs.plSize ?? 'normal');
   $('#pl').dataset.size = prefs.plSize ?? 'normal';
   if (prefs.plSize) document.documentElement.dataset.nsize = prefs.plSize;
@@ -2993,6 +2996,7 @@ export function init(): void {
     rows: () => prefs.plRows ?? 7,
     at: () => prefs.plAt ?? 3,
     full: () => full.on,
+    allOpen: () => !!prefs.plOpen,
     loudBox: () => {
       const box = $('#fullLoud');
       return full.on && getComputedStyle(box).display !== 'none' ? box : null;
@@ -3464,6 +3468,13 @@ export function init(): void {
     const v = +b.dataset.v!;
     if (v === 5 || v === 9 || v === 12) prefs.plRows = v;
     else delete prefs.plRows;
+    savePrefs();
+    applyLinesPrefs();
+  });
+  // Expand all, or Collapse all: every line of the song opened or closed (Rinat, 2026-11-13).
+  $('#plAllBtn').addEventListener('click', () => {
+    if (prefs.plOpen) delete prefs.plOpen;
+    else prefs.plOpen = true;
     savePrefs();
     applyLinesPrefs();
   });

@@ -282,6 +282,8 @@ export interface LinesHost {
   /** Full screen is on: the lines fill the screen, the strip of the line being sung as tall as
    * the rest leaves room for, its notes named up its side. */
   full(): boolean;
+  /** Expand all is on: every line opened, for every song and through every run. */
+  allOpen(): boolean;
   /** Where the loudness gauge goes in place of the end of the line being sung: full screen's
    * panel for it when that is showing, else null. */
   loudBox(): HTMLElement | null;
@@ -348,6 +350,10 @@ export function initLines(host: LinesHost): LinesUI {
   let axisKey = '';
   /** Lines opened to full size, to look back at how they were sung (Rinat, 2026-10-19). */
   const opened = new Set<number>();
+  /** Every line opened by Expand all (Rinat, 2026-11-13: "currently when a line is clicked it
+   * expands. would like to have a way, maybe a button, to expand all"), as shown: not in full
+   * screen, where the line being sung needs the room. */
+  let allShown = false;
   let revealTimer = 0;
   let cur = -1;
   /** The line sung before the one being sung (shrinking for a quarter second after the change). */
@@ -417,6 +423,8 @@ export function initLines(host: LinesHost): LinesUI {
     segs.clear();
     linePass.clear();
     last = null;
+    allShown = false;
+    applyAll();
     // Put back what was showing.
     const n = cur;
     cur = -1;
@@ -453,8 +461,12 @@ export function initLines(host: LinesHost): LinesUI {
     // Many lines shown, or full screen (where the line being sung's strip needs the room): the
     // other lines compact.
     view.classList.toggle('dense', rows >= 9 || host.full());
-    const small = lines.filter((_, i) => i !== cur && i !== cur + 1 && !opened.has(i)).map((l) => l.offsetHeight).sort((a, b) => a - b);
-    const hc = small.length ? small[small.length >> 1]! : 64;
+    // A line's usual height: a small one's, or with every line opened (Expand all) an opened one's,
+    // so the lines shown are counted at the size they are.
+    const rest = lines.filter((_, i) => i !== cur && i !== cur + 1);
+    const small = rest.filter((l) => !l.classList.contains('open'));
+    const pool = (small.length ? small : rest).map((l) => l.offsetHeight).sort((a, b) => a - b);
+    const hc = pool.length ? pool[pool.length >> 1]! : 64;
     smallH = hc;
     const hx = lines[cur]?.offsetHeight ?? hc;
     const hn = lines[cur + 1]?.offsetHeight ?? hc;
@@ -520,6 +532,7 @@ export function initLines(host: LinesHost): LinesUI {
   function refresh(): void {
     if (!host.shown()) return;
     if (dirty) build();
+    applyAll();
     layout();
     // Once sizes have settled after a change (the line playing grows over a quarter second).
     clearTimeout(layoutTimer);
@@ -777,6 +790,14 @@ export function initLines(host: LinesHost): LinesUI {
     else if (n !== cur) clearGrid(n);
   }
 
+  /** Every line opened, or closed again, as Expand all and full screen say. */
+  function applyAll(): void {
+    const want = host.allOpen() && !host.full();
+    if (want === allShown) return;
+    allShown = want;
+    lines.forEach((_, i) => setOpen(i, want));
+  }
+
   /** Scroll the view so a line opened shows whole (its top, if it is taller than the view). */
   function reveal(n: number): void {
     const L = lines[n];
@@ -904,7 +925,8 @@ export function initLines(host: LinesHost): LinesUI {
       showScore(n, score);
     },
     clearRun() {
-      for (const n of [...opened]) setOpen(n, false);
+      // A new run closes the lines opened to look back at the last, unless every line is open.
+      if (!allShown) for (const n of [...opened]) setOpen(n, false);
       scores.clear();
       for (const box of list.querySelectorAll<HTMLElement>('.pln.scored')) {
         box.classList.remove('scored');
