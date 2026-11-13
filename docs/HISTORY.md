@@ -66,6 +66,34 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-62 logo 36 and tagline 16 in the header
+
+- **Goal:** Rinat: "lower the river the same amount again and then go ahead with the build".
+- **Inspected:** the header (`index.html`: `<h1>Torongini</h1>` and "তরঙ্গিণী · harmonium and rhythm
+  from your own notation"), its styles, and the fonts the page loads (Tiro Bangla, upright and
+  italic, already). Tiro Bangla italic measured in headless Edge: তরঙ্গিণী 2.904 em wide, 0.91 em
+  above the baseline, 0.08 below.
+- **Changed:** new `src/app/logo.ts`: logo 36 drawn as SVG markup from those measurements (the
+  river's middle at 0.26 em above the baseline at the name's centre, lowered from 0.38 by 0.06
+  twice; its angle and width as Rinat chose), in the page's colours, the name in Tiro Bangla italic
+  held to Tiro's width by `textLength`; `vite.config.ts`: a plugin writes it into `index.html`
+  where it says `<!-- logo -->` (the build fails if that is missing); `index.html`: the heading
+  is the logo, read to screen readers as "Torongini (তরঙ্গিণী)", and the line under it tagline 16;
+  `styles.css`: the logo's styles, the tagline in Tiro Bangla at 16 px, and `--river` (#2569ad,
+  #6fa8e8 by night); new `tests/unit/logo.test.ts` (6 tests). `docs/brand/river-logos.html`: 36 at
+  0.26, republished at the same address (version 3).
+- **Tests / verification:** `npm run typecheck` clean; `npm test` 580 passed (51 files);
+  `npm run build` built, `dist/index.html` has the logo and no `<!-- logo -->` left. Dev server in
+  headless Edge (the browser pane hidden): the header at 360 px by day and by night and at 1200 px:
+  the logo 190 × 65 px at the top left with the tagline under it, Tiro Bangla loaded, no sideways
+  scroll (scroll width 360 at 360).
+- **Decisions made:** one row (the header shows logo 36 and tagline 16).
+- **Risks or disagreements:** if Tiro Bangla fails to load, another Bengali font stands in, held
+  to the same width so the river still crosses the same letters. The tab's and home screen's icons
+  are not made yet.
+- **Next handoff:** Rinat looks at the header (Next single action); then the icons, and the storage
+  rename once Rinat has exported the songs to keep.
+
 ### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-62 logo 36 picked, in Tiro Bangla italic; its river lowered
 
 - **Goal:** Rinat: "Logo 36 (River through the name), seen in Like logo 11 … font is like logo 11.

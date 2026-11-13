@@ -24,6 +24,10 @@ export const RIVER_MID = 0.26;
 /** How much wider than drawn the whole logo is shown, letters and river alike (Rinat, 2026-11-13:
  *  "Make the logo 25% wider"); its height is unchanged. */
 export const LOGO_WIDEN = 1.25;
+/** Where র, the name's second letter, begins: ত's advance (0.673 em) and র's own left edge (0.03 em,
+ *  the same from its top line to its foot), in ems from the name's start (measured in Edge,
+ *  2026-11-13). The tagline starts under it (Rinat, 2026-11-13). */
+const RO_EM = 0.673 + 0.03;
 
 type Curve = (x: number) => number;
 const r = (v: number): number => Math.round(v * 100) / 100;
@@ -49,8 +53,8 @@ function fade(id: string, x0: number, x1: number, cls: string, edge: number): st
     stop(0, 0) + stop(edge) + stop(1 - edge) + stop(1, 0) + '</linearGradient>';
 }
 
-/** The logo's size in px, and its SVG. */
-export function logoParts(): { width: number; height: number; svg: string } {
+/** The logo's size in px, its SVG, and how far from its left edge, in px, the letter র begins. */
+export function logoParts(): { width: number; height: number; svg: string; roX: number } {
   const S = LOGO_SIZE, W = EM.w * S, PI = Math.PI;
   const L = 0.8 * S, w = W + 1.6 * S, B = EM.asc * S + 0.22 * S, h = B + Math.max(EM.desc * S, 0.1 * S) + 0.3 * S;
   const cx = L + W / 2, sl = -0.5 * S / W, lam = 0.85 * S, k = 2 * PI / lam;
@@ -85,7 +89,7 @@ export function logoParts(): { width: number; height: number; svg: string } {
     '<g clip-path="url(#lg-dry2)">' + text('lg-ink lg-halo') + '</g>' +
     '<g clip-path="url(#lg-wet)"><g filter="url(#lg-ripple)">' + text('lg-river lg-halo') + '</g></g>' +
     '</g></svg>';
-  return { width: Math.ceil(ww), height: Math.ceil(h), svg };
+  return { width: Math.ceil(ww), height: Math.ceil(h), svg, roX: r((L + RO_EM * S) * LOGO_WIDEN) };
 }
 
 /** The logo's SVG markup. */

@@ -78,7 +78,7 @@ h2{font:400 clamp(22px,3vw,28px)/1.15 var(--tiro);margin:0 0 6px;text-wrap:balan
   <header class="hero">
     <p class="eyebrow"><b>তরঙ্গিণী</b> · icons</p>
     <h1>Icons for the browser tab and the home screen</h1>
-    <p>Three from the logo, and your two favourites from the first round, 11’s boat and 20’s bellows, each as it was and simplified. Every one is built around a single thing you can spot at 16 pixels: a letter crossed by the river, a gold sail, a gold wave.</p>
+    <p>Four from the logo (10 is icon 2 without its river), and your two favourites from the first round, 11’s boat and 20’s bellows, each as it was and simplified. Every one is built around a single thing you can spot at 16 pixels: a letter crossed by the river, a gold sail, a gold wave.</p>
     <p>Each is shown big, on a phone’s home screen, and in a browser tab at its real size, light and dark. An icon keeps its colours whatever the app’s colour scheme.</p>
   </header>
 
@@ -175,6 +175,15 @@ h2{font:400 clamp(22px,3vw,28px)/1.15 var(--tiro);margin:0 0 6px;text-wrap:balan
           '<path d="' + path(R.top, -4, 52, 14) + '" fill="none" stroke="' + C.riverLt + '" stroke-width="3.4" stroke-linecap="round"/>' +
           '<path d="' + path(R.bot, -4, 52, 14) + '" fill="none" stroke="' + C.riverLt + '" stroke-width="3.4" stroke-linecap="round"/>' +
           '<path d="' + path(R.mid, -4, 52, 14) + '" fill="none" stroke="' + C.brassHi + '" stroke-width="2.6" stroke-linecap="round"/>';
+      } },
+    // Tiro Bangla italic's ত, in ems: ink from 0.01 to 0.75 across, 0.62 to 0.03 above the baseline
+    // (measured in Edge, 2026-11-13). At 50 units it is 37 wide and 29.5 high, centred.
+    { n: 10, g: 'gLogo', from: 'Icon 2 without the river', name: 'Gold letter', idea: 'Icon 2 with the river taken away: ত alone, in the gold of the buttons on the rosewood of the deck, made bigger and centred. At 16 pixels, a gold letter.',
+      svg: function (u) {
+        var s = 50, x = 24 - 0.38 * s, y = 24 + 0.325 * s;
+        return '<defs><linearGradient id="' + u + 'g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + C.brassHi + '"/><stop offset="1" stop-color="' + C.brass + '"/></linearGradient></defs>' +
+          '<rect width="48" height="48" fill="' + C.wood + '"/>' +
+          '<text x="' + r(x) + '" y="' + r(y) + '" font-size="' + s + '" style="' + TIRO + '" fill="url(#' + u + 'g)">ত</text>';
       } },
     { n: 4, g: 'gBoat', from: 'As in 11', name: 'Boat song', idea: 'Round one’s icon as it was: a country boat with a gold sail, for the bhatiyali songs of the rivers.',
       svg: function () {

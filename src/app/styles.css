@@ -74,15 +74,17 @@ button{cursor:pointer}
 .brand .sub{color:var(--ink-2);font-size:14px;margin-top:2px}
 .brand .sub b{font-family:var(--f-note);font-weight:400;color:var(--ink)}
 /* The logo (logo.ts: তরঙ্গিণী with a river through it, Rinat's pick of 2026-11-13) and the tagline
-   under it, which starts where the river's tail does, as in the preview Rinat chose from. */
+   under it. */
 .brand .logo{line-height:0}
 .logosvg{display:block;max-width:100%;height:auto;overflow:visible}
 .logosvg text{font:italic 400 42px var(--f-note)}
 .lg-ink{fill:var(--ink)} .lg-river{fill:var(--river)}
 .lg-halo{stroke:var(--paper);stroke-linejoin:round;paint-order:stroke fill}
 .lg-stR{stop-color:var(--river)} .lg-stB{stop-color:var(--brass)}
-/* the tagline in the gold of the app's buttons (Rinat, 2026-11-13) */
-.brand .tagline{font-family:var(--f-note);font-size:16px;line-height:1.35;margin-top:0;color:var(--brass)}
+/* the tagline in the gold of the app's buttons, starting under র, the name's second letter (Rinat,
+   2026-11-13): its margin is logo.ts's logoParts().roX less the 0.5 px before the tagline's own first
+   letter; tests/unit/logo.test.ts holds the two together */
+.brand .tagline{font-family:var(--f-note);font-size:16px;line-height:1.35;margin-top:0;margin-left:79px;color:var(--brass)}
 .btn{padding:7px 13px;border:1px solid var(--line);border-radius:9px;background:var(--sheet);font-weight:500;white-space:nowrap}
 .btn:hover{border-color:var(--ink-2)}
 .btn.danger{color:var(--red-ink)}
