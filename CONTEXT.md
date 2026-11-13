@@ -226,7 +226,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   C♯3) was the microphone; tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `0b12202` (CI run `43359541771` green: round sixty live; the site serves `index-DPFCJ2n_.js`).
+- **Last known-good commit:** `cfcef42` (CI run `43360362267` green: round sixty-one live; the site serves `index-apGxzuzp.js`).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -882,7 +882,10 @@ Template:
   them and forgets; a tap opens one, Play leaves it, another song closes it, as before; no sideways
   scroll, no page errors. `layout61.mjs` (25 checks, all pass) at 360 × 780 day and night, 800 ×
   1000 day, 1280 × 950 night and 3840 × 2160 day: the button inside the settings row; screenshots
-  looked at.
+  looked at. Pushed as `cfcef42`; CI run `43360362267` green; the site serves `index-apGxzuzp.js`,
+  and in headless Edge at 360 × 780 it shows Expand all, opens all 8 lines of the first exercise,
+  keeps them open after a refresh as Collapse all, closes them, with no sideways scroll and no page
+  errors (scratchpad `live61.mjs`).
 - **Decisions made:** one 2026-11-13 row.
 - **Risks or disagreements:** no real touch screen. With every line open, the room left after the
   last line (so it can be sung in its place) is counted at an opened line's height, so there is
