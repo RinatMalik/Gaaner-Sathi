@@ -66,6 +66,45 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-62 the name Torongini (তরঙ্গিণী); twenty logos and twenty taglines; what moving would take
+
+- **Goal:** Rinat: "I have purchased torongini.com for this app. I would like the name to be
+  changed to Torongini", with 15–20 logo choices (তরঙ্গিণী "somewhere on the top left corner"),
+  20 taglines, and "the impact of changing the name": the project folder and the git repository
+  renamed too, "how much of a risk/work is this? will all the connections, dependencies be lost?"
+- **Inspected:** every mention of the old name (`git grep -n -i -I -E "gaaner|sathi|গানের|সাথী"`):
+  the visible ones (the page's title and header, the reports, print, the backup's `about`, the AI
+  files' `kind` and briefs, README, CI's `/new/` page, the package's name) and the identifiers
+  (storage keys `gaanersathi.*`, IndexedDB `gaanersathi`, the files' `format` ids; `readBackup`
+  refuses any other `format`). No absolute path of the folder in the repository; Claude Code
+  keeps its per-folder state in `~/.claude/projects/<the folder's path as a key>` (292 MB of
+  session transcripts, an empty `memory/`); Codex's config names no project path. GitHub's docs
+  on renaming a repository: git and web addresses forward, a project's Pages address does not,
+  and a custom domain takes the repository's name out of the address.
+- **Changed:** the visible name only, by a one-off script: `index.html` (title, description,
+  header: "Torongini", তরঙ্গিণী in the line under it), the three reports' brand line and
+  footer, print's footer and title, the backup's `about`, the AI files' `kind` and briefs,
+  README, CI's `/new/` forward page, `package.json` and `package-lock.json` (`torongini`).
+  Kept on purpose: the storage keys, the IndexedDB name and the `format` ids (Decisions).
+  New `docs/brand/logo-choices.html`: twenty logos, each in the header by day and by night with
+  its icon at 48 and 20 px, and twenty taglines, with a preview of the pair and Copy my picks;
+  published as https://claude.ai/artifact/W87BrvNwBPxLVpb8PPFdZS. Tiro Bangla's headline
+  measured in Chromium (0.57–0.62 em above the baseline, ending 2.81 em along তরঙ্গিণী, 0.67 em
+  along ত) so logo 1's wave meets it.
+- **Tests / verification:** `npm run typecheck` clean; `npm test` 574 passed; `npm run build`
+  built. Dev server in the browser pane: the tab reads "Torongini", the header "Torongini /
+  তরঙ্গিণী · harmonium and rhythm from your own notation", no sideways scroll at 360 px (dark).
+  The logo page checked card by card at 438 px, day and night; then logo 4's keys redrawn, the
+  underlines of 9 and 19 fitted to the word (93 and 102 px, as the word), icon edges added.
+- **Decisions made:** two rows (the name; the identifiers kept).
+- **Risks or disagreements:** the spelling তরঙ্গিণী (with ণ, as the dictionaries have it) and the
+  Bengali taglines are Claude's: Rinat to confirm. The AI files' `kind` now reads "Torongini
+  practice session, for AI analysis"; nothing reads it back. Nothing outside the repository is
+  renamed; the live address is unchanged.
+- **Next handoff:** Rinat picks a logo and a tagline and decides on the domain, the repository
+  and the folder (Next single action); then Claude builds the logo into the header, the tab's
+  icon and the home-screen icon.
+
 ### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-61 Expand all on the Practice lines
 
 - **Goal:** Rinat, 2026-11-13: "In practice page, currently when a line is clicked it expands.

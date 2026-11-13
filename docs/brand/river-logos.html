@@ -1,0 +1,434 @@
+<meta charset="utf-8">
+<title>Torongini River Logos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&family=Hind+Siliguri:wght@400;500;600&family=Noto+Serif+Bengali:wdth,wght@62.5..100,100..900&family=Anek+Bangla:wdth,wght@75..125,100..800&display=swap">
+<style>
+/* Round three: logos 21 (angled waves behind the name) and 24 (the name half in the river) combined six
+   ways. Layout: a short brief, a preview of the pick in the app's header with tagline 16, a sticky bar
+   to switch the name's typeface for every logo at once, the six logos two-up (each by day and by night),
+   then 21 and 24 to compare. No English name under any logo. */
+:root{
+  --bg:#eceeea; --card:#fbfbf8; --fg:#1b1c24; --fg2:#5c5f6c; --accent:#8a6514; --rule:#d9dcdf; --focus:#2560c7;
+  --wood:#3e1f15; --on-wood:#f5e9d7;
+  --tiro:"Tiro Bangla","Noto Serif Bengali",Georgia,serif;
+  --hind:"Hind Siliguri","Noto Sans Bengali",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111115; --card:#19191f; --fg:#ecebe5; --fg2:#a2a3ae; --accent:#d3a843; --rule:#2c2c35; --focus:#86aaff;
+  --wood:#3a1c12; --on-wood:#f1e3cf; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111115; --card:#19191f; --fg:#ecebe5; --fg2:#a2a3ae; --accent:#d3a843; --rule:#2c2c35; --focus:#86aaff;
+  --wood:#3a1c12; --on-wood:#f1e3cf; color-scheme:dark}
+
+/* The app's two colour schemes, fixed, so every logo shows both whatever the viewer's theme. */
+.pl{--paper:#eceeea;--sheet:#fbfbf8;--ink:#1b1c24;--ink2:#5c5f6c;--line:#d9dcdf;--brass:#b8892a;--brass-hi:#efcd6a;--brass-dk:#94701c;--brass-ink:#2a1608;
+  --river:#2569ad;--tile:#3e1f15;--on-wood:#f5e9d7}
+.pd{--paper:#111115;--sheet:#19191f;--ink:#ecebe5;--ink2:#a2a3ae;--line:#2c2c35;--brass:#d3a843;--brass-hi:#f2d176;--brass-dk:#a07a26;--brass-ink:#22120a;
+  --river:#6fa8e8;--tile:#3a1c12;--on-wood:#f1e3cf}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.55 var(--hind);margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 96px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:1180px;margin:0 auto}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.hero{padding-block:40px 14px;max-width:72ch}
+.eyebrow{font:600 12px/1 var(--hind);letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+.eyebrow b{font:400 16px/1 var(--tiro);letter-spacing:0;text-transform:none}
+h1{font:400 clamp(30px,5vw,46px)/1.08 var(--tiro);margin:0 0 14px;text-wrap:balance}
+h2{font:400 clamp(24px,3.4vw,32px)/1.15 var(--tiro);margin:0 0 6px;text-wrap:balance}
+.hero p,.lede{color:var(--fg2);margin:0 0 10px;max-width:68ch}
+.bn{font-family:var(--tiro);font-size:1.12em;color:var(--fg)}
+
+/* The typeface bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--bg);padding-block:10px;margin-block:8px 6px;border-bottom:1px solid var(--rule);display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.bar .lab{font:600 12px/1 var(--hind);letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+.bar .open{font-size:13px;color:var(--fg2)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{display:inline-flex;align-items:baseline;gap:8px;font:500 13px/1 var(--hind);padding:7px 12px;border-radius:999px;border:1px solid var(--rule);background:var(--card);color:var(--fg);cursor:pointer}
+.seg button .smp{font-size:20px;line-height:1}
+.seg button[aria-pressed="true"]{background:var(--wood);color:var(--on-wood);border-color:var(--wood)}
+
+/* Preview of the pick */
+#preview{grid-template-columns:minmax(0,1fr);scroll-margin-top:72px;background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:18px;margin-block:12px 30px;display:grid;gap:14px}
+.pvhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 16px}
+.pvsum{color:var(--fg2);font-size:14px}
+.pvgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.mock{background:var(--paper);color:var(--ink);border-radius:12px;border:1px solid var(--line);overflow:hidden;min-width:0}
+.mtop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:12px 16px 0}
+.mtop .slot{flex:1 1 0;min-width:0}
+.mright{flex:none;font:500 12px/1 var(--hind);color:var(--ink2);border:1px solid var(--line);background:var(--sheet);border-radius:999px;padding:7px 10px;margin-top:6px}
+.mtag{padding:2px 16px 0;font:400 16px/1.35 var(--tiro);color:var(--ink2)}
+.mtabs{display:flex;gap:6px;padding:12px 16px;flex-wrap:wrap}
+.mtabs span{font:500 13px/1 var(--hind);padding:7px 11px;border-radius:999px;background:var(--sheet);border:1px solid var(--line);color:var(--ink2)}
+.mtabs .on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.mdeck{background:var(--tile);height:52px;display:flex;align-items:center;gap:12px;padding:0 16px}
+.mdeck i{width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--brass-hi),var(--brass) 60%,var(--brass-dk));display:grid;place-items:center}
+.mdeck i::after{content:"";border-left:10px solid var(--brass-ink);border-top:6.5px solid transparent;border-bottom:6.5px solid transparent;margin-left:3px}
+.mdeck span{height:6px;border-radius:3px;background:var(--on-wood);opacity:.25;flex:1}
+.phonewrap{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.phone{width:360px;max-width:100%}
+.phone .mtabs span{padding:6px 8px;font-size:12px}
+.phone .logo svg{max-width:250px}
+.pvnote{font-size:13px;color:var(--fg2);margin:0;max-width:52ch}
+.copyrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:600 14px/1 var(--hind);padding:11px 16px;border-radius:999px;border:1px solid var(--wood);background:var(--wood);color:var(--on-wood);cursor:pointer}
+.btn:hover{filter:brightness(1.15)}
+#copyOut{font-size:14px;color:var(--fg2)}
+#copyTxt{width:100%;font:14px var(--hind);padding:8px;border:1px solid var(--rule);border-radius:8px;background:var(--bg);color:var(--fg)}
+
+/* The cards */
+.sect{margin-block:34px 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:18px;margin-top:14px}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.chead{display:flex;align-items:baseline;gap:10px}
+.num{font:400 26px/1 var(--tiro);color:var(--accent);min-width:1.4em;font-variant-numeric:tabular-nums}
+.chead h3{font:600 17px/1.2 var(--hind);margin:0}
+.idea{margin:0;color:var(--fg2);font-size:14.5px;line-height:1.5}
+.panes{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}
+.pane{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:20px 10px 12px;min-height:118px;display:flex;align-items:center;overflow:hidden;min-width:0}
+.pane small{position:absolute;top:6px;right:10px;font:600 10px/1 var(--hind);letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+.cfoot{display:flex;justify-content:flex-end}
+.pick{display:inline-flex;align-items:center;gap:8px;font:600 14px/1 var(--hind);padding:10px 14px;border-radius:999px;border:1px solid var(--rule);cursor:pointer;background:var(--bg)}
+.pick input{accent-color:var(--accent);margin:0}
+.card.sel .pick{border-color:var(--accent);color:var(--accent)}
+.was .card{background:transparent}
+
+/* A logo */
+.logo{display:flex;flex-direction:column;align-items:flex-start;min-width:0;max-width:100%}
+.logo svg{display:block;max-width:100%;height:auto;overflow:visible}
+.fI{fill:var(--ink)} .fV{fill:var(--river)} .fB{fill:var(--brass)}
+.fM1{fill:color-mix(in srgb,var(--river) 38%,var(--ink))} .fM2{fill:color-mix(in srgb,var(--river) 70%,var(--ink))}
+.sI{stroke:var(--ink)} .sV{stroke:var(--river)} .sB{stroke:var(--brass)} .sP{stroke:var(--paper)}
+.stV{stop-color:var(--river)} .stB{stop-color:var(--brass)} .stI{stop-color:var(--ink)}
+.halo{stroke:var(--paper);stroke-linejoin:round;paint-order:stroke fill}
+
+.notes{margin-block:40px 0;max-width:72ch;color:var(--fg2);font-size:15px}
+.notes h2{color:var(--fg)}
+.notes li{margin-bottom:6px}
+
+.pickbar{position:fixed;left:0;right:0;bottom:0;z-index:7;background:var(--wood);color:var(--on-wood);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 14px;
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));font-size:14px}
+.pickbar a{color:var(--on-wood);font-weight:600}
+.measure{position:absolute;left:-9999px;top:0;visibility:hidden}
+
+@media (max-width:760px){.pvgrid{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s,box-shadow .15s}}
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <p class="eyebrow"><b>তরঙ্গিণী</b> · round three</p>
+    <h1>The current and the river: 21 and 24 together</h1>
+    <p>Six ways of putting logo 21’s angled waves and logo 24’s river into one logo, numbered on from 31. The two they come from are at the bottom, to compare.</p>
+    <p>None has the English name underneath. The typeface stays open: the bar switches every logo between four, and others can be tried once the logo is settled. Each preview carries tagline 16, <span class="bn">প্রতিদিনের রেওয়াজের সাথী</span>.</p>
+  </header>
+
+  <div class="bar" role="group" aria-label="The name's typeface, for every logo">
+    <span class="lab">The name in</span>
+    <div class="seg" id="fontSeg"></div>
+    <span class="open">To look; the typeface is chosen later.</span>
+  </div>
+
+  <section id="preview" aria-labelledby="pvTitle">
+    <div class="pvhead"><h2 id="pvTitle">Your pick, in the app</h2><span class="pvsum" id="pvSum"></span></div>
+    <div class="pvgrid">
+      <div class="mock pl" aria-label="By day"><div class="mtop"><div class="slot"></div><span class="mright">বাংলা ▾</span></div><div class="mtag"></div><div class="mtabs"><span class="on">Practice</span><span>Music library</span><span>Rewaz</span><span>Progress</span></div><div class="mdeck"><i></i><span></span></div></div>
+      <div class="mock pd" aria-label="By night"><div class="mtop"><div class="slot"></div><span class="mright">বাংলা ▾</span></div><div class="mtag"></div><div class="mtabs"><span class="on">Practice</span><span>Music library</span><span>Rewaz</span><span>Progress</span></div><div class="mdeck"><i></i><span></span></div></div>
+    </div>
+    <div class="phonewrap">
+      <div class="mock pl phone" aria-label="On a phone, 360 pixels wide"><div class="mtop"><div class="slot"></div></div><div class="mtag"></div><div class="mtabs"><span class="on">Practice</span><span>Library</span><span>Rewaz</span><span>Progress</span></div><div class="mdeck"><i></i><span></span></div></div>
+      <div style="display:grid;gap:10px;min-width:0;flex:1 1 260px">
+        <p class="pvnote">The last is a phone held upright, 360 pixels wide. When you have chosen a logo, copy your pick and paste it into our chat.</p>
+        <div class="copyrow"><button type="button" class="btn" id="copyBtn">Copy my pick</button><span id="copyOut" role="status"></span></div>
+        <input id="copyTxt" type="text" readonly hidden aria-label="Your pick, to copy">
+      </div>
+    </div>
+  </section>
+
+  <section class="sect" aria-labelledby="logosTitle">
+    <h2 id="logosTitle">Six ways to combine them</h2>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section class="sect was" aria-labelledby="wasTitle">
+    <h2 id="wasTitle">The two they come from</h2>
+    <p class="lede">From round two, unchanged, to compare.</p>
+    <div class="grid" id="was"></div>
+  </section>
+
+  <section class="notes" aria-labelledby="notesTitle">
+    <h2 id="notesTitle">Once you have picked</h2>
+    <ul>
+      <li>The chosen logo replaces the name at the top left of every view, by day and by night, with tagline 16 under it. It is drawn as a picture, so the app loads no new typeface.</li>
+      <li>Anything can still be tuned: the angle, how deep the water comes, how many waves, their colours.</li>
+      <li>The typeface is chosen on its own, whenever you like; the waves are fitted to whichever it is.</li>
+      <li>The tagline is a line of text: changing it later is a one-line edit.</li>
+      <li>The app’s icon (the browser tab and a phone’s home screen) is made from the logo afterwards.</li>
+    </ul>
+  </section>
+</div>
+
+<svg class="measure" aria-hidden="true" width="10" height="10"><text id="measureText" x="0" y="100" font-size="100">তরঙ্গিণী</text></svg>
+<div class="pickbar" role="region" aria-label="Your pick"><span id="pickSum"></span><a href="#preview">See it in the app</a></div>
+
+<script>
+(function () {
+  var BN = 'তরঙ্গিণী';
+  var TAGLINE = 'প্রতিদিনের রেওয়াজের সাথী';
+  var FONTS = [
+    { id: 'tiro', label: 'Like logo 11', family: 'Tiro Bangla', style: 'italic', weight: 400, stretch: '100%', size: 42, rip: 3 },
+    { id: 'serif', label: 'Slender serif', family: 'Noto Serif Bengali', style: 'normal', weight: 300, stretch: '75%', size: 48, rip: 2 },
+    { id: 'hair', label: 'Hairline serif', family: 'Noto Serif Bengali', style: 'normal', weight: 200, stretch: '62.5%', size: 54, rip: 1.3 },
+    { id: 'sans', label: 'Slender sans', family: 'Anek Bangla', style: 'normal', weight: 300, stretch: '75%', size: 48, rip: 2 },
+  ];
+  var FALLBACK = { w: 2.9, asc: 0.92, desc: 0.08, mt: 0.62, mb: 0.57 };
+  var PI = Math.PI;
+  function r(v) { return Math.round(v * 100) / 100; }
+  // A smooth path through y = f(x), as cubic pieces whose handles follow the slope.
+  function seg(f, xa, xb, n) {
+    var h = (xb - xa) / n, e = Math.abs(h) / 40 || 0.01, s = '';
+    var x = xa, y = f(x), d = (f(x + e) - f(x - e)) / (2 * e);
+    for (var i = 1; i <= n; i++) {
+      var xn = xa + i * h, yn = f(xn), dn = (f(xn + e) - f(xn - e)) / (2 * e);
+      s += ' C' + r(x + h / 3) + ' ' + r(y + d * h / 3) + ' ' + r(xn - h / 3) + ' ' + r(yn - dn * h / 3) + ' ' + r(xn) + ' ' + r(yn);
+      x = xn; y = yn; d = dn;
+    }
+    return s;
+  }
+  function path(f, xa, xb, n) { return 'M' + r(xa) + ' ' + r(f(xa)) + seg(f, xa, xb, n); }
+  function steps(xa, xb, lam) { return Math.max(4, Math.ceil(Math.abs(xb - xa) / (lam / 8))); }
+  function fade(id, x0, x1, cls, edge) {
+    return '<linearGradient id="' + id + '" gradientUnits="userSpaceOnUse" x1="' + r(x0) + '" y1="0" x2="' + r(x1) + '" y2="0">' +
+      '<stop offset="0" class="' + cls + '" stop-opacity="0"/><stop offset="' + edge + '" class="' + cls + '"/><stop offset="' + (1 - edge) + '" class="' + cls + '"/><stop offset="1" class="' + cls + '" stop-opacity="0"/></linearGradient>';
+  }
+  function ripple(id, fx, fy, scale) {
+    return '<filter id="' + id + '" x="-5%" y="-30%" width="110%" height="160%"><feTurbulence type="turbulence" baseFrequency="' + fx + ' ' + fy + '" numOctaves="1" seed="4" result="t"/><feDisplacementMap in="SourceGraphic" in2="t" scale="' + scale + '" xChannelSelector="R" yChannelSelector="G"/></filter>';
+  }
+  // A clip region between two lines, y = f(x) above and y = g(x) below, wide enough for any typeface.
+  function band(c, f, g, lam, id) {
+    var X0 = -2 * c.S, X1 = c.W + 4 * c.S, n = steps(X0, X1, lam);
+    return '<clipPath id="' + id + '"><path d="M' + r(X0) + ' ' + r(f(X0)) + seg(f, X0, X1, n) + ' L' + r(X1) + ' ' + r(g(X1)) + seg(g, X1, X0, n) + 'Z"/></clipPath>';
+  }
+  function above(c) { return function () { return -3 * c.S; }; }
+  function below(c) { return function () { return 5 * c.S; }; }
+  function line(f, xa, xb, lam, stroke, sw, extra) {
+    return '<path d="' + path(f, xa, xb, steps(xa, xb, lam)) + '" fill="none" stroke="' + stroke + '" stroke-width="' + sw + '" stroke-linecap="round"' + (extra || '') + '/>';
+  }
+  function halo(c, t) { return 'stroke-width="' + r((t || 0.1) * c.S) + '"'; }
+  // The name under water: river blue, rippled, clipped to the region `clip`.
+  function wet(c, clip, filt, withHalo) {
+    return '<g clip-path="url(#' + clip + ')"><g filter="url(#' + filt + ')">' + c.text(c.L, c.B, withHalo ? 'fV halo' : 'fV', withHalo ? halo(c) : '') + '</g></g>';
+  }
+  function dry(c, clip, cls) { return '<g clip-path="url(#' + clip + ')">' + c.text(c.L, c.B, cls || 'fI halo', halo(c)) + '</g>'; }
+
+  // Each logo, drawn from the typeface's own measurements: c.W the name's width, c.a its height above the
+  // baseline, c.d below it. Each sets c.L (the name's left edge) and c.B (its baseline) and returns its size.
+  var LOGOS = [
+    { n: 31, name: 'Wading in the current', idea: 'Logo 24’s river, and rising out of it at an angle, logo 21’s four waves, running behind the dry half of the name.',
+      draw: function (c) {
+        var S = c.S, W = c.W, L = c.L = 0.8 * S, w = W + 1.6 * S, B = c.B = c.a + 0.34 * S, h = B + 0.5 * S, cx = L + W / 2;
+        var lam = 0.8 * S, k = 2 * PI / lam, yw = B - 0.26 * S, fw = function (x) { return yw + 0.045 * S * Math.sin(k * x); };
+        var lam2 = 0.95 * S, k2 = 2 * PI / lam2, x0 = -0.3 * S, x1 = w + 0.3 * S, cy = B - 0.42 * S;
+        var offs = [-0.27, -0.09, 0.09, 0.27], amps = [0.06, 0.09, 0.08, 0.05], col = ['V', 'B', 'V', 'B'], wid = [1.1, 1.5, 1.3, 1];
+        var waves = offs.map(function (o, i) { var y0 = cy + o * S, A = amps[i] * S; return line(function (x) { return y0 + A * Math.sin(k2 * x + i * 0.9); }, x0, x1, lam2, 'url(#' + c.u + 'g' + col[i] + ')', wid[i]); }).join('');
+        var rip = function (y, xa, xb, A, op) { return line(function (x) { return y + A * Math.sin(k * 1.3 * x); }, xa, xb, lam, 'url(#' + c.u + 'g)', 1, ' opacity="' + op + '"'); };
+        return { w: w, h: h, svg: '<defs>' + band(c, above(c), fw, lam, c.u + 'a') + band(c, fw, below(c), lam, c.u + 'b') + ripple(c.u + 'f', 0.012, 0.1, c.rip) +
+          fade(c.u + 'gV', x0, x1, 'stV', 0.22) + fade(c.u + 'gB', x0, x1, 'stB', 0.22) + fade(c.u + 'g', 0, w, 'stV', 0.12) + '</defs>' +
+          '<g clip-path="url(#' + c.u + 'a)"><g transform="rotate(-13 ' + r(cx) + ' ' + r(cy) + ')">' + waves + '</g>' + c.text(L, B, 'fI halo', halo(c)) + '</g>' +
+          wet(c, c.u + 'b', c.u + 'f') + line(fw, 0, w, lam, 'url(#' + c.u + 'g)', 1.3) +
+          rip(B + 0.17 * S, L + 0.15 * W, L + 0.85 * W, 0.03 * S, 0.6) + rip(B + 0.32 * S, L + 0.32 * W, L + 0.68 * W, 0.025 * S, 0.4) };
+      } },
+    { n: 32, name: 'Rising tide', idea: 'The water line itself runs at an angle: the first letter only gets its feet wet, the last stands half under. Two of 21’s waves follow the slope above it.',
+      draw: function (c) {
+        var S = c.S, W = c.W, L = c.L = 0.6 * S, w = W + 1.2 * S, B = c.B = c.a + 0.3 * S, h = B + 0.48 * S, cx = L + W / 2, sl = -0.5 * S / W;
+        var lam = 0.8 * S, k = 2 * PI / lam, ym = B - 0.26 * S;
+        var fw = function (x) { return ym + sl * (x - cx) + 0.04 * S * Math.sin(k * x); };
+        var e1 = function (x) { return ym - 0.21 * S + sl * (x - cx) + 0.06 * S * Math.sin(0.8 * k * x + 1.3); };
+        var e2 = function (x) { return ym - 0.4 * S + sl * (x - cx) + 0.05 * S * Math.sin(0.7 * k * x + 2.6); };
+        var rip = function (y, xa, xb, A, op) { return line(function (x) { return y + A * Math.sin(k * 1.3 * x); }, xa, xb, lam, 'url(#' + c.u + 'g)', 1, ' opacity="' + op + '"'); };
+        return { w: w, h: h, svg: '<defs>' + band(c, above(c), fw, lam, c.u + 'a') + band(c, fw, below(c), lam, c.u + 'b') + ripple(c.u + 'f', 0.012, 0.1, c.rip) +
+          fade(c.u + 'g', 0, w, 'stV', 0.12) + fade(c.u + 'e1', 0, w, 'stB', 0.22) + fade(c.u + 'e2', 0, w, 'stV', 0.22) + '</defs>' +
+          line(e2, 0, w, lam, 'url(#' + c.u + 'e2)', 1) + line(e1, 0, w, lam, 'url(#' + c.u + 'e1)', 1.3) +
+          dry(c, c.u + 'a') + wet(c, c.u + 'b', c.u + 'f') + line(fw, 0, w, lam, 'url(#' + c.u + 'g)', 1.3) +
+          rip(B + 0.17 * S, L + 0.35 * W, L + 0.95 * W, 0.03 * S, 0.6) + rip(B + 0.31 * S, L + 0.55 * W, L + 0.9 * W, 0.025 * S, 0.4) };
+      } },
+    { n: 33, name: 'Deepening', idea: 'Three of 21’s angled waves cross the name, and each one is a step deeper into the river: the letters go from ink, through two blues, to rippling water.',
+      draw: function (c) {
+        var S = c.S, W = c.W, L = c.L = 0.75 * S, w = W + 1.5 * S, B = c.B = c.a + 0.36 * S, h = B + 0.42 * S, cx = L + W / 2, sl = -0.2;
+        var lam = 0.9 * S, k = 2 * PI / lam, ys = [-0.66, -0.42, -0.18], amps = [0.05, 0.06, 0.05];
+        var f = ys.map(function (y, i) { return function (x) { return B + y * S + sl * (x - cx) + amps[i] * S * Math.sin(k * x + i * 1.1); }; });
+        var x0 = 0.05 * S, x1 = w - 0.05 * S;
+        return { w: w, h: h, svg: '<defs>' + band(c, above(c), f[0], lam, c.u + 'b0') + band(c, f[0], f[1], lam, c.u + 'b1') + band(c, f[1], f[2], lam, c.u + 'b2') + band(c, f[2], below(c), lam, c.u + 'b3') +
+          ripple(c.u + 'f', 0.012, 0.1, c.rip) + fade(c.u + 'gB', x0, x1, 'stB', 0.2) + fade(c.u + 'gV', x0, x1, 'stV', 0.2) + '</defs>' +
+          line(f[0], x0, x1, lam, 'url(#' + c.u + 'gB)', 1.1) + line(f[1], x0, x1, lam, 'url(#' + c.u + 'gV)', 1.2) + line(f[2], x0, x1, lam, 'url(#' + c.u + 'gV)', 1.5) +
+          dry(c, c.u + 'b0') + dry(c, c.u + 'b1', 'fM1 halo') + dry(c, c.u + 'b2', 'fM2 halo') + wet(c, c.u + 'b3', c.u + 'f', true) };
+      } },
+    { n: 34, name: 'The swell', idea: 'One wave rises through the name like a swell out at sea, steep at its front: the middle letters go under, the ends stay dry, and 21’s fine lines ride above it.',
+      draw: function (c) {
+        var S = c.S, W = c.W, L = c.L = 0.6 * S, w = W + 1.2 * S, B = c.B = c.a + 0.38 * S, h = B + 0.46 * S;
+        var xc = L + 0.6 * W, sa = 0.5 * W, sb = 0.24 * W, H = 0.48 * S, base = B - 0.05 * S, lam = 0.7 * S, k = 2 * PI / lam;
+        function bump(x) { var t = (x - xc) / (x < xc ? sa : sb); return Math.exp(-t * t); }
+        var fw = function (x) { return base - H * bump(x) + 0.025 * S * Math.sin(k * x); };
+        var e1 = function (x) { return base - 0.5 * S - H * bump(x + 0.12 * S) + 0.02 * S * Math.sin(k * x + 1); };
+        var e2 = function (x) { return base - 0.66 * S - 0.9 * H * bump(x + 0.26 * S) + 0.02 * S * Math.sin(k * x + 2); };
+        var ea = xc - 0.62 * W, eb = xc + 0.42 * W;
+        var rip = function (y, xa, xb, A, op) { return line(function (x) { return y + A * Math.sin(k * 1.4 * x); }, xa, xb, lam, 'url(#' + c.u + 'g)', 1, ' opacity="' + op + '"'); };
+        return { w: w, h: h, svg: '<defs>' + band(c, above(c), fw, lam, c.u + 'a') + band(c, fw, below(c), lam, c.u + 'b') + ripple(c.u + 'f', 0.012, 0.1, c.rip) +
+          fade(c.u + 'g', 0, w, 'stV', 0.1) + fade(c.u + 'e1', ea, eb, 'stB', 0.3) + fade(c.u + 'e2', ea + 0.1 * W, eb - 0.06 * W, 'stV', 0.3) + '</defs>' +
+          line(e2, ea + 0.1 * W, eb - 0.06 * W, lam, 'url(#' + c.u + 'e2)', 1) + line(e1, ea, eb, lam, 'url(#' + c.u + 'e1)', 1.2) +
+          dry(c, c.u + 'a') + wet(c, c.u + 'b', c.u + 'f') + line(fw, 0, w, lam, 'url(#' + c.u + 'g)', 1.4) +
+          rip(B + 0.17 * S, xc - 0.4 * W, xc + 0.28 * W, 0.03 * S, 0.6) + rip(B + 0.31 * S, xc - 0.22 * W, xc + 0.16 * W, 0.025 * S, 0.4) };
+      } },
+    { n: 35, name: 'Drawn in the water', idea: 'Logo 24’s river, higher; under the surface the letters are made of fine flowing lines, 21’s waves running through them.',
+      draw: function (c) {
+        var S = c.S, W = c.W, L = c.L = 0.5 * S, w = W + S, B = c.B = c.a + 0.16 * S, h = B + 0.5 * S, lam = 0.8 * S, k = 2 * PI / lam, yw = B - 0.34 * S;
+        var fw = function (x) { return yw + 0.045 * S * Math.sin(k * x); };
+        var gap = 0.068 * S, k3 = 2 * PI / (0.62 * S), sl = -0.1, cx = L + W / 2, hatch = '';
+        for (var y = yw - 0.45 * S, i = 0; y < B + c.d + 0.45 * S; y += gap, i++) {
+          (function (y0, i) { hatch += '<path d="' + path(function (x) { return y0 + sl * (x - cx) + 0.022 * S * Math.sin(k3 * x + i * 0.7); }, L - 0.3 * S, L + W + 0.4 * S, steps(0, W + 0.7 * S, 0.62 * S)) + '" fill="none" class="sV" stroke-width="1"/>'; })(y, i);
+        }
+        var rip = function (y, xa, xb, A, op) { return line(function (x) { return y + A * Math.sin(k * 1.3 * x); }, xa, xb, lam, 'url(#' + c.u + 'g)', 1, ' opacity="' + op + '"'); };
+        return { w: w, h: h, svg: '<defs>' + band(c, above(c), fw, lam, c.u + 'a') + band(c, fw, below(c), lam, c.u + 'b') + '<clipPath id="' + c.u + 't">' + c.text(L, B, '') + '</clipPath>' +
+          fade(c.u + 'g', 0, w, 'stV', 0.12) + '</defs>' +
+          dry(c, c.u + 'a', 'fI') +
+          '<g clip-path="url(#' + c.u + 'b)"><g clip-path="url(#' + c.u + 't)"><rect x="0" y="' + r(yw - 0.1 * S) + '" width="' + r(w) + '" height="' + r(h) + '" class="fV" opacity=".3"/>' + hatch + '</g></g>' +
+          line(fw, 0, w, lam, 'url(#' + c.u + 'g)', 1.3) +
+          rip(B + 0.2 * S, L + 0.15 * W, L + 0.85 * W, 0.03 * S, 0.6) + rip(B + 0.34 * S, L + 0.32 * W, L + 0.68 * W, 0.025 * S, 0.4) };
+      } },
+    { n: 36, name: 'River through the name', idea: 'A river crosses the name at 21’s angle, from its feet on the left to its shoulders on the right: inside it the letters turn blue and ripple, as in 24.',
+      draw: function (c) {
+        var S = c.S, W = c.W, L = c.L = 0.8 * S, w = W + 1.6 * S, B = c.B = c.a + 0.22 * S, h = B + Math.max(c.d, 0.1 * S) + 0.3 * S, cx = L + W / 2, sl = -0.5 * S / W;
+        var lam = 0.85 * S, k = 2 * PI / lam;
+        var fc = function (x) { return B - 0.38 * S + sl * (x - cx); };
+        var ft = function (x) { return fc(x) - 0.17 * S + 0.04 * S * Math.sin(k * x); };
+        var fb = function (x) { return fc(x) + 0.17 * S + 0.04 * S * Math.sin(k * x + 1.2); };
+        var fm = function (x) { return fc(x) + 0.03 * S * Math.sin(1.2 * k * x + 2.4); };
+        var n = steps(0, w, lam), body = 'M0 ' + r(ft(0)) + seg(ft, 0, w, n) + ' L' + r(w) + ' ' + r(fb(w)) + seg(fb, w, 0, n) + 'Z';
+        return { w: w, h: h, svg: '<defs>' + band(c, above(c), ft, lam, c.u + 'a') + band(c, ft, fb, lam, c.u + 'r') + band(c, fb, below(c), lam, c.u + 'z') +
+          ripple(c.u + 'f', 0.012, 0.1, c.rip) + fade(c.u + 'gV', 0, w, 'stV', 0.2) + fade(c.u + 'gB', 0, w, 'stB', 0.25) + '</defs>' +
+          '<path d="' + body + '" fill="url(#' + c.u + 'gV)" opacity=".08"/>' +
+          line(ft, 0, w, lam, 'url(#' + c.u + 'gV)', 1.2) + line(fb, 0, w, lam, 'url(#' + c.u + 'gV)', 1.2) + line(fm, 0, w, lam, 'url(#' + c.u + 'gB)', 0.9, ' opacity=".8"') +
+          dry(c, c.u + 'a') + dry(c, c.u + 'z') + wet(c, c.u + 'r', c.u + 'f', true) };
+      } },
+  ];
+
+  // Round two's 21 and 24, unchanged, to compare.
+  var WAS = [
+    { n: 21, name: 'Diagonal current', idea: 'Four fine waves rise across the name at an angle and pass behind its letters.',
+      draw: function (c) {
+        var S = c.S, W = c.W, L = 0.9 * S, w = W + 1.8 * S, h = 1.85 * S, B = 0.64 * h, cx = L + W / 2, cy = B - 0.3 * S;
+        var lam = 0.95 * S, k = 2 * PI / lam, x0 = -0.3 * S, x1 = w + 0.3 * S, n = steps(x0, x1, lam);
+        var offs = [-0.27, -0.09, 0.09, 0.27], amps = [0.06, 0.09, 0.08, 0.05], col = ['V', 'B', 'V', 'B'], wid = [1.1, 1.5, 1.3, 1];
+        var lines = '';
+        offs.forEach(function (o, i) {
+          var y0 = cy + o * S, A = amps[i] * S, ph = i * 0.9;
+          lines += '<path d="' + path(function (x) { return y0 + A * Math.sin(k * x + ph); }, x0, x1, n) + '" fill="none" stroke="url(#' + c.u + 'g' + col[i] + ')" stroke-width="' + wid[i] + '" stroke-linecap="round"/>';
+        });
+        return { w: w, h: h, svg: '<defs>' + fade(c.u + 'gV', x0, x1, 'stV', 0.22) + fade(c.u + 'gB', x0, x1, 'stB', 0.22) + '</defs>' +
+          '<g transform="rotate(-13 ' + r(cx) + ' ' + r(cy) + ')">' + lines + '</g>' + c.text(L, B, 'fI halo', 'stroke-width="' + r(0.1 * S) + '"') };
+      } },
+    { n: 24, name: 'Half in the river', idea: 'The name wades into the river: below the water line its letters turn blue and ripple.',
+      draw: function (c) {
+        var S = c.S, W = c.W, L = 0.5 * S, w = W + S, h = 1.62 * S, B = 0.64 * h, lam = 0.8 * S, k = 2 * PI / lam, yw = B - 0.24 * S, Aw = 0.045 * S;
+        var fw = function (x) { return yw + Aw * Math.sin(k * x); }, n = steps(0, w, lam);
+        var up = 'M0 0 H' + r(w) + ' V' + r(fw(w)) + seg(fw, w, 0, n) + 'Z';
+        var down = 'M0 ' + r(fw(0)) + seg(fw, 0, w, n) + ' V' + r(h) + ' H0Z';
+        var rip = function (y, xa, xb, A, op) { return '<path d="' + path(function (x) { return y + A * Math.sin(k * 1.3 * x); }, xa, xb, steps(xa, xb, lam)) + '" fill="none" stroke="url(#' + c.u + 'g)" stroke-width="1" opacity="' + op + '"/>'; };
+        return { w: w, h: h, svg: '<defs><clipPath id="' + c.u + 'a"><path d="' + up + '"/></clipPath><clipPath id="' + c.u + 'b"><path d="' + down + '"/></clipPath>' +
+          ripple(c.u + 'f', 0.015, 0.22, 3.2) + fade(c.u + 'g', 0, w, 'stV', 0.12) + '</defs>' +
+          '<g clip-path="url(#' + c.u + 'a)">' + c.text(L, B, 'fI') + '</g>' +
+          '<g clip-path="url(#' + c.u + 'b)"><g filter="url(#' + c.u + 'f)">' + c.text(L, B, 'fV') + '</g></g>' +
+          '<path d="M0 ' + r(fw(0)) + seg(fw, 0, w, n) + '" fill="none" stroke="url(#' + c.u + 'g)" stroke-width="1.3"/>' +
+          rip(B + 0.17 * S, L + 0.15 * W, L + 0.85 * W, 0.03 * S, 0.6) + rip(B + 0.32 * S, L + 0.32 * W, L + 0.68 * W, 0.025 * S, 0.4) };
+      } },
+  ];
+  var ALL = LOGOS.concat(WAS);
+
+  var state = { logo: 31, font: 'tiro' };
+  try { var sv = JSON.parse(localStorage.getItem('torongini-picks-3') || 'null'); if (sv && sv.logo) state = Object.assign(state, sv); } catch (e) {}
+  var metrics = {}, uid = 0;
+
+  function fontCss(F, size) { return 'font-family:&quot;' + F.family + '&quot;;font-style:' + F.style + ';font-weight:' + F.weight + ';font-stretch:' + F.stretch + ';font-size:' + size + 'px'; }
+
+  function measure(F) {
+    if (metrics[F.id]) return Promise.resolve(metrics[F.id]);
+    var spec = F.style + ' ' + F.weight + ' 100px "' + F.family + '"';
+    return document.fonts.load(spec, BN).then(function () {
+      var m = Object.assign({}, FALLBACK);
+      try {
+        var t = document.getElementById('measureText');
+        t.style.fontFamily = '"' + F.family + '"'; t.style.fontStyle = F.style; t.style.fontWeight = F.weight; t.style.fontStretch = F.stretch;
+        var tw = t.getComputedTextLength() / 100; if (tw > 0.5) m.w = tw;
+        var cv = document.createElement('canvas'); cv.width = 900; cv.height = 260;
+        var g = cv.getContext('2d'); g.font = spec; g.fillStyle = '#000'; g.fillText(BN, 20, 170);
+        var mt = g.measureText(BN); m.asc = mt.actualBoundingBoxAscent / 100; m.desc = Math.max(0, mt.actualBoundingBoxDescent / 100);
+      } catch (e) {}
+      metrics[F.id] = m; return m;
+    }, function () { metrics[F.id] = FALLBACK; return FALLBACK; });
+  }
+
+  function drawLogo(Lg, F, m) {
+    var S = F.size, u = 'u' + (uid++);
+    var css = fontCss(F, S);
+    var c = { S: S, W: m.w * S, a: m.asc * S, d: m.desc * S, u: u, L: 0, B: 0, rip: F.rip,
+      text: function (x, y, cls, extra) { return '<text x="' + r(x) + '" y="' + r(y) + '"' + (cls ? ' class="' + cls + '"' : '') + ' style="' + css + '"' + (extra ? ' ' + extra : '') + '>' + BN + '</text>'; } };
+    var o = Lg.draw(c);
+    return '<div class="logo"><svg viewBox="0 0 ' + r(o.w) + ' ' + r(o.h) + '" width="' + Math.ceil(o.w) + '" height="' + Math.ceil(o.h) + '" role="img" aria-label="তরঙ্গিণী">' + o.svg + '</svg></div>';
+  }
+  function font() { return FONTS.filter(function (f) { return f.id === state.font; })[0] || FONTS[0]; }
+  function logoBy(n) { return ALL.filter(function (l) { return l.n === n; })[0] || LOGOS[0]; }
+
+  var segEl = document.getElementById('fontSeg');
+  segEl.innerHTML = FONTS.map(function (F) { return '<button type="button" data-f="' + F.id + '" aria-pressed="false"><span class="smp" style="' + fontCss(F, 20).replace(/&quot;/g, '\'') + '">' + BN + '</span>' + F.label + '</button>'; }).join('');
+  function card(Lg) {
+    return '<article class="card" id="logo-' + Lg.n + '" data-n="' + Lg.n + '"><div class="chead"><span class="num">' + Lg.n + '</span><h3>' + Lg.name + '</h3></div>' +
+      '<p class="idea">' + Lg.idea + '</p><div class="panes"><div class="pane pl"><small>Day</small><div class="slot"></div></div><div class="pane pd"><small>Night</small><div class="slot"></div></div></div>' +
+      '<div class="cfoot"><label class="pick"><input type="radio" name="logo" value="' + Lg.n + '"> Pick logo ' + Lg.n + '</label></div></article>';
+  }
+  document.getElementById('grid').innerHTML = LOGOS.map(card).join('');
+  document.getElementById('was').innerHTML = WAS.map(card).join('');
+
+  function renderLogos() {
+    var F = font();
+    return measure(F).then(function (m) {
+      document.querySelectorAll('.card').forEach(function (cd) {
+        var Lg = logoBy(+cd.dataset.n);
+        cd.querySelectorAll('.slot').forEach(function (s) { s.innerHTML = drawLogo(Lg, F, m); });
+      });
+      renderPick(m);
+    });
+  }
+  function renderPick(m) {
+    var F = font(), Lg = logoBy(state.logo);
+    m = m || metrics[F.id] || FALLBACK;
+    document.querySelectorAll('#preview .mock').forEach(function (mk) { mk.querySelector('.slot').innerHTML = drawLogo(Lg, F, m); mk.querySelector('.mtag').textContent = TAGLINE; });
+    var sum = 'Logo ' + Lg.n + ' · ' + Lg.name + ', seen in ' + F.label.toLowerCase();
+    document.getElementById('pvSum').textContent = sum; document.getElementById('pickSum').textContent = sum;
+    document.querySelectorAll('.card').forEach(function (cd) { cd.classList.toggle('sel', +cd.dataset.n === Lg.n); });
+    segEl.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.f === F.id)); });
+    var a = document.querySelector('input[name="logo"][value="' + Lg.n + '"]'); if (a) a.checked = true;
+    try { localStorage.setItem('torongini-picks-3', JSON.stringify(state)); } catch (e) {}
+  }
+  segEl.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b || b.dataset.f === state.font) return;
+    state.font = b.dataset.f; document.getElementById('copyOut').textContent = ''; renderLogos();
+  });
+  document.addEventListener('change', function (e) {
+    if (e.target.name !== 'logo') return;
+    state.logo = +e.target.value; document.getElementById('copyOut').textContent = ''; renderPick();
+  });
+  document.getElementById('copyBtn').addEventListener('click', function () {
+    var F = font(), Lg = logoBy(state.logo);
+    var txt = 'Logo ' + Lg.n + ' (' + Lg.name + '), seen in ' + F.label + '; the typeface still open';
+    var out = document.getElementById('copyOut'), box = document.getElementById('copyTxt');
+    function fallback() { box.hidden = false; box.value = txt; box.focus(); box.select(); out.textContent = 'Select and copy the line below.'; }
+    try { navigator.clipboard.writeText(txt).then(function () { out.textContent = 'Copied: ' + txt; box.hidden = true; }, fallback); } catch (e) { fallback(); }
+  });
+  renderPick(FALLBACK);
+  renderLogos();
+})();
+</script>
