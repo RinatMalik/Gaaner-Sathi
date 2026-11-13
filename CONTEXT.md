@@ -228,7 +228,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   C♯3) was the microphone; tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `9093fbd` (CI run `43441857169` green: the logo a quarter wider and the tagline in the buttons' gold live, PH2-62; the site serves `index-5dGChkbp.js`, its header the logo তরঙ্গিণী with a river through it, stretched to 237 px, and প্রতিদিনের রেওয়াজের সাথী under it).
+- **Last known-good commit:** `adc9278` (CI run `43443024093` green: the tagline starting under র live, PH2-62; the site serves `index-Bk8b-0CV.js` and `index-C-oGzghu.css`, its header the logo তরঙ্গিণী with a river through it, stretched to 237 px, and প্রতিদিনের রেওয়াজের সাথী in the buttons' gold under it, indented 79 px).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
