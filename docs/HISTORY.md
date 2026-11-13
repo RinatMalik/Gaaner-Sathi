@@ -66,6 +66,40 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-62 round two: ten wave logos in four typefaces, ten Bengali taglines; the storage plan
+
+- **Goal:** Rinat turned down logos 1–20 (one by one: 9 "the closest", "if the waves were at an
+  angle and had gone through the name itself", a thinner typeface "like the one in 11"; 4
+  "can work with it") and asked for "logos with lines representing waves, overlapping with the
+  name, going through the name or behind the name … 10 more unique logos", and ten more
+  taglines "all in bangla" (16 and 15 liked). Rinat will export the 10–12 songs to keep, then
+  wants the storage renamed ("don't do anything just yet"), and asked whether renaming the
+  folder of past conversations relinks them.
+- **Inspected:** slender Bengali typefaces on Google Fonts in the browser pane: Noto Serif Bengali
+  and Anek Bangla have a width axis (তরঙ্গিণী 2.75 em wide at 300, 2.27 em at 75 %; Anek 3.20 to
+  2.15 em). Where the conversations live: `~/.claude/projects/<key>` (the transcripts) and
+  `%LOCALAPPDATA%\Claude-Data\…\claude-code-sessions` (the desktop app's list: 12 records name
+  this folder in `cwd`, `originCwd`, `commonDir`, `realPath`; its README: "Do not delete, move,
+  or rename this folder or anything in it").
+- **Changed:** new `docs/brand/wave-logos.html`, published as
+  https://claude.ai/artifact/P9XQe3XChnDfprSNUkjYG8: logos 21–30 (diagonal current, silk
+  ribbons, woven thread, half in the river, reflection, cut by waves, plucked headline, engraved
+  river, swash, paper-cut waves), drawn from each typeface's own measurements (its width from the
+  rendered text, its height and headline from a canvas scan) so the waves meet the letters in any
+  of the four typefaces; a bar switches the typeface for every logo; Bengali taglines 21–30 with
+  15 and 16 beside them; a preview in the app's header by day, by night and on a phone. Nothing
+  in the app changed.
+- **Tests / verification:** in the browser pane through the dev server: no script errors after a
+  name clash was fixed; all 20 panes drawn; each logo looked at, day and night, at twice the size
+  (27's vibration made stronger, 30's water faded at the bottom); the slender serif checked on
+  27, 29 and 30 (the string meets the headline); at 375 px no sideways scroll (after the
+  preview's logo was let shrink: it had pushed the page to 395 px).
+- **Decisions made:** two rows (the logo's direction; the storage renamed after Rinat's export).
+- **Risks or disagreements:** the Bengali taglines are Claude's, for Rinat to check. The logos are
+  drawn live from fonts; the chosen one goes into the app as a drawing.
+- **Next handoff:** Rinat picks a logo, a typeface and a tagline, and exports the songs to keep
+  (Next single action); then Claude renames the storage and builds the logo into the header.
+
 ### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-62 the name Torongini (তরঙ্গিণী); twenty logos and twenty taglines; what moving would take
 
 - **Goal:** Rinat: "I have purchased torongini.com for this app. I would like the name to be

@@ -124,6 +124,7 @@ h2{font:400 clamp(24px,3.4vw,32px)/1.15 var(--tiro);margin:0 0 6px;text-wrap:bal
     <p class="eyebrow"><b>তরঙ্গিণী</b> · round three</p>
     <h1>The current and the river: 21 and 24 together</h1>
     <p>Six ways of putting logo 21’s angled waves and logo 24’s river into one logo, numbered on from 31. The two they come from are at the bottom, to compare.</p>
+    <p><b>Your pick: 36, in the typeface like logo 11,</b> its river now a little lower, at the same angle and width. How it was is at the bottom.</p>
     <p>None has the English name underneath. The typeface stays open: the bar switches every logo between four, and others can be tried once the logo is settled. Each preview carries tagline 16, <span class="bn">প্রতিদিনের রেওয়াজের সাথী</span>.</p>
   </header>
 
@@ -155,8 +156,8 @@ h2{font:400 clamp(24px,3.4vw,32px)/1.15 var(--tiro);margin:0 0 6px;text-wrap:bal
   </section>
 
   <section class="sect was" aria-labelledby="wasTitle">
-    <h2 id="wasTitle">The two they come from</h2>
-    <p class="lede">From round two, unchanged, to compare.</p>
+    <h2 id="wasTitle">To compare</h2>
+    <p class="lede">Logo 36 as it was before it was lowered, and the two it comes from, 21 and 24, from round two.</p>
     <div class="grid" id="was"></div>
   </section>
 
@@ -299,11 +300,17 @@ h2{font:400 clamp(24px,3.4vw,32px)/1.15 var(--tiro);margin:0 0 6px;text-wrap:bal
           line(fw, 0, w, lam, 'url(#' + c.u + 'g)', 1.3) +
           rip(B + 0.2 * S, L + 0.15 * W, L + 0.85 * W, 0.03 * S, 0.6) + rip(B + 0.34 * S, L + 0.32 * W, L + 0.68 * W, 0.025 * S, 0.4) };
       } },
-    { n: 36, name: 'River through the name', idea: 'A river crosses the name at 21’s angle, from its feet on the left to its shoulders on the right: inside it the letters turn blue and ripple, as in 24.',
-      draw: function (c) {
+    { n: 36, name: 'River through the name', idea: 'A river crosses the name at 21’s angle, from its feet on the left to its shoulders on the right: inside it the letters turn blue and ripple, as in 24. Now a little lower, as you asked: the same angle and width, moved down by about a twentieth of the name’s height.',
+      draw: riverThrough(0.32) },
+  ];
+
+  // Logo 36: the river's middle sits `mid` (in ems of the name) above the baseline at the name's centre.
+  // 0.38 as first drawn; 0.32 lowered at Rinat's request (2026-11-13), the angle and width unchanged.
+  function riverThrough(mid) {
+    return function (c) {
         var S = c.S, W = c.W, L = c.L = 0.8 * S, w = W + 1.6 * S, B = c.B = c.a + 0.22 * S, h = B + Math.max(c.d, 0.1 * S) + 0.3 * S, cx = L + W / 2, sl = -0.5 * S / W;
         var lam = 0.85 * S, k = 2 * PI / lam;
-        var fc = function (x) { return B - 0.38 * S + sl * (x - cx); };
+        var fc = function (x) { return B - mid * S + sl * (x - cx); };
         var ft = function (x) { return fc(x) - 0.17 * S + 0.04 * S * Math.sin(k * x); };
         var fb = function (x) { return fc(x) + 0.17 * S + 0.04 * S * Math.sin(k * x + 1.2); };
         var fm = function (x) { return fc(x) + 0.03 * S * Math.sin(1.2 * k * x + 2.4); };
@@ -313,11 +320,12 @@ h2{font:400 clamp(24px,3.4vw,32px)/1.15 var(--tiro);margin:0 0 6px;text-wrap:bal
           '<path d="' + body + '" fill="url(#' + c.u + 'gV)" opacity=".08"/>' +
           line(ft, 0, w, lam, 'url(#' + c.u + 'gV)', 1.2) + line(fb, 0, w, lam, 'url(#' + c.u + 'gV)', 1.2) + line(fm, 0, w, lam, 'url(#' + c.u + 'gB)', 0.9, ' opacity=".8"') +
           dry(c, c.u + 'a') + dry(c, c.u + 'z') + wet(c, c.u + 'r', c.u + 'f', true) };
-      } },
-  ];
+    };
+  }
 
-  // Round two's 21 and 24, unchanged, to compare.
+  // To compare: 36 as first drawn, and round two's 21 and 24, unchanged.
   var WAS = [
+    { n: 360, label: '36', name: 'River through the name, as it was', idea: 'Logo 36 before it was lowered, to compare.', draw: riverThrough(0.38) },
     { n: 21, name: 'Diagonal current', idea: 'Four fine waves rise across the name at an angle and pass behind its letters.',
       draw: function (c) {
         var S = c.S, W = c.W, L = 0.9 * S, w = W + 1.8 * S, h = 1.85 * S, B = 0.64 * h, cx = L + W / 2, cy = B - 0.3 * S;
@@ -348,7 +356,7 @@ h2{font:400 clamp(24px,3.4vw,32px)/1.15 var(--tiro);margin:0 0 6px;text-wrap:bal
   ];
   var ALL = LOGOS.concat(WAS);
 
-  var state = { logo: 31, font: 'tiro' };
+  var state = { logo: 36, font: 'tiro' };
   try { var sv = JSON.parse(localStorage.getItem('torongini-picks-3') || 'null'); if (sv && sv.logo) state = Object.assign(state, sv); } catch (e) {}
   var metrics = {}, uid = 0;
 
@@ -385,9 +393,9 @@ h2{font:400 clamp(24px,3.4vw,32px)/1.15 var(--tiro);margin:0 0 6px;text-wrap:bal
   var segEl = document.getElementById('fontSeg');
   segEl.innerHTML = FONTS.map(function (F) { return '<button type="button" data-f="' + F.id + '" aria-pressed="false"><span class="smp" style="' + fontCss(F, 20).replace(/&quot;/g, '\'') + '">' + BN + '</span>' + F.label + '</button>'; }).join('');
   function card(Lg) {
-    return '<article class="card" id="logo-' + Lg.n + '" data-n="' + Lg.n + '"><div class="chead"><span class="num">' + Lg.n + '</span><h3>' + Lg.name + '</h3></div>' +
+    return '<article class="card" id="logo-' + Lg.n + '" data-n="' + Lg.n + '"><div class="chead"><span class="num">' + (Lg.label || Lg.n) + '</span><h3>' + Lg.name + '</h3></div>' +
       '<p class="idea">' + Lg.idea + '</p><div class="panes"><div class="pane pl"><small>Day</small><div class="slot"></div></div><div class="pane pd"><small>Night</small><div class="slot"></div></div></div>' +
-      '<div class="cfoot"><label class="pick"><input type="radio" name="logo" value="' + Lg.n + '"> Pick logo ' + Lg.n + '</label></div></article>';
+      '<div class="cfoot"><label class="pick"><input type="radio" name="logo" value="' + Lg.n + '"> Pick logo ' + (Lg.label || Lg.n) + '</label></div></article>';
   }
   document.getElementById('grid').innerHTML = LOGOS.map(card).join('');
   document.getElementById('was').innerHTML = WAS.map(card).join('');
@@ -406,7 +414,7 @@ h2{font:400 clamp(24px,3.4vw,32px)/1.15 var(--tiro);margin:0 0 6px;text-wrap:bal
     var F = font(), Lg = logoBy(state.logo);
     m = m || metrics[F.id] || FALLBACK;
     document.querySelectorAll('#preview .mock').forEach(function (mk) { mk.querySelector('.slot').innerHTML = drawLogo(Lg, F, m); mk.querySelector('.mtag').textContent = TAGLINE; });
-    var sum = 'Logo ' + Lg.n + ' · ' + Lg.name + ', seen in ' + F.label.toLowerCase();
+    var sum = 'Logo ' + (Lg.label || Lg.n) + ' · ' + Lg.name + ', seen in ' + F.label.toLowerCase();
     document.getElementById('pvSum').textContent = sum; document.getElementById('pickSum').textContent = sum;
     document.querySelectorAll('.card').forEach(function (cd) { cd.classList.toggle('sel', +cd.dataset.n === Lg.n); });
     segEl.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.f === F.id)); });
@@ -423,7 +431,7 @@ h2{font:400 clamp(24px,3.4vw,32px)/1.15 var(--tiro);margin:0 0 6px;text-wrap:bal
   });
   document.getElementById('copyBtn').addEventListener('click', function () {
     var F = font(), Lg = logoBy(state.logo);
-    var txt = 'Logo ' + Lg.n + ' (' + Lg.name + '), seen in ' + F.label + '; the typeface still open';
+    var txt = 'Logo ' + (Lg.label || Lg.n) + ' (' + Lg.name + '), in ' + F.label;
     var out = document.getElementById('copyOut'), box = document.getElementById('copyTxt');
     function fallback() { box.hidden = false; box.value = txt; box.focus(); box.select(); out.textContent = 'Select and copy the line below.'; }
     try { navigator.clipboard.writeText(txt).then(function () { out.textContent = 'Copied: ' + txt; box.hidden = true; }, fallback); } catch (e) { fallback(); }
