@@ -66,6 +66,38 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-62 the logo wider, the tagline gold, nine icons to choose from
+
+- **Goal:** Rinat: "i like the icons in 11 and 20. make some from the current logo but also include
+  those or variations of those"; "The font colour of the tagline - make it same gold/yellow as the
+  buttons"; "Make the logo 25% wider"; "In small icons, it's important to make them less details and
+  on memorable noticeable thing".
+- **Inspected:** round one's icons 11 (the boat) and 20 (the bellows) in
+  `docs/brand/logo-choices.html`; the buttons' gold in `styles.css` (`--brass`, the play button's
+  gradient). A render test of Tiro Bangla's ত: its top line is drawn apart from the letter's body,
+  upright and italic, so icons 1 and 2 show it that way.
+- **Changed:** `src/app/logo.ts`: `LOGO_WIDEN` 1.25, the whole logo stretched sideways in a
+  `scale(1.25 1)` group (237 × 65 px); `styles.css`: the tagline in `--brass`;
+  `tests/unit/logo.test.ts`: the size test for the wider logo; `vite.config.ts`: the logo plugin
+  leaves pages other than the app's alone (design pages the dev server serves from `.tmp/`). New
+  `docs/brand/icon-choices.html` (https://claude.ai/artifact/F3Vdrh8oStZp6cpFXyGkwF): nine icons,
+  each big, on a phone's home screen and in light and dark browser tabs at 16 and 32 px: 1 ত crossed
+  by the river, 2 the same in gold on rosewood, 3 the river alone; 4 the boat as in 11, 5 its gold
+  sail made bold, 6 the boat on the logo's river (redrawn as one bold blue band after the first
+  draft's thin banks blurred at 16 px); 7 the bellows as in 20, 8 made bold, 9 the folds turning into
+  the logo's river.
+- **Tests / verification:** `npm run typecheck` clean; `npm test` 580 passed (51 files);
+  `npm run build` built. Dev server in headless Edge (the browser pane hidden): the header at 360 px
+  by day and by night and at 1200 px: the logo 237 × 65 px, the tagline rgb(196, 149, 43) by day and
+  rgb(211, 168, 67) by night, no sideways scroll (scroll width 360 at 360). Each icon card shot at
+  1200 px and looked at.
+- **Decisions made:** two rows (the logo wider and the tagline gold; small icons with one bold thing).
+- **Risks or disagreements:** the tagline's gold is about 2.3:1 by day, fainter than the page's
+  text; `--brass-text` is ready if Rinat wants it deeper. "Wider" was taken as a sideways stretch,
+  the height unchanged. The chosen icon is not yet in the app (no favicon or home-screen icon).
+- **Next handoff:** Rinat picks an icon (Next single action); Claude then makes it at each size
+  (favicon, home-screen icon) and builds it in; the storage rename still waits for Rinat's export.
+
 ### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-62 logo 36 and tagline 16 in the header
 
 - **Goal:** Rinat: "lower the river the same amount again and then go ahead with the build".

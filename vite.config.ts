@@ -1,5 +1,5 @@
 import { defineConfig, type Plugin } from 'vite';
-import { logoSvg } from './src/app/logo';
+import { logoSvg } from './src/app/logo.ts'; // with its extension, as Vite's native config loader needs
 
 // The logo at the top left (src/app/logo.ts), written into index.html where it says <!-- logo -->,
 // so the header draws it with no script. Fails the build if the app's page has no such place;

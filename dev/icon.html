@@ -1,0 +1,35 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Torongini icon</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@1&display=block">
+<!--
+  Dev only: the app's icon, icon 10 of docs/brand/icon-choices.html (Rinat's pick, 2026-11-13): ত in
+  Tiro Bangla italic, in the gold of the app's buttons, on rosewood, centred on its ink. Drawn here at
+  each size index.html links. public/icons/ holds screenshots of these drawings, taken in headless
+  Edge through the DevTools protocol at scale 1 on a transparent background, so the icons need no
+  font. Open /dev/icon.html on the dev server (`npm run dev`) to see them; shoot them again after a
+  change. Not part of the app build.
+-->
+<style>
+  body{margin:0;padding:16px;display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+  svg{display:block}
+</style>
+<div id="icons"></div>
+<script>
+  // Fixed colours (an icon does not follow the colour scheme): the day --wood, --brass-hi, --brass.
+  var WOOD = '#3e1f15', GOLD_HI = '#efcd6a', GOLD = '#c4952b';
+  // Tiro Bangla italic's ত: ink 0.74 em wide from 0.01 em, 0.59 em high from 0.03 em above the
+  // baseline (measured in Edge, 2026-11-13). At 50 units in a 48-unit square: 37 wide, centred.
+  // name, size in px, corner radius in units, letter size in units: the tab icons and Android's
+  // home-screen icon rounded as the choices page showed them; Apple's square, since iOS rounds its
+  // corners itself. At 16 px the letter is drawn bigger (56: 41 wide), so the dark inside its curl
+  // and the gap under its top bar stay open; a bolder stroke filled them in.
+  var ICONS = [['icon-16', 16, 9, 56], ['icon-32', 32, 9, 50], ['icon-192', 192, 11, 50], ['apple-touch-icon', 180, 0, 50]];
+  document.getElementById('icons').outerHTML = ICONS.map(function (I) {
+    var S = I[3], X = 24 - 0.38 * S, Y = 24 + 0.325 * S;
+    return '<svg id="' + I[0] + '" width="' + I[1] + '" height="' + I[1] + '" viewBox="0 0 48 48" role="img" aria-label="' + I[0] + '">' +
+      '<defs><linearGradient id="g-' + I[0] + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + GOLD_HI + '"/><stop offset="1" stop-color="' + GOLD + '"/></linearGradient></defs>' +
+      '<rect width="48" height="48" rx="' + I[2] + '" fill="' + WOOD + '"/>' +
+      '<text x="' + X + '" y="' + Y + '" font-size="' + S + '" style="font-family:\'Tiro Bangla\',serif;font-style:italic;font-weight:400" fill="url(#g-' + I[0] + ')">ত</text></svg>';
+  }).join('');
+</script>
