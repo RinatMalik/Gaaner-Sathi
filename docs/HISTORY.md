@@ -66,6 +66,36 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-62 round three: 21 and 24 combined six ways; tagline 16
+
+- **Goal:** Rinat: "combine 21 and 24 and create 5 or 6 more examples to choose from. Tagline
+  let's go with 16 for now … Don't write torongini underneath in any of them. I would still
+  like to choose different fonts later".
+- **Inspected:** how 21 (four waves rotated -13° behind the name, a paper-coloured halo round the
+  letters) and 24 (a wavy water line; the letters clipped above it in ink, below it in river blue
+  through a turbulence ripple) are drawn in `docs/brand/wave-logos.html`.
+- **Changed:** new `docs/brand/river-logos.html`, published as
+  https://claude.ai/artifact/22qGdQwqaH1fPeyy22RRaA: logos 31 Wading in the current (24's river,
+  21's waves rising out of it behind the dry half), 32 Rising tide (the water line at an angle, two
+  waves following it), 33 Deepening (three angled waves, each band of the letters a step bluer, the
+  last rippling), 34 The swell (one steep-fronted swell under the middle letters, two fine lines
+  riding its crest), 35 Drawn in the water (under the surface the letters are fine flowing lines),
+  36 River through the name (an angled river crosses the name, blue and rippling inside it); 21 and
+  24 unchanged below to compare; no English name under any; the ripple gentler and scaled to each
+  typeface's weight (3 px Tiro, 2 the slender ones, 1.3 the hairline) so thin letters do not break
+  up; the preview carries tagline 16; Copy my pick names the logo and the typeface looked at.
+- **Tests / verification:** the browser pane was hidden (drew nothing), so headless Edge through the
+  DevTools protocol on the dev server (`/.tmp/river.html`, a copy): every card shot at twice the
+  size in all four typefaces, day and night; fixed from those shots: a missing `<meta charset>`
+  (the Bengali garbled when served raw), the ripple shredding thin strokes, 34's fine lines hidden
+  behind the letters (lifted to ride over the crest), 36's river too dark by night. At 375 px wide
+  the page's scroll width is 375 (no sideways scroll).
+- **Decisions made:** two rows (the logo's direction and the typeface later; tagline 16).
+- **Risks or disagreements:** none taken from Rinat's words beyond the six designs; the tagline is
+  not in the app yet (it goes in with the logo).
+- **Next handoff:** Rinat picks a logo (Next single action), and exports the songs to keep; then
+  Claude renames the storage and builds the logo and tagline 16 into the header.
+
 ### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-62 round two: ten wave logos in four typefaces, ten Bengali taglines; the storage plan
 
 - **Goal:** Rinat turned down logos 1–20 (one by one: 9 "the closest", "if the waves were at an

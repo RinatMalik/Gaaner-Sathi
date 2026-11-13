@@ -19,6 +19,7 @@
   --grain:rgba(255,255,255,.028);
   --brass:#c4952b;
   --brass-hi:#efcd6a;
+  --river:#2569ad;
   --brass-ink:#2a1608;
   --mark:#ffe08a;
   --mark-ink:#1b1c24;
@@ -36,7 +37,7 @@
   :root:not([data-theme="light"]){
     --paper:#111115; --sheet:#19191f; --ink:#ecebe5; --ink-2:#a2a3ae; --rule:#2a313c; --margin:#5a2c29;
     --red-ink:#ff8d7e; --wood:#22100a; --wood-2:#3a1c12; --on-wood:#f1e3cf; --on-wood-2:#bba68b;
-    --brass:#d3a843; --brass-hi:#f2d176; --brass-ink:#22120a; --mark:#5b4614; --mark-ink:#fff6dc;
+    --brass:#d3a843; --brass-hi:#f2d176; --brass-ink:#22120a; --mark:#5b4614; --mark-ink:#fff6dc; --river:#6fa8e8;
     --line:#2c2c35; --chip:#24242c; --focus:#86aaff; --shadow:rgba(0,0,0,.5);
     --v-sam:#4b3a10; --v-sam-line:#d3a843; --v-tali:#1d3a22; --v-tali-line:#79b06c; --v-khali:#30284a; --v-khali-line:#a492dc;
     --o-n2:#a596ff; --o-n1:#68aeea; --o-0:#62c493; --o-1:#e8b04c; --o-2:#f0839f;
@@ -46,7 +47,7 @@
 :root[data-theme="dark"]{
   --paper:#111115; --sheet:#19191f; --ink:#ecebe5; --ink-2:#a2a3ae; --rule:#2a313c; --margin:#5a2c29;
   --red-ink:#ff8d7e; --wood:#22100a; --wood-2:#3a1c12; --on-wood:#f1e3cf; --on-wood-2:#bba68b;
-  --brass:#d3a843; --brass-hi:#f2d176; --brass-ink:#22120a; --mark:#5b4614; --mark-ink:#fff6dc;
+  --brass:#d3a843; --brass-hi:#f2d176; --brass-ink:#22120a; --mark:#5b4614; --mark-ink:#fff6dc; --river:#6fa8e8;
   --line:#2c2c35; --chip:#24242c; --focus:#86aaff; --shadow:rgba(0,0,0,.5);
     --v-sam:#4b3a10; --v-sam-line:#d3a843; --v-tali:#1d3a22; --v-tali-line:#79b06c; --v-khali:#30284a; --v-khali-line:#a492dc;
   --o-n2:#a596ff; --o-n1:#68aeea; --o-0:#62c493; --o-1:#e8b04c; --o-2:#f0839f;
@@ -72,6 +73,15 @@ button{cursor:pointer}
 .brand h1{font-family:var(--f-note);font-style:italic;font-weight:400;font-size:clamp(28px,4.2vw,36px);line-height:1.05;margin:0;text-wrap:balance}
 .brand .sub{color:var(--ink-2);font-size:14px;margin-top:2px}
 .brand .sub b{font-family:var(--f-note);font-weight:400;color:var(--ink)}
+/* The logo (logo.ts: তরঙ্গিণী with a river through it, Rinat's pick of 2026-11-13) and the tagline
+   under it, which starts where the river's tail does, as in the preview Rinat chose from. */
+.brand .logo{line-height:0}
+.logosvg{display:block;max-width:100%;height:auto;overflow:visible}
+.logosvg text{font:italic 400 42px var(--f-note)}
+.lg-ink{fill:var(--ink)} .lg-river{fill:var(--river)}
+.lg-halo{stroke:var(--paper);stroke-linejoin:round;paint-order:stroke fill}
+.lg-stR{stop-color:var(--river)} .lg-stB{stop-color:var(--brass)}
+.brand .tagline{font-family:var(--f-note);font-size:16px;line-height:1.35;margin-top:0}
 .btn{padding:7px 13px;border:1px solid var(--line);border-radius:9px;background:var(--sheet);font-weight:500;white-space:nowrap}
 .btn:hover{border-color:var(--ink-2)}
 .btn.danger{color:var(--red-ink)}
