@@ -189,7 +189,8 @@ keeps the Sa and tempo it was sung in (`sa`, `flat`).
   "songs": [ { "id": "song-…", "updatedAt": 1791544356355, "title": "…", "text": "…", … } ],
   "routines": [ { "id": "rw-…", "name": "…", "items": [ … ], "updatedAt": … } ],
   "prefs": { … }, "log": [ … ],
-  "sessions": [ { "at": …, "song": "…", "played": { … }, "settings": { … }, "pitch": { … } } ] }
+  "sessions": [ { "at": …, "song": "…", "played": { … }, "settings": { … },
+                  "pitch": { "lag": …, …, "lines": [ … ], "beats": [ … ], "notes": [ [ … ], … ], "packed": "…" } } ] }
 ```
 
 - **What it holds:** your songs and exercises with their ids (so the practice and routines that
@@ -207,6 +208,30 @@ keeps the Sa and tempo it was sung in (`sa`, `flat`).
   takes the backup's settings over these (this device's own kept) and opens the app again to
   use them. Restoring is not a song import, so songs keep their ids; that is safe because a
   song already here is never written over.
+- **A session's line (from 2026-11-15).** Each session is one line of the file, oldest first.
+  Its `pitch` is the session's detail (Session detail, below) written small, as what the
+  microphone heard was four fifths of a backup:
+  - `packed` in place of `readings` and `levels` (core/practice/pack.ts): base64 of whole
+    numbers, each in as few bytes as it needs (seven bits to a byte, lowest first, the eighth
+    bit set while more follow; a number of either sign as 0, −1, 1, −2 … → 0, 1, 2, 3 …). First
+    the layout's number (1), how many readings, and 1 if they have levels; then four columns,
+    each number the step from the one before it in its column: the times in milliseconds, the
+    pitches in hundredths of a hertz, and, with levels, each reading's level and its loudest
+    sample in tenths of a decibel. Unpacked, they are the numbers a backup held before.
+  - `notes` as rows of numbers in place of named sets: `[t0, t1, semi, oct, g, line, pass,
+    status, score, cents, arrive, wobble]`, the status 0 sung, 1 unsung, 2 short.
+
+  Three minutes with the pitch check take 75 KB so (268 KB before). Import reads both: a line
+  with `readings` and named notes is a backup made before. A session whose `packed` cannot be
+  read is restored without its readings.
+- **Never bigger than Import reads.** The app keeps the detail of 1,000 sessions and Import
+  reads 200 MB (`KEEP_SESSIONS`, `BACKUP_BYTES`; a test holds the two together: 1,000
+  sessions of five minutes fit). Until 2026-11-15 nothing did: 1,000 sessions of three minutes
+  made a file of 270 MB, which Import refused. A file that would still pass 200 MB (sessions
+  of eight minutes and more, all with the pitch check) leaves out the oldest sessions' lines
+  until it fits, and the bar says how many; their summaries are in `log`, which is always
+  whole. Both ways the sessions are handled one at a time (read from the browser's database
+  and written; unpacked and stored), so a year's readings are never in memory together.
 
 ## Storage
 

@@ -3,7 +3,7 @@
 // opens (src/core/notation/taalmap.ts → inOneTaal); the guide's volume and mute
 // (src/audio/sound.ts); Back up or export → Everything, and its restore (src/app/backup.ts).
 import { describe, expect, it } from 'vitest';
-import { BACKUP_FORMAT, backupParts, backupWords, readBackup, restoredPrefs, restorePlan, type Backup } from '../../src/app/backup';
+import { BACKUP_FORMAT, backupFile, backupWords, readBackup, restoredPrefs, restorePlan, sessionLine, type Backup } from '../../src/app/backup';
 import { DEFAULT_PREFS, loadPrefs, STORE_KEYS, type KeyValueStore } from '../../src/app/store';
 import { taalPickHTML } from '../../src/app/view';
 import { createEngine } from '../../src/audio/engine';
@@ -128,7 +128,7 @@ const BACKUP: Backup = {
   sessions: [detail(1000, 'song-a')],
   prefs: { ...DEFAULT_PREFS, plRows: 9, theme: 'dark', deviceLag: 0.12, midi: { route: 'kb', sound: 'keep' }, lastSong: 'song-a', tab: 'edit' },
 };
-const fileOf = (b: Backup) => backupParts(b).join('');
+const fileOf = (b: Backup) => backupFile(b, b.sessions.map(sessionLine)).parts.join('');
 
 describe('Back up or export → Everything', () => {
   it('reads back what it wrote: songs with their ids, routines, the log, sessions and the singer’s settings', () => {
@@ -140,7 +140,7 @@ describe('Back up or export → Everything', () => {
     expect(b.routines).toEqual(BACKUP.routines);
     expect(b.log).toEqual(BACKUP.log);
     // Readings to the millisecond and the hundredth of a hertz.
-    expect(b.sessions[0]!.pitch!.readings).toEqual([0.012, 138.59, 0.023, 0]);
+    expect(b.sessions[0]!.read()!.pitch!.readings).toEqual([0.012, 138.59, 0.023, 0]);
     expect(b.prefs.plRows).toBe(9);
     // This device's own settings are not in it.
     for (const k of ['deviceLag', 'midi', 'lastSong', 'tab']) expect(b.prefs).not.toHaveProperty(k);
@@ -150,9 +150,9 @@ describe('Back up or export → Everything', () => {
     const d = detail(1000, 'song-a');
     const kept = { ...d, pitch: { ...d.pitch!, levels: Float32Array.from([-18.3, -6.1, -120, -120]) as unknown as number[] } };
     const b = readBackup(fileOf({ ...BACKUP, sessions: [kept] }))!;
-    expect(b.sessions[0]!.pitch!.levels).toEqual([-18.3, -6.1, -120, -120]);
+    expect(b.sessions[0]!.read()!.pitch!.levels).toEqual([-18.3, -6.1, -120, -120]);
     // A session from before has none.
-    expect(readBackup(fileOf(BACKUP))!.sessions[0]!.pitch).not.toHaveProperty('levels');
+    expect(readBackup(fileOf(BACKUP))!.sessions[0]!.read()!.pitch).not.toHaveProperty('levels');
   });
 
   it('is told from a file of songs, which an import of songs still reads from it', () => {

@@ -47,7 +47,7 @@ import { withNow, type ForNow } from '../core/song/fornow';
 import { SONG_SOUND_KEYS, type SongSound } from '../core/song/sound';
 import type { SpeedName } from '../core/taal/rhythm';
 import { isTaalId, taalInfo, TAALS, type TaalInfo } from '../core/taal/taals';
-import { BACKUP_BYTES, BACKUP_FORMAT, backupParts, backupWords, readBackup, restoredPrefs, restorePlan, type Backup } from './backup';
+import { BACKUP_BYTES, BACKUP_FORMAT, backupFile, backupWords, readBackup, restoredPrefs, restorePlan, sessionLine, type BackupRead } from './backup';
 import { aiFileName, aiFileText, dayFileName, dayFileParts, practiceFileParts, type SessionFileInput } from './aifile';
 import { openOnce, SessionStore } from './db';
 import { initMicPick } from './micpick';
@@ -2759,16 +2759,25 @@ function backupSongs(): void {
 async function backupAll(): Promise<void> {
   flushNow();
   showFileBar('Gathering everything…');
-  let sessions: SessionDetail[] = [];
+  // A session at a time, oldest first: all of them read together are hundreds of megabytes.
+  const lines: string[] = [];
   try {
-    sessions = (await (await sessionsDB())?.all()) ?? [];
+    const db = await sessionsDB();
+    for (const at of (await db?.keys()) ?? []) {
+      const d = await db!.get(at);
+      if (d) lines.push(sessionLine(d));
+    }
   } catch {
-    sessions = [];
+    // What was read is written; the log holds every session's summary.
   }
   const now = Date.now();
-  const b: Backup = { at: now, songs: ownSongs(), routines: Array.from(routineStore.load().values()), log: logStore.load(), sessions, prefs: { ...prefs } };
-  void offerFile(exportName(stamp(now), 'Everything', 'Backup'), new Blob(backupParts(b), { type: 'application/json' }), (t) =>
-    showFileBar(t.startsWith('Saved') ? t + ': ' + backupWords(b) + '. Import restores it.' : t));
+  const b = { at: now, songs: ownSongs(), routines: Array.from(routineStore.load().values()), log: logStore.load(), prefs: { ...prefs } };
+  const { parts, dropped } = backupFile(b, lines);
+  const left = dropped
+    ? ' To keep the file small enough to restore, the note-by-note detail of the ' + (dropped === 1 ? 'oldest session' : dropped + ' oldest sessions') + ' was left out; their summaries are in it.'
+    : '';
+  void offerFile(exportName(stamp(now), 'Everything', 'Backup'), new Blob(parts, { type: 'application/json' }), (t) =>
+    showFileBar(t.startsWith('Saved') ? t + ': ' + backupWords(b) + '. Import restores it.' + left : t));
 }
 
 /** Import from file: songs (a song file, several, or plain text) are added; a backup is offered
@@ -2776,7 +2785,7 @@ async function backupAll(): Promise<void> {
 async function importFiles(files: File[]): Promise<void> {
   const found: ImportedSong[] = [];
   const problems: string[] = [];
-  let backup: { name: string; b: Backup } | null = null;
+  let backup: { name: string; b: BackupRead } | null = null;
   for (const f of files) {
     if (f.size > BACKUP_BYTES) {
       problems.push(f.name + ' is too large');
@@ -2828,7 +2837,7 @@ async function importFiles(files: File[]): Promise<void> {
 
 /** A backup found by Import: what it holds, and Restore (adding what is not here), or Restore with
  * its settings too (then the page opens again to use them). */
-function offerRestore(name: string, b: Backup, before: string): void {
+function offerRestore(name: string, b: BackupRead, before: string): void {
   const when = b.at ? new Date(b.at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '';
   showFileBar(
     (before ? before + ' ' : '') + '‘' + name + '’ is a backup' + (when ? ' from ' + when : '') + ' of ' + backupWords(b) +
@@ -2842,7 +2851,7 @@ function offerRestore(name: string, b: Backup, before: string): void {
 
 /** Restore a backup: the songs, routines, practice log and sessions not here already (backup.ts);
  * with its settings, they replace these but for this device's own, and the page opens again. */
-async function restore(b: Backup, withPrefs: boolean): Promise<void> {
+async function restore(b: BackupRead, withPrefs: boolean): Promise<void> {
   flushNow();
   showFileBar('Restoring…');
   const db = await sessionsDB();
@@ -2864,9 +2873,11 @@ async function restore(b: Backup, withPrefs: boolean): Promise<void> {
   for (const r of add.routines) routineStore.save(r);
   if (add.log.length) logStore.addAll(add.log);
   let lost = 0;
-  for (const d of add.sessions) {
+  for (const s of add.sessions) {
     try {
-      if (!db) throw new Error('no store');
+      // Unpacked here, one at a time, and let go once stored.
+      const d = s.read();
+      if (!db || !d) throw new Error('no store');
       await db.add(d);
     } catch {
       // The rest of the restore stands; that session keeps its summary in the log.

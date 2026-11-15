@@ -5,10 +5,18 @@
  * settings; takes (recordings) stay out, being large. Import from file reads it back and adds
  * what is missing, never changing anything already here (docs/DATA.md → Backups). Pure, so it
  * is tested in Node.
+ *
+ * A backup is never bigger than Import reads (`BACKUP_BYTES`). Until 2026-11-15 nothing held the
+ * two together: each reading was written out as numbers, a three-minute session came to 270 KB,
+ * and the 1,000 sessions kept made a file of 270 MB that Import refused. Now the readings are
+ * packed (core/practice/pack.ts) and the notes are rows of numbers, under a third of the size
+ * all told, and a file that would still be too big leaves out the oldest sessions' detail,
+ * saying so; their summaries are in the log.
  */
 import { cleanLog, type LogEntry } from '../core/practice/log';
+import { packReadings, unpackReadings } from '../core/practice/pack';
 import { cleanRoutine, type Routine } from '../core/practice/routine';
-import { cleanSession, type SessionDetail } from '../core/practice/session';
+import { cleanSession, type NoteRow, type SessionDetail } from '../core/practice/session';
 import { FILE_VERSION, songForFile } from '../core/song/file';
 import { uniqueTitle } from '../core/song/library';
 import { newId, normalize, type Song } from '../core/song/model';
@@ -32,29 +40,68 @@ export interface Backup {
   prefs: Record<string, unknown>;
 }
 
-const r3 = (x: number) => Math.round(x * 1000) / 1000;
-const r2 = (x: number) => Math.round(x * 100) / 100;
+/** A note's result as a row of numbers, in this order, its status by its place here; and back. */
+const STATUS = ['sung', 'unsung', 'short'] as const;
+const noteRow = (n: NoteRow): (number | null)[] => [n.t0, n.t1, n.semi, n.oct, n.g, n.line, n.pass, STATUS.indexOf(n.status), n.score, n.cents, n.arrive, n.wobble];
+const noteOfRow = (r: unknown): unknown =>
+  Array.isArray(r)
+    ? { t0: r[0], t1: r[1], semi: r[2], oct: r[3], g: r[4], line: r[5], pass: r[6], status: STATUS[r[7] as number], score: r[8], cents: r[9], arrive: r[10], wobble: r[11] }
+    : r;
 
-/** A session as written: its readings to the millisecond and the hundredth of a hertz, their
- * levels to a tenth of a decibel. */
-function sessionForFile(d: SessionDetail): SessionDetail {
-  if (!d.pitch) return d;
-  const rd = d.pitch.readings;
-  const readings = new Array<number>(rd.length);
-  for (let i = 0; i + 1 < rd.length; i += 2) {
-    readings[i] = r3(rd[i]!);
-    readings[i + 1] = r2(rd[i + 1]!);
-  }
-  const lv = d.pitch.levels;
-  return { ...d, pitch: { ...d.pitch, readings, ...(lv ? { levels: Array.from(lv, (x) => Math.round(x * 10) / 10) } : {}) } };
+/** A session as its line of the file. Its readings (to the millisecond and the hundredth of a
+ * hertz) and their levels (to a tenth of a decibel) are packed, as `packed`, in place of the two
+ * lists of numbers a backup held until 2026-11-15, and each note's result is a row of numbers in
+ * place of a named set. Made a session at a time, so that only one session's readings are in
+ * memory. */
+export function sessionLine(d: SessionDetail): string {
+  if (!d.pitch) return JSON.stringify(d);
+  const { readings, levels, notes, ...rest } = d.pitch;
+  return JSON.stringify({ ...d, pitch: { ...rest, notes: notes.map(noteRow), packed: packReadings(readings, levels) } });
+}
+
+/** A session read from a backup's file, as written now or as it was before. */
+function sessionFromFile(v: unknown): SessionDetail | null {
+  const q = v && typeof v === 'object' ? (v as { pitch?: unknown }).pitch : null;
+  if (!q || typeof q !== 'object') return cleanSession(v);
+  const p = q as { packed?: unknown; notes?: unknown };
+  const got = typeof p.packed === 'string' ? unpackReadings(p.packed) : null;
+  return cleanSession({
+    ...(v as object),
+    pitch: {
+      ...p,
+      ...(Array.isArray(p.notes) ? { notes: p.notes.map(noteOfRow) } : {}),
+      // Packed readings that cannot be read are left out; the rest of the session stands.
+      ...(typeof p.packed === 'string' ? { readings: got?.readings ?? [], levels: got?.levels } : {}),
+    },
+  });
 }
 
 const singerPrefs = (p: Record<string, unknown>): Record<string, unknown> =>
   Object.fromEntries(Object.entries(p).filter(([k]) => !DEVICE_PREFS.includes(k)));
 
-/** The backup file, in parts (a session to a line) for a Blob. Its songs are a song file's with
- * their ids, so an import of songs alone reads them too. */
-export function backupParts(b: Backup): string[] {
+/** How many bytes a text takes in a file (UTF-8): a Bengali letter takes three. */
+export function fileBytes(s: string): number {
+  let n = s.length;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    if (c < 0x80) continue;
+    if (c >= 0xd800 && c <= 0xdbff && (s.charCodeAt(i + 1) & 0xfc00) === 0xdc00) {
+      // The two halves of one character: four bytes for the pair.
+      n += 2;
+      i++;
+    } else n += c < 0x800 ? 1 : 2;
+  }
+  return n;
+}
+
+/**
+ * The backup file, in parts (a session to a line) for a Blob: everything but the sessions, then
+ * each session's line (`sessionLine`), oldest first. Its songs are a song file's with their ids,
+ * so an import of songs alone reads them too. The file is never more than `most` bytes, so Import
+ * always reads what this wrote: when it would be, the oldest sessions' lines are left out until
+ * it fits, and `dropped` says how many (their summaries are in the log, which is always whole).
+ */
+export function backupFile(b: Omit<Backup, 'sessions'>, lines: readonly string[], most: number = BACKUP_BYTES): { parts: string[]; dropped: number } {
   const head = {
     format: BACKUP_FORMAT,
     version: FILE_VERSION,
@@ -65,14 +112,36 @@ export function backupParts(b: Backup): string[] {
     prefs: singerPrefs(b.prefs),
     log: b.log,
   };
-  const parts = [JSON.stringify(head).slice(0, -1) + ',"sessions":['];
-  b.sessions.forEach((d, i) => parts.push((i ? ',\n' : '\n') + JSON.stringify(sessionForFile(d))));
-  parts.push('\n]}\n');
-  return parts;
+  const first = JSON.stringify(head).slice(0, -1) + ',"sessions":[';
+  const last = '\n]}\n';
+  // Each line is led by a new line, and all but the first by a comma too.
+  const chars = first.length + last.length + lines.reduce((a, l) => a + l.length + 2, 0);
+  let dropped = 0;
+  // No character takes more than three bytes, so most files need no counting.
+  if (3 * chars > most) {
+    const size = lines.map(fileBytes);
+    const fixed = fileBytes(first) + last.length;
+    let body = size.reduce((a, x) => a + x + 2, 0);
+    while (dropped < lines.length && fixed + body - 1 > most) body -= size[dropped++]! + 2;
+  }
+  const parts = [first];
+  for (let i = dropped; i < lines.length; i++) parts.push((i > dropped ? ',\n' : '\n') + lines[i]!);
+  parts.push(last);
+  return { parts, dropped };
 }
 
+/** A session in a backup that was read: its detail is worked out when it is restored, one
+ * session at a time (a year's sessions unpacked together are hundreds of megabytes); null when
+ * it is damaged beyond use. */
+export interface BackupSession {
+  at: number;
+  read(): SessionDetail | null;
+}
+/** A backup as read from its file. */
+export type BackupRead = Omit<Backup, 'sessions'> & { sessions: BackupSession[] };
+
 /** A backup in a file's text, every part checked; null when the file is not a backup. */
-export function readBackup(txt: string): Backup | null {
+export function readBackup(txt: string): BackupRead | null {
   let o: unknown;
   try {
     o = JSON.parse(txt);
@@ -101,7 +170,9 @@ export function readBackup(txt: string): Backup | null {
     songs,
     routines,
     log: cleanLog(r.log),
-    sessions: list(r.sessions).map(cleanSession).filter((d): d is SessionDetail => !!d),
+    sessions: list(r.sessions)
+      .filter((v): v is { at: number; song: string } => !!v && typeof v === 'object' && Number.isFinite((v as { at?: unknown }).at) && typeof (v as { song?: unknown }).song === 'string')
+      .map((v) => ({ at: v.at, read: () => sessionFromFile(v) })),
     prefs: r.prefs && typeof r.prefs === 'object' && !Array.isArray(r.prefs) ? singerPrefs(r.prefs as Record<string, unknown>) : {},
   };
 }
@@ -118,7 +189,7 @@ export interface Here {
 /** What a restore adds: the songs, routines, log entries and sessions not here already (by id,
  * or by when a session was). Songs keep their ids, so the practice and routines that name them
  * still do, and take a title of their own when one here has theirs. */
-export function restorePlan(b: Backup, here: Here): Omit<Backup, 'at' | 'prefs'> {
+export function restorePlan<S extends { at: number }>(b: Pick<Backup, 'songs' | 'routines' | 'log'> & { sessions: readonly S[] }, here: Here): Pick<Backup, 'songs' | 'routines' | 'log'> & { sessions: S[] } {
   const taken = [...here.titles];
   const songs = b.songs
     .filter((s) => !here.songIds.has(s.id))
