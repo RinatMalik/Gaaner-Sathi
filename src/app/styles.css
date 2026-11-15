@@ -413,6 +413,9 @@ textarea#notation{width:100%;min-height:340px;resize:vertical;font-family:var(--
 .libtop .spacer{flex:1 1 auto}
 .libq{flex:1 1 260px;min-width:0;padding:8px 12px;border:1px solid var(--line);border-radius:9px;background:var(--sheet);font-size:16px}
 .libstat{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;font-size:13px;color:var(--ink-2)}
+/* How long ago everything was backed up, at the row's end; in the warning colour when one is due. */
+.bkwhen{margin-left:auto}
+.bkwhen.due{color:color-mix(in srgb,var(--warn) 80%,var(--ink));font-weight:600}
 .chip .n{opacity:.75;font-variant-numeric:tabular-nums}
 /* "My songs" and "Exercises": each folds away by its heading, a row tapped anywhere, with
    its + New button at the end (Rinat, 2026-10-13). */

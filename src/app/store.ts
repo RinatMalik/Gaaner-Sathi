@@ -131,6 +131,11 @@ export interface Prefs extends SoundSettings {
   plOpen?: true;
   /** The Voice page's takes grouped by the day taken (unset: by song). */
   tkGroup?: 'date';
+  /** When Back up or export → Everything last saved its file from this browser, ms since epoch
+   * (2026-11-15): the Music library says how long ago. This device's own, never in a backup. */
+  lastBackup?: number;
+  /** When the browser was last asked to keep what the app stores (keep.ts), ms since epoch. */
+  keepAsked?: number;
   /** A MIDI keyboard: where the guide plays, in what sound, and on which keyboard. */
   midi?: { route: 'app' | 'kb' | 'both'; sound: 'keep' | 'organ' | 'accordion'; out?: string };
 }
@@ -236,6 +241,8 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
 
   if (r.plSize === 'small' || r.plSize === 'big') p.plSize = r.plSize;
   if (r.tkGroup === 'date') p.tkGroup = 'date';
+  if (typeof r.lastBackup === 'number' && r.lastBackup > 0 && r.lastBackup < 8.64e15) p.lastBackup = r.lastBackup;
+  if (typeof r.keepAsked === 'number' && r.keepAsked > 0 && r.keepAsked < 8.64e15) p.keepAsked = r.keepAsked;
   const kf = r.pickFold as Record<string, unknown> | undefined;
   if (kf && typeof kf === 'object' && (kf.mine === true || kf.ex === true)) p.pickFold = { ...(kf.mine === true ? { mine: true as const } : {}), ...(kf.ex === true ? { ex: true as const } : {}) };
   const mi = r.midi as Record<string, unknown> | undefined;

@@ -47,12 +47,13 @@ import { withNow, type ForNow } from '../core/song/fornow';
 import { SONG_SOUND_KEYS, type SongSound } from '../core/song/sound';
 import type { SpeedName } from '../core/taal/rhythm';
 import { isTaalId, taalInfo, TAALS, type TaalInfo } from '../core/taal/taals';
-import { BACKUP_BYTES, BACKUP_FORMAT, backupFile, backupWords, readBackup, restoredPrefs, restorePlan, sessionLine, type BackupRead } from './backup';
+import { BACKUP_BYTES, BACKUP_FORMAT, backupFile, backupNote, backupWords, readBackup, restoredPrefs, restorePlan, sessionLine, type BackupRead } from './backup';
 import { aiFileName, aiFileText, dayFileName, dayFileParts, practiceFileParts, type SessionFileInput } from './aifile';
 import { LogDB, openOnce, SessionStore } from './db';
 import { initMicPick } from './micpick';
 import { initPitch, type PitchUI } from './pitch';
 import { initBoxes, withNewHeading, type Boxes } from './boxes';
+import { askToKeep } from './keep';
 import { initKeyboard, keyboardHTML, keyName, keyRange, keysToFill, type KeyboardUI } from './keyboard';
 import { initFull, whereText, type Full } from './full';
 import { beatKind, initFullFx, noteAt, type FullFx } from './fullfx';
@@ -137,9 +138,54 @@ function logChanged(): void {
   songsView.render();
   progressView.render();
   renderSongProgress();
+  showBackupNote();
 }
 logStore.onChange = logChanged;
 logTabs?.addEventListener('message', () => void logStore.sync());
+/** Whether the browser has agreed to keep what the app stores (null: not known, or it cannot
+ * say), and whether it has been asked since the page opened (keep.ts). */
+let dataKept: boolean | null = null;
+let keepTried = false;
+/** Ask the browser to keep what the app stores, once there is something to lose: after a song is
+ * saved or a session logged, the first time since the page opened. */
+function keepData(): void {
+  if (keepTried) return;
+  keepTried = true;
+  let sm: StorageManager | undefined;
+  try {
+    sm = navigator.storage;
+  } catch {
+    sm = undefined;
+  }
+  const now = Date.now();
+  void askToKeep(sm, prefs.keepAsked, now).then((r) => {
+    if (r.asked) {
+      prefs.keepAsked = now;
+      savePrefs();
+    }
+    dataKept = r.kept;
+    showBackupNote();
+  });
+}
+/** The Music library's note of the last backup (backup.ts → backupNote): how long ago Everything
+ * was saved, asking for another when work a fortnight old is in no backup; nothing until the
+ * user has a song or a session of their own. Its tip says what the browser has agreed to. */
+function showBackupNote(): void {
+  const el = document.getElementById('bkWhen');
+  if (!el) return;
+  const log = logStore.load();
+  const times = [...Array.from(songs.values(), (s) => s.updatedAt), ...(log.length ? [log[0]!.at, log[log.length - 1]!.at] : [])].filter((t) => t > 0);
+  const note = backupNote({ last: prefs.lastBackup, oldest: times.length ? Math.min(...times) : undefined, newest: times.length ? Math.max(...times) : undefined, now: Date.now() });
+  el.hidden = !note.text;
+  el.textContent = note.text;
+  el.classList.toggle('due', note.due);
+  el.title =
+    (dataKept === true
+      ? 'This browser has agreed to keep what the app stores.'
+      : dataKept === false
+        ? 'This browser may clear what the app stores when the device runs short of space.'
+        : 'Your songs and practice are kept in this browser only.') + ' A backup (Back up or export → Everything) is the copy outside it.';
+}
 /** Why the log could not be written. */
 const logError = (r: WriteResult): string =>
   r === 'full' ? 'this browser’s storage for the app is full. Back up everything from the Music library, then delete takes you no longer need on the Voice page.' : 'this browser would not store it.';
@@ -877,6 +923,8 @@ function endRun(at: number, pitch: { score: number; lines: [number, number][]; d
   void saved.then((res) => {
     if (res === 'ok') {
       if (!shown) logChanged();
+      else showBackupNote();
+      keepData();
       return;
     }
     logChanged();
@@ -2350,6 +2398,10 @@ function writeSongs(list: Song[]): void {
   }
   const r = store.save(list);
   setStatus(r === 'ok' ? 'Saved in this browser' : saveError(r));
+  if (r === 'ok') {
+    showBackupNote();
+    keepData();
+  }
 }
 /** Delete one of the user's songs (asked first, in Edit notation or the Music library); the
  * open one gives way to another song. */
@@ -2811,8 +2863,15 @@ async function backupAll(): Promise<void> {
   const left = dropped
     ? ' To keep the file small enough to restore, the note-by-note detail of the ' + (dropped === 1 ? 'oldest session' : dropped + ' oldest sessions') + ' was left out; their summaries are in it.'
     : '';
-  void offerFile(exportName(stamp(now), 'Everything', 'Backup'), new Blob(parts, { type: 'application/json' }), (t) =>
-    showFileBar(t.startsWith('Saved') ? t + ': ' + backupWords(b) + '. Import restores it.' + left : t));
+  void offerFile(exportName(stamp(now), 'Everything', 'Backup'), new Blob(parts, { type: 'application/json' }), (t) => {
+    const saved = t.startsWith('Saved');
+    if (saved) {
+      prefs.lastBackup = now;
+      savePrefs();
+      showBackupNote();
+    }
+    showFileBar(saved ? t + ': ' + backupWords(b) + '. Import restores it.' + left : t);
+  });
 }
 
 /** Import from file: songs (a song file, several, or plain text) are added; a backup is offered
@@ -3315,6 +3374,7 @@ export function init(): void {
     removeDay,
   });
   void backfillNotes();
+  showBackupNote();
   // After a run with the pitch check: its report and its file for AI, as in Progress.
   $('#pReport').addEventListener('click', () => {
     if (lastSession) void openReport(lastSession, (t) => setFileStatus(t, '#pMsg'));

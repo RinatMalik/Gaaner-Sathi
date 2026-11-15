@@ -13,7 +13,7 @@
  * all told, and a file that would still be too big leaves out the oldest sessions' detail,
  * saying so; their summaries are in the log.
  */
-import { cleanLog, type LogEntry } from '../core/practice/log';
+import { cleanLog, dayNumber, type LogEntry } from '../core/practice/log';
 import { packReadings, unpackReadings } from '../core/practice/pack';
 import { cleanRoutine, type Routine } from '../core/practice/routine';
 import { cleanSession, type NoteRow, type SessionDetail } from '../core/practice/session';
@@ -27,8 +27,9 @@ export const BACKUP_FORMAT = 'gaaner-sathi-backup';
  * backup far bigger than songs alone. */
 export const BACKUP_BYTES = 200_000_000;
 /** Settings of this device rather than of the singer, never written to a backup or taken from
- * one: its delay, its keyboard, its microphone, and where it was left. */
-export const DEVICE_PREFS: readonly string[] = ['deviceLag', 'pitchLag', 'midi', 'mic', 'lastSong', 'tab'];
+ * one: its delay, its keyboard, its microphone, where it was left, when it was last backed up
+ * and when its browser was last asked to keep what the app stores. */
+export const DEVICE_PREFS: readonly string[] = ['deviceLag', 'pitchLag', 'midi', 'mic', 'lastSong', 'tab', 'lastBackup', 'keepAsked'];
 
 export interface Backup {
   /** When it was made, ms since epoch. */
@@ -223,4 +224,26 @@ const many = (n: number, one: string, more = one + 's') => n + ' ' + (n === 1 ? 
 export function backupWords(b: Pick<Backup, 'songs' | 'routines' | 'log'>): string {
   const parts = [many(b.songs.length, 'song'), many(b.routines.length, 'routine'), many(b.log.length, 'practice session')];
   return parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1];
+}
+
+/** Work this many days old with no backup holding it is due one. */
+export const BACKUP_DUE_DAYS = 14;
+
+/**
+ * What the Music library says of the last backup (2026-11-15: everything is kept in the browser
+ * alone, and nothing said how long ago a copy was saved outside it). `last`: when Everything was
+ * last saved from this browser; `oldest` and `newest`: the times of the user's own songs and
+ * practice (absent: there is none yet, and nothing is said). `due`: there is work a fortnight
+ * old that no backup holds, so the note asks for one.
+ */
+export function backupNote(o: { last?: number; oldest?: number; newest?: number; now: number }): { text: string; due: boolean } {
+  if (o.oldest == null) return { text: '', due: false };
+  const days = (t: number) => Math.max(0, dayNumber(o.now) - dayNumber(t));
+  if (o.last == null) {
+    const due = days(o.oldest) >= BACKUP_DUE_DAYS;
+    return { text: 'Not backed up yet' + (due ? ': save a copy with Back up or export' : ''), due };
+  }
+  const d = days(o.last);
+  const due = d >= BACKUP_DUE_DAYS && (o.newest ?? 0) > o.last;
+  return { text: 'Backed up ' + (d === 0 ? 'today' : d === 1 ? 'yesterday' : d + ' days ago') + (due ? ': time for another' : ''), due };
 }

@@ -197,7 +197,8 @@ keeps the Sa and tempo it was sung in (`sa`, `flat`).
   name them still do), the rewaz routines, the practice log, each session's detail (its
   readings to the millisecond and the hundredth of a hertz, their levels to a tenth of a
   decibel) and the settings, but not this
-  device's own (`deviceLag`, `pitchLag`, `midi`, `mic`, `lastSong`, `tab`). Takes
+  device's own (`deviceLag`, `pitchLag`, `midi`, `mic`, `lastSong`, `tab`, `lastBackup`,
+  `keepAsked`). Takes
   (recordings) are left out: they are large (Rinat chose "no takes"). Its songs are a song
   file's, so an import of songs alone reads them.
 - **Restoring:** **Import** recognises it (by `format`; up to 200 MB, where song files stop
@@ -285,6 +286,23 @@ behind and stop old backups restoring (CONTEXT.md → Decisions, 2026-11-13).
   take and no session's detail until refreshed. A new database touches nothing an older page
   uses. (When the storage takes the app's new name, CONTEXT.md → Decisions 2026-11-13, the
   two can become one.)
+- **The browser is asked to keep it (2026-11-15; src/app/keep.ts).** A browser may clear
+  everything a site keeps when the device runs short of space, unless the site asked for it to
+  be kept and the browser agreed (`navigator.storage.persist()`); until then the app never
+  asked. Chrome and Edge answer by themselves, from how much the site is used; Firefox asks the
+  user. So it is asked once there is something to lose: after a song is saved or a session
+  logged, the first time in a visit, if the browser does not keep it already and was not asked
+  in the last 30 days (`keepAsked` in the settings). An agreement is no backup: clearing the
+  browser's site data, or losing the device, still takes everything, and Safari's rule of
+  clearing a site not visited for seven days is its own.
+- **The Music library says when everything was last backed up** (`lastBackup` in the settings,
+  set when Back up or export → Everything saves its file; `backupNote` in src/app/backup.ts):
+  "Backed up today", "… yesterday", "… 12 days ago", or "Not backed up yet"; nothing until
+  there is a song or a session of the user's own. When work a fortnight old is in no backup
+  (something sung or changed since a backup 14 days old or more, or never one and the oldest
+  work that old) it asks for one, in the warning colour. Its tip says whether the browser has
+  agreed to keep the data. Both settings are this browser's own: never written to a backup,
+  never taken from one.
 - A full browser refuses writes; the status line says so ("Not saved: song storage is
   full…"). IndexedDB can be evicted under storage pressure; Download is the safe copy of a
   take. In a private window, or with site data off, recording is refused with a message.
