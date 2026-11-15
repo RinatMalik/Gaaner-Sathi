@@ -66,6 +66,34 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-62 icon 10 built in as the app's icon
+
+- **Goal:** Rinat: "Yes, build icon 10" (the gold ত alone on rosewood).
+- **Inspected:** `index.html`'s head (no icon at all before); the non-goals ("an offline, installable
+  web app"), so no web app manifest; how Vite treats `/icons/…` links to `public/` with `base: './'`
+  (the build writes `./icons/…` and copies the files).
+- **Changed:** new `dev/icon.html`: icon 10 drawn at each size (fixed colours, Tiro Bangla italic,
+  centred on the letter's ink; rounded corners for the tab and Android, square for Apple; the letter
+  56 units instead of 50 at 16 px, after five 16 px trials: a bolder stroke filled in the curl, a
+  bigger letter kept it open). New `public/icons/`: `icon-16.png`, `icon-32.png`, `icon-192.png`
+  (with see-through corners) and `apple-touch-icon.png` (180, square), shot from it in headless Edge
+  at scale 1 on a transparent background. `index.html`: the four links. New `tests/unit/icon.test.ts`
+  (3 tests: the links, each file's size from its PNG header, see-through corners but none for
+  Apple). `vite.config.ts` imports `./src/app/logo.ts` with its extension and `tsconfig.json`
+  allows that, which ends the build's warning about Vite's native config loader.
+  `docs/brand/icon-choices.html`: the pick noted, and no longer promising an installed app's icon;
+  republished (version 3).
+- **Tests / verification:** `npm run typecheck` clean; `npm test` 584 passed (52 files);
+  `npm run build` built with no warning; `dist/index.html` links `./icons/…`, `dist/icons/` holds the
+  four. Dev server in headless Edge: every linked icon fetched from the page, 200, image/png, and
+  decoded at 16, 32, 192 and 180 px. Each PNG looked at enlarged pixel by pixel and at real size on
+  light and dark. The browser's own tab strip can't be seen headless.
+- **Decisions made:** one row (the app's icon is icon 10).
+- **Risks or disagreements:** browsers keep an old tab icon for a while; a hard refresh shows the new
+  one. Android's "Add to Home screen" without a manifest may still frame the icon its own way.
+- **Next handoff:** Rinat looks at the icon in the tab and on the phone (Next single action); the
+  storage rename still waits for Rinat's export.
+
 ### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-62 icon 10, icon 2 without the river; the tagline under র
 
 - **Goal:** Rinat: "icon 2 without the river"; then "start the tagline vertically aligned from the
