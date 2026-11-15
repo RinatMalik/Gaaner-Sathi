@@ -16,7 +16,7 @@ Clearing a browser's site data ("cookies and site data") deletes it all.
 | Your songs: notation, title, taal, tempo, Sa, start beat, section tempos and taals, tags, star, notes, the song's own rhythm speed, whether it is listed under Exercises | `localStorage` | Yes: **Export this song** (one), the Music library's **Export** (the ones ticked), **Back up or export → All my songs**, or **→ Everything** (below), then **Import** there |
 | The built-in exercises and the starter rewaz | The app itself | Everyone has them |
 | Your settings: the sound every song shares, your Sa, the guide and practice settings, script, theme, the editor view, the MIDI choice | `localStorage` | In **Everything**, restored with "Restore with its settings" (not this device's delay or keyboard) |
-| Practice log (Progress): each session's summary | `localStorage` | **Download all practice data** (foot of Progress, or the Music library's **Back up or export → All practice data**) saves it, with each session's detail, as one file (below), not importable; **Everything** holds it too and restores it. **Start afresh** in Progress deletes both |
+| Practice log (Progress): each session's summary | IndexedDB (`localStorage` where a browser has no database) | **Download all practice data** (foot of Progress, or the Music library's **Back up or export → All practice data**) saves it, with each session's detail, as one file (below), not importable; **Everything** holds it too and restores it. **Start afresh** in Progress deletes both |
 | Each session's detail: the song as played, every note's result, the pitch heard (since 2026-10-20) | IndexedDB, the newest 1,000 sessions | **Report** opens a page on it, **For AI** saves it as a file (below), a day's **For AI** a day's in one, and the downloads above hold them all; **Everything** restores them |
 | Rewaz routines | `localStorage` | In **Everything** |
 | Takes (recordings) | IndexedDB | Each downloads as a WAV file; not importable |
@@ -244,10 +244,11 @@ behind and stop old backups restoring (CONTEXT.md → Decisions, 2026-11-13).
 | `gaanersathi.songs.v1` | This app's songs, `{ [id]: song }`; each save changes only its own song |
 | `gaanersathi.hidden.v1` | Ids of prototype songs deleted in this app (hidden, not destroyed) |
 | `gaanersathi.prefs.v1` | Settings (above) |
-| `gaanersathi.log.v1` | The practice log, `[entry, …]`, oldest first; each entry is appended to what is stored, so another tab's entries survive |
+| `gaanersathi.log.v1` | The practice log as it was kept until 2026-11-15, `[entry, …]`, oldest first: moved into the database when found (below), and still the log where a browser has no database (each entry appended to what is stored, so another tab's entries survive) |
 | `gaanersathi.routines.v1` | Rewaz routines, `{ [id]: routine }`; each save changes only its own routine |
 | `swaralipi.songs.v1`, `swaralipi.prefs.v1` | The prototype's songs and settings: read, never written |
 | IndexedDB `gaanersathi` (version 2) | Takes: store `takes` (their details, indexed by `song`) and store `audio` (`{ id, pcm }`, the samples), so listing never loads sound. Sessions: store `sessions` (version 2, 2026-10-20), each session's detail keyed by its log entry's `at` (src/app/db.ts) |
+| IndexedDB `gaanersathi-log` (version 1) | The practice log (2026-11-15): store `log`, each entry keyed by its `at` (src/app/db.ts → LogDB, src/app/store.ts → LogStore) |
 
 - Songs are saved on edit with a 900 ms pause, flushed when the page is hidden or another song
   opens. Changes saved in another tab are taken in as they happen; a song open and untouched
@@ -264,6 +265,26 @@ behind and stop old backups restoring (CONTEXT.md → Decisions, 2026-11-13).
   session's detail followed (2026-10-20), as a long run's readings would soon fill
   localStorage's few megabytes. One connection serves both (db.ts); a tab still on version 1
   closes its connection when a newer tab upgrades.
+- *Why the practice log is in a database (2026-11-15):* it was one list in localStorage,
+  written out whole at every session. An entry with its scores is about 630 characters, and
+  localStorage holds about five million for everything the address keeps: at twenty sessions a
+  day the log would have filled it in about a year, after which sessions were not logged, and
+  without a word, and songs could not be saved. The database has room for a lifetime of
+  practice, and an entry is written by itself. The log is read into memory once as the page
+  opens, so Progress reads it at once as before; a session shows in the log straightaway and is
+  kept in the background, and one that could not be kept is taken back out and said so in the
+  bar under the top section. Tabs tell each other of a change (a `BroadcastChannel`,
+  `gaanersathi.log`) and read the log again.
+- *Moving it across:* what a browser has in `gaanersathi.log.v1` is put into the database as
+  the page opens, the database is read back to check that every entry arrived, and only then
+  is the old copy removed. If the database will not open or will not take it, nothing is
+  removed and the log goes on in localStorage. A page still open from before the change writes
+  its sessions to localStorage; the next change or visit takes them in.
+- *Why a database of its own:* a third version of `gaanersathi` with one more store would
+  have closed that database under any page still open from before, which could then keep no
+  take and no session's detail until refreshed. A new database touches nothing an older page
+  uses. (When the storage takes the app's new name, CONTEXT.md → Decisions 2026-11-13, the
+  two can become one.)
 - A full browser refuses writes; the status line says so ("Not saved: song storage is
   full…"). IndexedDB can be evicted under storage pressure; Download is the safe copy of a
   take. In a private window, or with site data off, recording is refused with a message.

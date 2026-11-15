@@ -49,7 +49,7 @@ import type { SpeedName } from '../core/taal/rhythm';
 import { isTaalId, taalInfo, TAALS, type TaalInfo } from '../core/taal/taals';
 import { BACKUP_BYTES, BACKUP_FORMAT, backupFile, backupWords, readBackup, restoredPrefs, restorePlan, sessionLine, type BackupRead } from './backup';
 import { aiFileName, aiFileText, dayFileName, dayFileParts, practiceFileParts, type SessionFileInput } from './aifile';
-import { openOnce, SessionStore } from './db';
+import { LogDB, openOnce, SessionStore } from './db';
 import { initMicPick } from './micpick';
 import { initPitch, type PitchUI } from './pitch';
 import { initBoxes, withNewHeading, type Boxes } from './boxes';
@@ -119,9 +119,30 @@ let insOct = 0;
 let userPicked = false;
 const beatEls = new Map<number, HTMLElement[]>();
 const store = new SongStore(storage);
-const logStore = new LogStore(storage);
+/** Says to this browser's other tabs that the practice log has changed, where the browser can. */
+let logTabs: BroadcastChannel | null = null;
+try {
+  logTabs = new BroadcastChannel('gaanersathi.log');
+} catch {
+  logTabs = null;
+}
+/** The practice log: in the browser's database, read into memory as the page opens (store.ts). */
+const logStore = new LogStore(storage, typeof indexedDB === 'undefined' ? null : () => LogDB.open(), () => logTabs?.postMessage('changed'));
 /** When each song was last practised, from the log. */
 let practised = lastPractised(logStore.load());
+/** The log is not what it was: it has just been read as the page opened, another tab changed it,
+ * or a session could not be kept. Everything drawn from it is drawn again. */
+function logChanged(): void {
+  practised = lastPractised(logStore.load());
+  songsView.render();
+  progressView.render();
+  renderSongProgress();
+}
+logStore.onChange = logChanged;
+logTabs?.addEventListener('message', () => void logStore.sync());
+/** Why the log could not be written. */
+const logError = (r: WriteResult): string =>
+  r === 'full' ? 'this browser’s storage for the app is full. Back up everything from the Music library, then delete takes you no longer need on the Voice page.' : 'this browser would not store it.';
 /** The Songs view and pitch feedback, wired up by init. */
 let songsView: { render(): void } = { render() {} };
 /** The song picker at the top of the deck, wired up by init. */
@@ -838,19 +859,33 @@ function endRun(at: number, pitch: { score: number; lines: [number, number][]; d
     if (notes.length) e.notes = notes;
   }
   if (rewaz.active) e.routine = rewaz.name;
-  if (logStore.add(e) === 'ok') {
-    practised.set(e.song, e.at);
-    songsView.render();
-    progressView.render();
-    renderSongProgress();
-    const d: SessionDetail = { at: e.at, song: e.song, played: r.played, settings: r.settings };
-    if (pitch?.detail) d.pitch = pitch.detail;
-    void keepSession(d);
-    if (d.pitch) {
-      lastSession = e.at;
-      $('#pAfter').hidden = false;
-    }
+  // In the log at once, and kept in the background: if it could not be, that is said, not passed
+  // over (until 2026-11-15 a session that could not be stored was dropped without a word).
+  const saved = logStore.add(e);
+  const shown = logStore.load().some((x) => x.at === e.at);
+  practised.set(e.song, e.at);
+  songsView.render();
+  progressView.render();
+  renderSongProgress();
+  const d: SessionDetail = { at: e.at, song: e.song, played: r.played, settings: r.settings };
+  if (pitch?.detail) d.pitch = pitch.detail;
+  void keepSession(d);
+  if (d.pitch) {
+    lastSession = e.at;
+    $('#pAfter').hidden = false;
   }
+  void saved.then((res) => {
+    if (res === 'ok') {
+      if (!shown) logChanged();
+      return;
+    }
+    logChanged();
+    if (lastSession === e.at) {
+      lastSession = 0;
+      $('#pAfter').hidden = true;
+    }
+    showFileBar('This session of ‘' + e.title + '’ could not be kept in Progress: ' + logError(res));
+  });
 }
 
 // ── Sessions: each one's detail, its report and its file for AI ──────────────
@@ -922,6 +957,7 @@ async function openReport(at: number, say: (t: string) => void): Promise<void> {
  * their detail, so that Pitch's note by note counts them. */
 async function backfillNotes(): Promise<void> {
   try {
+    await logStore.ready;
     const want = logStore.load().filter((e) => e.score != null && !e.notes);
     if (!want.length) return;
     const db = await sessionsDB();
@@ -934,7 +970,7 @@ async function backfillNotes(): Promise<void> {
       const notes = d?.pitch ? noteTally(d.pitch.notes) : [];
       if (notes.length) found.set(e.at, notes);
     }
-    if (found.size && logStore.setNotes(found) === 'ok') {
+    if (found.size && (await logStore.setNotes(found)) === 'ok') {
       progressView.render();
       renderSongProgress();
     }
@@ -947,6 +983,7 @@ async function backfillNotes(): Promise<void> {
  * kept, and a brief for an AI. */
 async function exportAll(say: (t: string) => void): Promise<void> {
   say('Gathering your practice data…');
+  await logStore.ready;
   const log = logStore.load();
   let sessions: SessionDetail[] = [];
   try {
@@ -964,7 +1001,7 @@ async function removeSession(at: number): Promise<void> {
   const say = (t: string) => setFileStatus(t, '#pgStatus');
   const e = logStore.load().find((x) => x.at === at);
   if (!e) return;
-  if (logStore.remove(at) !== 'ok') {
+  if ((await logStore.remove(at)) !== 'ok') {
     say('That session could not be deleted: this browser blocked it. Nothing has changed.');
     return;
   }
@@ -987,7 +1024,7 @@ async function removeSession(at: number): Promise<void> {
  * Songs, routines, takes and settings stay. */
 async function wipePractice(): Promise<void> {
   const say = (t: string) => setFileStatus(t, '#pgStatus');
-  if (logStore.clear() !== 'ok') {
+  if ((await logStore.clear()) !== 'ok') {
     say('The practice history could not be deleted: this browser blocked it. Nothing has changed.');
     return;
   }
@@ -1118,7 +1155,7 @@ async function removeDay(day: number): Promise<void> {
   const say = (t: string) => setFileStatus(t, '#pgStatus');
   const ats = logStore.load().filter((e) => dayNumber(e.at) === day).map((e) => e.at);
   if (!ats.length) return;
-  if (logStore.remove(ats) !== 'ok') {
+  if ((await logStore.remove(ats)) !== 'ok') {
     say('That day could not be deleted: this browser blocked it. Nothing has changed.');
     return;
   }
@@ -2514,12 +2551,9 @@ function initStore(): void {
   if (store.mode === 'memory') setStatus('Songs you add will last until you close this page.');
   window.addEventListener('storage', (e) => {
     if (SongStore.isSongKey(e.key)) syncFromStorage();
-    if (LogStore.isLogKey(e.key)) {
-      practised = lastPractised(logStore.load());
-      songsView.render();
-      progressView.render();
-      renderSongProgress();
-    }
+    // The log in localStorage changed: where it is kept, or a page from before the log moved
+    // to the database left a session there, to be taken in (it calls logChanged).
+    if (LogStore.isLogKey(e.key)) void logStore.sync();
     if (RoutineStore.isRoutineKey(e.key)) rewaz.render();
   });
 }
@@ -2759,6 +2793,7 @@ function backupSongs(): void {
 async function backupAll(): Promise<void> {
   flushNow();
   showFileBar('Gathering everything…');
+  await logStore.ready;
   // A session at a time, oldest first: all of them read together are hundreds of megabytes.
   const lines: string[] = [];
   try {
@@ -2854,6 +2889,7 @@ function offerRestore(name: string, b: BackupRead, before: string): void {
 async function restore(b: BackupRead, withPrefs: boolean): Promise<void> {
   flushNow();
   showFileBar('Restoring…');
+  await logStore.ready;
   const db = await sessionsDB();
   let sessionAts: number[] = [];
   try {
@@ -2871,7 +2907,7 @@ async function restore(b: BackupRead, withPrefs: boolean): Promise<void> {
   for (const s of add.songs) songs.set(s.id, s);
   if (add.songs.length) writeSongs(add.songs);
   for (const r of add.routines) routineStore.save(r);
-  if (add.log.length) logStore.addAll(add.log);
+  const logKept = add.log.length ? await logStore.addAll(add.log) : 'ok';
   let lost = 0;
   for (const s of add.sessions) {
     try {
@@ -2885,9 +2921,11 @@ async function restore(b: BackupRead, withPrefs: boolean): Promise<void> {
     }
   }
   const n = add.songs.length + add.routines.length + add.log.length;
-  const said = n
-    ? 'Restored ' + backupWords(add) + (lost ? ' (' + lost + ' without their detail)' : '') + '; the rest were here already.'
-    : 'Everything in this backup is here already.';
+  const said =
+    (n
+      ? 'Restored ' + backupWords(logKept === 'ok' ? add : { ...add, log: [] }) + (lost && logKept === 'ok' ? ' (' + lost + ' without their detail)' : '') + '; the rest were here already.'
+      : 'Everything in this backup is here already.') +
+    (logKept === 'ok' ? '' : ' Its ' + add.log.length + ' practice sessions could not be restored: ' + logError(logKept));
   if (withPrefs) {
     const own = prefs as unknown as Record<string, unknown>;
     const S = new Map([[STORE_KEYS.prefs as string, JSON.stringify(restoredPrefs(own, b.prefs))]]);

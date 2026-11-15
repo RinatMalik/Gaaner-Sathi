@@ -1,6 +1,6 @@
 /**
- * What this browser keeps (docs/DATA.md → Storage): device preferences and the user's
- * songs, in localStorage.
+ * What this browser keeps (docs/DATA.md → Storage): device preferences, the user's songs and
+ * the rewaz routines, in localStorage; and the practice log, in the browser's database.
  *
  * The prototype's keys (`swaralipi.*`) are read but never written. Its songs show up here,
  * and this app keeps its own changes under its own keys, newest edit winning. A prototype
@@ -31,7 +31,8 @@ export const STORE_KEYS = {
   /** Ids of the prototype's songs deleted in this app. */
   hidden: 'gaanersathi.hidden.v1',
   prefs: 'gaanersathi.prefs.v1',
-  /** The practice log: [entry, …], oldest first. */
+  /** The practice log as it was kept until 2026-11-15, [entry, …], oldest first: moved into the
+   * database when found, and still the log where a browser has no database. */
   log: 'gaanersathi.log.v1',
   /** Rewaz routines: { [id]: routine without its id }. */
   routines: 'gaanersathi.routines.v1',
@@ -336,61 +337,206 @@ export class SongStore {
 
 // ── Practice log ─────────────────────────────────────────────────────────────
 
+/** Where the practice log is kept: the browser's database (db.ts → LogDB), or a test's
+ * stand-in. Entries are kept by their `at`, so two tabs never write over each other's. */
+export interface LogBackend {
+  all(): Promise<unknown[]>;
+  put(entries: readonly LogEntry[]): Promise<void>;
+  remove(ats: readonly number[]): Promise<void>;
+  clear(): Promise<void>;
+}
+
+const writeProblem = (e: unknown): WriteResult => ((e as { name?: unknown } | null)?.name === 'QuotaExceededError' ? 'full' : 'blocked');
+const byAt = (a: LogEntry, b: LogEntry) => a.at - b.at;
+type LogChange = (list: LogEntry[]) => LogEntry[];
+
+/**
+ * The practice log (docs/DATA.md → Practice log). It is kept in the browser's database, which
+ * has room for a lifetime of practice. Until 2026-11-15 it was one list in localStorage, written
+ * out whole at every session: at twenty sessions a day it would have filled localStorage's five
+ * million characters in about a year, after which sessions were silently not logged and songs
+ * could not be saved. What a browser still has there is moved across the first time, and
+ * checked to have arrived before the old copy is removed. Where the browser has no database
+ * (or it will not open), the log stays in localStorage and works as it did.
+ *
+ * Reading is immediate: the log is held in memory once the database has opened. A write shows
+ * in the log at once and is kept in the background; its promise says how that went, and a write
+ * that could not be kept is taken back out, so the log never claims what is not stored.
+ */
 export class LogStore {
-  constructor(private readonly S: KeyValueStore | null) {}
+  /** The log as the database has it, with the writes still on their way, oldest first; null
+   * while it is read from localStorage: until the database has opened, and for good where
+   * there is none. */
+  private kept: LogEntry[] | null = null;
+  private db: LogBackend | null = null;
+  private opened = false;
+  /** Writes made here that the database has not yet confirmed, in order. */
+  private pending: LogChange[] = [];
+  /** The opening, then each write to the database in turn. */
+  private last: Promise<void>;
+  /** Done when the database has opened and the log is read (at once where there is none). */
+  readonly ready: Promise<void>;
+  /** Told when the log has changed by other than a call made here: the database opened,
+   * another tab changed it, or a write could not be kept and was taken back out. */
+  onChange: () => void = () => {};
+
+  /** `open`: the database, or null where there is none (absent: localStorage only).
+   * `tellOthers`: says to this browser's other tabs that the database's log has changed. */
+  constructor(
+    private readonly S: KeyValueStore | null,
+    open: (() => Promise<LogBackend | null>) | null = null,
+    private readonly tellOthers: () => void = () => {},
+  ) {
+    this.opened = !open;
+    this.ready = open ? this.start(open) : Promise.resolve();
+    this.last = this.ready;
+  }
+
+  private async start(open: () => Promise<LogBackend | null>): Promise<void> {
+    try {
+      const db = await open();
+      if (db) {
+        await this.takeIn(db);
+        this.kept = cleanLog(await db.all());
+        this.db = db;
+      }
+    } catch {
+      // The database would not open, or would not take the log: it stays in localStorage.
+      this.kept = null;
+      this.db = null;
+    }
+    this.opened = true;
+    if (this.db) this.onChange();
+  }
+
+  /** Entries in localStorage (this browser's log from before, or left by a page still open from
+   * then) go into the database, and the old copy goes only once every one of them is there.
+   * An entry the database already has is left as it is. */
+  private async takeIn(db: LogBackend): Promise<void> {
+    const old = cleanLog(readJSON(this.S, STORE_KEYS.log));
+    if (!old.length) return;
+    const have = new Set(cleanLog(await db.all()).map((e) => e.at));
+    const fresh = old.filter((e) => !have.has(e.at));
+    if (fresh.length) {
+      await db.put(fresh);
+      const now = new Set(cleanLog(await db.all()).map((e) => e.at));
+      if (!fresh.every((e) => now.has(e.at))) throw new Error('The log was not kept');
+    }
+    try {
+      this.S?.removeItem(STORE_KEYS.log);
+    } catch {
+      // It is taken in again next time: the same entries, by their `at`.
+    }
+  }
+
+  private async reread(db: LogBackend): Promise<void> {
+    const stored = cleanLog(await db.all());
+    this.kept = this.pending.reduce((list, change) => change(list), stored);
+  }
 
   /** Every entry that can still be read, oldest first. */
   load(): LogEntry[] {
-    return cleanLog(readJSON(this.S, STORE_KEYS.log));
+    return this.kept ? this.kept.slice() : cleanLog(readJSON(this.S, STORE_KEYS.log));
   }
 
-  /** Add an entry: re-read the stored log and append, so another tab's entries survive. */
-  add(e: LogEntry): WriteResult {
-    const raw = readJSON(this.S, STORE_KEYS.log);
-    const list: unknown[] = Array.isArray(raw) ? raw : [];
-    list.push(e);
-    return writeJSON(this.S, STORE_KEYS.log, list);
-  }
-
-  /** Add several entries (a backup restored), re-reading the stored log so another tab's entries
-   * survive, and keep it oldest first. */
-  addAll(es: readonly LogEntry[]): WriteResult {
-    const raw = readJSON(this.S, STORE_KEYS.log);
-    const list: unknown[] = Array.isArray(raw) ? [...raw, ...es] : [...es];
-    const at = (x: unknown) => (x && typeof x === 'object' && typeof (x as { at?: unknown }).at === 'number' ? (x as { at: number }).at : 0);
-    list.sort((a, b) => at(a) - at(b));
-    return writeJSON(this.S, STORE_KEYS.log, list);
-  }
-
-  /** Give entries their notes of the scale (for sessions logged before the log kept them),
-   * re-reading the stored log so another tab's entries survive. By `at`. */
-  setNotes(notes: ReadonlyMap<number, NonNullable<LogEntry['notes']>>): WriteResult {
-    const raw = readJSON(this.S, STORE_KEYS.log);
-    if (!Array.isArray(raw)) return 'ok';
-    for (const x of raw) {
-      const at = x && typeof x === 'object' ? (x as { at?: unknown }).at : null;
-      if (typeof at === 'number' && notes.has(at)) (x as { notes?: unknown }).notes = notes.get(at);
+  /**
+   * One change to the log: made to the list in memory at once, then kept (`keep`) after the
+   * writes before it. Without a database, the stored list is read again and written back
+   * changed, so another tab's entries survive.
+   */
+  private write(change: LogChange, keep: (db: LogBackend) => Promise<void>): Promise<WriteResult> {
+    if (!this.opened) return this.ready.then(() => this.write(change, keep));
+    const db = this.db;
+    if (!db) {
+      const before = cleanLog(readJSON(this.S, STORE_KEYS.log));
+      const after = change(before);
+      return Promise.resolve(!before.length && !after.length ? 'ok' : writeJSON(this.S, STORE_KEYS.log, after));
     }
-    return writeJSON(this.S, STORE_KEYS.log, raw);
+    this.kept = change(this.kept ?? []);
+    this.pending.push(change);
+    const settle = () => {
+      this.pending.splice(this.pending.indexOf(change), 1);
+    };
+    const done = this.last.then(() => keep(db)).then(
+      (): WriteResult => {
+        settle();
+        this.tellOthers();
+        return 'ok';
+      },
+      async (e: unknown): Promise<WriteResult> => {
+        settle();
+        try {
+          await this.reread(db);
+        } catch {
+          // Nothing can be read either: the list stays as it is until the page opens again.
+        }
+        this.onChange();
+        return writeProblem(e);
+      },
+    );
+    this.last = done.then(() => {});
+    return done;
   }
 
-  /** Delete one entry, or several (a day's), by their `at`, re-reading the stored log so another
-   * tab's entries survive. */
-  remove(at: number | readonly number[]): WriteResult {
-    const gone = new Set<unknown>(typeof at === 'number' ? [at] : at);
-    const raw = readJSON(this.S, STORE_KEYS.log);
-    if (!Array.isArray(raw)) return 'ok';
-    return writeJSON(this.S, STORE_KEYS.log, raw.filter((x) => !(x && typeof x === 'object' && gone.has((x as { at?: unknown }).at))));
+  /** Add an entry. */
+  add(e: LogEntry): Promise<WriteResult> {
+    return this.addAll([e]);
+  }
+
+  /** Add several entries (a backup restored); one with the `at` of an entry here replaces it. */
+  addAll(es: readonly LogEntry[]): Promise<WriteResult> {
+    const ats = new Set(es.map((e) => e.at));
+    return this.write((list) => [...list.filter((x) => !ats.has(x.at)), ...es].sort(byAt), (db) => db.put(es));
+  }
+
+  /** Give entries their notes of the scale (for sessions logged before the log kept them), by
+   * their `at`. */
+  setNotes(notes: ReadonlyMap<number, NonNullable<LogEntry['notes']>>): Promise<WriteResult> {
+    const withNotes = (x: LogEntry): LogEntry => (notes.has(x.at) ? { ...x, notes: notes.get(x.at)! } : x);
+    const changed = this.load().filter((x) => notes.has(x.at)).map(withNotes);
+    if (!changed.length) return Promise.resolve('ok');
+    return this.write((list) => list.map(withNotes), (db) => db.put(changed));
+  }
+
+  /** Delete one entry, or several (a day's), by their `at`. */
+  remove(at: number | readonly number[]): Promise<WriteResult> {
+    const ats = typeof at === 'number' ? [at] : [...at];
+    const gone = new Set(ats);
+    return this.write((list) => list.filter((x) => !gone.has(x.at)), (db) => db.remove(ats));
   }
 
   /** Delete the whole log (Start afresh, in Progress). */
-  clear(): WriteResult {
+  async clear(): Promise<WriteResult> {
+    await this.ready;
     try {
       this.S?.removeItem(STORE_KEYS.log);
-      return 'ok';
     } catch {
       return 'blocked';
     }
+    return this.db ? this.write(() => [], (db) => db.clear()) : 'ok';
+  }
+
+  /**
+   * Another tab changed the log: what it left in localStorage is taken in (a page still open
+   * from before the log moved writes there), and the database is read again, after the writes
+   * waiting here.
+   */
+  async sync(): Promise<void> {
+    await this.ready;
+    const db = this.db;
+    if (db) {
+      const done = this.last.then(async () => {
+        try {
+          await this.takeIn(db);
+          await this.reread(db);
+        } catch {
+          // As it was: the next change or visit reads it again.
+        }
+      });
+      this.last = done;
+      await done;
+    }
+    this.onChange();
   }
 
   /** Whether a storage change made in another tab concerns the log. */

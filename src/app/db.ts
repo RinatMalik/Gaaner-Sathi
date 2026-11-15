@@ -1,45 +1,77 @@
 /**
  * This browser's IndexedDB, for what localStorage cannot hold (docs/DATA.md → Storage): takes
- * (their details in one store, their sound in another) and each practice session's detail
- * (since 2026-10-20). One connection, opened on first use; null where IndexedDB is not
- * available.
+ * (their details in one store, their sound in another), each practice session's detail
+ * (since 2026-10-20) and, in a database of its own, the practice log (since 2026-11-15). One
+ * connection to each, opened on first use; null where IndexedDB is not available.
  */
+import type { LogEntry } from '../core/practice/log';
 import { cleanSession, type SessionDetail } from '../core/practice/session';
+import type { LogBackend } from './store';
 
 const DB = 'gaanersathi';
 /** 1: takes and audio; 2: sessions. */
 const DB_VERSION = 2;
+/**
+ * The practice log's database. Its own, rather than a third version of `gaanersathi` with one
+ * more store: upgrading a database closes it under every page still open from before, and such
+ * a page could then keep no take and no session's detail until it was refreshed. A new database
+ * touches nothing an older page uses.
+ */
+const LOG_DB = 'gaanersathi-log';
 
-let opening: Promise<IDBDatabase | null> | null = null;
-
-export function openDB(): Promise<IDBDatabase | null> {
-  opening ??= new Promise((resolve) => {
+/** Open a database, making its stores the first time; `closed` when another tab needs it shut. */
+function open(name: string, version: number, upgrade: (db: IDBDatabase) => void, closed: () => void): Promise<IDBDatabase | null> {
+  return new Promise((resolve) => {
     let req: IDBOpenDBRequest;
     try {
-      req = indexedDB.open(DB, DB_VERSION);
+      req = indexedDB.open(name, version);
     } catch {
       resolve(null);
       return;
     }
-    req.onupgradeneeded = () => {
-      const db = req.result;
-      if (!db.objectStoreNames.contains('takes')) db.createObjectStore('takes', { keyPath: 'id' }).createIndex('song', 'song');
-      if (!db.objectStoreNames.contains('audio')) db.createObjectStore('audio', { keyPath: 'id' });
-      if (!db.objectStoreNames.contains('sessions')) db.createObjectStore('sessions', { keyPath: 'at' });
-    };
+    req.onupgradeneeded = () => upgrade(req.result);
     req.onsuccess = () => {
       const db = req.result;
       // Another tab needs to upgrade or delete the database: let it, rather than block it.
       db.onversionchange = () => {
         db.close();
-        opening = null;
+        closed();
       };
       resolve(db);
     };
     req.onerror = () => resolve(null);
     // Blocked by another tab's older connection: wait for it (it closes on versionchange).
   });
+}
+
+let opening: Promise<IDBDatabase | null> | null = null;
+
+export function openDB(): Promise<IDBDatabase | null> {
+  opening ??= open(
+    DB,
+    DB_VERSION,
+    (db) => {
+      if (!db.objectStoreNames.contains('takes')) db.createObjectStore('takes', { keyPath: 'id' }).createIndex('song', 'song');
+      if (!db.objectStoreNames.contains('audio')) db.createObjectStore('audio', { keyPath: 'id' });
+      if (!db.objectStoreNames.contains('sessions')) db.createObjectStore('sessions', { keyPath: 'at' });
+    },
+    () => (opening = null),
+  );
   return opening;
+}
+
+let openingLog: Promise<IDBDatabase | null> | null = null;
+
+function openLogDB(): Promise<IDBDatabase | null> {
+  openingLog ??= open(
+    LOG_DB,
+    1,
+    (db) => {
+      if (!db.objectStoreNames.contains('log')) db.createObjectStore('log', { keyPath: 'at' });
+    },
+    () => (openingLog = null),
+  );
+  return openingLog;
 }
 
 /** `open` run once, on first use; every caller, at the same moment or later, waits for that one
@@ -125,6 +157,41 @@ export class SessionStore {
           c.continue();
         };
       };
+    });
+  }
+}
+
+/** The practice log's entries, by their `at` (store.ts → LogStore reads them all once and
+ * holds them in memory). A write is one transaction: all of it is kept, or none. */
+export class LogDB implements LogBackend {
+  private constructor(private readonly db: IDBDatabase) {}
+
+  static async open(): Promise<LogDB | null> {
+    const db = await openLogDB();
+    return db ? new LogDB(db) : null;
+  }
+
+  async all(): Promise<unknown[]> {
+    return (await inTx<unknown[]>(this.db, ['log'], 'readonly', (tx) => tx.objectStore('log').getAll())) ?? [];
+  }
+
+  async put(entries: readonly LogEntry[]): Promise<void> {
+    await inTx(this.db, ['log'], 'readwrite', (tx) => {
+      const os = tx.objectStore('log');
+      for (const e of entries) os.put(e);
+    });
+  }
+
+  async remove(ats: readonly number[]): Promise<void> {
+    await inTx(this.db, ['log'], 'readwrite', (tx) => {
+      const os = tx.objectStore('log');
+      for (const at of ats) os.delete(at);
+    });
+  }
+
+  async clear(): Promise<void> {
+    await inTx(this.db, ['log'], 'readwrite', (tx) => {
+      tx.objectStore('log').clear();
     });
   }
 }

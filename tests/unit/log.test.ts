@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { LogStore, STORE_KEYS, type KeyValueStore } from '../../src/app/store';
+import { LogStore, STORE_KEYS, type KeyValueStore, type LogBackend } from '../../src/app/store';
 import { byDay, cleanEntry, cleanLog, dailyScores, dayNumber, durationText, lastDays, lastPractised, noteScores, noteTally, songTotals, streaks, type LogEntry } from '../../src/core/practice/log';
 
 const at = (d: number, h = 9, m = 0) => new Date(2026, 9, d, h, m).getTime();
@@ -106,48 +106,267 @@ describe('progress from the log', () => {
   });
 });
 
-describe('the log in storage', () => {
-  it('gives older entries their notes, and starts afresh', () => {
+/** The browser's database for the log, in memory: entries by their `at`. `fail` makes the next
+ * writes fail as a browser's does (its name says why); `wait` holds a write until it is let go. */
+class FakeDB implements LogBackend {
+  m = new Map<number, LogEntry>();
+  fail: string | null = null;
+  wait: Promise<void> | null = null;
+  writes = 0;
+  private async writing(): Promise<void> {
+    await this.wait;
+    if (this.fail) throw Object.assign(new Error(this.fail), { name: this.fail });
+    this.writes++;
+  }
+  async all() {
+    return structuredClone([...this.m.values()]);
+  }
+  async put(es: readonly LogEntry[]) {
+    await this.writing();
+    for (const e of es) this.m.set(e.at, structuredClone(e));
+  }
+  async remove(ats: readonly number[]) {
+    await this.writing();
+    for (const at of ats) this.m.delete(at);
+  }
+  async clear() {
+    await this.writing();
+    this.m.clear();
+  }
+}
+const ats = (L: LogStore) => L.load().map((e) => e.at);
+
+describe('the log in the browser’s database', () => {
+  it('holds a year of practice and more: nothing of it is in localStorage, which would be full', async () => {
+    // localStorage with room for 20,000 characters, as a browser's has for five million: the
+    // log kept there fills it, and says so; kept in the database it does not touch it.
+    class Small extends Memory {
+      override setItem(k: string, v: string) {
+        const others = [...this.m].reduce((a, [key, x]) => a + (key === k ? 0 : key.length + x.length), 0);
+        if (others + k.length + v.length > 20_000) throw Object.assign(new Error('full'), { name: 'QuotaExceededError' });
+        super.setItem(k, v);
+      }
+    }
+    const scored = (i: number) => entry('song-' + (i % 7), at(1) + i * 600_000, { score: 70, lines: [[0, 71], [1, 80], [2, 64]], notes: [[0, 12, 80, -6], [2, 9, 71, 4], [4, 7, 66, -12]] });
+    const local = new LogStore(new Small());
+    const results: string[] = [];
+    for (let i = 0; i < 200; i++) results.push(await local.add(scored(i)));
+    expect(results.indexOf('full')).toBeGreaterThan(20);
+    expect(local.load().length).toBe(results.indexOf('full'));
+
+    const S = new Small();
+    const L = new LogStore(S, async () => new FakeDB());
+    await L.ready;
+    for (let i = 0; i < 200; i++) expect(await L.add(scored(i))).toBe('ok');
+    expect(L.load()).toHaveLength(200);
+    expect(S.m.has(STORE_KEYS.log)).toBe(false);
+  });
+
+  it('takes in the log this browser kept in localStorage, and removes that copy only once it has all arrived', async () => {
+    const S = new Memory();
+    const old = new LogStore(S);
+    await old.addAll([entry('a', 1, { score: 70 }), entry('b', 2), entry('c', 3)]);
+    const db = new FakeDB();
+    let told = 0;
+    const L = new LogStore(S, async () => db);
+    L.onChange = () => told++;
+    // Until the database has opened, the log is read where it was.
+    expect(ats(L)).toEqual([1, 2, 3]);
+    await L.ready;
+    expect(ats(L)).toEqual([1, 2, 3]);
+    expect([...db.m.keys()]).toEqual([1, 2, 3]);
+    expect(db.m.get(1)!.score).toBe(70);
+    expect(S.m.has(STORE_KEYS.log)).toBe(false);
+    expect(told).toBe(1);
+    // The next visit finds it in the database.
+    const next = new LogStore(S, async () => db);
+    await next.ready;
+    expect(ats(next)).toEqual([1, 2, 3]);
+  });
+
+  it('leaves the log in localStorage, and goes on keeping it there, when the database will not take it or will not open', async () => {
+    for (const open of [async () => Object.assign(new FakeDB(), { fail: 'QuotaExceededError' }), async () => null, async () => Promise.reject(new Error('no database'))]) {
+      const S = new Memory();
+      await new LogStore(S).addAll([entry('a', 1), entry('b', 2)]);
+      const L = new LogStore(S, open as () => Promise<LogBackend | null>);
+      await L.ready;
+      expect(ats(L)).toEqual([1, 2]);
+      expect(await L.add(entry('c', 3))).toBe('ok');
+      expect(ats(new LogStore(S))).toEqual([1, 2, 3]);
+    }
+    // A database that loses what it is given does not get the only copy.
+    const S = new Memory();
+    await new LogStore(S).addAll([entry('a', 1), entry('b', 2)]);
+    const leaky = new FakeDB();
+    leaky.put = async () => {};
+    const L = new LogStore(S, async () => leaky);
+    await L.ready;
+    expect(ats(L)).toEqual([1, 2]);
+    expect(S.m.has(STORE_KEYS.log)).toBe(true);
+  });
+
+  it('shows a session in the log at once, and keeps it in the background', async () => {
+    const db = new FakeDB();
+    const L = new LogStore(new Memory(), async () => db);
+    await L.ready;
+    let go!: () => void;
+    db.wait = new Promise((r) => (go = r));
+    const kept = L.add(entry('a', 5));
+    expect(ats(L)).toEqual([5]);
+    expect(db.m.size).toBe(0);
+    go();
+    expect(await kept).toBe('ok');
+    expect([...db.m.keys()]).toEqual([5]);
+    // What load() gives is the caller's own list.
+    L.load().length = 0;
+    expect(ats(L)).toEqual([5]);
+  });
+
+  it('takes back out a session the database refused, and says why', async () => {
+    const db = new FakeDB();
+    const L = new LogStore(new Memory(), async () => db);
+    await L.ready;
+    await L.add(entry('a', 1));
+    let told = 0;
+    L.onChange = () => told++;
+    db.fail = 'QuotaExceededError';
+    const full = L.add(entry('b', 2));
+    expect(ats(L)).toEqual([1, 2]);
+    expect(await full).toBe('full');
+    expect(ats(L)).toEqual([1]);
+    expect(told).toBe(1);
+    db.fail = 'InvalidStateError';
+    expect(await L.remove(1)).toBe('blocked');
+    expect(ats(L)).toEqual([1]);
+    // A session logged behind the one refused still stands, in the log and in the database.
+    let go!: () => void;
+    db.wait = new Promise((r) => (go = r));
+    db.fail = 'QuotaExceededError';
+    const refused = L.add(entry('c', 3));
+    const behind = L.add(entry('d', 4));
+    expect(ats(L)).toEqual([1, 3, 4]);
+    let seen: number[] = [];
+    L.onChange = () => {
+      // As the refusal is told: the refused one gone, the one still on its way there.
+      seen = ats(L);
+      db.fail = null;
+    };
+    go();
+    expect(await refused).toBe('full');
+    expect(seen).toEqual([1, 4]);
+    expect(await behind).toBe('ok');
+    expect(ats(L)).toEqual([1, 4]);
+    expect([...db.m.keys()]).toEqual([1, 4]);
+  });
+
+  it('gives older entries their notes, deletes a session or a day’s, and starts afresh', async () => {
+    const db = new FakeDB();
+    const S = new Memory();
+    const L = new LogStore(S, async () => db);
+    await L.ready;
+    await L.addAll([entry('a', 1, { score: 70 }), entry('b', 2, { score: 80 }), entry('c', 3), entry('d', 4)]);
+    expect(await L.setNotes(new Map<number, [number, number, number, number][]>([[2, [[0, 3, 80, -5]]], [99, [[0, 1, 1, 1]]]]))).toBe('ok');
+    expect(L.load().map((e) => e.notes ?? null)).toEqual([null, [[0, 3, 80, -5]], null, null]);
+    expect(db.m.get(2)!.notes).toEqual([[0, 3, 80, -5]]);
+    const writes = db.writes;
+    expect(await L.setNotes(new Map([[99, [[0, 1, 1, 1]]]]))).toBe('ok');
+    expect(db.writes).toBe(writes);
+    expect(await L.remove(1)).toBe('ok');
+    expect(await L.remove([2, 4])).toBe('ok');
+    expect(ats(L)).toEqual([3]);
+    expect([...db.m.keys()]).toEqual([3]);
+    // An entry added again replaces the one with its time, as a backup restored twice would.
+    await L.add(entry('c2', 3));
+    expect(L.load().map((e) => e.song)).toEqual(['c2']);
+    expect(await L.clear()).toBe('ok');
+    expect(L.load()).toEqual([]);
+    expect(db.m.size).toBe(0);
+  });
+
+  it('keeps two tabs in step: each is told of the other’s sessions, and neither writes over them', async () => {
+    const db = new FakeDB();
+    const S = new Memory();
+    const tabs: LogStore[] = [];
+    const tell = (from: number) => () => tabs.forEach((t, i) => i !== from && void t.sync());
+    tabs.push(new LogStore(S, async () => db, tell(0)), new LogStore(S, async () => db, tell(1)));
+    const [a, b] = tabs as [LogStore, LogStore];
+    await Promise.all([a.ready, b.ready]);
+    let told = 0;
+    b.onChange = () => told++;
+    await a.add(entry('a', 1));
+    await b.add(entry('b', 2));
+    await a.add(entry('c', 3));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(ats(a)).toEqual([1, 2, 3]);
+    expect(ats(b)).toEqual([1, 2, 3]);
+    expect(told).toBe(2);
+    // A session logged while the other tab's is being read is not lost from view.
+    const reading = b.sync();
+    const adding = b.add(entry('d', 4));
+    expect(ats(b)).toEqual([1, 2, 3, 4]);
+    await Promise.all([reading, adding]);
+    expect(ats(b)).toEqual([1, 2, 3, 4]);
+  });
+
+  it('takes in a session that a page open from before the log moved left in localStorage', async () => {
+    const db = new FakeDB();
+    const S = new Memory();
+    const L = new LogStore(S, async () => db);
+    await L.ready;
+    await L.add(entry('a', 1));
+    // The older page, as it was: it appends to localStorage.
+    await new LogStore(S).add(entry('old', 2));
+    await L.sync();
+    expect(ats(L)).toEqual([1, 2]);
+    expect([...db.m.keys()]).toEqual([1, 2]);
+    expect(S.m.has(STORE_KEYS.log)).toBe(false);
+  });
+});
+
+describe('the log in localStorage, where a browser has no database', () => {
+  it('gives older entries their notes, and starts afresh', async () => {
     const S = new Memory();
     const a = new LogStore(S);
-    a.add(entry('a', 1, { score: 70 }));
-    a.add(entry('b', 2, { score: 80 }));
-    expect(a.setNotes(new Map<number, [number, number, number, number][]>([[2, [[0, 3, 80, -5]]]]))).toBe('ok');
+    await a.add(entry('a', 1, { score: 70 }));
+    await a.add(entry('b', 2, { score: 80 }));
+    expect(await a.setNotes(new Map<number, [number, number, number, number][]>([[2, [[0, 3, 80, -5]]]]))).toBe('ok');
     expect(a.load().map((e) => e.notes ?? null)).toEqual([null, [[0, 3, 80, -5]]]);
-    expect(a.remove(1)).toBe('ok');
+    expect(await a.remove(1)).toBe('ok');
     expect(a.load().map((e) => e.at)).toEqual([2]);
     // A day's at once.
-    a.add(entry('c', 3));
-    a.add(entry('d', 4));
-    expect(a.remove([2, 4])).toBe('ok');
+    await a.add(entry('c', 3));
+    await a.add(entry('d', 4));
+    expect(await a.remove([2, 4])).toBe('ok');
     expect(a.load().map((e) => e.at)).toEqual([3]);
-    expect(a.clear()).toBe('ok');
+    expect(await a.clear()).toBe('ok');
     expect(a.load()).toEqual([]);
     expect(S.m.has(STORE_KEYS.log)).toBe(false);
   });
 
-  it('appends to what is stored, so another tab’s entries survive', () => {
+  it('appends to what is stored, so another tab’s entries survive', async () => {
     const S = new Memory();
     const a = new LogStore(S);
     const b = new LogStore(S);
-    expect(a.add(entry('a', 1))).toBe('ok');
-    expect(b.add(entry('b', 2))).toBe('ok');
-    expect(a.add(entry('c', 3))).toBe('ok');
+    expect(await a.add(entry('a', 1))).toBe('ok');
+    expect(await b.add(entry('b', 2))).toBe('ok');
+    expect(await a.add(entry('c', 3))).toBe('ok');
     expect(a.load().map((e) => e.song)).toEqual(['a', 'b', 'c']);
   });
 
-  it('starts again when the stored log is unreadable, and reports a full or blocked store', () => {
+  it('starts again when the stored log is unreadable, and reports a full or blocked store', async () => {
     const S = new Memory();
     S.setItem(STORE_KEYS.log, '{oops');
     const L = new LogStore(S);
     expect(L.load()).toEqual([]);
-    L.add(entry('a', 1));
+    await L.add(entry('a', 1));
     expect(L.load()).toHaveLength(1);
     const full = new LogStore({ ...S, getItem: () => null, removeItem() {}, setItem() {
       throw Object.assign(new Error('full'), { name: 'QuotaExceededError' });
     } });
-    expect(full.add(entry('a', 1))).toBe('full');
-    expect(new LogStore(null).add(entry('a', 1))).toBe('blocked');
+    expect(await full.add(entry('a', 1))).toBe('full');
+    expect(await new LogStore(null).add(entry('a', 1))).toBe('blocked');
+    // Nothing stored and nothing to delete is no failure.
+    expect(await new LogStore(null).remove(1)).toBe('ok');
     expect(LogStore.isLogKey(STORE_KEYS.log) && LogStore.isLogKey(null) && !LogStore.isLogKey(STORE_KEYS.songs)).toBe(true);
   });
 });
