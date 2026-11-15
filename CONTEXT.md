@@ -236,7 +236,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   C♯3) was the microphone; tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `5f4632c` (CI run `43445318394` green: the icon, a gold ত on rosewood, live, PH2-62, its four pictures served from `icons/`; the site serves `index-Bk8b-0CV.js` and `index-C-oGzghu.css`, its header the logo তরঙ্গিণী with a river through it, stretched to 237 px, and প্রতিদিনের রেওয়াজের সাথী in the buttons' gold under it, indented 79 px).
+- **Last known-good commit:** `a0bac9f` (CI run `43712559220` green: the review's three fixes live, FIX-01: a run ending by itself while the page is not drawn, a backup a third of the size and never bigger than Import reads, the practice log in the browser's database; the site serves `index-PrITBtCT.js` and `index-C-oGzghu.css`).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -510,7 +510,13 @@ decision.
   here). Use `git worktree add --detach <scratch>/wt <commit>`, `npm ci` and test there, then
   `git worktree remove`; delete leftovers with the `\\?\` long-path prefix. A checkout here
   gives text files CRLF endings; to get a file as CI has it, delete it and run
-  `git -c core.autocrlf=false -c core.eol=lf checkout -- <file>`.
+  `git -c core.autocrlf=false -c core.eol=lf checkout -- <file>`. Quicker than `npm ci` in the
+  worktree: a junction to this folder's `node_modules` (PowerShell: `New-Item -ItemType Junction`),
+  taken away with `[System.IO.Directory]::Delete(<junction>, $false)` before the worktree is
+  removed (a delete that goes into folders would follow it and empty the real one). To commit
+  one file's earlier state while the working copy holds a later one:
+  `git hash-object -w --path=<file> <a copy>`, then
+  `git update-index --cacheinfo 100644,<sha>,<file>`.
 - **Seeing the app without the browser pane** (a hidden pane has a 0 × 0 page that draws
   nothing): drive headless Edge through the DevTools protocol from a short Node script (Node
   24's built-in WebSocket), Edge started with `--headless=new --mute-audio` and a throwaway
