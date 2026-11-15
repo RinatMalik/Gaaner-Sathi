@@ -3,7 +3,7 @@
 > The project's shared state, for Rinat, Claude, Codex and any other LLM: what the app is
 > for, how we work, where things stand, the decisions in force and the newest work log.
 >
-> **Last updated:** 2026-11-13 (GMT) by Claude (Opus 5.5)
+> **Last updated:** 2026-11-15 (GMT) by Claude (Fable 5.2)
 
 ## How to use this file
 
@@ -133,6 +133,13 @@ wins, except a later explicit decision by Rinat, which always wins.
   rosewood.
   Phase 1, features, was closed by Rinat ("That's it for features",
   2026-10-11): everything asked for is built and live (PH1-01 to PH1-11, all in Review).
+- **Review of 2026-11-14 and its three fixes (FIX-01, Claude, 2026-11-15):** the whole repository
+  read and run for Rinat ("do a full review of this project"); the code healthy, and at Rinat's
+  "Fix top three" three faults of growth and timing fixed: a run ends by itself while the page is
+  hidden or behind another window, so a rewaz goes on; Back up or export → Everything is under a
+  third of the size and never bigger than Import reads; the practice log is in the browser's
+  database, moved out of localStorage. What the review found and left is in the Work log
+  (2026-11-15, Next handoff).
 - **Review of 25–27 Oct (Claude, 2026-10-28, in chat):** the three day files and 52 takes in
   `feedback/` read (levels of all 52 measured); four takes re-run through the app's detector
   (bundled with rolldown) matched their sessions' readings (99.3–99.7 % within 30 cents), so
@@ -147,7 +154,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   61-key keyboard); the songs and exercises are at Sa C♯4, and the default 3-reed guide is heard
   at C♯3 (its bass reed: the app's detector reads it at 138.5 Hz), so Rinat matches the guide.
   "Octave must match" judged against C♯4; from round forty-two the bass reed's octave counts too.
-- **Next single action:** Rinat looks at the new icon, icon 10, a gold ত on rosewood, in the browser tab (a hard refresh may be needed to replace the old one) and on the phone by adding the page to the home screen (PH2-62; the choices page is https://claude.ai/artifact/F3Vdrh8oStZp6cpFXyGkwF), and looks at the header with the logo a quarter wider and the tagline in the buttons' gold, starting under র, by day and by night (says if the gold is too faint by day; the logo's page is https://claude.ai/artifact/22qGdQwqaH1fPeyy22RRaA); round two, 21–30, is at https://claude.ai/artifact/P9XQe3XChnDfprSNUkjYG8, round one, 1–20, at https://claude.ai/artifact/W87BrvNwBPxLVpb8PPFdZS); exports the 10–12 songs to keep (Music library: tick them, then Export) and says so, for Claude to rename the storage (Decisions, 2026-11-13); decides on moving to torongini.com and renaming the repository and the folder (Open question 3). With it, round sixty-one: presses Expand all under the Practice lines (every line opens to full size with its pitch strip), plays, opens another song and refreshes (they stay open), goes into full screen (the lines are as usual there) and back, then presses Collapse all; says whether the button is where it is looked for, on the computer and the phone. With it, round sixty: picks a Sa at the top, plays, opens another song and starts a rewaz (every song should play in that Sa), picks "Song’s own (…)" (each song in its own again) and refreshes (each song's own); moves the tempo, opens another song (it stays) and ticks Default under it (each song's own tempo); does the same with the taal and the rhythm speed; starts a rewaz and changes the Sa in the break between two items, at the top or with the Sa chip in full screen's bar (it is greyed while an item plays); reads how long each rewaz item takes beside "Song"; ticks some of their own songs in the Music library, presses Edit and changes their tags, Sa or tempo together; reads the Sa, taal and tempo chips in full screen's bar on the TV and the phone; says whether a tempo set at the top playing over each rewaz item's own is right. With it, round fifty-nine: picks the reeds, drone, instrument, side instruments and fills once at the top, opens another song and refreshes (they should stay); plays a song that had its own instrument or drone and says whether it is missed; reads the Sa list ("C♯4 · Black 1") and looks at Reeds beside the Sa and Octave must match beside Loop, on the computer and the phone; sets a song's Rhythm speed in Edit notation. With it, round fifty-eight: says whether the sentence at the foot of the top panel is clear and well placed; opens Edit notation, opens Settings, sets a song's Sa and tempo there, and says whether they are where they are expected; listens to a song with Sa in the C2 octave and says whether the guide is usable at that depth (with 3 reeds the bass reed goes down to 32.7 Hz, too low for most speakers), and whether Check my pitch reads a voice there (it reads nothing below 60 Hz, Sa C2 being 65.41 Hz); folds and unfolds the Virtual keyboard; sings a take with a Sa changed at the top and plays it back against the guide. With it, round fifty-seven: moves the Rhythm and Drone faders on one song, opens another and says whether they stayed where they were and whether anything sounds too loud or too soft now that a song's saved levels are not used; drags the routines by the dots, on the computer and on the phone; watches "3:25/4:30 left" beside the title and in the rewaz bar. With it, round fifty-six: sings a song with Check my pitch on and
+- **Next single action:** Rinat opens the app (the practice history moves into the browser's database by itself: Progress should show every session as before); starts a rewaz and switches to another window, or another tab, until it should be over (it should have gone through every item, each one in Progress); saves Back up or export → Everything and looks at the file's size (about a third of what it was; Import from file restores it); says which of the review's other findings to take next (Work log, 2026-11-15). With it, the icon and the header: Rinat looks at the new icon, icon 10, a gold ত on rosewood, in the browser tab (a hard refresh may be needed to replace the old one) and on the phone by adding the page to the home screen (PH2-62; the choices page is https://claude.ai/artifact/F3Vdrh8oStZp6cpFXyGkwF), and looks at the header with the logo a quarter wider and the tagline in the buttons' gold, starting under র, by day and by night (says if the gold is too faint by day; the logo's page is https://claude.ai/artifact/22qGdQwqaH1fPeyy22RRaA); round two, 21–30, is at https://claude.ai/artifact/P9XQe3XChnDfprSNUkjYG8, round one, 1–20, at https://claude.ai/artifact/W87BrvNwBPxLVpb8PPFdZS); exports the 10–12 songs to keep (Music library: tick them, then Export) and says so, for Claude to rename the storage (Decisions, 2026-11-13); decides on moving to torongini.com and renaming the repository and the folder (Open question 3). With it, round sixty-one: presses Expand all under the Practice lines (every line opens to full size with its pitch strip), plays, opens another song and refreshes (they stay open), goes into full screen (the lines are as usual there) and back, then presses Collapse all; says whether the button is where it is looked for, on the computer and the phone. With it, round sixty: picks a Sa at the top, plays, opens another song and starts a rewaz (every song should play in that Sa), picks "Song’s own (…)" (each song in its own again) and refreshes (each song's own); moves the tempo, opens another song (it stays) and ticks Default under it (each song's own tempo); does the same with the taal and the rhythm speed; starts a rewaz and changes the Sa in the break between two items, at the top or with the Sa chip in full screen's bar (it is greyed while an item plays); reads how long each rewaz item takes beside "Song"; ticks some of their own songs in the Music library, presses Edit and changes their tags, Sa or tempo together; reads the Sa, taal and tempo chips in full screen's bar on the TV and the phone; says whether a tempo set at the top playing over each rewaz item's own is right. With it, round fifty-nine: picks the reeds, drone, instrument, side instruments and fills once at the top, opens another song and refreshes (they should stay); plays a song that had its own instrument or drone and says whether it is missed; reads the Sa list ("C♯4 · Black 1") and looks at Reeds beside the Sa and Octave must match beside Loop, on the computer and the phone; sets a song's Rhythm speed in Edit notation. With it, round fifty-eight: says whether the sentence at the foot of the top panel is clear and well placed; opens Edit notation, opens Settings, sets a song's Sa and tempo there, and says whether they are where they are expected; listens to a song with Sa in the C2 octave and says whether the guide is usable at that depth (with 3 reeds the bass reed goes down to 32.7 Hz, too low for most speakers), and whether Check my pitch reads a voice there (it reads nothing below 60 Hz, Sa C2 being 65.41 Hz); folds and unfolds the Virtual keyboard; sings a take with a Sa changed at the top and plays it back against the guide. With it, round fifty-seven: moves the Rhythm and Drone faders on one song, opens another and says whether they stayed where they were and whether anything sounds too loud or too soft now that a song's saved levels are not used; drags the routines by the dots, on the computer and on the phone; watches "3:25/4:30 left" beside the title and in the rewaz bar. With it, round fifty-six: sings a song with Check my pitch on and
   the Scarlett picked, and turns GAIN 01 until the needle sits mostly in the green (it now reads
   the voice's loudest moments, as the ring round GAIN 01 does, green from −15 to −9 dB of full
   scale, the top where the microphone cuts off); says whether the gauge and the ring now agree
@@ -468,7 +475,7 @@ decision.
 ### Commands
 
 - `npm install` once.
-- `npm test`: every Vitest suite (574 tests in 50 files, about 15 s). Read the "Test Files" line: a
+- `npm test`: every Vitest suite (608 tests in 54 files, about 10 s). Read the "Test Files" line: a
   file that fails to load is not counted as a failed test.
 - `npm run typecheck`: the whole project, then `src/core` and `src/audio/dsp` with no DOM
   library (a DOM call there fails).
@@ -549,6 +556,7 @@ accepted, move its row to `docs/HISTORY.md`.*
 | PH2-03 | Claude | Review | Design, round three: the harmonium, drone and rhythm in Edit notation (Sound of this song); the deck's bar becomes Practice settings (the guide, now the device's, and the rest), with a link to the song's sound; Songs → Music library, second after Practice; library rows lit on hover with full-height Practise / Edit buttons; My songs and Exercises bigger and folding | 4 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 01:30) | Waiting for Rinat's use (Open question 6 answered: built in PH2-04) |
 | PH2-04 | Claude | Review | Design, round four: your own exercises ("List under" in Edit notation, "+ New exercise", copies of built-in ones stay exercises); Practice settings at the top of the Practice view; library headings fold wherever their row is tapped; a Songs chip; "Recently added or changed"; every rewaz routine a folding row with a full-height Start, its items rows like the beat boxes' | 11 new unit tests and 3 rewritten; the browser pane on `npm run dev` at 1200 and 360 px, night and day (Work log 2026-10-13 02:40) | Waiting for Rinat's use |
 | PH2-45 | Claude | Review | The time left, a song's progress where it is practised, the library first, the notes in ink (Rinat, 2026-10-31): while playing, the time left beside the title, to the second, the rounds, breaks and count-ins to come included, "in this round" for a loop with no end, held while paused, gone on Stop (`secondsLeft` in transport.ts; `leftAt`, `showLeft` in app.ts; `leftText` in view.ts; `.songleft`); the whole rewaz's in its bar, "0:14 left in all", the item's own and the items after it with the breaks between them, counted through the break before an item (`rewazLeft`, `showLeft` and `Rewaz.left` in rewaz.ts; `routineSeconds` from an item; `#rwLeft`); My progress under My takes for the open song: tiles, where it stands, going well and to work on, the score each session, the latest five sessions with Report and For AI, and its Report, For AI and See all in Progress (`songProgressHTML`, `showSong` in progress.ts; `songHeadline` from songreport.ts; `renderSongProgress` in app.ts; `#progBox`); the Music library's tab before Practice (index.html, `TABS`); the Practice sheet's notes in `--ink` (styles.css `.pnt`) | Tests: 43 files, 490 passed (10 new in timeleft.test.ts); headless Edge on `npm run dev` at 1280 px day and 360 px night: the title 0:15 → 0:10 a second a second, held at 0:10 paused, hidden on Stop, "0:13 left in this round" looping; a two-item rewaz 0:14 → 0:00 left in all through rounds and a 3 s break, hidden at "Rewaz done"; My progress with 7 seeded sessions; See all in Progress opening Pitch for the song; page 360 px wide; no console errors (Work log 2026-10-31, PH2-45) | Waiting for Rinat to play, run a rewaz and open My progress |
+| FIX-01 | Claude | Review | The review of 2026-11-14's first three findings (Rinat: "Fix top three"): a run ends by itself while the page is not drawn (`src/app/pump.ts`); a backup's sessions packed, the file never bigger than Import reads (`src/core/practice/pack.ts`, `src/app/backup.ts`); the practice log in the browser's database, moved from localStorage (`LogStore` in `src/app/store.ts`, `LogDB` in `src/app/db.ts`) | Type-check clean, 608 tests (24 new), build, reference suites; in the browser pane while it drew one frame in two minutes: a 1 min 59 s exercise ended and was logged whole, a two-item rewaz ran to its end; a backup of 31 sessions made, the stores emptied, and restored through Import, readings equal; three seeded sessions moved from localStorage to the database (Work log 2026-11-15) | Waiting for Rinat's use (Next single action); the review's other findings wait for Rinat's pick |
 | PH2-62 | Claude | Review | The name Torongini (তরঙ্গিণী) (Rinat, 2026-11-13): the visible name everywhere (title, header, reports, print, backups, the files for AI, README, the package), the identifiers kept; twenty logos and twenty taglines to choose from (`docs/brand/logo-choices.html`, https://claude.ai/artifact/W87BrvNwBPxLVpb8PPFdZS); moving the address, repository and folder assessed (Open question 3) | Type-check clean, 574 tests, build; the tab and header in the browser pane at 360 px (Work log 2026-11-13, PH2-62) | Logo 36 (its river lowered twice, a quarter wider) and tagline 16 in the buttons' gold in the header (`src/app/logo.ts`; type-check clean, 580 tests, build, the header in headless Edge at 360 and 1200 px, day and night); icon 10, a gold ত on rosewood, built in as the tab's and home screen's icon (`public/icons/`, drawn by `dev/icon.html`; 584 tests); waiting for Rinat's look; the storage renamed once Rinat has exported the songs to keep; the move waiting for a go-ahead |
 | PH2-61 | Claude | Review | Expand all (Rinat, 2026-11-13): a button first in the Practice lines' settings opens every line to full size with its pitch strip, or Collapse all closes them; kept for every song, through runs and refreshes (setting `plOpen`), not in full screen; the lines shown counted at the opened size (lines.ts `applyAll`, `allShown`, `layout`; app.ts `#plAllBtn`, `applyLinesPrefs`) | 574 unit tests (2 in the new expandall.test.ts); headless Edge `run61` (42 checks at 1280 px day and 360 px night) and `layout61` (25 checks at 360, 800, 1280 px and 3840 × 2160) (Work log 2026-11-13, PH2-61) | Waiting for Rinat's use; not tried on a real touch screen |
 | PH2-60 | Claude | Review | The top's Sa, tempo, taal and rhythm speed for every song until a refresh (Rinat, 2026-11-13): one overlay in memory (`topNow`, `withNow` in core/song/fornow.ts; `nowOf`, `setNow`, `pickSa` in app.ts), each list's first choice the song's own, Default under the tempo (`#tempoDef`), Revert gone; no Sa on a rewaz routine (`Routine.sa` read and saved without); the Sa enabled in the break between rewaz items (`setPlayUI`); each rewaz item's time beside "Song" (`itemSeconds`, `itemTempo`, `durText`), at the top's tempo where set, said in an open routine (`.rwflat`); Edit for the songs ticked in the Music library (`applyBulk`, `bulkEditHTML`, `editSongs`); the Sa, taal and tempo chips in full screen's bar, the Sa's a picker while nothing plays (`#fullChips`) | 572 unit tests (15 in the new untilrefresh.test.ts); headless Edge `run60` (75 checks, the oscillators measured) and `layout60` (123 checks at 360, 800, 1280 px day and night, and 3840 × 2160) (Work log 2026-11-13, PH2-60) | Waiting for Rinat's use and ears; not tried on a real touch screen |
@@ -809,6 +817,9 @@ records were folded into on 2026-10-11 (the last rows say where).*
 | 2026-11-13 | **Small icons carry one bold thing and little detail.** Rinat: "In small icons, it's important to make them less details and on memorable noticeable thing". | Rinat, chat 2026-11-13 | Each icon is judged at 16 px in a browser tab, light and dark, as well as big; the icon page shows each that way. |
 | 2026-11-13 | **The tagline starts under র, the name's second letter.** Rinat: "start the tagline vertically aligned from the "Ro" of torongini". | Rinat, chat 2026-11-13 | `.brand .tagline` has `margin-left:79px`: র's left edge in the logo (`logoParts().roX`, 78.9 px: the logo's margin, ত's advance and র's own 0.03 em, stretched 1.25) less the 0.5 px before the tagline's first letter; `tests/unit/logo.test.ts` fails if the two drift apart. |
 | 2026-11-13 | **The app's icon is icon 10, a gold ত on rosewood** (icon 2 of the choices without its river). Rinat: "icon 2 without the river", then "Yes, build icon 10". | Rinat, chat 2026-11-13 | `index.html` links PNGs in `public/icons/`: 16 and 32 px for the browser tab, 192 px and Apple's 180 px for a phone's home screen. They are screenshots of `dev/icon.html` in headless Edge, so they need no font; at 16 px the letter is drawn bigger so its curl stays open. No web app manifest: an installable app is a non-goal (Product direction), so this is a home-screen shortcut's icon, not an installed app's. |
+| 2026-11-15 | **While the page is not drawn, the timer shows the beats and ends the run** (`src/app/pump.ts`). A browser draws no frames for a page that is hidden, minimised or behind another window, and a run's end was noticed only in a frame: a rewaz left behind another window stopped after its first item, and a run was logged late, short or not at all. With no frame for 200 ms, each 25 ms tick does the frame's work too. | Claude, fixing the first three findings of the review of 2026-11-14 at Rinat's "Fix top three" (chat, 2026-11-15); reproduced in the browser pane before, measured after | The timer runs to the run's end instead of stopping once the end is scheduled; the pitch check's scoring is kept up from it. Not covered: the burst of notes after a long freeze (the review's finding 4), and a browser slowing a hidden page's timers once nothing has sounded for a while (a long break between rewaz items). |
+| 2026-11-15 | **A backup is never bigger than Import reads.** Each session's readings are packed (`src/core/practice/pack.ts`: each number the step from the one before, on its grid, in as few bytes as it needs, as base64) and its notes written as rows of numbers: three minutes with the pitch check 75 KB, was 268 KB. A file that would still pass 200 MB leaves out the oldest sessions' detail and says how many. | As above; measured in a test and in the app | `version` stays 1: the new layout is told by `packed`, and backups made before read as they did (Invariants → Files stay readable; DATA.md → Backups has the layout). Sessions are written and restored one at a time. The 1,000 sessions kept and the 200 MB read are held together by a test (1,000 of five minutes fit). |
+| 2026-11-15 | **The practice log is kept in the browser's database, in one of its own (`gaanersathi-log`), not in localStorage.** It grew by about 630 characters a session in a store of five million shared with the songs: full in about a year at twenty sessions a day, then sessions dropped without a word and songs not saved. What a browser has in `gaanersathi.log.v1` is moved the first time, read back to check every entry arrived, and only then removed; with no database the log stays in localStorage. | As above | The log is read into memory as the page opens; a session shows at once and is kept in the background, and one that could not be kept is taken back out and said in the bar under the top. A database of its own, so no page left open from before loses its takes' and sessions' database to an upgrade. One more name for the storage rename to carry (2026-11-13). A page still open from before the change shows only its own new sessions until refreshed; they are taken in, none lost. |
 
 ## Open questions
 
@@ -890,6 +901,71 @@ Template:
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
 
+### 2026-11-15 GMT — Claude (Fable 5.2) — FIX-01 the review's top three: a run ending unseen, the backup's size, the practice log's store
+
+- **Goal:** Rinat: "do a full review of this project … check everything" (2026-11-14, answered in
+  chat), then "Fix top three".
+- **Inspected:** for the review, all of `src/app/app.ts` and the storage, backup, transport,
+  microphone, pitch tracking, parser and checker; type-check, 584 tests, the build and the
+  reference suites, all green; the app in the browser pane at 360 px. Reproduced there before
+  fixing: with frames held back, a 3-second line still said Pause ten seconds on; a three-minute
+  session with the pitch check 271,827 bytes in a backup (1,000 kept, 200 MB read); a scored log
+  entry about 632 characters in localStorage's five million.
+- **Changed:** `313f569` fix(play): `src/app/pump.ts` (the timer and the frames; with no frame for
+  200 ms the timer does the frame's work), wired into `app.ts` in place of its own timer and
+  frame, `catchUp()` on the pitch check, ENGINE.md → One clock, 5 tests. `dbbd8ff` fix(backup):
+  `src/core/practice/pack.ts` (readings packed, base64), `backup.ts` (`sessionLine`,
+  `backupFile` with its limit, `readBackup` giving each session to be read when restored),
+  `app.ts` (sessions read and restored one at a time; the bar says what was left out), DATA.md →
+  Backups, 11 tests and the older ones moved to the new calls. `02d20ea` fix(log): `LogStore`
+  over a database with the log in memory, `LogDB` and the database `gaanersathi-log` in
+  `db.ts`, `app.ts` (the log's writes awaited or their failure said; tabs told through a
+  `BroadcastChannel`), DATA.md → Storage, 8 more tests. This commit: this file, HISTORY.md (the
+  older work log entry moved), README's line on moving songs (it named a menu since renamed).
+- **Tests / verification:** `npm run typecheck` clean; `npm test` 608 passed (54 files);
+  `npm run build` built (JS 417.80 kB, 144.78 kB gzipped); `npm run test:reference` parser 31,
+  checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Each of the first two
+  commits alone in a scratch worktree: type-check clean, 589 and 600 tests. Dev server in the
+  browser pane, which drew one frame in two minutes (the fault's own condition): লম্বা স্বর,
+  1 min 59 s, ended by itself with the button back to Play and was logged whole (115 s, to line
+  16, its detail kept); a rewaz of two items went item, 4 s break, item, "Rewaz done · 2 items in
+  25 s". Thirty sessions of three minutes put in the stores, Back up or export → Everything
+  pressed: 2,232,447 bytes for 31 sessions (73.9 KB each) in 0.2 s; read back, one session's
+  readings, levels, notes and beats equal to what was stored; the stores emptied, the file given
+  to Import from file and Restore pressed: 31 sessions' detail and 36 log entries back, Progress
+  showing them. Three sessions seeded in `gaanersathi.log.v1`: after a reload, in the database
+  with the two there, the key gone, Progress showing five. No error from the app in the console.
+  What was added to the dev copy's storage was removed again.
+- **Decisions made:** three rows (the timer ends a run unseen; a backup never bigger than Import
+  reads; the log in the browser's database).
+- **Risks or disagreements:** not heard: whether a hidden rewaz item starts cleanly (a hidden
+  page's timers can be slowed once nothing has sounded for a while, and the transport has no
+  guard against a late tick: the review's finding 4). The move of the log was run on the dev
+  copy and in tests, not yet on Rinat's own browser with its real history: if the database will
+  not take it, nothing is removed and the log goes on as before. A page still open from before
+  the change shows only its own new sessions until refreshed. Not tried on a phone, Safari or
+  Firefox. **The local repository had lost one object** (`git fsck`: missing blob `d2c14dee`,
+  `reference/tests/run-all.sh` as committed; found when a scratch worktree would not check out):
+  the working file hashed to the same id, so it was written back (`git hash-object -w`) and
+  `git fsck` is clean; GitHub's copy was never affected. The repository's objects are files that
+  OneDrive syncs, which is the likeliest cause: one more reason to move the folder out of
+  OneDrive when it is renamed (Open question 3).
+- **Next handoff:** Rinat tries the three (Next single action) and picks what comes next. The
+  review's findings not yet fixed, most serious first: (4) a burst of notes after a freeze
+  (`Transport.tick` schedules every beat it missed at once); (5) nothing asks the browser to keep
+  the data (`navigator.storage.persist()`), and nothing reminds of a backup; (6) takes have no
+  bulk download and are in no backup; (7) Restore says "Restored" without checking that the
+  songs and routines were written; (8) closing the tab does not flush a pending song save
+  (`pagehide`), file dates are UTC (`today()`), a second tab's settings overwrite the first's,
+  and the stores keep a closed database after a version change. Things that do not add up:
+  Google Fonts are fetched on every load and in every saved report, against "nothing leaves the
+  device"; the storage rename is best done in the release that moves to torongini.com (a new
+  address starts empty whatever the keys are called) and `readBackup` must then read both
+  `format` ids; this file is 262 KB against its own "keep it lean"; no test loads `app.ts`.
+  Friction: the song's lines start below the first screen; looping one line takes three
+  controls; the tagline's gold by day is 2.34:1; small touch targets on the deck; the interface
+  is English only.
+
 ### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-62 icon 10 built in as the app's icon
 
 - **Goal:** Rinat: "Yes, build icon 10" (the gold ত alone on rosewood).
@@ -917,31 +993,3 @@ Template:
   one. Android's "Add to Home screen" without a manifest may still frame the icon its own way.
 - **Next handoff:** Rinat looks at the icon in the tab and on the phone (Next single action); the
   storage rename still waits for Rinat's export.
-
-### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-62 icon 10, icon 2 without the river; the tagline under র
-
-- **Goal:** Rinat: "icon 2 without the river"; then "start the tagline vertically aligned from the
-  "Ro" of torongini".
-- **Inspected:** in headless Edge (canvas `measureText` and a pixel scan), Tiro Bangla italic's ত:
-  ink 0.74 em wide and 0.59 em high, advance 0.673 em; its র: left edge 0.03 em in, the same from
-  its top line to its foot; the tagline's first letter 0.03 em into its box. In the app's logo, র
-  starts at 61.85 of the text's units (`getStartPositionOfChar(1)`), as the advance predicts.
-- **Changed:** `docs/brand/icon-choices.html`: icon 10, "Gold letter": ত alone in the buttons'
-  gold (a gradient from `--brass-hi` to `--brass`) on rosewood, at 50 units in the 48-unit square
-  (37 wide, 29.5 high), centred on its ink; republished at the same address (version 2).
-  `src/app/logo.ts`: `logoParts()` also gives `roX`, where র begins (78.9 px); `styles.css`: the
-  tagline `margin-left:79px`; `tests/unit/logo.test.ts`: a test holding the two together;
-  `vitest.config.ts`: Vitest passes `styles.css` through (it blanks CSS otherwise, even as
-  `?raw`). CONTEXT.md: Last known-good `9093fbd`.
-- **Tests / verification:** `npm run typecheck` clean; `npm test` 581 passed (51 files);
-  `npm run build` built. Dev server in headless Edge: the header at 360 px by day and by night and at
-  1200 px: the tagline's box at 95 px, its ink at 95.5 px, র's ink at 95.3 px; no sideways scroll
-  (scroll width 360 at 360), the header no taller. Icon 10 read at 16 px in light and dark tabs, at
-  32 px and on the home screen: a clear gold letter, its top bar apart from its body as Tiro draws
-  it. CI run `43441857169` on `9093fbd`: success; the live site served `index-5dGChkbp.js`.
-- **Decisions made:** one row (the tagline starts under র).
-- **Risks or disagreements:** the alignment holds for Tiro Bangla; if another font stands in, the
-  logo is held to Tiro's width but র may start a pixel or two elsewhere. On a screen narrower than
-  277 px the logo shrinks and the tagline no longer lines up exactly.
-- **Next handoff:** Rinat says whether icon 10 is the one (Next single action); Claude then makes it
-  at each size and builds it in; the storage rename still waits for Rinat's export.

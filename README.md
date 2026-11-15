@@ -16,7 +16,8 @@ on your device.
 ## Try it
 
 https://rinatmalik.github.io/Gaaner-Sathi/ keeps your songs in your browser, with no
-account. To move them to another device, use **Back up all my songs** and **Import**.
+account. To move them to another device, use **Back up or export** and **Import from file**, in
+the Music library.
 
 ## Status
 

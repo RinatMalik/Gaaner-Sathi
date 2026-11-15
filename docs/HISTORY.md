@@ -66,6 +66,34 @@ historical interest.
 
 ## Work log, older entries
 
+### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-62 icon 10, icon 2 without the river; the tagline under র
+
+- **Goal:** Rinat: "icon 2 without the river"; then "start the tagline vertically aligned from the
+  "Ro" of torongini".
+- **Inspected:** in headless Edge (canvas `measureText` and a pixel scan), Tiro Bangla italic's ত:
+  ink 0.74 em wide and 0.59 em high, advance 0.673 em; its র: left edge 0.03 em in, the same from
+  its top line to its foot; the tagline's first letter 0.03 em into its box. In the app's logo, র
+  starts at 61.85 of the text's units (`getStartPositionOfChar(1)`), as the advance predicts.
+- **Changed:** `docs/brand/icon-choices.html`: icon 10, "Gold letter": ত alone in the buttons'
+  gold (a gradient from `--brass-hi` to `--brass`) on rosewood, at 50 units in the 48-unit square
+  (37 wide, 29.5 high), centred on its ink; republished at the same address (version 2).
+  `src/app/logo.ts`: `logoParts()` also gives `roX`, where র begins (78.9 px); `styles.css`: the
+  tagline `margin-left:79px`; `tests/unit/logo.test.ts`: a test holding the two together;
+  `vitest.config.ts`: Vitest passes `styles.css` through (it blanks CSS otherwise, even as
+  `?raw`). CONTEXT.md: Last known-good `9093fbd`.
+- **Tests / verification:** `npm run typecheck` clean; `npm test` 581 passed (51 files);
+  `npm run build` built. Dev server in headless Edge: the header at 360 px by day and by night and at
+  1200 px: the tagline's box at 95 px, its ink at 95.5 px, র's ink at 95.3 px; no sideways scroll
+  (scroll width 360 at 360), the header no taller. Icon 10 read at 16 px in light and dark tabs, at
+  32 px and on the home screen: a clear gold letter, its top bar apart from its body as Tiro draws
+  it. CI run `43441857169` on `9093fbd`: success; the live site served `index-5dGChkbp.js`.
+- **Decisions made:** one row (the tagline starts under র).
+- **Risks or disagreements:** the alignment holds for Tiro Bangla; if another font stands in, the
+  logo is held to Tiro's width but র may start a pixel or two elsewhere. On a screen narrower than
+  277 px the logo shrinks and the tagline no longer lines up exactly.
+- **Next handoff:** Rinat says whether icon 10 is the one (Next single action); Claude then makes it
+  at each size and builds it in; the storage rename still waits for Rinat's export.
+
 ### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-62 the logo wider, the tagline gold, nine icons to choose from
 
 - **Goal:** Rinat: "i like the icons in 11 and 20. make some from the current logo but also include
