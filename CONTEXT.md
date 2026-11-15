@@ -238,7 +238,7 @@ wins, except a later explicit decision by Rinat, which always wins.
   C♯3) was the microphone; tries round nine;
   answers round two's two questions (Record me's microphone;
   colours on the Practice sheet); sends more design comments.
-- **Last known-good commit:** `a0bac9f` (CI run `43712559220` green: the review's three fixes live, FIX-01: a run ending by itself while the page is not drawn, a backup a third of the size and never bigger than Import reads, the practice log in the browser's database; the site serves `index-PrITBtCT.js` and `index-C-oGzghu.css`).
+- **Last known-good commit:** `8e76fff` (CI run `43748544647` green: the review's findings 4 and 5 live, FIX-02, on top of its first three, FIX-01: a page held up goes on from where the clock is, the browser is asked to keep the data, the Music library says when everything was last backed up; the site serves `index-B8mgKuWd.js` and `index-DzcY-4Jx.css`).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
