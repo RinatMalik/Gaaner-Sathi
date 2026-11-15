@@ -27,6 +27,16 @@ were added by the app; each section says why it is built the way it is.
   doing so once frames come again. Measured in the browser pane while it drew one frame in two
   minutes: a 1 min 59 s exercise ended by itself and was logged whole, and a two-item rewaz
   went through its break to its end.
+- **A tick that was held up does not sound what it missed** (2026-11-15). When the page is
+  held (a long task, a hidden tab's timer slowed by the browser) the clock runs on, and the
+  next tick used to schedule every beat it had missed, all in the past, so all at once: thirty
+  seconds held sounded sixty beats together. Now a tick that finds its next beat more than
+  30 ms overdue (`LATE`) starts again 50 ms from now (`RESUME`): the song goes on from where it
+  was, later by as long as it was held, and the highlight, the time left and the pitch check
+  follow, being timed from the same beats. A beat less overdue plays at once, as before.
+  Measured in the app: the page held for 3 s while an exercise played, then 37 sounds
+  scheduled, none in the past, the first 50 ms ahead. A take recorded across a hold-up plays
+  back against a guide without it, so the two part there.
 - The tanpura (`scheduleTanpura`) runs on the same tick but keeps its own free rhythm; it is
   not tied to the taal.
 

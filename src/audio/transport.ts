@@ -62,6 +62,13 @@ export type DisplayEntry = BeatEntry | EndEntry | BreakEntry;
 const mod = (a: number, n: number) => ((a % n) + n) % n;
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
+/** A tick finding its next beat more than this overdue, seconds, has been held up: the beat is
+ * not sounded late, with every beat missed since on top of it (until 2026-11-15 a 30-second
+ * freeze sounded sixty beats at once). A beat less overdue plays at once, too little late to hear. */
+export const LATE = 0.03;
+/** After a hold-up the song goes on this long from now, seconds: time to schedule the beat whole. */
+export const RESUME = 0.05;
+
 /** Whether silence (`x`) comes at song time t, where a note ends: the share of the beat there
  * is a rest. A note always ends where a share of a beat starts. */
 export function silenceAt(P: ParsedSong, t: number): boolean {
@@ -257,6 +264,10 @@ export class Transport {
   /** Schedule everything due in the next 160 ms. */
   tick(now: number = this.E.ctx.currentTime): void {
     if (!this.playing || this.endAt) return;
+    // The page was held up (a long task, a hidden tab's timer slowed) while the clock ran on:
+    // the beats it missed are not all sounded now, at once. The song goes on from here, as much
+    // later as it was held; what is shown and scored follows, being timed from the same beats.
+    if (this.nextTime < now - LATE) this.nextTime = now + RESUME;
     this.scheduleTanpura(now);
     while (this.nextTime < now + 0.16) {
       const raw = this.s0 + this.t;
