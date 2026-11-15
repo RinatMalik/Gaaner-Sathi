@@ -73,6 +73,9 @@ export interface PitchUI {
   resume(): void;
   /** A beat has been scheduled. */
   beat(q: BeatEntry, spb: number): void;
+  /** The page is not being drawn (hidden, or behind another window), so no frame scores what
+   * has been sung: score it now, as each frame would. */
+  catchUp(): void;
   /** Playing stopped (the microphone goes off): the scores, for the practice log (null
    * without enough singing), and the run's detail (null when nothing was heard). */
   endRun(): { score: number; lines: [number, number][]; detail: PitchDetail | null } | null;
@@ -549,6 +552,9 @@ export function initPitch(host: PitchHost): PitchUI {
       const pieces = beatNotes(parsedAt, byBeat, { time: q.time, s: q.s, pass: q.pass, spb }, sec, !(sec.listen && q.guide));
       tracker.addNotes(pieces);
       if (log && log.beats.length < 20000) log.beats.push([q.time, q.s, q.pass, round(spb, 4)]);
+    },
+    catchUp() {
+      if (mic) settle(false);
     },
     endRun() {
       quiet();

@@ -60,6 +60,7 @@ import { initScorePanel } from './fullscore';
 import { initLines, type LinesUI } from './lines';
 import { initPrint } from './print';
 import { initProgress, PG_ORDER, songProgressHTML } from './progress';
+import { Pump } from './pump';
 import { reportHTML } from './report';
 import { dayReportHTML, dayReportName } from './dayreport';
 import { exportName, stamp } from './filenames';
@@ -125,7 +126,7 @@ let practised = lastPractised(logStore.load());
 let songsView: { render(): void } = { render() {} };
 /** The song picker at the top of the deck, wired up by init. */
 let songPick: SongPick = { render() {} };
-let pitchUI: PitchUI = { on: false, startRun() {}, pause() {}, resume() {}, beat() {}, endRun: () => null };
+let pitchUI: PitchUI = { on: false, startRun() {}, pause() {}, resume() {}, beat() {}, catchUp() {}, endRun: () => null };
 /** Rewaz routines and the Progress view, wired up by init. */
 let rewaz: Rewaz = { render() {}, active: false, name: '', finished() {}, cancel() {}, now() {}, beat() {}, rest() {}, left() {} };
 let progressView: { render(): void; showSong(id: string): void } = { render() {}, showSong() {} };
@@ -193,8 +194,15 @@ const pickedTaal = () => nowOf().taal ?? '';
 // ── Transport: one clock drives the rhythm, the melody and the highlight ─────
 
 let T: Transport | null = null; // made on the first Play: browsers start audio only after a tap
-let timer = 0;
-let raf = 0;
+/** The timer that schedules the sound and the frames that show it (pump.ts): while the page is
+ * hidden or covered no frame comes, and the timer shows the beats and ends the run itself. */
+const pump = new Pump(tick, frame, {
+  now: () => performance.now(),
+  every: (fn, ms) => window.setInterval(fn, ms),
+  clearEvery: (id) => clearInterval(id),
+  frame: (fn) => requestAnimationFrame(fn),
+  cancelFrame: (id) => cancelAnimationFrame(id),
+});
 let curEls: HTMLElement[] = [];
 let lastLine = -1;
 /** The song beat showing while playing (−1 before the first), for the deck's tempo. */
@@ -373,8 +381,7 @@ function play(ask: PlayAsk = pickedLines(), at: { s: number; pass: number } | nu
   if (first.id !== stripTaal?.id) renderTaal(first);
   showMessage('');
   setLine(at ? (parsed.lineOfBeat[at.s] ?? r.from) : r.from, r.pre > 0 ? 'In ' + r.pre : 'Now', true);
-  timer = window.setInterval(tick, 25);
-  raf = requestAnimationFrame(frame);
+  pump.start();
   keepAwake();
 }
 
@@ -393,9 +400,7 @@ function stop(silent?: boolean, ended = false): void {
     T.stop();
     keyboard.playStopped();
   }
-  clearInterval(timer);
-  timer = 0;
-  cancelAnimationFrame(raf);
+  pump.stop();
   clearHighlight();
   lines.playhead(-1, 0);
   boxes.markBeat(-1);
@@ -450,9 +455,7 @@ function pause(): void {
   pitchUI.pause(now);
   T.stop();
   keyboard.playStopped();
-  clearInterval(timer);
-  timer = 0;
-  cancelAnimationFrame(raf);
+  pump.stop();
   keepAwake();
   setPlayUI();
   if (lastLine >= 0) setLine(lastLine, 'Paused', true);
@@ -615,17 +618,15 @@ function itemSong(id: string): ItemSong | null {
 }
 
 function tick(): void {
-  if (!T) return;
-  T.tick();
-  if (T.endAt && timer) {
-    clearInterval(timer);
-    timer = 0;
-  }
+  T?.tick();
 }
 
-/** Each frame: show the latest beat whose time has come, allowing for output latency (Bluetooth). */
-function frame(): void {
+/** Each frame: show the latest beat whose time has come, allowing for output latency (Bluetooth),
+ * and end the run when its sound has. `late`: from the timer, as the page is not being drawn
+ * (hidden, or behind another window), so the pitch check's scoring is kept up here too. */
+function frame(late: boolean): void {
   if (!T || !T.playing) return;
+  if (late) pitchUI.catchUp();
   const ctx = T.E.ctx as AudioContext;
   const now = ctx.currentTime - ((ctx.outputLatency || 0) + (ctx.baseLatency || 0));
   const cur = T.takeDue(now);
@@ -673,11 +674,7 @@ function frame(): void {
     if (q.pass >= 0) lines.playhead(q.s, f);
     lines.taalFrac(f);
   }
-  if (T.endAt && ctx.currentTime >= T.endAt) {
-    stop(true, true);
-    return;
-  }
-  raf = requestAnimationFrame(frame);
+  if (T.endAt && ctx.currentTime >= T.endAt) stop(true, true);
 }
 
 /** The time left beside the title, to the second (null: hidden), and the whole rewaz's in its

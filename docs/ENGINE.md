@@ -16,7 +16,17 @@ were added by the app; each section says why it is built the way it is.
 - **frame()** (requestAnimationFrame) pops queue entries whose time has passed, adjusted by
   `outputLatency + baseLatency`, and moves the highlight, the Practice view's lines (the line
   being sung, its beat, and a playhead through the beat from the same clock) and the taal
-  figure.
+  figure. It also notes how far the run has got (for the practice log) and ends the run once
+  the sound has (`endAt`): the log entry, the take, and a rewaz's next item all follow from it.
+- **When no frame comes, the timer does frame()'s work** (`src/app/pump.ts`, 2026-11-15). A
+  browser draws no frames for a page that is hidden, minimised or behind another window,
+  while its timer and its sound go on. Until then the end of a run waited for the page to be
+  looked at again: a rewaz left playing behind another window stopped after its first item,
+  and a run never looked at was logged short or not at all. Now, when no frame has come for
+  200 ms, each tick also calls frame() (and keeps the pitch check's scoring up), and stops
+  doing so once frames come again. Measured in the browser pane while it drew one frame in two
+  minutes: a 1 min 59 s exercise ended by itself and was logged whole, and a two-item rewaz
+  went through its break to its end.
 - The tanpura (`scheduleTanpura`) runs on the same tick but keeps its own free rhythm; it is
   not tied to the taal.
 
