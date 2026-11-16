@@ -69,6 +69,8 @@ import { songFileName, songReportHTML, type SongReportInput } from './songreport
 import { initRewaz, type ItemSong, type Rewaz } from './rewaz';
 import { initSongPick, type SongPick } from './songpick';
 import { allTakesHTML, takeBuffer, takeFileName, takesHTML, TakeStore } from './takes';
+import { readTakes, TakesZip, takesRestoredWords } from './takefile';
+import { isZip } from './zip';
 import { initVoice, type SaChoice, type VoiceUI } from './voice';
 import { initSongs, LIB_ORDER } from './songs';
 import { firstDifference, TextUndo } from './undo';
@@ -1913,6 +1915,81 @@ function stopTakesPlaying(ids: readonly string[]): void {
   else stop();
 }
 
+/**
+ * Save takes as one file (takefile.ts): those ticked on the Voice page, or (`list` null) every
+ * take, from Back up or export. Import from file brings them back. Built a take at a time, and
+ * handed to the browser as it grows, so that the sound of many takes is not all held at once.
+ */
+async function saveTakes(list: readonly Take[] | null, say: (t: string) => void): Promise<void> {
+  const store = await takes();
+  const all = list ?? (await store?.all()) ?? [];
+  if (!store || !all.length) {
+    say(list ? 'No takes ticked.' : 'No takes yet: switch on Record me at the top, then press Play.');
+    return;
+  }
+  say('Gathering ' + (all.length === 1 ? 'the take' : all.length + ' takes') + '…');
+  const zip = new TakesZip();
+  let file = new Blob([]);
+  let parts: BlobPart[] = [];
+  let held = 0;
+  try {
+    for (const t of all) {
+      const pcm = await store.samples(t.id);
+      if (!pcm) continue;
+      for (const p of zip.add(t, pcm)) {
+        parts.push(p as BlobPart);
+        held += p.length;
+      }
+      if (held > 32_000_000) {
+        file = new Blob([file, ...parts]);
+        parts = [];
+        held = 0;
+      }
+    }
+    file = new Blob([file, ...parts, ...(zip.finish() as BlobPart[])], { type: 'application/zip' });
+  } catch {
+    say('Too much for one file (a file of takes holds up to 4 GB): tick fewer takes on the Voice page and save them in parts.');
+    return;
+  }
+  const n = zip.count;
+  const title = list ? (n === 1 ? '1 take' : n + ' takes') : 'All my takes';
+  void offerFile(exportName(stamp(Date.now()), title, 'Recordings'), file, (t) =>
+    say(t.startsWith('Saved') ? t + ': ' + (n === 1 ? 'one take' : n + ' takes') + ', each a WAV file. Import from file, in the Music library, brings them back.' : t),
+  );
+}
+
+/** Takes from a file of takes, given to Import from file: those not here already are kept. */
+async function restoreTakes(f: File): Promise<string | null> {
+  const read = async (at: number, len: number) => new Uint8Array(await f.slice(at, at + len).arrayBuffer());
+  const got = await readTakes(read, f.size);
+  if (!got) return null;
+  const store = await takes();
+  if (!store) return f.name + ': takes cannot be kept in this browser';
+  const here = new Set((await store.all()).map((t) => t.id));
+  let added = 0;
+  let had = 0;
+  let bad = 0;
+  for (const { take, file } of got.takes) {
+    if (here.has(take.id)) {
+      had++;
+      continue;
+    }
+    const sound = await got.sound(file);
+    if (!sound) {
+      bad++;
+      continue;
+    }
+    try {
+      await store.add({ ...take, rate: sound.rate, secs: sound.samples.length / sound.rate }, sound.samples);
+      added++;
+    } catch {
+      return 'Restored ' + added + ' of the takes in ' + f.name + ', then the browser would not keep more: its storage may be full';
+    }
+  }
+  void renderTakes();
+  return takesRestoredWords(f.name, added, had, bad);
+}
+
 /** Undo: the take deleted alone comes back, its recording with it. */
 async function undoTakeDelete(): Promise<void> {
   const u = takeUndo;
@@ -1945,6 +2022,8 @@ async function onAllTakesClick(e: Event): Promise<void> {
     b.setAttribute('aria-expanded', String(open));
     const list = document.getElementById(b.getAttribute('aria-controls') ?? '');
     if (list) list.hidden = !open;
+  } else if (act === 'dlsel') {
+    await saveTakes(allTakesShown.filter((t) => takeSel.has(t.id)), setTakeStatus);
   } else if (act === 'clearsel') {
     takeSel.clear();
     await renderAllTakes();
@@ -2889,7 +2968,21 @@ async function importFiles(files: File[]): Promise<void> {
   const found: ImportedSong[] = [];
   const problems: string[] = [];
   let backup: { name: string; b: BackupRead } | null = null;
+  const takesSaid: string[] = [];
   for (const f of files) {
+    // A file of takes (a ZIP, read a part at a time, so it may be bigger than a backup).
+    let zip = false;
+    try {
+      zip = isZip(new Uint8Array(await f.slice(0, 4).arrayBuffer()));
+    } catch {
+      zip = false;
+    }
+    if (zip) {
+      const said = await restoreTakes(f);
+      if (said) takesSaid.push(said);
+      else problems.push(f.name + ' is a ZIP file but not one of takes');
+      continue;
+    }
     if (f.size > BACKUP_BYTES) {
       problems.push(f.name + ' is too large');
       continue;
@@ -2936,6 +3029,7 @@ async function importFiles(files: File[]): Promise<void> {
       said = 'Imported ' + list.length + ' song' + (list.length === 1 ? '' : 's') + (found.length > list.length ? ' (the first 200)' : '') + '.';
     } else said = 'Not imported: ' + (kept === 'full' ? 'song storage is full. Delete a song you no longer need.' : 'this browser blocks storage.');
   }
+  if (takesSaid.length) said += (said ? ' ' : '') + takesSaid.join('. ') + '.';
   if (problems.length) said += (said ? ' ' : '') + problems.join('. ') + '.';
   if (backup) offerRestore(backup.name, backup.b, said);
   else showFileBar(said || 'Nothing to import.');
@@ -3952,6 +4046,7 @@ export function init(): void {
     $('#bkBtn').focus();
     if (b.dataset.bk === 'all') void backupAll();
     else if (b.dataset.bk === 'practice') void exportAll(showFileBar);
+    else if (b.dataset.bk === 'takes') void saveTakes(null, showFileBar);
     else backupSongs();
   });
   $('#fileBarClose').addEventListener('click', () => showFileBar(''));

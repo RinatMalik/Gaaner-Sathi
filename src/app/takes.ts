@@ -11,7 +11,6 @@ import { dayNumber } from '../core/practice/log';
 import { cleanTake, clockText, takeDetail, type Take } from '../core/practice/take';
 import { whenText } from '../core/song/library';
 import { connection, inTx, openDB } from './db';
-import { exportName, stamp } from './filenames';
 import { dayLabel } from './progress';
 import { esc, tickHTML as tick } from './view';
 
@@ -166,7 +165,8 @@ export function allTakesHTML(takes: readonly Take[], now: number, song: TakeSong
     ? ''
     : o.asking
       ? '<span class="tksure">Delete ' + (sel === 1 ? 'this take' : 'these ' + sel + ' takes') + '?</span><button type="button" class="btn danger" data-act="delyes">Delete</button><button type="button" class="btn" data-act="delno">Keep</button>'
-      : '<span class="tkseln">' + sel + ' ticked</span><button type="button" class="btn danger" data-act="delsel">Delete ' + (sel === 1 ? 'it' : 'all ' + sel) + '</button><button type="button" class="btn" data-act="clearsel">Untick</button>';
+      : '<span class="tkseln">' + sel + ' ticked</span><button type="button" class="btn" data-act="dlsel">Download ' + (sel === 1 ? 'it' : 'all ' + sel) + '</button>' +
+        '<button type="button" class="btn danger" data-act="delsel">Delete ' + (sel === 1 ? 'it' : 'all ' + sel) + '</button><button type="button" class="btn" data-act="clearsel">Untick</button>';
   const bar = '<div class="tkbar"><span class="lab2" id="tkByLab">Group by</span><div class="seg" role="group" aria-labelledby="tkByLab">' + seg('song', 'Song') + seg('date', 'Date') + '</div>' +
     '<label class="tkall"><input type="checkbox" data-selall="1"' + (sel === takes.length ? ' checked' : sel ? ' data-mixed="1"' : '') + '> Tick all</label>' +
     '<span class="spacer"></span>' + selBit + '</div>';
@@ -207,9 +207,7 @@ function rowHTML(t: Take, now: number, byDate: boolean, s: { title: string; sig:
     '<span class="pgdet">' + esc(takeDetail(t)) + '</span>' + changed(t, sig) + '</div>' + acts + '</li>';
 }
 
-/** A take's file name, named as a session's files are (Rinat, 2026-10-21), so it lists beside
- * them: "2026.10.20_19.35.41 - Nisha lagilo re - Recording.wav". */
-export const takeFileName = (t: Take): string => exportName(stamp(t.at), t.title || 'Take', 'Recording');
+export { takeFileName } from './takefile';
 
 /** The samples as an AudioBuffer on a context, to play. */
 export function takeBuffer(ctx: BaseAudioContext, pcm: Int16Array, rate: number): AudioBuffer {
