@@ -42,7 +42,7 @@ const n1 = (v: number) => Math.round(v * 10) / 10;
 export const REPORT_CSS = `
 :root{color-scheme:light;--bg:#eceeea;--card:#fbfbf8;--ink:#1b1c24;--ink2:#5c5f6c;--line:#d9dcdf;--grid:#e3e6e9;--wood:#3e1f15;--on-wood:#f6ead8;--on-wood2:#d6c3a8;--brass:#c4952b;
 --good:#1f7a3a;--ok:#d9a21f;--off:#b4261e;--none:#a3a5ae;--lyric:#b3261e;
---f-note:"Tiro Bangla","Noto Serif Bengali","Kohinoor Bangla",Georgia,serif;--f-ui:"Hind Siliguri","Noto Sans Bengali",system-ui,-apple-system,"Segoe UI",sans-serif}
+--f-note:"Tiro Bangla","Noto Serif Bengali","Kohinoor Bangla","Nirmala UI",Georgia,serif;--f-ui:"Hind Siliguri","Noto Sans Bengali","Nirmala UI",system-ui,-apple-system,"Segoe UI",sans-serif}
 @media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#111115;--card:#19191f;--ink:#ecebe5;--ink2:#a2a3ae;--line:#2c2c35;--grid:#26262e;--wood:#22100a;--on-wood:#f1e3cf;--on-wood2:#bba68b;--brass:#d3a843;
 --good:#45a058;--ok:#dba838;--off:#ec4d40;--none:#6c6e78;--lyric:#ff8d7e}}
 @media print{:root{color-scheme:light;--bg:#fff;--card:#fff;--ink:#000;--ink2:#4a4a4a;--line:#c8c8c8;--grid:#e3e3e3;--good:#1f7a3a;--ok:#d9a21f;--off:#b4261e;--none:#a3a5ae;--lyric:#b3261e}
@@ -135,11 +135,13 @@ footer p{margin:0}
 @media (max-width:560px){.top{grid-template-columns:minmax(0,1fr)}.hero-n{font-size:52px}.strip{height:90px}}
 ` + NOTEKEYS_CSS;
 
-/** The page's head: its title, the app's fonts, the styles (and any of its own). */
+/** The page's head: its title and the styles (and any of its own). It fetches nothing: until
+ * 2026-11-16 it asked Google Fonts for the app's typefaces each time a saved report was opened.
+ * A report is a file on its own, so it uses the app's typefaces where the computer has them, and
+ * its own Bengali typeface otherwise (REPORT_CSS → --f-note, --f-ui). */
 export const reportHead = (title: string, css = ''): string =>
   '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
   '<title>' + esc(title) + '</title>' +
-  '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600&family=Tiro+Bangla&display=swap">' +
   '<style>' + REPORT_CSS + css + '</style></head><body>';
 
 /** The page's Print and Save buttons at work; Save keeps the page as `fileName`. */

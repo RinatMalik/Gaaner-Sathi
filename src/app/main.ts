@@ -1,4 +1,5 @@
 /** The app's entry point (index.html). */
+import './fonts.css';
 import './styles.css';
 import { NOTEKEYS_CSS } from './notekeys';
 
