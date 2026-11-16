@@ -47,9 +47,9 @@ import { withNow, type ForNow } from '../core/song/fornow';
 import { SONG_SOUND_KEYS, type SongSound } from '../core/song/sound';
 import type { SpeedName } from '../core/taal/rhythm';
 import { isTaalId, taalInfo, TAALS, type TaalInfo } from '../core/taal/taals';
-import { BACKUP_BYTES, BACKUP_FORMAT, backupFile, backupNote, backupWords, readBackup, restoredPrefs, restorePlan, sessionLine, type BackupRead } from './backup';
+import { BACKUP_BYTES, backupFile, backupNote, backupWords, mayBeBackup, readBackup, restoredPrefs, restoredWords, restoreInto, restorePlan, sessionLine, type BackupRead } from './backup';
 import { aiFileName, aiFileText, dayFileName, dayFileParts, practiceFileParts, type SessionFileInput } from './aifile';
-import { LogDB, openOnce, SessionStore } from './db';
+import { LogDB, openOnce, SessionStore, whenOutdated } from './db';
 import { initMicPick } from './micpick';
 import { initPitch, type PitchUI } from './pitch';
 import { initBoxes, withNewHeading, type Boxes } from './boxes';
@@ -64,7 +64,7 @@ import { initProgress, PG_ORDER, songProgressHTML } from './progress';
 import { Pump } from './pump';
 import { reportHTML } from './report';
 import { dayReportHTML, dayReportName } from './dayreport';
-import { exportName, stamp } from './filenames';
+import { exportName, localDate, stamp } from './filenames';
 import { songFileName, songReportHTML, type SongReportInput } from './songreport';
 import { initRewaz, type ItemSong, type Rewaz } from './rewaz';
 import { initSongPick, type SongPick } from './songpick';
@@ -91,8 +91,12 @@ try {
   storage = null;
 }
 const prefs = loadPrefs(storage);
-const savePrefs = () => {
-  writePrefs(storage, prefs);
+/** The settings as this page last read or saved them: a save writes only what changed since,
+ * so another tab's changes stand (store.ts → mergePrefs). `whole`: write every setting. */
+let prefsSeen = structuredClone(prefs);
+const savePrefs = (whole = false) => {
+  writePrefs(storage, prefs, whole ? undefined : prefsSeen);
+  prefsSeen = structuredClone(prefs);
 };
 const wanted = prefs.lastSong;
 
@@ -141,6 +145,9 @@ function logChanged(): void {
   showBackupNote();
 }
 logStore.onChange = logChanged;
+// A newer copy of the app, opened in another tab, has upgraded the browser's database: this page
+// can keep no take, session or practice until it is refreshed, so it says so.
+whenOutdated(() => showFileBar('A newer copy of the app is open in another tab. Refresh this page, so that what you record and practise here is kept.'));
 logTabs?.addEventListener('message', () => void logStore.sync());
 /** Whether the browser has agreed to keep what the app stores (null: not known, or it cannot
  * say), and whether it has been asked since the page opened (keep.ts). */
@@ -2391,10 +2398,11 @@ function flush(): void {
   dirty = false;
   writeSongs([s]);
 }
-function writeSongs(list: Song[]): void {
+/** Save songs; the result says whether they were kept. */
+function writeSongs(list: Song[]): WriteResult {
   if (store.mode === 'memory') {
     setStatus('Not saved. Storage is unavailable in this view.');
-    return;
+    return 'blocked';
   }
   const r = store.save(list);
   setStatus(r === 'ok' ? 'Saved in this browser' : saveError(r));
@@ -2402,6 +2410,7 @@ function writeSongs(list: Song[]): void {
     showBackupNote();
     keepData();
   }
+  return r;
 }
 /** Delete one of the user's songs (asked first, in Edit notation or the Music library); the
  * open one gives way to another song. */
@@ -2781,7 +2790,7 @@ function setFileStatus(t: string, where = '#fileStatus'): void {
   $(where).textContent = t;
 }
 const setLibStatus = (t: string) => setFileStatus(t, '#libStatus');
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => localDate(Date.now());
 
 /** Save a file the ordinary way; inside a frame that may block downloads, copy it instead. */
 async function offerFile(name: string, text: string | Blob, say: (t: string) => void = setFileStatus): Promise<void> {
@@ -2892,7 +2901,7 @@ async function importFiles(files: File[]): Promise<void> {
       problems.push(f.name + ' could not be read');
       continue;
     }
-    const b = txt.includes(BACKUP_FORMAT) ? readBackup(txt) : null;
+    const b = mayBeBackup(txt) ? readBackup(txt) : null;
     if (b) {
       if (!backup) backup = { name: f.name, b };
       else problems.push(f.name + ' is a second backup: restore one at a time');
@@ -2917,12 +2926,15 @@ async function importFiles(files: File[]): Promise<void> {
       taken.push(n.title);
       return n;
     });
-    for (const n of made) songs.set(n.id, n);
-    writeSongs(made);
-    userPicked = true;
-    renderLibrary();
-    loadSong(made[0]!);
-    said = 'Imported ' + list.length + ' song' + (list.length === 1 ? '' : 's') + (found.length > list.length ? ' (the first 200)' : '') + '.';
+    // Where this browser blocks storage, songs last until the page closes (the status says so).
+    const kept = store.mode === 'memory' ? 'ok' : writeSongs(made);
+    if (kept === 'ok') {
+      for (const n of made) songs.set(n.id, n);
+      userPicked = true;
+      renderLibrary();
+      loadSong(made[0]!);
+      said = 'Imported ' + list.length + ' song' + (list.length === 1 ? '' : 's') + (found.length > list.length ? ' (the first 200)' : '') + '.';
+    } else said = 'Not imported: ' + (kept === 'full' ? 'song storage is full. Delete a song you no longer need.' : 'this browser blocks storage.');
   }
   if (problems.length) said += (said ? ' ' : '') + problems.join('. ') + '.';
   if (backup) offerRestore(backup.name, backup.b, said);
@@ -2963,44 +2975,49 @@ async function restore(b: BackupRead, withPrefs: boolean): Promise<void> {
     logAts: new Set(logStore.load().map((e) => e.at)),
     sessionAts: new Set(sessionAts),
   });
-  for (const s of add.songs) songs.set(s.id, s);
-  if (add.songs.length) writeSongs(add.songs);
-  for (const r of add.routines) routineStore.save(r);
-  const logKept = add.log.length ? await logStore.addAll(add.log) : 'ok';
-  let lost = 0;
-  for (const s of add.sessions) {
-    try {
-      // Unpacked here, one at a time, and let go once stored.
-      const d = s.read();
-      if (!db || !d) throw new Error('no store');
-      await db.add(d);
-    } catch {
-      // The rest of the restore stands; that session keeps its summary in the log.
-      lost++;
-    }
-  }
-  const n = add.songs.length + add.routines.length + add.log.length;
-  const said =
-    (n
-      ? 'Restored ' + backupWords(logKept === 'ok' ? add : { ...add, log: [] }) + (lost && logKept === 'ok' ? ' (' + lost + ' without their detail)' : '') + '; the rest were here already.'
-      : 'Everything in this backup is here already.') +
-    (logKept === 'ok' ? '' : ' Its ' + add.log.length + ' practice sessions could not be restored: ' + logError(logKept));
+  const done = await restoreInto(add, {
+    songs: (list) => {
+      const w = store.mode === 'memory' ? 'ok' : writeSongs(list);
+      if (w === 'ok') for (const s of list) songs.set(s.id, s);
+      return w;
+    },
+    routines: (list) => routineStore.saveAll(list),
+    log: (list) => logStore.addAll(list),
+    session: async (s) => {
+      try {
+        // Unpacked here, one at a time, and let go once stored.
+        const d = s.read();
+        if (!db || !d) return false;
+        await db.add(d);
+        return true;
+      } catch {
+        // The rest of the restore stands; that session keeps its summary in the log.
+        return false;
+      }
+    },
+  });
+  const said = restoredWords(done, logError, b.songs.length + b.routines.length + b.log.length);
+  // With its settings the page opens again, unless something could not be kept: then the
+  // message stays, and the settings are used at the next refresh.
+  const allKept = !Object.keys(done.failed).length;
   if (withPrefs) {
     const own = prefs as unknown as Record<string, unknown>;
     const S = new Map([[STORE_KEYS.prefs as string, JSON.stringify(restoredPrefs(own, b.prefs))]]);
     const clean = loadPrefs({ getItem: (k) => S.get(k) ?? null, setItem: () => {}, removeItem: () => {} });
     for (const k of Object.keys(own)) delete own[k];
     Object.assign(prefs, clean);
-    savePrefs();
-    showFileBar(said + ' Its settings are in use: the app opens again.');
-    window.setTimeout(() => location.reload(), 1500);
-    return;
+    savePrefs(true);
+    if (allKept) {
+      showFileBar(said + ' Its settings are in use: the app opens again.');
+      window.setTimeout(() => location.reload(), 1500);
+      return;
+    }
   }
   practised = lastPractised(logStore.load());
   renderLibrary();
   rewaz.render();
   progressView.render();
-  showFileBar(said);
+  showFileBar(said + (withPrefs ? ' Its settings are saved: refresh the page to use them.' : ''));
 }
 
 // ── Wiring ───────────────────────────────────────────────────────────────────
@@ -3823,8 +3840,13 @@ export function init(): void {
     else keepAwake();
   });
   window.setInterval(keepAwake, 5000);
-  // Leaving the page stops playing, so the practice so far is logged.
-  window.addEventListener('pagehide', () => stop(true));
+  // Leaving the page saves the song being edited (a browser that closes the tab without first
+  // hiding it would otherwise lose the last second's typing) and stops playing, so the practice
+  // so far is logged.
+  window.addEventListener('pagehide', () => {
+    flushNow();
+    stop(true);
+  });
 
   // octave fixing
   const ta = notationBox();

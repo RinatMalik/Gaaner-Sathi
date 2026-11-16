@@ -19,7 +19,19 @@ const DB_VERSION = 2;
  */
 const LOG_DB = 'gaanersathi-log';
 
-/** Open a database, making its stores the first time; `closed` when another tab needs it shut. */
+let outdated: (() => void) | null = null;
+/** `fn` is called when a page opened later, of a newer copy of the app, has upgraded a database
+ * this page uses: this page can keep nothing more in it until it is refreshed. */
+export function whenOutdated(fn: () => void): void {
+  outdated = fn;
+}
+
+/**
+ * Open a database, making its stores the first time; `closed` when it has been shut, so that the
+ * next use opens it again. The stores below ask for their connection at every use rather than
+ * keeping the one they opened with: until 2026-11-16 a connection shut for another tab stayed
+ * theirs, and every later read or write failed until the page was refreshed.
+ */
 function open(name: string, version: number, upgrade: (db: IDBDatabase) => void, closed: () => void): Promise<IDBDatabase | null> {
   return new Promise((resolve) => {
     let req: IDBOpenDBRequest;
@@ -32,11 +44,15 @@ function open(name: string, version: number, upgrade: (db: IDBDatabase) => void,
     req.onupgradeneeded = () => upgrade(req.result);
     req.onsuccess = () => {
       const db = req.result;
-      // Another tab needs to upgrade or delete the database: let it, rather than block it.
-      db.onversionchange = () => {
+      // Another tab needs to upgrade or delete the database: let it, rather than block it. Once
+      // deleted it is opened afresh at the next use; once upgraded, this page is out of date.
+      db.onversionchange = (e: IDBVersionChangeEvent) => {
         db.close();
         closed();
+        if (e.newVersion !== null) outdated?.();
       };
+      // Shut by the browser (its data cleared, say): opened again at the next use.
+      db.onclose = () => closed();
       resolve(db);
     };
     req.onerror = () => resolve(null);
@@ -61,6 +77,13 @@ export function openDB(): Promise<IDBDatabase | null> {
 }
 
 let openingLog: Promise<IDBDatabase | null> | null = null;
+
+/** A connection for one use: the open one, or the database opened again. */
+export async function connection(get: () => Promise<IDBDatabase | null>): Promise<IDBDatabase> {
+  const db = await get();
+  if (!db) throw new Error('This browser’s database could not be opened.');
+  return db;
+}
 
 function openLogDB(): Promise<IDBDatabase | null> {
   openingLog ??= open(
@@ -102,38 +125,41 @@ export const KEEP_SESSIONS = 1000;
 
 /** Each practice session's detail, by its log entry's `at`. */
 export class SessionStore {
-  private constructor(private readonly db: IDBDatabase) {}
+  private constructor() {}
 
   static async open(): Promise<SessionStore | null> {
-    const db = await openDB();
-    return db ? new SessionStore(db) : null;
+    return (await openDB()) ? new SessionStore() : null;
+  }
+
+  private async run<T>(mode: IDBTransactionMode, fn: (tx: IDBTransaction) => IDBRequest<T> | void): Promise<T | undefined> {
+    return inTx(await connection(openDB), ['sessions'], mode, fn);
   }
 
   async get(at: number): Promise<SessionDetail | null> {
-    return cleanSession(await inTx<unknown>(this.db, ['sessions'], 'readonly', (tx) => tx.objectStore('sessions').get(at)));
+    return cleanSession(await this.run<unknown>('readonly', (tx) => tx.objectStore('sessions').get(at)));
   }
 
   /** Every session kept, oldest first. */
   async all(): Promise<SessionDetail[]> {
-    const rows = (await inTx<unknown[]>(this.db, ['sessions'], 'readonly', (tx) => tx.objectStore('sessions').getAll())) ?? [];
+    const rows = (await this.run<unknown[]>('readonly', (tx) => tx.objectStore('sessions').getAll())) ?? [];
     return rows.map(cleanSession).filter((d): d is SessionDetail => !!d);
   }
 
   /** The `at` of every session kept. */
   async keys(): Promise<number[]> {
-    return ((await inTx<IDBValidKey[]>(this.db, ['sessions'], 'readonly', (tx) => tx.objectStore('sessions').getAllKeys())) ?? []).filter((k): k is number => typeof k === 'number');
+    return ((await this.run<IDBValidKey[]>('readonly', (tx) => tx.objectStore('sessions').getAllKeys())) ?? []).filter((k): k is number => typeof k === 'number');
   }
 
   /** Delete one session's detail (its bin, in Progress's History). */
   async remove(at: number): Promise<void> {
-    await inTx(this.db, ['sessions'], 'readwrite', (tx) => {
+    await this.run('readwrite', (tx) => {
       tx.objectStore('sessions').delete(at);
     });
   }
 
   /** Delete every session kept (Start afresh, in Progress). */
   async clear(): Promise<void> {
-    await inTx(this.db, ['sessions'], 'readwrite', (tx) => {
+    await this.run('readwrite', (tx) => {
       tx.objectStore('sessions').clear();
     });
   }
@@ -142,7 +168,7 @@ export class SessionStore {
    * go past KEEP_SESSIONS. */
   async add(d: SessionDetail): Promise<void> {
     const stored = d.pitch ? { ...d, pitch: { ...d.pitch, readings: Float32Array.from(d.pitch.readings), ...(d.pitch.levels ? { levels: Float32Array.from(d.pitch.levels) } : {}) } } : d;
-    await inTx(this.db, ['sessions'], 'readwrite', (tx) => {
+    await this.run('readwrite', (tx) => {
       const os = tx.objectStore('sessions');
       os.put(stored);
       const count = os.count();
@@ -164,33 +190,36 @@ export class SessionStore {
 /** The practice log's entries, by their `at` (store.ts → LogStore reads them all once and
  * holds them in memory). A write is one transaction: all of it is kept, or none. */
 export class LogDB implements LogBackend {
-  private constructor(private readonly db: IDBDatabase) {}
+  private constructor() {}
 
   static async open(): Promise<LogDB | null> {
-    const db = await openLogDB();
-    return db ? new LogDB(db) : null;
+    return (await openLogDB()) ? new LogDB() : null;
+  }
+
+  private async run<T>(mode: IDBTransactionMode, fn: (tx: IDBTransaction) => IDBRequest<T> | void): Promise<T | undefined> {
+    return inTx(await connection(openLogDB), ['log'], mode, fn);
   }
 
   async all(): Promise<unknown[]> {
-    return (await inTx<unknown[]>(this.db, ['log'], 'readonly', (tx) => tx.objectStore('log').getAll())) ?? [];
+    return (await this.run<unknown[]>('readonly', (tx) => tx.objectStore('log').getAll())) ?? [];
   }
 
   async put(entries: readonly LogEntry[]): Promise<void> {
-    await inTx(this.db, ['log'], 'readwrite', (tx) => {
+    await this.run('readwrite', (tx) => {
       const os = tx.objectStore('log');
       for (const e of entries) os.put(e);
     });
   }
 
   async remove(ats: readonly number[]): Promise<void> {
-    await inTx(this.db, ['log'], 'readwrite', (tx) => {
+    await this.run('readwrite', (tx) => {
       const os = tx.objectStore('log');
       for (const at of ats) os.delete(at);
     });
   }
 
   async clear(): Promise<void> {
-    await inTx(this.db, ['log'], 'readwrite', (tx) => {
+    await this.run('readwrite', (tx) => {
       tx.objectStore('log').clear();
     });
   }

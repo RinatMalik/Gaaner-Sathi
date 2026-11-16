@@ -259,7 +259,30 @@ export function loadPrefs(S: KeyValueStore | null): Prefs {
   return p;
 }
 
-export const savePrefs = (S: KeyValueStore | null, p: Prefs): WriteResult => writeJSON(S, STORE_KEYS.prefs, p);
+/**
+ * The settings to store: those stored, with only what this page changed since `seen` (the
+ * settings as it last read or saved them) put over them. Until 2026-11-16 a page wrote its whole
+ * set, so a second tab's change of one setting put back every other setting as that tab had
+ * read it, undoing what the first tab had changed meanwhile. With nothing of this app's stored
+ * yet (the first save, or the prototype's settings read), the whole set is written.
+ */
+export function mergePrefs(stored: unknown, seen: object, now: object): Record<string, unknown> {
+  const n = now as Record<string, unknown>;
+  if (!stored || typeof stored !== 'object' || Array.isArray(stored)) return { ...n };
+  const out: Record<string, unknown> = { ...(stored as Record<string, unknown>) };
+  const s = seen as Record<string, unknown>;
+  for (const k of new Set([...Object.keys(s), ...Object.keys(n)])) {
+    if (JSON.stringify(n[k]) === JSON.stringify(s[k])) continue;
+    if (k in n) out[k] = n[k];
+    else delete out[k];
+  }
+  return out;
+}
+
+/** Save the settings: all of them, or (`seen` given) only what changed since, over what another
+ * tab may have stored meanwhile. */
+export const savePrefs = (S: KeyValueStore | null, p: Prefs, seen?: Prefs): WriteResult =>
+  writeJSON(S, STORE_KEYS.prefs, seen ? mergePrefs(readJSON(S, STORE_KEYS.prefs), seen, p) : p);
 
 // ── Songs ────────────────────────────────────────────────────────────────────
 
@@ -570,8 +593,13 @@ export class RoutineStore {
 
   /** Save one routine: re-read the stored ones and change only this, so another tab's survive. */
   save(r: Routine): WriteResult {
+    return this.saveAll([r]);
+  }
+
+  /** Save routines in one write: all of them are kept, or none. */
+  saveAll(list: readonly Routine[]): WriteResult {
     const t = songTable(readJSON(this.S, STORE_KEYS.routines));
-    t[r.id] = { name: r.name, items: r.items, updatedAt: r.updatedAt, ...(r.gap != null ? { gap: r.gap } : {}) };
+    for (const r of list) t[r.id] = { name: r.name, items: r.items, updatedAt: r.updatedAt, ...(r.gap != null ? { gap: r.gap } : {}) };
     return writeJSON(this.S, STORE_KEYS.routines, t);
   }
 

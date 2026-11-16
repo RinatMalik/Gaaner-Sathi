@@ -22,6 +22,12 @@ import { uniqueTitle } from '../core/song/library';
 import { newId, normalize, type Song } from '../core/song/model';
 
 export const BACKUP_FORMAT = 'gaaner-sathi-backup';
+/** Every name a backup's `format` may have: this one, and the one it will have once the storage
+ * takes the app's new name (DECISIONS.md, 2026-11-13), so that a page from before that release
+ * can still restore a backup made after it. */
+export const BACKUP_FORMATS: readonly string[] = [BACKUP_FORMAT, 'torongini-backup'];
+/** Whether a file's text may be a backup, before it is read as one. */
+export const mayBeBackup = (txt: string): boolean => BACKUP_FORMATS.some((f) => txt.includes(f));
 /** A backup's most bytes. A file is read before it is known to be one, so files of songs may be
  * this big too, but only a backup is taken from one over 2 MB: each session's readings make a
  * backup far bigger than songs alone. */
@@ -151,7 +157,7 @@ export function readBackup(txt: string): BackupRead | null {
   }
   if (!o || typeof o !== 'object' || Array.isArray(o)) return null;
   const r = o as Record<string, unknown>;
-  if (r.format !== BACKUP_FORMAT) return null;
+  if (!BACKUP_FORMATS.includes(r.format as string)) return null;
   const list = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
   const songs: Song[] = [];
   for (const s of list(r.songs)) {
@@ -205,6 +211,76 @@ export function restorePlan<S extends { at: number }>(b: Pick<Backup, 'songs' | 
     log: b.log.filter((e) => !here.logAts.has(e.at)),
     sessions: b.sessions.filter((d) => !here.sessionAts.has(d.at)),
   };
+}
+
+/** Why a write failed (store.ts's WriteResult, but 'ok'). */
+type Failed = 'full' | 'blocked';
+type Written = 'ok' | Failed;
+
+/** Where a restore writes, each saying whether what it was given was kept. */
+export interface RestoreWrites<S> {
+  songs(list: Song[]): Written;
+  routines(list: Routine[]): Written;
+  log(list: LogEntry[]): Promise<Written>;
+  /** One session's detail; false when it could not be read or kept. */
+  session(s: S): Promise<boolean>;
+}
+
+/** What a restore kept, what it could not and why, and how many sessions lost their detail. */
+export interface Restored {
+  kept: Pick<Backup, 'songs' | 'routines' | 'log'>;
+  failed: { songs?: Failed; routines?: Failed; log?: Failed };
+  wanted: Pick<Backup, 'songs' | 'routines' | 'log'>;
+  lost: number;
+}
+
+/**
+ * Write what a restore adds, and say what was kept. Until 2026-11-16 the songs' and routines'
+ * writes were not checked, so a full browser was told "Restored 12 songs" of songs that would be
+ * gone at the next refresh.
+ */
+export async function restoreInto<S>(add: Pick<Backup, 'songs' | 'routines' | 'log'> & { sessions: readonly S[] }, w: RestoreWrites<S>): Promise<Restored> {
+  const songs = add.songs.length ? w.songs(add.songs) : 'ok';
+  const routines = add.routines.length ? w.routines(add.routines) : 'ok';
+  const log = add.log.length ? await w.log(add.log) : 'ok';
+  let lost = 0;
+  for (const s of add.sessions) if (!(await w.session(s))) lost++;
+  const failed: Restored['failed'] = {};
+  if (songs !== 'ok') failed.songs = songs;
+  if (routines !== 'ok') failed.routines = routines;
+  if (log !== 'ok') failed.log = log;
+  return {
+    kept: { songs: songs === 'ok' ? add.songs : [], routines: routines === 'ok' ? add.routines : [], log: log === 'ok' ? add.log : [] },
+    failed,
+    wanted: { songs: add.songs, routines: add.routines, log: add.log },
+    lost,
+  };
+}
+
+/** A restore in words: what was restored (naming only what there was), and what could not be,
+ * with `why` for each failure. `held` is how many songs, routines and log entries the backup
+ * holds, so that "the rest were here already" is said only when there was a rest. */
+export function restoredWords(r: Restored, why: (f: Failed) => string, held: number): string {
+  const n = r.wanted.songs.length + r.wanted.routines.length + r.wanted.log.length;
+  if (!n) return 'Everything in this backup is here already.';
+  const k = r.kept.songs.length + r.kept.routines.length + r.kept.log.length;
+  const fails = (Object.keys(r.failed) as (keyof Restored['failed'])[]).map((key) => {
+    const count = r.wanted[key].length;
+    const what = key === 'songs' ? many(count, 'song') : key === 'routines' ? many(count, 'routine') : many(count, 'practice session');
+    return ' Its ' + what + ' could not be restored: ' + why(r.failed[key]!);
+  });
+  const lost = r.lost && r.kept.log.length ? ' (' + r.lost + ' without their detail)' : '';
+  const rest = k < held && !fails.length ? '; the rest were here already.' : '.';
+  return (k ? 'Restored ' + keptWords(r.kept) + lost + rest : 'Nothing was restored.') + fails.join('');
+}
+
+/** What was restored, naming only what there was: "1 song", "2 songs and 140 practice sessions"
+ * (the log last, so the sessions' "(1 without their detail)" can follow). */
+function keptWords(b: Pick<Backup, 'songs' | 'routines' | 'log'>): string {
+  const parts = ([[b.songs.length, 'song'], [b.routines.length, 'routine'], [b.log.length, 'practice session']] as const)
+    .filter(([count]) => count)
+    .map(([count, what]) => many(count, what));
+  return parts.length > 1 ? parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1] : (parts[0] ?? '');
 }
 
 /** The settings after "Restore with its settings": the backup's over these, but this device's own

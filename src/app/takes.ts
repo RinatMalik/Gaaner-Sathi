@@ -10,22 +10,23 @@ import { fromInt16 } from '../audio/dsp/pcm';
 import { dayNumber } from '../core/practice/log';
 import { cleanTake, clockText, takeDetail, type Take } from '../core/practice/take';
 import { whenText } from '../core/song/library';
-import { inTx, openDB } from './db';
+import { connection, inTx, openDB } from './db';
 import { exportName, stamp } from './filenames';
 import { dayLabel } from './progress';
 import { esc, tickHTML as tick } from './view';
 
 /** The takes and their samples in IndexedDB (db.ts); null where IndexedDB is not available. */
 export class TakeStore {
-  private constructor(private readonly db: IDBDatabase) {}
+  private constructor() {}
 
   static async open(): Promise<TakeStore | null> {
-    const db = await openDB();
-    return db ? new TakeStore(db) : null;
+    return (await openDB()) ? new TakeStore() : null;
   }
 
-  private run<T>(stores: string[], mode: IDBTransactionMode, fn: (tx: IDBTransaction) => IDBRequest<T> | void): Promise<T | undefined> {
-    return inTx(this.db, stores, mode, fn);
+  /** One transaction, on the connection open now (db.ts → connection: one shut for another tab
+   * is opened again). */
+  private async run<T>(stores: string[], mode: IDBTransactionMode, fn: (tx: IDBTransaction) => IDBRequest<T> | void): Promise<T | undefined> {
+    return inTx(await connection(openDB), stores, mode, fn);
   }
 
   /** A song's takes, newest first (only their details). */

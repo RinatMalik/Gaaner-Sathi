@@ -19,6 +19,14 @@ export function stamp(at: number, time = true): string {
   return d.getFullYear() + '.' + p2(d.getMonth() + 1) + '.' + p2(d.getDate()) + (time ? '_' + p2(d.getHours()) + '.' + p2(d.getMinutes()) + '.' + p2(d.getSeconds()) : '');
 }
 
+/** The date where the singer is, "2026-11-16", as song and practice files say when they were
+ * saved. Until 2026-11-16 it was the date in London's winter time (UTC): a file saved in India
+ * before half past five in the morning, or in a British summer before one, said yesterday. */
+export function localDate(at: number): string {
+  const d = new Date(at);
+  return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
+}
+
 /** The letters as a reader sees them (a Bengali consonant with its vowel sign is one). */
 function letters(s: string): string[] {
   const S = (Intl as { Segmenter?: new (l?: string, o?: { granularity: string }) => { segment(t: string): Iterable<{ segment: string }> } }).Segmenter;
