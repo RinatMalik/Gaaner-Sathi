@@ -4,7 +4,7 @@
 On a follow-up prompt check only what changed (`git status --short`). A by-the-way question gets
 a direct answer, with nothing written. When work, a decision or the project's state changes,
 record the handover before ending the prompt (CONTEXT.md → How to use this file): a Work log
-entry, a row in `docs/DECISIONS.md`, Current state or `docs/WAITING.md`, then commit your own
+entry, a row in `docs/DECISIONS.md` or Current state, then commit your own
 work, staging only the files you changed, and push (Rinat, 2026-11-15). `CONTEXT.md` is
 authoritative; this file only adds notes for Codex and other LLMs.
 

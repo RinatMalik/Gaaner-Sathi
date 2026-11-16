@@ -173,9 +173,9 @@ Sizes are rough: S a few hours, M a day or two, L more.
   and the student sends back scores (M). Songs go from one singer to another as files, never
   as links: a link would carry the song in its address (`docs/DECISIONS.md`, 2026-11-15).
 - **Keeping your data:** a backup reminder and a storage meter (how much of the browser's room
-  the songs, sessions and takes use), with "Download ticked takes" on the Voice page (M). The
-  reminder's first part is built: the Music library says when everything was last backed up
-  (FIX-02, 2026-11-15). Takes are in no backup yet (the review's finding 6).
+  the songs, sessions and takes use) (S–M). Built: the Music library says when everything was
+  last backed up (FIX-02, 2026-11-15); takes ticked on the Voice page, or all of them from
+  Back up or export, save as one file that Import brings back (FIX-03, 2026-11-16).
 - **Keyboards:** typing a song in time as it is played (the rhythm from the playing, not just
   the notes) (M).
 - **Notation:** ornaments: meend, kan, andolan, murki, khatka in notation and playback (L,
@@ -202,7 +202,10 @@ Sizes are rough: S a few hours, M a day or two, L more.
 - **A contact:** how a singer reaches Rinat with a question or a fault.
 
 With them, the move to torongini.com (Open question 3), so that nobody starts keeping songs
-at the old address.
+at the old address. In the same release the storage takes the new name (the keys, the
+database and the files' `format` ids become `torongini`; `docs/DECISIONS.md`, 2026-11-13),
+once Rinat has exported the songs to keep: the new address starts empty whatever the keys are
+called. Import already reads backups and files of takes under both names.
 
 ## After the app is public (Rinat, 2026-10-11)
 
@@ -216,7 +219,7 @@ Big additions, to consider once the app is public and popular.
 
 ## Parked (each needs Rinat's go-ahead)
 
-- **Permanent web address** (`docs/WAITING.md` → Open questions, 3): the app's address, not one per
+- **Permanent web address** (`CONTEXT.md` → Open question 3): the app's address, not one per
   song. Each person's songs live in their own browser under the site's address, so if the app
   moves (to torongini.com, bought 2026-11-13), everyone's songs stay at the old address until
   they back them up there and import them at the new one. Settle it before anyone besides

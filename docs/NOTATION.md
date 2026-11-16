@@ -70,7 +70,7 @@ a space, because JavaScript counts it as whitespace (the port keeps this).
   has to be written `.রা`.
 - **Phonetic keyboards** (Avro and similar) join consonants typed in a row into conjuncts,
   so typing `mpa` can give `ম্পা`; the হসন্ত reads as lower Ma + Pa. Open question 2 in
-  `docs/WAITING.md`.
+  `CONTEXT.md`.
 
 ## Errors
 
@@ -147,7 +147,7 @@ Dadra in the next. Built 2026-10-11 at Rinat's request.
   2026-10-15; the prototype wrote `র্র্সা`, which fonts draw badly).
 - Latin: upper `'` suffix, lower `.` prefix.
 - Rinat's diaries may mark the lower octave with হসন্ত rather than `.`: Open question 1 in
-  `docs/WAITING.md`.
+  `CONTEXT.md`.
 
 ## Edit operations (pure text → text, tested)
 

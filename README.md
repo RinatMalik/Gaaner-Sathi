@@ -31,7 +31,6 @@ live; the design is next.
 |---|---|
 | [`CONTEXT.md`](CONTEXT.md) | The project's shared state: direction, working rules, current state, newest work log |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | Every decision in force |
-| [`docs/WAITING.md`](docs/WAITING.md) | What waits to be tried, heard or answered |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | The phases, what is built, ideas to pick from next |
 | [`docs/HISTORY.md`](docs/HISTORY.md) | Older work log entries, work items and decisions |
 | [`docs/NOTATION.md`](docs/NOTATION.md), [`ENGINE.md`](docs/ENGINE.md), [`DATA.md`](docs/DATA.md) | How the notation, the sound and the data work |

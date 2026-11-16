@@ -706,8 +706,9 @@ path as pitch feedback.
   grouped by Song or by Date (the day taken, "Today, Fri 23 Oct"; a day's rows name their
   song), the choice kept (`tkGroup`); each group folds by its heading, the first three open
   until the user folds or opens one. A tick box on each take, on each group (all of a song's or
-  a day's; "some" when only some are ticked) and Tick all; the bar then offers Delete all N,
-  asked in the bar ("Delete these 5 takes?", Delete or Keep), and Untick. One take's bin deletes
+  a day's; "some" when only some are ticked) and Tick all; the bar then offers Download all N
+  (one file of takes, DATA.md → Takes; 2026-11-16), Delete all N, asked in the bar ("Delete
+  these 5 takes?", Delete or Keep), and Untick. One take's bin deletes
   it at once, unasked (Rinat: "no need for delete confirmation when deleting just one take"),
   and the message offers Undo, which puts the take and its recording back; it lasts until
   another take is deleted. The Practice view's list deletes the same way.

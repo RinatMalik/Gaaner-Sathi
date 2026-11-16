@@ -19,7 +19,7 @@ Clearing a browser's site data ("cookies and site data") deletes it all.
 | Practice log (Progress): each session's summary | IndexedDB (`localStorage` where a browser has no database) | **Download all practice data** (foot of Progress, or the Music library's **Back up or export → All practice data**) saves it, with each session's detail, as one file (below), not importable; **Everything** holds it too and restores it. **Start afresh** in Progress deletes both |
 | Each session's detail: the song as played, every note's result, the pitch heard (since 2026-10-20) | IndexedDB, the newest 1,000 sessions | **Report** opens a page on it, **For AI** saves it as a file (below), a day's **For AI** a day's in one, and the downloads above hold them all; **Everything** restores them |
 | Rewaz routines | `localStorage` | In **Everything** |
-| Takes (recordings) | IndexedDB | Each downloads as a WAV file; not importable |
+| Takes (recordings) | IndexedDB | Each downloads as a WAV file; those ticked on the Voice page, or **Back up or export → All my takes**, as one file of takes (a ZIP of WAV files, Takes below), which **Import** brings back |
 | The microphone | Not kept: analysed as it arrives | Never leaves the device |
 
 So a friend opening the link sees the app as it is for everyone: the exercises, the starter
@@ -107,6 +107,11 @@ exactly as before.
 `gaanersathi.prefs.v1` in `localStorage`, per device. The first time, they start from the
 prototype's (`swaralipi.prefs.v1`). Older keys are migrated on load: `extra` → `layers`, and
 `dropGuide` → `guideLoop: 'first'`.
+
+**Two tabs (2026-11-16; `mergePrefs` in store.ts).** A tab writes only the settings it has
+changed since it last read or saved them, over what is stored, so a setting changed in one tab
+is not undone when another tab saves. Until then each tab wrote all its settings, the stale
+ones included. Restore with its settings writes them whole.
 
 | Key | Values |
 |---|---|
@@ -199,8 +204,8 @@ keeps the Sa and tempo it was sung in (`sa`, `flat`).
   decibel) and the settings, but not this
   device's own (`deviceLag`, `pitchLag`, `midi`, `mic`, `lastSong`, `tab`, `lastBackup`,
   `keepAsked`). Takes
-  (recordings) are left out: they are large (Rinat chose "no takes"). Its songs are a song
-  file's, so an import of songs alone reads them.
+  (recordings) are left out: they are large (Rinat chose "no takes"); they have a file of
+  their own (Takes, below). Its songs are a song file's, so an import of songs alone reads them.
 - **Restoring:** **Import** recognises it (by `format`; up to 200 MB, where song files stop
   at 2 MB) and says what it holds; **Restore** adds the songs, routines, log entries and
   session details that are not here already (by id, or by a session's `at`) and never
@@ -209,6 +214,15 @@ keeps the Sa and tempo it was sung in (`sa`, `flat`).
   takes the backup's settings over these (this device's own kept) and opens the app again to
   use them. Restoring is not a song import, so songs keep their ids; that is safe because a
   song already here is never written over.
+- **It says what was kept (2026-11-16; `restoreInto`, `restoredWords` in backup.ts).** Each
+  write is checked: songs or routines the browser would not keep (its storage full or blocked)
+  are not counted as restored, and the bar says why ("Restored 1 routine and 2 practice
+  sessions. Its 2 songs could not be restored: …"). It names only what it restored, and says
+  "the rest were here already" only when there was a rest. With its settings, the app opens
+  again only when everything was kept; otherwise the message stays and the settings are used
+  at the next refresh. Until then the bar said "Restored 12 songs" whatever the writes did.
+- **Its name:** Import reads `format` `gaaner-sathi-backup` and `torongini-backup`, the id it
+  will have once the storage takes the app's new name (Storage, below).
 - **A session's line (from 2026-11-15).** Each session is one line of the file, oldest first.
   Its `pitch` is the session's detail (Session detail, below) written small, as what the
   microphone heard was four fifths of a backup:
@@ -236,9 +250,11 @@ keeps the Sa and tempo it was sung in (`sa`, `flat`).
 
 ## Storage
 
-The keys and names here, and the files' `format` ids, keep the app's first name, Gaaner Sathi,
-for good: the app became Torongini on 2026-11-13, and renaming them would leave everything saved
-behind and stop old backups restoring (docs/DECISIONS.md, 2026-11-13).
+The keys and names here, and the files' `format` ids, keep the app's first name, Gaaner Sathi:
+the app became Torongini on 2026-11-13, and renaming them would leave everything saved behind.
+They take the new name once Rinat has exported the songs to keep, best with the move to
+torongini.com, where the storage starts empty anyway (docs/DECISIONS.md, 2026-11-13). Import
+already reads backups and files of takes under both names (2026-11-16).
 
 | Key | Holds |
 |---|---|
@@ -251,9 +267,15 @@ behind and stop old backups restoring (docs/DECISIONS.md, 2026-11-13).
 | IndexedDB `gaanersathi` (version 2) | Takes: store `takes` (their details, indexed by `song`) and store `audio` (`{ id, pcm }`, the samples), so listing never loads sound. Sessions: store `sessions` (version 2, 2026-10-20), each session's detail keyed by its log entry's `at` (src/app/db.ts) |
 | IndexedDB `gaanersathi-log` (version 1) | The practice log (2026-11-15): store `log`, each entry keyed by its `at` (src/app/db.ts → LogDB, src/app/store.ts → LogStore) |
 
-- Songs are saved on edit with a 900 ms pause, flushed when the page is hidden or another song
+- Songs are saved on edit with a 900 ms pause, flushed when the page is hidden, closed
+  (`pagehide`, 2026-11-16: closing a tab within the pause lost the last edit) or another song
   opens. Changes saved in another tab are taken in as they happen; a song open and untouched
   here reloads when another tab changes it.
+- **A newer copy of the app in another tab (2026-11-16; db.ts).** When a tab upgrades a
+  database, the older tab's connection is closed; until then its stores kept the closed
+  connection and every later write failed. Now each write opens the database again if it was
+  closed, and the older tab says "A newer copy of the app is open in another tab. Refresh this
+  page, so that what you record and practise here is kept."
 - The song list is the prototype's songs with this app's on top (the newer `updatedAt`
   wins), less the hidden ones.
 - *Why the prototype's keys are only read:* the prototype loads its song list once and writes
@@ -304,8 +326,9 @@ behind and stop old backups restoring (docs/DECISIONS.md, 2026-11-13).
   agreed to keep the data. Both settings are this browser's own: never written to a backup,
   never taken from one.
 - A full browser refuses writes; the status line says so ("Not saved: song storage is
-  full…"). IndexedDB can be evicted under storage pressure; Download is the safe copy of a
-  take. In a private window, or with site data off, recording is refused with a message.
+  full…"). IndexedDB can be evicted under storage pressure; a downloaded file is the safe copy
+  of a take (Takes, below). In a private window, or with site data off, recording is refused
+  with a message.
 - Rinat's songs in the claude.ai version of the prototype come across with "Back up all my
   songs" there, then Import here (`reference/README.md`).
 
@@ -423,6 +446,27 @@ included). Takes are checked when read; damaged ones are skipped. Takes shorter 
 than 15 % of one pass of the lines they played, are not kept (2026-10-28; ENGINE.md → Takes). A take outlives its song: it keeps the title it was recorded under, and is listed on
 the Voice page with every other song's (2026-10-23).
 
+**A file of takes (2026-11-16; src/app/takefile.ts, src/app/zip.ts).** The takes ticked on the
+Voice page (Download all N) or every take (Back up or export → All my takes) save as one ZIP:
+`<when> - 3 takes - Recordings.zip` or `<when> - All my takes - Recordings.zip`. It holds each
+take's WAV, named as a take downloaded alone is (two of the same second get " (2)"), and
+`takes.json`:
+
+```json
+{ "format": "gaaner-sathi-takes", "version": 1, "exported": "2026-11-16T00:56:51.000Z",
+  "takes": [ { "id": "take-…", "song": "song-…", "title": "…", "at": …, …, "file": "<when> - <title> - Recording.wav" } ] }
+```
+
+- Any computer opens it (a ZIP without compression: sound does not shrink, and nothing has to
+  be unpacked to read it), and the WAVs play anywhere.
+- **Import** recognises it (a ZIP whose `takes.json` has that `format`, or `torongini-takes`)
+  and adds the takes not here already (by id) with their recordings, each checked (its CRC and
+  its WAV header): a damaged take is left out and said so. The bar says how many were restored,
+  were here already or were damaged. It is read a part at a time, so it has no size limit but
+  the ZIP's own 4 GB; more than that is refused with a message to save fewer at a time.
+- The ZIP is built a take at a time and handed to the browser in parts, so a year of takes is
+  not held in memory at once.
+
 ## Session detail, reports and the file for AI
 
 Rinat, 2026-10-20: "Have two buttons for each session": **Report** and **For AI** beside each
@@ -506,7 +550,11 @@ its sessions'; a song's and all the practice's are when they were made. `<title>
 60 letters (a consonant and its vowel sign are one), cut at a space near the end with "…", and
 no character a computer refuses: the longest songs' first lines fit, and a whole path stays
 well inside Windows' 260 characters even in a deep folder. `<kind>` is `Data.json` (For AI),
-`Report.html` or `Recording.wav` (a take). Song files (Export, Back up) keep their own names.
+`Report.html`, `Recording.wav` (a take) or `Recordings.zip` (a file of takes). Song files
+(Export, Back up) keep their own names. Every date the app writes, in a name or inside a song
+or practice file, is the device's own (`localDate`; until 2026-11-16 the date inside those
+files was the UTC one: a day behind in the small hours east of Greenwich, as in Dhaka until
+6 am, and a day ahead late in the evening west of it).
 
 **A day's sessions in one file** (Rinat, 2026-10-21: "It would've been good to be able to
 export a day's data in one go"): **For AI** on each day's row in Progress's History saves

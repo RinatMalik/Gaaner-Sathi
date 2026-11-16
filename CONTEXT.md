@@ -21,8 +21,7 @@
    - *work* (code, docs or project structure): a Work log entry, Current state brought up to
      date, your own files committed and `main` pushed;
    - *a decision:* its row in `docs/DECISIONS.md`;
-   - *state* (a blocker, the next action, something Rinat tried or answered): Current state,
-     and `docs/WAITING.md` when it is one of Rinat's checks or questions.
+   - *state* (a blocker, the next action, an open question answered): Current state.
 
    Whatever was written is committed and pushed, so that the next session finds it.
 5. **Look things up; don't load them.** Before changing an area, search `docs/DECISIONS.md`
@@ -34,11 +33,10 @@
    - **Work log:** the newest three entries stay here. When there are five or more, move the
      older ones to `docs/HISTORY.md`, word for word, so that three are left. An entry is 15
      lines at most: the commits carry the detail.
-   - **Decisions** are written straight into `docs/DECISIONS.md`, and what waits for Rinat
-     into `docs/WAITING.md`. Current state says where things stand in a few lines and names
-     one next action.
-   - **Budget: under 45 KB** (`wc -c CONTEXT.md`). Over it, move the most settled part out,
-     word for word, before ending the prompt.
+   - **Decisions** are written straight into `docs/DECISIONS.md`. Current state says where
+     things stand in a few lines and names one next action.
+   - **No list of things for Rinat to try or check** (Rinat, 2026-11-16): Rinat uses the app
+     all the time and asks for changes as they come.
    - **No commit only to say that CI went green:** the Last known-good line is brought up to
      date in the next handover.
 
@@ -51,7 +49,6 @@ wins, except a later explicit decision by Rinat, which always wins.
 |---|---|---|
 | `CONTEXT.md` | This: direction, rules, state, the newest three work log entries | Once, at the start of a fresh session |
 | `docs/DECISIONS.md` | Every decision in force, a row each | Searched (not read whole) before changing an area; a new row for each new decision |
-| `docs/WAITING.md` | What waits for Rinat: what to try of each round, the open questions, what is left of the review, what needs a real voice, ear, phone or keyboard | Rinat wanting to know what to try; when Rinat reports on something or answers a question |
 | `docs/ROADMAP.md` | Phases and their done criteria, what is built, feature ideas, parked ideas | Planning, closing a phase, Rinat picking features |
 | `docs/HISTORY.md` | Older work log entries, work items with their evidence, decisions no longer in force | Searched, to trace why something is the way it is |
 | `docs/NOTATION.md` | The notation: beats, notes, octaves, sections, beat boxes, edit operations, checker | Touching `src/core/notation/` or the editor |
@@ -69,8 +66,8 @@ wins, except a later explicit decision by Rinat, which always wins.
   (PH2-62): its header shows the logo Rinat chose (তরঙ্গিণী with a river through it) and the
   tagline প্রতিদিনের রেওয়াজের সাথী; its icon is a gold ত on rosewood. Phase 1, features, was
   closed by Rinat on 2026-10-11 ("That's it for features"): everything asked for is built and
-  live. Nothing built has been signed off yet: `docs/WAITING.md` lists what Rinat has still to
-  try.
+  live. Everything built is taken as tried and fine (Rinat, 2026-11-16: "I continuously check
+  the page and ask you to make changes any way"): nothing waits for a separate check.
 - **Review of 2026-11-14 and its three fixes (FIX-01, Claude, 2026-11-15):** the whole repository
   read and run for Rinat ("do a full review of this project"); the code healthy, and at Rinat's
   "Fix top three" three faults of growth and timing fixed: a run ends by itself while the page is
@@ -78,22 +75,22 @@ wins, except a later explicit decision by Rinat, which always wins.
   third of the size and never bigger than Import reads; the practice log is in the browser's
   database, moved out of localStorage. Then, at "Fix 4 and 5" (FIX-02): a page held up no longer
   sounds the beats it missed all at once; the browser is asked to keep what the app stores; the
-  Music library says when everything was last backed up. What the review found and left is in
-  the Work log (2026-11-15, Next handoff).
+  Music library says when everything was last backed up. Then, at "see if you can do them all
+  now" (FIX-03, 2026-11-16), the rest: takes leave and come back as one file; a restore says
+  only what was kept; a song being typed is saved when the tab closes; local dates; two tabs'
+  settings; a database closed for a newer tab; the typefaces served by the app, nothing fetched
+  from Google; a test that loads the built app in Chrome; the tagline's gold by day. Left: the
+  storage's rename, with the move to torongini.com (ROADMAP.md → Before the app goes public),
+  and the review's friction list (the Work log's FIX-01 entry).
 - **The octave (Claude, 2026-10-28):** Rinat sings Sa on C♯3 (138 Hz, the second octave of a
   61-key keyboard); the songs and exercises are at Sa C♯4, and the default 3-reed guide is heard
   at C♯3 (its bass reed: the app's detector reads it at 138.5 Hz), so Rinat matches the guide.
   "Octave must match" judged against C♯4; from round forty-two the bass reed's octave counts too.
-- **Next single action:** Rinat reads the new line at the right of the Music library's count
-  of songs ("Not backed up yet", then "Backed up today" once Back up or export → Everything is
-  saved) and says whether its place and words are right. Everything else that waits for Rinat
-  is in `docs/WAITING.md`.
+- **Next single action:** none waiting; Rinat asks for the next change.
 - **Last known-good commit:** `8e76fff` (CI run `43748544647` green: the review's findings 4 and 5 live, FIX-02, on top of its first three, FIX-01: a page held up goes on from where the clock is, the browser is asked to keep the data, the Music library says when everything was last backed up; the site serves `index-B8mgKuWd.js` and `index-DzcY-4Jx.css`).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
-- **Waiting for a real voice, ear, phone or keyboard** (none of it can be checked here): the
-  list is in `docs/WAITING.md`.
 
 ## Product direction
 
@@ -174,8 +171,8 @@ track, tell the voice what to match.
   for loudness, autocorrelation for tuning, decay curves, timing as pure tests:
   `docs/ENGINE.md` → Verifying sound), then ask Rinat specific listening questions ("is the
   tanpura too buzzy or too plucked?").
-- **At each milestone,** tell Rinat in the reply what changed, what was tested and what to
-  try, with a link that opens on a phone.
+- **At each milestone,** tell Rinat in the reply what changed and what was tested, with a link
+  that opens on a phone. No list of things to try or check (Rinat, 2026-11-16).
 - **Record decisions:** a row in `docs/DECISIONS.md` for each; when there is a real
   architectural trade-off, a short "why" in the doc it concerns (NOTATION, ENGINE or DATA).
 
@@ -189,7 +186,7 @@ track, tell the voice what to match.
       that fills the screen (full screen) also checked at 3840 × 2160, Rinat's 4K TV.
 - [ ] The Invariants still hold.
 - [ ] Your own changes committed (green, or `wip:` with what is unfinished) and pushed.
-- [ ] At a milestone, the reply tells Rinat what changed and what to try.
+- [ ] At a milestone, the reply tells Rinat what changed and how it was checked.
 - [ ] Anything undone or uncertain written in the Work log's Risks and Next.
 
 ### Collaboration and git
@@ -268,7 +265,8 @@ oracle the comparison tests check against.
 - **Licences.** No licence chosen yet (all rights reserved). Dependencies and assets use
   permissive licences (MIT, BSD, Apache-2.0, ISC, CC0, CC-BY), so any licence can be chosen
   later; no copyleft without a recorded decision; never sample the Casio CT-X3000's built-in
-  voices.
+  voices. The two typefaces, shipped with the app, are under the SIL Open Font Licence 1.1,
+  their licence texts in `public/fonts/` (docs/DECISIONS.md, 2026-11-16).
 
 ## Conventions
 
@@ -296,20 +294,24 @@ decision.
 | `index.html` | The page |
 | `src/core/` | Pure: `notation/` (parser, edit operations, checker, sections, beat boxes), `taal/`, `exercises/`, `song/` (model, files, sound), `pitch/` (tracking, scores, voice), `practice/` (log, routines, takes) |
 | `src/audio/` | Engine, instruments, transport, `mic.ts`, `recorder.ts`, `midi.ts`; `dsp/` is pure (FFT, pitch detector, tanpura string, PCM) |
-| `src/app/` | The screen: `view.ts` (pure HTML builders), `store.ts` (storage), `app.ts` (the wiring), `styles.css`, and a module per view or feature: `songs`, `pitch`, `rewaz`, `progress`, `boxes`, `voice`, `takes`, `keyboard`, `print` |
+| `src/app/` | The screen: `view.ts` (pure HTML builders), `store.ts` (storage), `app.ts` (the wiring), `styles.css`, `fonts.css` and `fonts/` (the typefaces), and a module per view or feature: `songs`, `pitch`, `rewaz`, `progress`, `boxes`, `voice`, `takes`, `takefile` and `zip` (a file of takes), `keyboard`, `print` |
 | `tests/ported/` | The prototype's reference suites, one-for-one |
 | `tests/differential/` | The port against the prototype's own code (a recording stand-in for Web Audio; fake page elements for its rendering) |
 | `tests/unit/` | Everything else |
+| `tests/app/` | The built app in a real browser (`load.mjs`, run by `npm run test:app`) |
 | `dev/render.html` | The audio check page (dev only) |
 | `dev/icon.html` | Draws the app's icon at each size (dev only); `public/icons/` holds screenshots of it, copied into the build as they are |
 | `reference/` | The prototype, its exercises and its suites (`reference/README.md`) |
-| `.github/workflows/ci.yml` | CI on every push to `main`: a core job (`npm ci`, type-check, tests, build), a reference job, then a deploy to GitHub Pages (the app at the root, a forward page at `/new/`) |
+| `.github/workflows/ci.yml` | CI on every push to `main`: a core job (`npm ci`, type-check, tests, build, the built app loaded in Chrome), a reference job, then a deploy to GitHub Pages (the app at the root, a forward page at `/new/`) |
 
 ### Commands
 
 - `npm install` once.
-- `npm test`: every Vitest suite (620 tests in 56 files, about 10 s). Read the "Test Files" line: a
+- `npm test`: every Vitest suite (643 tests in 58 files, about 10 s). Read the "Test Files" line: a
   file that fails to load is not counted as a failed test.
+- `npm run test:app` after `npm run build`: the built app loaded in headless Chrome or Edge
+  (`tests/app/load.mjs`, about 8 s): no error, no request to another address, the typefaces,
+  every view, Play.
 - `npm run typecheck`: the whole project, then `src/core` and `src/audio/dsp` with no DOM
   library (a DOM call there fails).
 - `npm run dev`: the Vite dev server, the app at `/`, the audio check at `/dev/render.html`.
@@ -385,12 +387,12 @@ built kept a row here in Review; those 75 rows, with their evidence, are in `doc
 | | | | Nothing in progress | | |
 
 *IDs: `PH2-nn` a round of Rinat's design comments (next PH2-63), `FIX-nn` faults found in a
-review (next FIX-03), `DOC-nn` the documents (next DOC-02).*
+review (next FIX-04), `DOC-nn` the documents (next DOC-02).*
 
 ## Open questions
 
 *Decisions that need Rinat eventually but block nothing; the default applies until answered.
-Each in full, with what was found so far, in `docs/WAITING.md` → Open questions.*
+The notes on each, as they stood on 2026-11-15, are in git: `git show a084ae8:docs/WAITING.md`.*
 
 1. Lower octave when the editor writes notation: `.` before the note, or হসন্ত after it?
 2. Conjuncts from phonetic keyboards such as Avro: is `ম্প` lower Ma + Pa, or plain Ma + Pa?
@@ -416,6 +418,23 @@ Template:
     - **Decisions made:** rows added to `docs/DECISIONS.md`.
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
+
+### 2026-11-16 GMT — Claude (Opus 5.5) — FIX-03 the rest of the review; WAITING.md and the 45 KB rule gone
+
+- **Goal:** Rinat: WAITING.md "pointless", everything "tried and fine"; the 45 KB rule "rigid
+  and frankly quite dumb … remove it"; the review's findings 6–8 and the rest "see if you can do
+  them all now. if not then just add them to roadmap".
+- **Changed:** commits by idea (`git log`): restore checks its writes; local dates, `pagehide`,
+  prefs merged per key, the database reopened; one file of takes (`zip.ts`, `takefile.ts`);
+  fonts in `src/app/fonts/`; the tagline's `--brass-text`; `tests/app/load.mjs` in CI; docs.
+- **Tests / verification:** `npm run typecheck` clean; `npm test` 643 passed (58 files); `npm run
+  build`; `npm run test:app` passed (15 requests, all to the app, 10 typeface files), and failed
+  as it should on a planted throw and request; `npm run test:reference` all green. Dev server,
+  360 px, both themes: no request off the page's address; tagline #8a6514 by day, #d3a843 by
+  night; two takes downloaded (Voice page, then All my takes), deleted, imported back sample for
+  sample; a backup under `torongini-backup` restored "Restored 1 song; the rest were here
+  already." The test data removed again.
+- **Decisions made:** eight rows. **Next handoff:** none waiting; Rinat asks for the next change.
 
 ### 2026-11-16 GMT — Claude (Fable 5.2, finished by Opus 5.5) — DOC-01 this file made short; the reading and handover rules; the roadmap
 

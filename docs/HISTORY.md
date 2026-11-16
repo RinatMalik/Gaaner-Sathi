@@ -21,8 +21,8 @@
 
 Every item built from Phase 1 to 2026-11-15, as its row stood in `CONTEXT.md` → Active work
 when the rows were moved here on 2026-11-16: built and live, in Review until Rinat has used
-it (`docs/WAITING.md` says what Rinat has still to try). From that day an item has no row:
-its Work log entry is its record.
+it. Rinat, 2026-11-16: all of them taken as tried and fine, so Done. From that day an item has
+no row: its Work log entry is its record.
 
 | ID | Owner | Status | Scope | Evidence | Notes |
 |---|---|---|---|---|---|
