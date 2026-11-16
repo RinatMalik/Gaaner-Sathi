@@ -28,6 +28,9 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      # The built app in headless Chrome: no error, nothing fetched from elsewhere, every
+      # view opens, Play plays (tests/app/load.mjs).
+      - run: npm run test:app
 
   reference:
     name: Prototype reference suites
