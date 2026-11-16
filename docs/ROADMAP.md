@@ -10,13 +10,15 @@ learning curve and no account. It plays the melody from the singer's own swarali
 rhythm and drone, keeps a library of songs, listens to the singer, and runs a daily rewaz.
 The order (Rinat, 2026-10-10): features and functionality first, built in the web app; then
 one intuitive design across all of them, in the web app; then a fresh native mobile app.
+Before the native app the web app goes public (Rinat, 2026-11-16).
 
 | Phase | What | Done when |
 |---|---|---|
 | 0 | Port the single-file prototype to a clean, light web app (done 2026-10-10) | done |
 | 1 | Features and functionality, in the web app | Rinat has used every feature on real songs and is happy with what the app can do |
-| **2 ◀ now** | Design: one intuitive design across every feature, in the web app | Rinat signs off the design |
-| 3 | Native mobile app: a fresh build, Android first | The app on Rinat's phone does everything the web app does |
+| 2 | Design: one intuitive design across every feature, in the web app (closed 2026-11-16) | Rinat signs off the design |
+| **3 ◀ now** | Going public: publishing, marketing, PR and distribution | The app is at torongini.com with its About page, licence and contact; the film and the launch kit are out; singers Rinat does not know are using it |
+| 4 | Native mobile app: a fresh build, Android first | The app on Rinat's phone does everything the web app does |
 
 ## Phase 0: the port (done 2026-10-10)
 
@@ -56,7 +58,10 @@ in only when Rinat asks for them.
 
 Anything from Feature ideas below.
 
-## Phase 2: design ◀ now
+## Phase 2: design
+
+Closed by Rinat on 2026-11-16 ("I guess we can close the current phase (design, was it?) and
+start a new phase"). A design comment still gets its round (`PH2-nn`) whenever Rinat has one.
 
 One intuitive design across every feature, worked out in the web app once all the pieces
 exist, so it is designed once: navigation between songs, practice, rewaz, voice and progress
@@ -133,7 +138,134 @@ Begun 2026-10-11 with Rinat's comments on the screen as it is ("mostly design am
 | 60 | **The top's Sa, tempo, taal and rhythm speed for every song until a refresh:** each list's first choice the song's own, Default under the tempo, no Revert; no Sa on a rewaz routine; the Sa changed in the break between rewaz items; how long each rewaz item takes; Edit for the songs ticked in the Music library; the Sa, taal and tempo in full screen's bar | 2026-11-13 | A key or tempo picked once holds for a whole sitting of songs and rewaz and goes with a refresh; the length of each rewaz item can be read; several songs change at once; full screen says what is playing |
 | 61 | **Expand all:** every line of the Practice view opened to full size with its pitch strip at once, and collapsed again, kept for every song until collapsed | 2026-11-13 | A whole song can be read, or looked back at after a run, at full size without opening each line |
 
-## Phase 3: native mobile app
+## Phase 3: going public ◀ now
+
+Opened by Rinat on 2026-11-16 ("let's think about marketing and distribution when I publish the
+app … a new phase of publishing, marketing, PR, distribution"). The app is built and designed;
+this phase puts it in front of the singers it is for. It adds no feature to the app. Its work
+items are `PUB-nn`; each task below is sized for one session of Claude (Fable or Opus), and
+says what it needs from Rinat first.
+
+**Done when:** the app is at torongini.com with its About page, a licence and a contact; the
+film and the launch kit are out; and singers Rinat does not know are using it (Rinat's call).
+
+### Who it is for, and where they are (Claude's first reading, for Rinat to correct)
+
+- **The singer** learns Bengali songs (Rabindrasangeet, Nazrulgeeti, adhunik, folk) from
+  swaralipi and practises alone, mostly on a phone: in Bangladesh, in West Bengal and abroad
+  (the UK first, where Rinat is). Not technical. What wins them: it plays *their own*
+  swaralipi, and it opens from a link with nothing to install and no account.
+- **The teacher** is the multiplier: one teacher brings a class. Music schools, private
+  tutors, cultural associations' Saturday classes. What a teacher needs: every student can
+  open it at once, and a song goes to the class as a file.
+- **Where they are:** WhatsApp groups of schools and families (the link and a short film
+  travel there); Facebook groups for Rabindrasangeet, Nazrulgeeti, swaralipi and harmonium
+  learners (ask each group's admin before posting); YouTube lesson channels (a film, comments,
+  a teacher showing it); the schools themselves (Chhayanaut and BAFA in Dhaka, Dakshinee and
+  Gitabitan in Kolkata, Rabindra Bharati, Visva-Bharati's Sangit Bhavana, the Bengali
+  associations in British towns); and the press they read (Prothom Alo, The Daily Star,
+  Anandabazar Patrika; in Britain the Bengali weeklies and channels, and the BBC Asian
+  Network). Every name here is a place to try, not a contact: Rinat knows which are real.
+- **What to say, in one line:** type your swaralipi once, then sing with a harmonium, a tabla
+  and a tanpura that follow it. Then, in this order: nineteen taals, Tagore's own six among
+  them; it listens and shows where the voice was sharp or flat; a daily rewaz that runs
+  itself; nothing to install, no account, and the songs never leave the device. Say only what
+  the app does today.
+- **The link is the distribution.** There is no shop to be listed in until the native app
+  (Phase 4): every share of the address is the whole product. So the picture and the two
+  lines a link shows when it is pasted into WhatsApp or Facebook are the most seen piece of
+  marketing, and the app must explain itself in its first ten seconds, as it is built to.
+- **A day to launch on** gives the press a reason. In 2027: 21 February (Ekushey, the mother
+  language day), mid-April (Pohela Boishakh), early May (25 Boishakh, Tagore's birthday),
+  late May (11 Jyoishtho, Nazrul's). Claude's suggestion: teachers first, quietly, in January;
+  everyone on 21 February; a second push at Pohela Boishakh.
+- **No money to start with:** no advertising. **No telemetry** (Invariants): how it goes is
+  read from replies, the contact address and the film's view count, unless Rinat decides on a
+  counter that keeps no personal data (a decision to record first).
+
+### The film (PUB-01, built 2026-11-16)
+
+Rinat's model was Anthropic's film for Claude Design
+(https://www.anthropic.com/news/claude-design-anthropic-labs, 82 seconds). **The style is a
+product launch film in motion design:** the interface itself is the subject and nobody
+speaks or appears. A virtual camera goes from the whole window down to a single button and
+back (macro close-ups); a cursor and text typing itself carry the story; between shots a
+word or a phrase stands alone; every cut lands on the music; the set is the brand's own
+paper colour; it ends on the logo. Studios call it UI motion design or a kinetic product
+demo. Anthropic's is drawn: the interface is redrawn as artwork and animated. Ours films
+the real app, which is the same look for a tenth of the work and cannot show anything the
+app does not do.
+
+- **Where it is:** `dev/film/`. `score.ts` is the song and the clock; `sound.ts` renders the
+  soundtrack with the app's own engine (tanpura, harmonium, tabla: nothing recorded);
+  `film.ts` is the stage (the app in frames on paper, the camera, the typing, the cursor, the
+  words); `capture.mjs` steps a headless browser a frame at a time and has ffmpeg put the
+  file together. `npm run film` writes `dev/film/out/torongini-film.mp4` (not in git; 1920 ×
+  1080); `npm run film -- --stills 12.5,31` writes pictures of those seconds, for looking at a
+  change; `--fps`, `--scale`, `--from`, `--to`, `--sound-only` as its first lines say.
+  `/dev/film/sound.html` on the dev server plays the music by itself.
+- **How the picture and the sound stay together:** the app times its highlight from its
+  audio clock alone, and the stage makes that clock the film's. Play is pressed 0.12 s
+  before the sam, as the app sounds its first beat 0.12 s after a press. Each render prints
+  when the first beat was lit and when it sounds.
+- **What is in it,** in matras of Keherwa at 112 (a cycle is 4.3 s; 53 s in all):
+
+  | Matras | Picture | Sound | Words |
+  |---|---|---|---|
+  | 0–8 | The name and the tagline on paper | Tanpura | |
+  | 8–16 | Close on the notation box: the first line typed, a note to a matra | Each note on the harmonium as it lands | Type your swaralipi once. |
+  | 16–24 | Back to the whole Edit view: the words, then three lines pasted; the cursor goes to Play | Tanpura | |
+  | 24–32 | Play pressed on the sam; close on the first line, the beat lit under its word | Tabla and harmonium come in | Press play, and sing. |
+  | 32–40 | The whole window | | Harmonium for the tune. Tabla for the taal. Tanpura for your Sa. |
+  | 40–48 | The theka, a bol to a matra, over the dimmed app | | কাহারবা Keherwa, one of nineteen taals |
+  | 48–56 | Close on the deck: the Sa and the reeds, then tempo, taal and instrument | A fill into the second round | Your Sa. Your tempo. Your taal. |
+  | 56–64 | Night falls on the sam; the first line again | Second round | By day, and by night. |
+  | 64–72 | The camera draws back to six views at once | | A library for your songs. A routine for your daily rewaz. |
+  | 72–80 | A laptop and a phone, the same beat lit on both | | On a phone or a laptop. Nothing to install. |
+  | 80–88 | In on the last line | | Your songs stay on your device. |
+  | 88–96 | The name, the tagline, torongini.com | The closing Dha; the tanpura dies away | |
+
+- **What Rinat should know before showing it:** the song was written for the film: its words
+  are the app's name and tagline, its tune is Claude's, in Bhupali, and nobody who made it has
+  heard it. The bols are in Claude's Bengali spelling (ধা গে না তি | না কে ধিন না). The last
+  card says torongini.com, where the app is not yet: the film goes out after PUB-05. The pitch
+  check, the app's second strongest point, is not in it (PUB-02).
+- **The brief, for whoever changes it** (this is the prompt: give a session this section and
+  what Rinat wants changed). Film only the real app, never a drawing of it. One idea to a
+  shot; a shot is one cycle or half of one; close, then wide, then close. Place every cut,
+  word and press in matras from `score.ts`, never in seconds. A line of words is eight words
+  at most, UK English, sentence case, and true of the app today; Bengali comes from the app
+  or from Rinat. The stage clears and writes the app's storage, so it runs only in the
+  render's throwaway profile. After a change: `npm run typecheck`, stills of every shot
+  touched, read the render's "lit" against "sounds", then the whole film.
+
+### The tasks, a session each
+
+Roughly in order. A task marked **Rinat** cannot start until Rinat has answered.
+
+| ID | Task | Needs from Rinat | Done when |
+|---|---|---|---|
+| PUB-01 | **The film, first cut** (built 2026-11-16, above) | To watch it with the sound on | Rinat says what stays and what changes |
+| PUB-02 | **The film, second cut:** Rinat's changes; **the pitch check in it** (a stand-in for the microphone's worklet in the stage, fed a sung line on the film's clock: one of Rinat's own takes saved from the Voice page, or a made-up voice, so the app's real detector draws its real trace); the tune and words as Rinat wants them | **Rinat:** the notes on the first cut; a take of the film's song, if Rinat's voice is to be in it | The film shows the app listening, and Rinat would post it |
+| PUB-03 | **The tall and the square cut** (1080 × 1920 for Reels, Shorts and WhatsApp status; 1080 × 1080 for a Facebook post), 20 to 30 s: the stage takes a size, the phone-sized app is the main card, shots framed again | PUB-02 agreed | Both files render from `npm run film -- --shape tall` and `--shape square` |
+| PUB-04 | **Before the launch** (below → Before the app goes public): the About and privacy page, the licence, the contact | **Rinat:** which licence; the contact address; free, paid or donations (Open question 4); who is named as the maker | The page is in the app and says all three |
+| PUB-05 | **The move to torongini.com,** with the storage's new name in the same release (Open question 3; below → Before the app goes public) | **Rinat:** the go-ahead, the songs exported first, and the domain's DNS set as the task will list | The app answers at torongini.com and the old address forwards |
+| PUB-06 | **What a pasted link shows, and being found:** title and description, Open Graph tags, a 1200 × 630 picture drawn by a dev page as the icon is, `robots.txt` and a sitemap, the About page's words in English and Bengali so that a search for স্বরলিপি or swaralipi can find them | PUB-05 done; the Bengali wording read by Rinat | The link pasted into WhatsApp and Facebook shows the name, a line and the picture |
+| PUB-07 | **The launch kit, in `docs/launch/`:** pictures of the app by day and night, on a phone and a laptop, taken by a script (the film's stage can frame them); the app described in one line, fifty words and a hundred and fifty; a press note in English, and in Bengali for Rinat to correct; the README brought into line | None to start; Rinat reads the Bengali | Rinat can answer "what is it?" by pasting, at any length |
+| PUB-08 | **A page for teachers:** how a class starts (the link), how a song reaches students (a file), how a routine is set, what stays private | Rinat's own way of teaching or being taught, in a few lines | A teacher could act on it without asking Rinat anything |
+| PUB-09 | **The list and the messages:** the places above turned into a list with a line on each and a message written for each kind (a WhatsApp forward, a post for a Facebook group, a note to a school, a note to a paper), and the film's YouTube title, description and chapters | **Rinat:** which places are real, and names where there are any | Every message is ready to paste; sending is Rinat's, from Rinat's own accounts |
+| PUB-10 | **Launch day and the fortnight after:** the order things go out in, what to watch (replies, the contact address), and a session kept free for the first faults strangers find | A date (above → A day to launch on) | The date has passed and the first reports are answered |
+| PUB-11 | **The makers' story,** for people who build things rather than sing: a singer's diaries, an app with no dependencies that keeps everything on the device, built with Claude and Codex; for Show HN, Product Hunt and the like | Whether Rinat wants that audience at all | A post drafted, and sent or dropped |
+
+Worth doing before the launch though it is a feature, so it stays in Feature ideas → Examples:
+two or three whole songs beside the exercises, so that a newcomer sees words under notes at
+once.
+
+**For Rinat to decide in this phase:** the launch date; free, paid or donations; the
+licence; whether anything is counted; whether the film's song stays; which accounts the app
+speaks from (a YouTube channel and a Facebook page are Rinat's to open).
+
+## Phase 4: native mobile app
 
 A fresh app, not a web page in a wrapper: Android first (an APK), iOS if wanted. Native audio
 for low latency, the microphone, playing with the screen off, and offline by nature. Songs,
@@ -194,6 +326,8 @@ Sizes are rough: S a few hours, M a day or two, L more.
   (L, see Parked).
 
 ## Before the app goes public (Rinat, 2026-11-15)
+
+*Phase 3's tasks PUB-04 and PUB-05.*
 
 - **An About and privacy page:** what the app is, who makes it, and what it keeps (everything
   on the device, nothing sent anywhere, the microphone heard only on the device), in plain

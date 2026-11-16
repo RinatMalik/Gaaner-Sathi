@@ -268,6 +268,115 @@ too), and the review of the takes of 25–27 October.
 
 ## Work log, older entries
 
+### 2026-11-15 GMT — Claude (Fable 5.2) — FIX-02 the review's findings 4 and 5: a held-up page, the browser asked to keep the data, the last backup said
+
+- **Goal:** Rinat: "Fix 4 and 5" (the review's: a burst of notes after a freeze; nothing asks the
+  browser to keep the data, "ask once on first save, and show 'last backed up N days ago'").
+  Also asked: "is the backup a third of the size smaller because it is recording less data or
+  being compressed? How would it affect restore in different machines and different
+  environments?" (answered in chat: the same numbers, written compactly by the app's own code
+  rather than by a general compressor, so every browser that runs the app reads them; a copy of
+  the app from before 2026-11-15 would restore such a backup's sessions without their readings).
+- **Inspected:** `Transport.tick` (its loop schedules every beat up to 160 ms ahead of now,
+  however far behind it starts; measured in the review, a 30 s hold scheduled 60 beats, 59 in
+  the past); `navigator.storage`, used nowhere; the Music library's top rows.
+- **Changed:** `8f0bc9a` fix(play): `transport.ts` (`LATE` 30 ms, `RESUME` 50 ms: a tick more
+  overdue than that starts again from now), `tests/unit/freeze.test.ts` (3 tests), ENGINE.md →
+  One clock. `af93f74` feat(storage): `src/app/keep.ts` (`askToKeep`), `backupNote` in
+  `backup.ts`, `lastBackup` and `keepAsked` in the settings and in `DEVICE_PREFS`, `#bkWhen` in
+  `index.html` with its style, `app.ts` (`keepData` after a song is saved or a session logged;
+  `showBackupNote`; Everything saved sets `lastBackup`), `tests/unit/keep.test.ts` (9 tests),
+  DATA.md → Storage and Backups. This commit: this file and HISTORY.md (the older work log
+  entry moved).
+- **Tests / verification:** `npm run typecheck` clean; `npm test` 620 passed (56 files);
+  `npm run build` built (JS 419.71 kB, 145.49 kB gzipped); `npm run test:reference` parser 31,
+  checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Dev server in the browser
+  pane. An exercise playing and the page held for 3 s by a busy loop: of the 37 sounds scheduled
+  after it none was in the past (the first four 50 ms ahead), and the time left went on from
+  where it was. The note at 360 px: on the count's row, at its right, no sideways scroll; "Not
+  backed up yet: save a copy with Back up or export" in the warning colour, 5.74:1 by day and
+  11.03:1 by night (`--warn` alone measured 4.44:1 by day, so it is mixed a fifth with the ink);
+  Everything saved: "Backed up today", in the row's own grey. With the browser's storage manager
+  stood in for: on the first save of a visit `persisted()` once and `persist()` once, `keepAsked`
+  set, the tip "This browser has agreed…"; a second save asked nothing. No error in the console.
+  What was added to the dev copy's storage was removed again.
+- **Decisions made:** two rows (a held-up page; the browser asked and the last backup said).
+- **Risks or disagreements:** what Rinat's own browser answers when asked is not known (the
+  pane's said no, as a little-used address gets); Firefox's own question was not seen; Safari's
+  clearing of a site not visited for seven days is not changed by any of this. The note counts
+  only Everything as a backup, not All my songs. A hold-up moves the song later, so a take
+  recorded across one parts from its guide there on playback. Not heard: how the restart 50 ms
+  after a hold-up sounds.
+- **Next handoff:** Rinat looks at the note (Next single action). Left of the review: (6) takes
+  have no bulk download and are in no backup; (7) Restore says "Restored" without checking that
+  the songs and routines were written; (8) the smaller ones; and what does not add up and the
+  friction, all as listed in the entry below.
+
+### 2026-11-15 GMT — Claude (Fable 5.2) — FIX-01 the review's top three: a run ending unseen, the backup's size, the practice log's store
+
+- **Goal:** Rinat: "do a full review of this project … check everything" (2026-11-14, answered in
+  chat), then "Fix top three".
+- **Inspected:** for the review, all of `src/app/app.ts` and the storage, backup, transport,
+  microphone, pitch tracking, parser and checker; type-check, 584 tests, the build and the
+  reference suites, all green; the app in the browser pane at 360 px. Reproduced there before
+  fixing: with frames held back, a 3-second line still said Pause ten seconds on; a three-minute
+  session with the pitch check 271,827 bytes in a backup (1,000 kept, 200 MB read); a scored log
+  entry about 632 characters in localStorage's five million.
+- **Changed:** `313f569` fix(play): `src/app/pump.ts` (the timer and the frames; with no frame for
+  200 ms the timer does the frame's work), wired into `app.ts` in place of its own timer and
+  frame, `catchUp()` on the pitch check, ENGINE.md → One clock, 5 tests. `dbbd8ff` fix(backup):
+  `src/core/practice/pack.ts` (readings packed, base64), `backup.ts` (`sessionLine`,
+  `backupFile` with its limit, `readBackup` giving each session to be read when restored),
+  `app.ts` (sessions read and restored one at a time; the bar says what was left out), DATA.md →
+  Backups, 11 tests and the older ones moved to the new calls. `02d20ea` fix(log): `LogStore`
+  over a database with the log in memory, `LogDB` and the database `gaanersathi-log` in
+  `db.ts`, `app.ts` (the log's writes awaited or their failure said; tabs told through a
+  `BroadcastChannel`), DATA.md → Storage, 8 more tests. This commit: this file, HISTORY.md (the
+  older work log entry moved), README's line on moving songs (it named a menu since renamed).
+- **Tests / verification:** `npm run typecheck` clean; `npm test` 608 passed (54 files);
+  `npm run build` built (JS 417.80 kB, 144.78 kB gzipped); `npm run test:reference` parser 31,
+  checker 11, join-split 10, rhythm 12, tanpura 5, exercises 12 valid. Each of the first two
+  commits alone in a scratch worktree: type-check clean, 589 and 600 tests. Dev server in the
+  browser pane, which drew one frame in two minutes (the fault's own condition): লম্বা স্বর,
+  1 min 59 s, ended by itself with the button back to Play and was logged whole (115 s, to line
+  16, its detail kept); a rewaz of two items went item, 4 s break, item, "Rewaz done · 2 items in
+  25 s". Thirty sessions of three minutes put in the stores, Back up or export → Everything
+  pressed: 2,232,447 bytes for 31 sessions (73.9 KB each) in 0.2 s; read back, one session's
+  readings, levels, notes and beats equal to what was stored; the stores emptied, the file given
+  to Import from file and Restore pressed: 31 sessions' detail and 36 log entries back, Progress
+  showing them. Three sessions seeded in `gaanersathi.log.v1`: after a reload, in the database
+  with the two there, the key gone, Progress showing five. No error from the app in the console.
+  What was added to the dev copy's storage was removed again.
+- **Decisions made:** three rows (the timer ends a run unseen; a backup never bigger than Import
+  reads; the log in the browser's database).
+- **Risks or disagreements:** not heard: whether a hidden rewaz item starts cleanly (a hidden
+  page's timers can be slowed once nothing has sounded for a while, and the transport has no
+  guard against a late tick: the review's finding 4). The move of the log was run on the dev
+  copy and in tests, not yet on Rinat's own browser with its real history: if the database will
+  not take it, nothing is removed and the log goes on as before. A page still open from before
+  the change shows only its own new sessions until refreshed. Not tried on a phone, Safari or
+  Firefox. **The local repository had lost one object** (`git fsck`: missing blob `d2c14dee`,
+  `reference/tests/run-all.sh` as committed; found when a scratch worktree would not check out):
+  the working file hashed to the same id, so it was written back (`git hash-object -w`) and
+  `git fsck` is clean; GitHub's copy was never affected. The repository's objects are files that
+  OneDrive syncs, which is the likeliest cause: one more reason to move the folder out of
+  OneDrive when it is renamed (Open question 3).
+- **Next handoff:** Rinat tries the three (Next single action) and picks what comes next. The
+  review's findings not yet fixed, most serious first: (4) a burst of notes after a freeze
+  (`Transport.tick` schedules every beat it missed at once); (5) nothing asks the browser to keep
+  the data (`navigator.storage.persist()`), and nothing reminds of a backup; (6) takes have no
+  bulk download and are in no backup; (7) Restore says "Restored" without checking that the
+  songs and routines were written; (8) closing the tab does not flush a pending song save
+  (`pagehide`), file dates are UTC (`today()`), a second tab's settings overwrite the first's,
+  and the stores keep a closed database after a version change. Things that do not add up:
+  Google Fonts are fetched on every load and in every saved report, against "nothing leaves the
+  device"; the storage rename is best done in the release that moves to torongini.com (a new
+  address starts empty whatever the keys are called) and `readBackup` must then read both
+  `format` ids; this file is 262 KB against its own "keep it lean"; no test loads `app.ts`.
+  Friction: the song's lines start below the first screen; looping one line takes three
+  controls; the tagline's gold by day is 2.34:1; small touch targets on the deck; the interface
+  is English only.
+
 ### 2026-11-13 GMT — Claude (Opus 5.5) — PH2-62 icon 10 built in as the app's icon
 
 - **Goal:** Rinat: "Yes, build icon 10" (the gold ত alone on rosewood).

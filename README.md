@@ -21,9 +21,8 @@ the Music library.
 
 ## Status
 
-The features come first, then one design across them, then a native mobile app
-([roadmap](docs/ROADMAP.md)). The features Rinat has asked for so far are built and
-live; the design is next.
+The features came first, then one design across them; now the app is being made ready to go
+public, and a native mobile app comes after ([roadmap](docs/ROADMAP.md)).
 
 ## Find your way around
 
