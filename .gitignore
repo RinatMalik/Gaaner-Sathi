@@ -54,3 +54,6 @@ reference/tests/.extracted/
 
 # ── Pitch data downloaded from the app, for Claude to read (private: never committed) ──
 feedback/
+
+# ── The film, rendered (dev/film/capture.mjs writes it; the source beside it is kept) ──
+dev/film/out/

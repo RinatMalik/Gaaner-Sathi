@@ -1,0 +1,51 @@
+/* The film's stage (dev only). The app in the film brings its own styles, inside its frames; these
+   are the stage's: the paper it stands on, the cards, the words and the cursor. Its colours are the
+   app's own (src/app/styles.css → :root), by day and by night. */
+:root{
+  --paper:#eceeea; --sheet:#fbfbf8; --ink:#1b1c24; --ink-2:#5c5f6c; --river:#2569ad; --brass:#c4952b; --brass-text:#8a6514;
+  --red-ink:#b3261e; --card-shadow:0 2px 6px rgba(40,22,10,.10),0 28px 80px rgba(40,22,10,.22);
+  --f-note:"Tiro Bangla","Noto Serif Bengali",Georgia,serif;
+  --f-ui:"Hind Siliguri","Noto Sans Bengali",system-ui,sans-serif;
+}
+:root[data-night]{
+  --paper:#111115; --sheet:#19191f; --ink:#ecebe5; --ink-2:#a2a3ae; --river:#6fa8e8; --brass:#d3a843; --brass-text:#d3a843;
+  --red-ink:#ff8d7e; --card-shadow:0 2px 6px rgba(0,0,0,.5),0 28px 90px rgba(0,0,0,.7);
+}
+html,body{margin:0;background:#000;overflow:hidden}
+#refuse{font:16px/1.5 system-ui,sans-serif;color:#eee;padding:24px;max-width:60ch}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;background:var(--paper);font-family:var(--f-ui);color:var(--ink)}
+#world{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0}
+.card{position:absolute;border-radius:20px;overflow:hidden;background:var(--paper);box-shadow:var(--card-shadow)}
+.card iframe{display:block;border:0;background:var(--paper)}
+.card.phone{border-radius:44px;box-shadow:0 0 0 12px #1c1512,0 0 0 14px #3a2c25,var(--card-shadow)}
+
+/* What dims the app while words stand over it */
+#shade{position:absolute;inset:0;background:var(--paper);opacity:0;pointer-events:none}
+
+/* A line of words at the foot of the picture */
+#caption{position:absolute;left:0;right:0;bottom:0;height:330px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:70px;box-sizing:border-box;
+  background:linear-gradient(to bottom,transparent,color-mix(in srgb,var(--paper) 94%,transparent) 38%,var(--paper) 62%);opacity:0;pointer-events:none}
+#caption span{display:block;font:500 50px/1.2 var(--f-ui);letter-spacing:-.005em;color:var(--ink);text-align:center}
+#caption span b{font-weight:600;color:var(--brass-text)}
+
+/* The theka, a bol to a matra */
+#bols{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;opacity:0;pointer-events:none}
+#bols .row{display:flex;align-items:baseline;gap:42px;font:400 136px/1.1 var(--f-note);color:var(--ink)}
+#bols .row i{font-style:normal;display:inline-block;opacity:0;transform-origin:50% 80%}
+#bols .row u{text-decoration:none;display:inline-block;width:3px;height:124px;background:var(--red-ink);opacity:.5;align-self:center}
+#bols .what{font:500 44px/1.2 var(--f-ui);color:var(--ink-2);opacity:0}
+#bols .what b{font:400 50px/1 var(--f-note);color:var(--ink);margin-right:.35em}
+
+/* The name, at the start and the end */
+#name{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none}
+#nameLogo{width:1180px;line-height:0}
+#nameLogo svg{display:block;width:100%;height:auto;overflow:visible}
+#nameLogo text{font:italic 400 42px var(--f-note)}
+.lg-ink{fill:var(--ink)} .lg-river{fill:var(--river)}
+.lg-halo{stroke:var(--paper);stroke-linejoin:round;paint-order:stroke fill}
+.lg-stR{stop-color:var(--river)} .lg-stB{stop-color:var(--brass)}
+#nameTag{font:400 62px/1.3 var(--f-note);color:var(--brass-text);margin-top:8px;opacity:0}
+#nameUrl{font:600 40px/1 var(--f-ui);letter-spacing:.14em;color:var(--ink);margin-top:84px;opacity:0}
+
+#cursor{position:absolute;left:0;top:0;opacity:0;transform-origin:6px 4px;filter:drop-shadow(0 6px 10px rgba(30,15,5,.35));pointer-events:none}
+#ring{position:absolute;left:0;top:0;width:0;height:0;border-radius:50%;border:5px solid var(--brass);opacity:0;pointer-events:none;box-sizing:border-box}

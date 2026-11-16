@@ -15,7 +15,8 @@
     "test:watch": "vitest",
     "test:reference": "bash reference/tests/run-all.sh",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.core.json",
-    "test:app": "node tests/app/load.mjs"
+    "test:app": "node tests/app/load.mjs",
+    "film": "node dev/film/capture.mjs"
   },
   "devDependencies": {
     "typescript": "7.0.2",
