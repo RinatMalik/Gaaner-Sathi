@@ -238,7 +238,7 @@ keeps the Sa and tempo it was sung in (`sa`, `flat`).
 
 The keys and names here, and the files' `format` ids, keep the app's first name, Gaaner Sathi,
 for good: the app became Torongini on 2026-11-13, and renaming them would leave everything saved
-behind and stop old backups restoring (CONTEXT.md → Decisions, 2026-11-13).
+behind and stop old backups restoring (docs/DECISIONS.md, 2026-11-13).
 
 | Key | Holds |
 |---|---|
@@ -284,7 +284,7 @@ behind and stop old backups restoring (CONTEXT.md → Decisions, 2026-11-13).
 - *Why a database of its own:* a third version of `gaanersathi` with one more store would
   have closed that database under any page still open from before, which could then keep no
   take and no session's detail until refreshed. A new database touches nothing an older page
-  uses. (When the storage takes the app's new name, CONTEXT.md → Decisions 2026-11-13, the
+  uses. (When the storage takes the app's new name, docs/DECISIONS.md, 2026-11-13, the
   two can become one.)
 - **The browser is asked to keep it (2026-11-15; src/app/keep.ts).** A browser may clear
   everything a site keeps when the device runs short of space, unless the site asked for it to

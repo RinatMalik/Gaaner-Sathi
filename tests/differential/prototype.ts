@@ -1,8 +1,8 @@
 /**
  * The prototype's own code, cut out of reference/gaaner-sathi.html the way
  * reference/tests/extract.js does, so the port can be compared with it directly.
- * Kept after Phase 0: the prototype is these tests' oracle (CONTEXT.md, decision of
- * 2026-10-10).
+ * Kept after Phase 0: the prototype is these tests' oracle (docs/DECISIONS.md, decision
+ * of 2026-10-10).
  */
 import raw from '../../reference/gaaner-sathi.html?raw';
 

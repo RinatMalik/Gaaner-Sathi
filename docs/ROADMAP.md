@@ -156,16 +156,26 @@ routines and the log move across through files.
 Sizes are rough: S a few hours, M a day or two, L more.
 
 - **Learning songs:** play a line, then leave a gap to sing it back (call and response
-  without looping) (S); memory mode that hides the notes, then the lyrics, line by line (S).
+  without looping) (S); memory mode that hides the notes, then the lyrics, line by line (S);
+  **"Practise my weakest lines"**: one button that loops the weakest line, which the app
+  already works out for Progress and the song's report (S).
+- **Examples:** two or three whole songs beside the exercises, so that a newcomer sees words,
+  sections and taal changes at once (S, with Rinat typing them in). Tagore's songs are in the
+  public domain; check that the swaralipi they are taken from is too, as a notation is its
+  notator's work.
 - **Voice and ear:** free singing with the drone and the pitch meter, no song needed (S);
   sing-back ear training: the app plays a phrase, the singer repeats it, it scores (M).
 - **Writing the words:** type Bengali phonetically in the app (`amar` → আমার) without
   installing a keyboard (M). (Pasting a line of words split into syllables was built on
   2026-10-11.)
 - **Moving and sharing:** one file that moves everything to another device (songs, practice
-  log, rewaz routines, your settings) and brings it all back in (S); send a song to another
-  singer as a link that opens it, no file needed (S); a teacher sets a routine and the student
-  sends back scores (M).
+  log, rewaz routines, your settings) and brings it all back in (S); a teacher sets a routine
+  and the student sends back scores (M). Songs go from one singer to another as files, never
+  as links: a link would carry the song in its address (`docs/DECISIONS.md`, 2026-11-15).
+- **Keeping your data:** a backup reminder and a storage meter (how much of the browser's room
+  the songs, sessions and takes use), with "Download ticked takes" on the Voice page (M). The
+  reminder's first part is built: the Music library says when everything was last backed up
+  (FIX-02, 2026-11-15). Takes are in no backup yet (the review's finding 6).
 - **Keyboards:** typing a song in time as it is played (the rhythm from the playing, not just
   the notes) (M).
 - **Notation:** ornaments: meend, kan, andolan, murki, khatka in notation and playback (L,
@@ -173,12 +183,26 @@ Sizes are rough: S a few hours, M a day or two, L more.
 - **Recording:** practise with a recording of the original song: loop a section, slow it
   without changing the pitch, shift the key (L).
 - **Practice habits:** suggestions of what to revise today (songs not practised for a while)
-  (S); goals and daily reminders (native app) (S); a learning stage per song (new, learning,
-  ready to perform) (S).
-- **Hands-free:** a Bluetooth page-turner or foot pedal to play, stop and move between lines
-  (S).
+  (S), and with them an **auto rewaz**: "20 minutes from songs I haven't sung lately", a
+  routine made up on the spot from the practice log (S–M); goals and daily reminders (native
+  app) (S); a learning stage per song (new, learning, ready to perform) (S).
+- **Keys and pedals:** ← and → for the previous and next line, L to loop, R to restart, + and −
+  for the tempo (S). Bluetooth page-turners and foot pedals send arrow keys, so hands-free
+  playing and moving between lines comes with it. The Media Session API would add play and
+  pause from a headset and the lock screen (S).
 - **Sound:** recorded instruments (sampled harmonium, tabla, tanpura) instead of synthesis
   (L, see Parked).
+
+## Before the app goes public (Rinat, 2026-11-15)
+
+- **An About and privacy page:** what the app is, who makes it, and what it keeps (everything
+  on the device, nothing sent anywhere, the microphone heard only on the device), in plain
+  words.
+- **The licence decision** (Invariants → Licences: none chosen yet, all rights reserved).
+- **A contact:** how a singer reaches Rinat with a question or a fault.
+
+With them, the move to torongini.com (Open question 3), so that nobody starts keeping songs
+at the old address.
 
 ## After the app is public (Rinat, 2026-10-11)
 
@@ -192,7 +216,7 @@ Big additions, to consider once the app is public and popular.
 
 ## Parked (each needs Rinat's go-ahead)
 
-- **Permanent web address** (`CONTEXT.md` → Open question 3): the app's address, not one per
+- **Permanent web address** (`docs/WAITING.md` → Open questions, 3): the app's address, not one per
   song. Each person's songs live in their own browser under the site's address, so if the app
   moves (to torongini.com, bought 2026-11-13), everyone's songs stay at the old address until
   they back them up there and import them at the new one. Settle it before anyone besides

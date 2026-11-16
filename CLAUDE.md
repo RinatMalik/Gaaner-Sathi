@@ -1,10 +1,11 @@
 # CLAUDE.md
 
-**Read `CONTEXT.md` beginning of every conversation — and write to it at the end of every prompt response.**
-It is this project's single source of shared state: product direction, working rules, live state, the
-decisions in force and the newest work log. Before you end a prompt, update your Active work row, append a
-Work log entry, and commit your own work. Skip the Work log entry and the commit when a prompt changes no code
-or project structure (Rinat, 2026-10-10). `CONTEXT.md` is authoritative; this file only adds Claude-specific notes.
+**Read `CONTEXT.md` once, at the start of each fresh session — not at the start of every prompt.**
+On a follow-up prompt check only what changed (`git status --short`). A by-the-way question gets a
+direct answer, with nothing written. When work, a decision or the project's state changes, record
+the handover before ending the prompt (CONTEXT.md → How to use this file): a Work log entry, a row
+in `docs/DECISIONS.md`, Current state or `docs/WAITING.md`, then commit your own files and push
+(Rinat, 2026-11-15). `CONTEXT.md` is authoritative; this file only adds Claude-specific notes.
 
 ## Claude-specific notes
 
