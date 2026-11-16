@@ -84,7 +84,7 @@ button{cursor:pointer}
 /* the tagline in the gold of the app's buttons, starting under র, the name's second letter (Rinat,
    2026-11-13): its margin is logo.ts's logoParts().roX less the 0.5 px before the tagline's own first
    letter; tests/unit/logo.test.ts holds the two together */
-.brand .tagline{font-family:var(--f-note);font-size:16px;line-height:1.35;margin-top:0;margin-left:79px;color:var(--brass)}
+.brand .tagline{font-family:var(--f-note);font-size:16px;line-height:1.35;margin-top:0;margin-left:79px;color:var(--brass-text)}
 .btn{padding:7px 13px;border:1px solid var(--line);border-radius:9px;background:var(--sheet);font-weight:500;white-space:nowrap}
 .btn:hover{border-color:var(--ink-2)}
 .btn.danger{color:var(--red-ink)}
