@@ -183,7 +183,7 @@ film and the launch kit are out; and singers Rinat does not know are using it (R
   read from replies, the contact address and the film's view count, unless Rinat decides on a
   counter that keeps no personal data (a decision to record first).
 
-### The film (PUB-01, built 2026-11-16)
+### The film (PUB-01 built 2026-11-16; second cut, PUB-02, 2026-11-17)
 
 Rinat's model was Anthropic's film for Claude Design
 (https://www.anthropic.com/news/claude-design-anthropic-labs, 82 seconds). **The style is a
@@ -197,10 +197,9 @@ the real app, which is the same look for a tenth of the work and cannot show any
 app does not do.
 
 - **Where it is:** `dev/film/`. `score.ts` is the song and the clock; `sound.ts` renders the
-  soundtrack with the app's own engine (tanpura, harmonium, tabla: nothing recorded);
-  `film.ts` is the stage (the app in frames on paper, the camera, the typing, the cursor, the
-  words); `capture.mjs` steps a headless browser a frame at a time and has ffmpeg put the
-  file together. `npm run film` writes `dev/film/out/torongini-film.mp4` (not in git; 1920 ×
+  soundtrack with the app's own engine (nothing recorded); `film.ts` is the stage (the app in
+  frames on paper, the camera, the typing, the cursor, the words, the singer); `capture.mjs`
+  steps a headless browser a frame at a time and has ffmpeg put the file together. `npm run film` writes `dev/film/out/torongini-film.mp4` (not in git; 1920 ×
   1080); `npm run film -- --stills 12.5,31` writes pictures of those seconds, for looking at a
   change; `--fps`, `--scale`, `--from`, `--to`, `--sound-only` as its first lines say.
   `/dev/film/sound.html` on the dev server plays the music by itself.
@@ -208,36 +207,46 @@ app does not do.
   audio clock alone, and the stage makes that clock the film's. Play is pressed 0.12 s
   before the sam, as the app sounds its first beat 0.12 s after a press. Each render prints
   when the first beat was lit and when it sounds.
-- **What is in it,** in matras of Keherwa at 112 (a cycle is 4.3 s; 53 s in all):
+- **The second cut** (2026-11-17), after Rinat on the first: "the main format of the video is
+  ok but it is very boring. The example I shared is fast and punchy. This one created is slow
+  and boring and doesn't highlight some of the coolest features of the app. Use a more
+  interesting instrument set, better music and redo". Now 42.6 s in matras of Keherwa at 128,
+  played at double speed (a cycle is 3.75 s), a new song in Bhupali, eight lines, and a shot
+  of one to four matras with the cuts on the beat:
 
   | Matras | Picture | Sound | Words |
   |---|---|---|---|
-  | 0–8 | The name and the tagline on paper | Tanpura | |
-  | 8–16 | Close on the notation box: the first line typed, a note to a matra | Each note on the harmonium as it lands | Type your swaralipi once. |
-  | 16–24 | Back to the whole Edit view: the words, then three lines pasted; the cursor goes to Play | Tanpura | |
-  | 24–32 | Play pressed on the sam; close on the first line, the beat lit under its word | Tabla and harmonium come in | Press play, and sing. |
-  | 32–40 | The whole window | | Harmonium for the tune. Tabla for the taal. Tanpura for your Sa. |
-  | 40–48 | The theka, a bol to a matra, over the dimmed app | | কাহারবা Keherwa, one of nineteen taals |
-  | 48–56 | Close on the deck: the Sa and the reeds, then tempo, taal and instrument | A fill into the second round | Your Sa. Your tempo. Your taal. |
-  | 56–64 | Night falls on the sam; the first line again | Second round | By day, and by night. |
-  | 64–72 | The camera draws back to six views at once | | A library for your songs. A routine for your daily rewaz. |
-  | 72–80 | A laptop and a phone, the same beat lit on both | | On a phone or a laptop. Nothing to install. |
-  | 80–88 | In on the last line | | Your songs stay on your device. |
-  | 88–96 | The name, the tagline, torongini.com | The closing Dha; the tanpura dies away | |
+  | 0–8 | Close on the notation box: the first line typed, a note to a matra | Tanpura; each note on the harmonium as it lands; dholak and shaker creep in | Type your swaralipi. |
+  | 8–16 | The words typed, seven lines pasted, a snap out to the Edit view; cut to Practice, the cursor to Play | A tabla run builds to the sam | Words and all. Press play. |
+  | 16–24 | Play on the sam, a flash; line 1, then in on the deck | Harmonium on three reeds, tabla with manjira, a bass line | Harmonium. Tabla. Tanpura. Tabla |
+  | 24–32 | Dholak chosen on the sam; line 2 | Dholak, ghungroo, tambourine | Dholak. Manjira, ghungroo, kartal, and more. |
+  | 32–40 | Drums chosen on the sam; the taal's figure drawing itself; line 3 | Drums, claps, congas, shaker | Drums. Claps, congas, a shaker. Any mix. |
+  | 40–48 | Eight taals, a matra each, their figures drawn as they go | The drums go on | Nineteen taals, Tagore's own among them. |
+  | 48–56 | Check my pitch: a voice drawn over line 5, note by note | The drums drop out: one reed, shaker and ghungroo | Sing, and see every note. |
+  | 56–64 | Full screen: the score ring, then the loudness gauge | Tabla back, three reeds | Every line scored as you sing. |
+  | 64–72 | Night falls on the sam; out to six views at once | Drums and tabla together, the taan | Your songs. Your rewaz. Your progress. |
+  | 72–80 | The laptop and a phone, the same line lit on both | A harmonium drone joins | On a phone or a laptop. Nothing to install. Nothing leaves your device. |
+  | 80–88 | The name, the tagline, torongini.com | The last sam; the drone dies away | |
 
-- **What Rinat should know before showing it:** the song was written for the film: its words
-  are the app's name and tagline, its tune is Claude's, in Bhupali, and nobody who made it has
-  heard it. The bols are in Claude's Bengali spelling (ধা গে না তি | না কে ধিন না). The last
-  card says torongini.com, where the app is not yet: the film goes out after PUB-05. The pitch
-  check, the app's second strongest point, is not in it (PUB-02).
+- **What Rinat should know before showing it:** nobody who made it has heard it. The song was
+  written for the film: its tune is Claude's, in Bhupali; its words are the app's name and
+  tagline and Claude's "প্রাণ খুলে গান গাও / সুরে সুরে তালে তালে", for Rinat to correct or
+  replace. The bass line, the tabla under the drums, the harmonium drone and the hits on the
+  changes are the film's arrangement, made with the app's own instruments; the app alone plays
+  one rhythm at a time and no bass. The voice the app scores is made up by the stage (a tone
+  with a singer's slides and vibrato, sung as written) and is not in the soundtrack; it scores
+  90 to 100. The Progress view on the wall shows a made-up three weeks of practice. The last
+  card says torongini.com, where the app is not yet: the film goes out after PUB-05.
 - **The brief, for whoever changes it** (this is the prompt: give a session this section and
-  what Rinat wants changed). Film only the real app, never a drawing of it. One idea to a
-  shot; a shot is one cycle or half of one; close, then wide, then close. Place every cut,
-  word and press in matras from `score.ts`, never in seconds. A line of words is eight words
-  at most, UK English, sentence case, and true of the app today; Bengali comes from the app
-  or from Rinat. The stage clears and writes the app's storage, so it runs only in the
-  render's throwaway profile. After a change: `npm run typecheck`, stills of every shot
-  touched, read the render's "lit" against "sounds", then the whole film.
+  what Rinat wants changed). Film only the real app, never a drawing of it. **Fast and punchy**
+  (Rinat): one idea to a shot, a shot one to four matras; cut on the beat; moves snap fast and
+  settle; the music changes when the picture does (a new instrument on the deck is heard on
+  the same sam); show what is most striking (the instruments, the taals drawn, the pitch line,
+  the score). Place every cut, word and press in matras from `score.ts`, never in seconds. A
+  line of words is eight words at most, UK English, sentence case, and true of the app today;
+  Bengali comes from the app or from Rinat. The stage clears and writes the app's storage, so
+  it runs only in the render's throwaway profile. After a change: `npm run typecheck`, stills
+  of every shot touched, read the render's "lit" against "sounds", then the whole film.
 
 ### The tasks, a session each
 
@@ -245,9 +254,10 @@ Roughly in order. A task marked **Rinat** cannot start until Rinat has answered.
 
 | ID | Task | Needs from Rinat | Done when |
 |---|---|---|---|
-| PUB-01 | **The film, first cut** (built 2026-11-16, above) | To watch it with the sound on | Rinat says what stays and what changes |
-| PUB-02 | **The film, second cut:** Rinat's changes; **the pitch check in it** (a stand-in for the microphone's worklet in the stage, fed a sung line on the film's clock: one of Rinat's own takes saved from the Voice page, or a made-up voice, so the app's real detector draws its real trace); the tune and words as Rinat wants them | **Rinat:** the notes on the first cut; a take of the film's song, if Rinat's voice is to be in it | The film shows the app listening, and Rinat would post it |
-| PUB-03 | **The tall and the square cut** (1080 × 1920 for Reels, Shorts and WhatsApp status; 1080 × 1080 for a Facebook post), 20 to 30 s: the stage takes a size, the phone-sized app is the main card, shots framed again | PUB-02 agreed | Both files render from `npm run film -- --shape tall` and `--shape square` |
+| PUB-01 | **The film, first cut** (built 2026-11-16, above) | To watch it with the sound on | Done: Rinat, 2026-11-17, "the main format of the video is ok but it is very boring" |
+| PUB-02 | **The film, second cut** (built 2026-11-17, above): faster, with more instruments and the pitch check in it (a made-up voice sung into the app's own microphone path, so its real detector draws its real trace) | To watch it with the sound on | Rinat says what stays and what changes |
+| PUB-02b | **The film, third cut:** Rinat's notes on the second; the words of the song as Rinat wants them; Rinat's own voice in place of the made-up one, if wanted (a take of the film's song saved from the Voice page, fed to the stage instead) | **Rinat:** the notes; a take, if Rinat's voice is to be in it | Rinat would post it |
+| PUB-03 | **The tall and the square cut** (1080 × 1920 for Reels, Shorts and WhatsApp status; 1080 × 1080 for a Facebook post), 20 to 30 s: the stage takes a size, the phone-sized app is the main card, shots framed again | The film agreed (PUB-02b) | Both files render from `npm run film -- --shape tall` and `--shape square` |
 | PUB-04 | **Before the launch** (below → Before the app goes public): the About and privacy page, the licence, the contact | **Rinat:** which licence; the contact address; free, paid or donations (Open question 4); who is named as the maker | The page is in the app and says all three |
 | PUB-05 | **The move to torongini.com,** with the storage's new name in the same release (Open question 3; below → Before the app goes public) | **Rinat:** the go-ahead, the songs exported first, and the domain's DNS set as the task will list | The app answers at torongini.com and the old address forwards |
 | PUB-06 | **What a pasted link shows, and being found:** title and description, Open Graph tags, a 1200 × 630 picture drawn by a dev page as the icon is, `robots.txt` and a sitemap, the About page's words in English and Bengali so that a search for স্বরলিপি or swaralipi can find them | PUB-05 done; the Bengali wording read by Rinat | The link pasted into WhatsApp and Facebook shows the name, a line and the picture |

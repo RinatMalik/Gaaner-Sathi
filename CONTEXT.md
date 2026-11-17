@@ -61,10 +61,12 @@ wins, except a later explicit decision by Rinat, which always wins.
 
 - **Milestone:** Phase 3, going public (ROADMAP.md → Phase 3), opened by Rinat on 2026-11-16:
   publishing, marketing, PR and distribution, in tasks of a session each (`PUB-01` to
-  `PUB-11`), most of which wait for an answer from Rinat first. **PUB-01, the film, is built:**
-  53 seconds in the manner of Anthropic's film for Claude Design, made by code from the real
-  app (`dev/film/`, `npm run film`), with the app's own tanpura, harmonium and tabla as its
-  music; the file is `dev/film/out/torongini-film.mp4` (not in git). Phase 2, the design, was
+  `PUB-11`), most of which wait for an answer from Rinat first. **The film's second cut (PUB-02,
+  2026-11-17) is built,** after Rinat found the first "very boring": 42.6 seconds in the manner
+  of Anthropic's film for Claude Design, fast and punchy, made by code from the real app
+  (`dev/film/`, `npm run film`): tabla, dholak and drums changed on the deck as it plays, the
+  taals drawn, a made-up singer scored by the app's own pitch check; the file is
+  `dev/film/out/torongini-film.mp4` (not in git). Phase 2, the design, was
   closed the same day: begun 2026-10-11, Rinat's
   comments on the screen came in rounds and each was built as it came. Rounds one to sixty-one
   (PH2-01 to PH2-61) are built and live, each listed in ROADMAP.md; fourteen and fifteen were
@@ -92,10 +94,10 @@ wins, except a later explicit decision by Rinat, which always wins.
   61-key keyboard); the songs and exercises are at Sa C♯4, and the default 3-reed guide is heard
   at C♯3 (its bass reed: the app's detector reads it at 138.5 Hz), so Rinat matches the guide.
   "Octave must match" judged against C♯4; from round forty-two the bass reed's octave counts too.
-- **Next single action:** Rinat watches the film with the sound on and says what stays and what
-  changes (ROADMAP.md → Phase 3 → The film: what to know before showing it), and answers what
-  PUB-04 and PUB-05 wait for (licence, contact, the move to torongini.com).
-- **Last known-good commit:** `8e76fff` (CI run `43748544647` green: the review's findings 4 and 5 live, FIX-02, on top of its first three, FIX-01: a page held up goes on from where the clock is, the browser is asked to keep the data, the Music library says when everything was last backed up; the site serves `index-B8mgKuWd.js` and `index-DzcY-4Jx.css`).
+- **Next single action:** Rinat watches the second cut with the sound on and says what stays and
+  what changes (ROADMAP.md → Phase 3 → The film: what to know before showing it; then PUB-02b),
+  and answers what PUB-04 and PUB-05 wait for (licence, contact, the move to torongini.com).
+- **Last known-good commit:** `89506af` (CI run `43974418941` green: the film's first cut and Phase 3 opened, on top of the review's fixes, FIX-01 to FIX-03, and the test that loads the built app in a browser).
 - **Run it:** https://rinatmalik.github.io/Gaaner-Sathi/ (opens on a phone too; `/new/`
   forwards there). Locally: `npm install`, `npm run dev`, `npm test` (Conventions → Commands).
 - **Blockers:** none. **Uncommitted work:** none.
@@ -432,6 +434,22 @@ Template:
     - **Decisions made:** rows added to `docs/DECISIONS.md`.
     - **Risks or disagreements:** what is unchecked or uncertain.
     - **Next handoff:** the next step, and who takes it.
+
+### 2026-11-17 GMT — Claude (Opus 5.5) — PUB-02 the film's second cut
+
+- **Goal:** Rinat: "very boring. The example I shared is fast and punchy … doesn't highlight some
+  of the coolest features of the app. Use a more interesting instrument set, better music and redo".
+- **Changed:** `feat(film)`: a new song and arrangement at 128, double speed (`score.ts`,
+  `sound.ts`); shots of one to four matras on the beat, the deck changed on the sam, the taals
+  drawn, a made-up singer in the app's microphone path, full screen, a wall of views (`film.ts`,
+  `film.css`, `index.html`). `docs`: ROADMAP (the film, PUB-02, PUB-02b), DECISIONS (three rows).
+- **Tests / verification:** `npm run typecheck` clean; `npm test` 643 passed (58 files). `node
+  dev/film/capture.mjs --fps 60`: 42.55 s, 1920 × 1080, 18 MB; first beat lit 7.8 s and sounding
+  7.8 s, line 5 22.8 both, line 8 34.05 both; the pitch check "98 Superb!", average 87; sound
+  −13.9 LUFS, true peak −1.3 dB. Stills of every shot read at full size; the film as 64 frames.
+- **Risks:** nobody has heard it (tune, arrangement and levels unheard); the song's new words are
+  Claude's; the singer and the Progress view's three weeks are made up (ROADMAP → The film).
+- **Next handoff:** Rinat watches and listens; then PUB-02b.
 
 ### 2026-11-16 GMT — Claude (Fable 5.2) — PUB-01 the film; Phase 2 closed, Phase 3 (going public) opened
 
