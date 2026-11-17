@@ -4,12 +4,14 @@
 :root{
   --paper:#eceeea; --sheet:#fbfbf8; --ink:#1b1c24; --ink-2:#5c5f6c; --river:#2569ad; --brass:#c4952b; --brass-text:#8a6514;
   --red-ink:#b3261e; --card-shadow:0 2px 6px rgba(40,22,10,.10),0 28px 80px rgba(40,22,10,.22);
+  --v-sam-line:#b8892a; --v-tali-line:#6b9a5e; --v-khali-line:#8a76bd;
   --f-note:"Tiro Bangla","Noto Serif Bengali",Georgia,serif;
   --f-ui:"Hind Siliguri","Noto Sans Bengali",system-ui,sans-serif;
 }
 :root[data-night]{
   --paper:#111115; --sheet:#19191f; --ink:#ecebe5; --ink-2:#a2a3ae; --river:#6fa8e8; --brass:#d3a843; --brass-text:#d3a843;
   --red-ink:#ff8d7e; --card-shadow:0 2px 6px rgba(0,0,0,.5),0 28px 90px rgba(0,0,0,.7);
+  --v-sam-line:#d3a843; --v-tali-line:#79b06c; --v-khali-line:#a492dc;
 }
 html,body{margin:0;background:#000;overflow:hidden}
 #refuse{font:16px/1.5 system-ui,sans-serif;color:#eee;padding:24px;max-width:60ch}
@@ -21,22 +23,36 @@ html,body{margin:0;background:#000;overflow:hidden}
 
 /* What dims the app while words stand over it */
 #shade{position:absolute;inset:0;background:var(--paper);opacity:0;pointer-events:none}
+/* Light on the drops */
+#flash{position:absolute;inset:0;background:radial-gradient(ellipse 70% 80% at 50% 50%,color-mix(in srgb,var(--brass) 55%,#fff) 0%,color-mix(in srgb,var(--brass) 30%,transparent) 45%,transparent 80%);opacity:0;pointer-events:none}
 
-/* A line of words at the foot of the picture */
-#caption{position:absolute;left:0;right:0;bottom:0;height:330px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:70px;box-sizing:border-box;
-  background:linear-gradient(to bottom,transparent,color-mix(in srgb,var(--paper) 94%,transparent) 38%,var(--paper) 62%);opacity:0;pointer-events:none}
-#caption span{display:block;font:500 50px/1.2 var(--f-ui);letter-spacing:-.005em;color:var(--ink);text-align:center}
-#caption span b{font-weight:600;color:var(--brass-text)}
+/* The words at the foot of the picture, coming in a word at a time */
+#caption{position:absolute;left:0;right:0;bottom:0;height:380px;display:flex;align-items:flex-end;justify-content:center;padding:0 110px 74px;box-sizing:border-box;
+  background:linear-gradient(to bottom,transparent,color-mix(in srgb,var(--paper) 88%,transparent) 40%,var(--paper) 70%);opacity:0;pointer-events:none}
+#caption .cap{display:block;font:600 70px/1.12 var(--f-ui);letter-spacing:-.018em;color:var(--ink);text-align:center}
+#caption .cap.big{font-size:168px;line-height:1;letter-spacing:-.035em}
+#caption .w{display:inline-block;white-space:pre;transform-origin:50% 90%}
+#caption b{font-weight:700;color:var(--brass-text)}
 
-/* The theka, a bol to a matra */
-#bols{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;opacity:0;pointer-events:none}
-#bols .row{display:flex;align-items:baseline;gap:42px;font:400 136px/1.1 var(--f-note);color:var(--ink)}
-#bols .row i{font-style:normal;display:inline-block;opacity:0;transform-origin:50% 80%}
-#bols .row u{text-decoration:none;display:inline-block;width:3px;height:124px;background:var(--red-ink);opacity:.5;align-self:center}
-#bols .what{font:500 44px/1.2 var(--f-ui);color:var(--ink-2);opacity:0}
-#bols .what b{font:400 50px/1 var(--f-note);color:var(--ink);margin-right:.35em}
+/* The taals, a matra each */
+#taals{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:64px;opacity:0;pointer-events:none}
+#taals .grid{display:grid;grid-template-columns:repeat(4,390px);gap:54px 30px}
+#taals .tl{display:flex;flex-direction:column;align-items:center;gap:14px;opacity:0}
+#taals .tg{display:flex;align-items:center;justify-content:center;gap:10px;height:118px}
+#taals .tfs{display:block;height:auto;overflow:visible}
+#taals .tl b{font:400 58px/1.05 var(--f-note);color:var(--ink)}
+#taals .tl.now b{color:var(--brass-text)}
+#taals .tl span{font:500 26px/1 var(--f-ui);color:var(--ink-2);letter-spacing:.03em}
+#taals .line{font:600 64px/1.15 var(--f-ui);letter-spacing:-.015em;color:var(--ink);opacity:0}
+.v-sam{--vk:var(--v-sam-line)} .v-tali{--vk:var(--v-tali-line)} .v-khali{--vk:var(--v-khali-line)}
+.tff{fill:var(--vk);fill-opacity:0;stroke:none}
+.tfo{fill:none;stroke:color-mix(in srgb,var(--ink-2) 45%,transparent);stroke-width:1.3;stroke-linejoin:round}
+.v-khali .tfo{stroke-dasharray:2.6 2.4}
+.tfp{fill:none;stroke:var(--vk);stroke-width:2.8;stroke-linejoin:round;stroke-linecap:round}
+.tfv{fill:var(--sheet);stroke:var(--ink-2);stroke-width:1.2}
+.tfv.done{fill:var(--vk);stroke:var(--vk)}
 
-/* The name, at the start and the end */
+/* The name, at the end */
 #name{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none}
 #nameLogo{width:1180px;line-height:0}
 #nameLogo svg{display:block;width:100%;height:auto;overflow:visible}
